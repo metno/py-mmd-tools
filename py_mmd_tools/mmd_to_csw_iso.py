@@ -62,3 +62,4 @@ def mmd_to_iso(mmd_file, outputfile, mmd2isocsw=None, mmd_validation=False, mmd_
         output.write(mmd_xml_as_string)
         logger.info(f'ISO xml output wrote to: {outputfile}')
         return True
+        
