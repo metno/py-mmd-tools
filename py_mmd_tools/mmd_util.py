@@ -1,8 +1,9 @@
 """
 Utility tool to work on mmd xml files.
-Author:    Massimo Di Stefano,
-Created:   03.10.2020 (dd.mm.YYYY)
-Copyright: (c) Norwegian Meteorological Institute
+
+ License:
+     This file is part of the S-ENDA-Prototype repository (https://github.com/metno/S-ENDA-Prototype).
+     S-ENDA-Prototype is licensed under GPL-3.0 (https://github.com/metno/S-ENDA-Prototype/blob/master/LICENSE)
 """
 
 import lxml.etree as ET
@@ -42,11 +43,6 @@ def setup_log(name):
     logger.addHandler(log_handler)
     return logger
 
-#logging.basicConfig(
-#    filename=logfile,
-#    format='%(asctime)s %(levelname)-8s %(message)s',
-#    level=logging.DEBUG,
-#    datefmt='%Y-%m-%d %H:%M:%S')
 
 def xml_check(xml_file):
     logger = setup_log('xml_check')
