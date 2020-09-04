@@ -3,9 +3,9 @@ from py_mmd_tools import mmd_to_csw_iso
 Script to run the mmd_to_csw_iso.mmd_to_iso method
 
  License:
-     This file is part of the S-ENDA-Prototype repository (https://github.com/metno/S-ENDA-Prototype).
-     S-ENDA-Prototype is licensed under GPL-3.0 (https://github.com/metno/S-ENDA-Prototype/blob/master/LICENSE)
-     
+     This file is part of the S-ENDA-Prototype repository (https://github.com/metno/py-mmd-tools).
+     S-ENDA-Prototype is licensed under GPL-3.0 (https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
+
 Usage: python mmd2iso-csw.py [-h] -i INPUT_MMD -o OUTPUT_ISO -t INPUT_XSLT [--xsd-mmd XSD_MMD] [--mmd-validation [MMD_VALIDATION]]
 EXAMPLE: python scripts/mmd2iso-csw.py -i sentinel-1-mmd.xml -o out.xml --mmd-validation 'False'
 """

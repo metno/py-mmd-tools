@@ -2,8 +2,8 @@
 Tool for converting metadata from MMD format to ISO format using a specific xslt.
 
  License:
-     This file is part of the S-ENDA-Prototype repository (https://github.com/metno/S-ENDA-Prototype).
-     S-ENDA-Prototype is licensed under GPL-3.0 (https://github.com/metno/S-ENDA-Prototype/blob/master/LICENSE)
+     This file is part of the S-ENDA-Prototype repository (https://github.com/metno/py-mmd-tools).
+     S-ENDA-Prototype is licensed under GPL-3.0 (https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
 """
 
 import lxml.etree as ET
@@ -56,7 +56,8 @@ def mmd_to_iso(mmd_file, outputfile, mmd2isocsw=None, mmd_validation=False, mmd_
             return False
     if pathlib.Path(outputfile).is_file():
         logger.warning(f'file {outputfile} already exist and will be overwrite')         
-        time.sleep(2)
+        # TODO: give time to hit ctrl+c in case of unwanted file overwriting? 
+        # or prompt the user to accept overwriting unless a specifig flag/option is used?
     with open(outputfile, 'w') as output:
         output.write(mmd_xml_as_string)
         logger.info(f'ISO xml output wrote to: {outputfile}')

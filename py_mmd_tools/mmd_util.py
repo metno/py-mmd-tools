@@ -2,8 +2,8 @@
 Utility tool to work on mmd xml files.
 
  License:
-     This file is part of the S-ENDA-Prototype repository (https://github.com/metno/S-ENDA-Prototype).
-     S-ENDA-Prototype is licensed under GPL-3.0 (https://github.com/metno/S-ENDA-Prototype/blob/master/LICENSE)
+     This file is part of the S-ENDA-Prototype repository (https://github.com/metno/py-mmd-tools).
+     S-ENDA-Prototype is licensed under GPL-3.0 (https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
 """
 
 import lxml.etree as ET
