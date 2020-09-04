@@ -1,4 +1,14 @@
 from py_mmd_tools import mmd_to_csw_iso    
+"""
+Script to run the mmd_to_csw_iso.mmd_to_iso method
+Author:    Massimo Di Stefano,
+Created:   03.10.2020 (dd.mm.YYYY)
+Copyright: (c) Norwegian Meteorological Institute
+Usage: python mmd2iso-csw.py [-h] -i INPUT_MMD -o OUTPUT_ISO -t INPUT_XSLT [--xsd-mmd XSD_MMD] [--mmd-validation [MMD_VALIDATION]]
+EXAMPLE: python scripts/mmd2iso-csw.py -i sentinel-1-mmd.xml -o out.xml --mmd-validation 'False'
+"""
+
+
 
 def main(mmd_file, outputfile, mmd2isocsw, mmd_xsd_schema, mmd_validation):
     print(mmd_validation)
@@ -24,7 +34,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description='Convert mmd xml files to ISO')
     parser.add_argument("-i", "--input-mmd", help="mmd input file", required=True)
     parser.add_argument("-o", "--output-iso", help="output ISO file", required=True)
-    parser.add_argument("-t", "--input-xslt", help="input xslt translation file", required=True)
+    parser.add_argument("-t", "--input-xslt", help="input xslt translation file", required=False)
     parser.add_argument("--xsd-mmd", help="input xsd validation file for mmd", required=False)
     parser.add_argument("--mmd-validation", type=str2bool, nargs='?',
                         const=True, default=False,
@@ -34,7 +44,7 @@ def parse_arguments():
 
 if __name__ == '__main__':
     args = parse_arguments()
-    print(args)
+
     # import confuse                                                                                                                                           
     # config = confuse.Configuration('mmdtool', __name__) 
     # mmd_file = config['paths']['example_mmd'].get() 
