@@ -14,7 +14,8 @@ import confuse
 import lxml.etree as ET
 from confuse.exceptions import NotFoundError
 from mmd_util import mmd_check, setup_log
-
+import errno
+import os
 
 def mmd_to_iso(
     mmd_file,
@@ -24,7 +25,6 @@ def mmd_to_iso(
     mmd_xsd_schema=None,
     iso_validation=False,
 ):
-    logger = setup_log("mmd_to_iso")
     """[Transform MMD file to ISO using xslt]
     Args:
         mmd_file ([str]): [filepath to an mmd xml file]
@@ -36,6 +36,13 @@ def mmd_to_iso(
         [bool]: [return True if a the MMD filepath provided is succesfully converted to ISO, 
         return False if the mmd xmlfile is invalid, or doesn't exist or conversion to iso Failed ]
     """
+    logger = setup_log("mmd_to_iso")
+    if not pathlib.Path(mmd_file).exists():
+        logger.error(
+                    f"path to {mmd_file} not found"
+                )
+        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), mmd_file)
+        
     if mmd_validation:
         if not mmd_check(mmd_file, mmd_xsd_schema=mmd_xsd_schema):
             return False
@@ -49,6 +56,7 @@ def mmd_to_iso(
                     f"path to mmd2isocsw not provided and/or not found in the configuration file"
                 )
                 return False
+    
     mmd_doc = ET.ElementTree(file=mmd_file)
     transform_to_iso = ET.XSLT(ET.parse(mmd2isocsw))
     iso_doc = transform_to_iso(mmd_doc)
