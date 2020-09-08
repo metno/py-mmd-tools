@@ -9,7 +9,8 @@ Utility tool to work on mmd xml files.
 import logging
 import pathlib
 import time
-
+import errno
+import os
 import confuse
 import lxml.etree as ET
 from confuse.exceptions import NotFoundError
@@ -61,11 +62,11 @@ def xml_check(xml_file):
                 logger.info(f"valid xml file {xml_file} passed to xml_check")
                 return True
             except ET.XMLSyntaxError:
-                logger.warning(f"invalid xml file {xml_file} passed to xml_check")
+                logger.error(f"invalid xml file {xml_file} passed to xml_check")
                 return False
     else:
-        logger.warning(f"xml file {xml_file} not found")
-        return False
+        logger.error(f"xml file {xml_file} not found")
+        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), xml_file)
 
 
 def mmd_check(mmd_file, mmd_xsd_schema=None):
