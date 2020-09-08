@@ -39,7 +39,11 @@ class test_pymmdtools(unittest.TestCase):
         # config = confuse.Configuration('mmdtool', __name__)
         # """
         #
-        # run this test with:
+        # example file used in this test can be found at:
+        # https://gist.github.com/934db4d3cf4e7a52985a3e231e0d36cf
+        #
+        # run this test from the module directory by running:
+        #
         # python3 -m unittest test_mmdtoiso.py
         #
         config = confuse.Configuration("mmdtool", __name__)
