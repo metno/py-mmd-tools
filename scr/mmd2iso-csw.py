@@ -1,3 +1,5 @@
+import argparse
+
 from py_mmd_tools import mmd_to_csw_iso
 
 """
@@ -13,7 +15,7 @@ EXAMPLE: python scripts/mmd2iso-csw.py -i sentinel-1-mmd.xml -o out.xml --mmd-va
 
 
 def main(mmd_file, outputfile, mmd2isocsw, mmd_xsd_schema, mmd_validation):
-    print(mmd_validation)
+    # print(mmd_validation)
     mmd_to_csw_iso.mmd_to_iso(
         mmd_file=mmd_file,
         outputfile=outputfile,
@@ -21,9 +23,6 @@ def main(mmd_file, outputfile, mmd2isocsw, mmd_xsd_schema, mmd_validation):
         mmd_xsd_schema=mmd_xsd_schema,
         mmd_validation=mmd_validation,
     )
-
-
-import argparse
 
 
 def str2bool(v):
@@ -38,6 +37,7 @@ def str2bool(v):
 
 
 def parse_arguments():
+    #
     parser = argparse.ArgumentParser(description="Convert mmd xml files to ISO")
     parser.add_argument("-i", "--input-mmd", help="mmd input file", required=True)
     parser.add_argument("-o", "--output-iso", help="output ISO file", required=True)
@@ -81,5 +81,4 @@ if __name__ == "__main__":
         mmd_xsd_schema=mmd_xsd_schema,
         mmd_validation=mmd_validation,
     )
-    
-    
+
