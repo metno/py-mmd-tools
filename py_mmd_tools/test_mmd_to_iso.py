@@ -5,7 +5,7 @@ import confuse
 
 
 class test_pymmdtools(unittest.TestCase):
-    def test_mmd2iso(self):
+    def setUp(self):
         # Note:
         # The "confuse" library is used to pass the path string for static files
         # used to perform the test.
@@ -44,13 +44,16 @@ class test_pymmdtools(unittest.TestCase):
         #
         # run this test from the module directory by running:
         #
-        # python3 -m unittest test_mmdtoiso.py
+        # python3 test_mmdtoiso.py
         #
-        config = confuse.Configuration("mmdtool", __name__)
-        reference_mmd = config["paths"]["reference_mmd"].get()
-        reference_iso = config["paths"]["reference_iso"].get()
-        mmd2iso_xslt = config["paths"]["mmd2isocsw"].get()
         # unset the output limit when printing the xml diff
+        #
+        config = confuse.Configuration('mmdtool', __name__)
+        self.reference_mmd = config['paths']['reference_mmd'].get()
+        self.reference_iso = config['paths']['reference_iso'].get()
+        self.mmd2iso_xslt = config['paths']['mmd2isocsw'].get()
+
+    def test_mmd2iso(self):
         self.maxDiff = None
         tested = tempfile.mkstemp()[1]
         mmd_to_iso(
@@ -64,4 +67,8 @@ class test_pymmdtools(unittest.TestCase):
             unittest.TestCase.assertMultiLineEqual(
                 self, first=reference_iso_string, second=tested_string
             )
+
+            
+if __name__=="__main__":
+    unittest.main()
 
