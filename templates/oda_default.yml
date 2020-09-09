@@ -1,0 +1,10 @@
+title: 'Common title for all ODA data'
+abstract: 'Common abstract for all ODA data'
+iso_topic_category: 'climatologyMeteorologyAtmosphere'
+metadata_status: 'Active'
+production_status: 'open'
+geographic_extent:
+        latitude_min: '-90'
+        latitude_max: '90'
+        longitude_min: '-180'
+        longitude_max: '180'

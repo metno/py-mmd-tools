@@ -1,0 +1,49 @@
+<mmd:mmd xmlns:mmd="http://www.met.no/schema/mmd" xmlns:gml="http://www.opengis.net/gml">
+    <mmd:metadata_identifier>{{ data['metadata_identifier'] }}</mmd:metadata_identifier>
+    {% if data['alternate_identifier'] -%}
+    {% for alt in data['alternate_identifier'] -%}
+    <mmd:alternate_identifier type="{{ alt['Identifier_type'] }}">{{ alt['Identifier'] }}</mmd:alternate_identifier>
+    {% endfor -%}
+    {% endif -%}
+    <mmd:title>Observation from weather station {{ data['station_name'] }} (station ID {{ data['station_id'] }})</mmd:title>
+    <mmd:abstract>{{ data['abstract'] }}</mmd:abstract>
+    <mmd:metadata_status>{{ data['metadata_status'] }}</mmd:metadata_status>
+    <mmd:dataset_production_status>{{ data['dataset_production_status'] }}</mmd:dataset_production_status>
+    {% if data['collection'] -%}
+    {% for collection in data['collection'] -%}
+    <mmd:collection>{{ collection }}</mmd:collection>
+    {% endfor -%}
+    {% endif -%}
+    <mmd:last_metadata_update>
+        <mmd:update>
+                <mmd:datetime>{{ data['last_metadata_update'] }}</mmd:datetime>
+                <mmd:type>Created</mmd:type>
+        </mmd:update>
+    </mmd:last_metadata_update>
+    <mmd:temporal_extent>
+        <mmd:start_date>{{ data['temporal_extent']['start_date'] }}</mmd:start_date>
+    	{% if data['temporal_extent']['end_date'] -%}
+        <mmd:end_date>{{ data['temporal_extent']['end_date'] }}</mmd:end_date>
+    	{% endif -%}
+    </mmd:temporal_extent>
+    <mmd:iso_topic_category>{{ data['iso_topic_category'] }}</mmd:iso_topic_category>    
+    <mmd:keywords vocabulary="Climate and Forecast Standard Names">
+    	{% if data['keywords_cf'] -%}
+    	{% for key in data['keywords_cf'] -%}
+    	<mmd:keyword>{{ key }}</mmd:keyword>
+    	{% endfor -%}
+    	{% endif -%}
+    </mmd:keywords>
+    <mmd:dataset_language>en</mmd:dataset_language>
+    {% if data['operational_status'] -%}
+    <mmd:operational_status>{{ data['operational_status'] }}</mmd:operational_status>
+    {% endif -%}
+    <mmd:geographic_extent>
+        <mmd:rectangle srsName="EPSG:4326">
+            <mmd:north>{{ data['rectangle']['north'] }}</mmd:north>
+            <mmd:south>{{ data['rectangle']['south'] }}</mmd:south>
+            <mmd:west>{{ data['rectangle']['west'] }}</mmd:west>
+	    <mmd:east>{{ data['rectangle']['east'] }} </mmd:east>
+        </mmd:rectangle>
+    </mmd:geographic_extent>
+</mmd:mmd>
