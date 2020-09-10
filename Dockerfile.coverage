@@ -9,6 +9,7 @@ RUN apt-get update && \
     apt-get install -y git && \
     apt-get clean && \
     pip install \
+        "confuse" \
         "coverage==5.1" \
         "coveralls>=2" \
         "lxml==4.5" \
