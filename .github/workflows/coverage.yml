@@ -34,6 +34,7 @@ jobs:
         run: |
           pip install pytest
           pip install pytest-cov
+          pip install confuse
       - name: Checkout py-mmd-tools
         uses: actions/checkout@v2
       - name: Run Tests
