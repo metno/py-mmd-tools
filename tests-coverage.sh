@@ -1,6 +1,6 @@
 #!/bin/bash
 
-coverage run --source py_mmd_tools py_mmd_tools
+coverage run --omit=tests/* --source py_mmd_tools py_mmd_tools
 coverage report
 
 echo
