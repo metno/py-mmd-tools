@@ -57,11 +57,11 @@ class test_pymmdtools(unittest.TestCase):
         self.maxDiff = None
         tested = tempfile.mkstemp()[1]
         mmd_to_iso(
-            mmd_file=reference_mmd,
+            mmd_file=self.reference_mmd,
             outputfile=tested,
-            mmd2isocsw=mmd2iso_xslt,
+            mmd2isocsw=self.mmd2iso_xslt,
         )
-        with open(reference_iso) as reference, open(tested) as tested:
+        with open(self.reference_iso) as reference, open(tested) as tested:
             reference_iso_string = reference.read()
             tested_string = tested.read()
             unittest.TestCase.assertMultiLineEqual(
