@@ -1,0 +1,17 @@
+version: '3.4'
+
+services:
+  unittests:
+    build:
+      context: .
+      dockerfile: Dockerfile.unittests
+    environment:
+      CI: "${CI}"
+      GITHUB_REF: "${GITHUB_REF}"
+      GITHUB_SHA: "${GITHUB_SHA}"
+      GITHUB_ACTIONS: "${GITHUB_ACTIONS}"
+    volumes:
+      - .:/src
+    command: ./run_unittests.sh
+
+

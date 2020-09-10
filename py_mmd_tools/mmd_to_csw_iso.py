@@ -13,7 +13,7 @@ import time
 import confuse
 import lxml.etree as ET
 from confuse.exceptions import NotFoundError
-from mmd_util import mmd_check, setup_log
+from py_mmd_tools.mmd_util import mmd_check, setup_log
 import errno
 import os
 
