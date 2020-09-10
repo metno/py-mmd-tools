@@ -1,4 +1,4 @@
-![tests](https://github.com/metno/py-mmd-tools/workflows/tests/badge.svg)
+![tests](https://github.com/metno/py-mmd-tools/workflows/tests/badge.png)
 [![Coverage Status](https://coveralls.io/repos/github/metno/py-mmd-tools/badge.png?branch=master)](https://coveralls.io/github/metno/py-mmd-tools?branch=master)
 
 # py-mmd-tools
