@@ -35,6 +35,7 @@ jobs:
           pip install pytest
           pip install pytest-cov
           pip install confuse
+          pip install lxml==4.5
       - name: Checkout py-mmd-tools
         uses: actions/checkout@v2
       - name: Run Tests
