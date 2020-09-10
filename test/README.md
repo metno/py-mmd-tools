@@ -1,9 +1,9 @@
 # Usage via command line
 
-To run the test, run the following command from the test directory.
+To run the test, run the following command:
 
 ```bash
-python3 -m unittest test_mmd_to_iso.py
+python3 test/test_mmd_to_iso.py
 ```
 
 Make sure that your environment has access to a configuration file (or replace the path as described above) and that the module is importable.
