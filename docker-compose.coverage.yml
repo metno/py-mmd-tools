@@ -13,5 +13,5 @@ services:
       GITHUB_ACTIONS: "${GITHUB_ACTIONS}"
     volumes:
       - .:/src
-    command: ./tests-coverage.sh
+    command: ./coverage-tests.sh
 

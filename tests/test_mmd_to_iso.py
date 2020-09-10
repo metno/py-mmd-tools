@@ -1,7 +1,7 @@
 import tempfile
 import unittest
-from py_mmd_tools.mmd_to_csw_iso import mmd_to_iso
 import confuse
+from py_mmd_tools.mmd_to_csw_iso import mmd_to_iso
 
 
 class test_pymmdtools(unittest.TestCase):
@@ -69,6 +69,6 @@ class test_pymmdtools(unittest.TestCase):
             )
 
             
-if __name__=="__main__":
+if __name__=='__main__':
     unittest.main()
 
