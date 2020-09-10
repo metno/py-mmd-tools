@@ -1,6 +1,6 @@
 import tempfile
 import unittest
-from mmd_to_csw_iso import mmd_to_iso
+from py_mmd_tools.mmd_to_csw_iso import mmd_to_iso
 import confuse
 
 

@@ -1,0 +1,23 @@
+
+name: coverage
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+env:
+  COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: run coverage testing
+      run: |
+        docker-compose -f docker-compose.coverage.yml up --exit-code-from coverage
