@@ -1,0 +1,44 @@
+
+name: coverage
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+env:
+  COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: run coverage testing
+      run: |
+        docker-compose -f docker-compose.coverage.yml up --exit-code-from coverage
+
+  pyTestCov:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Python Setup
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+          architecture: x64
+      - name: Install Dependencies
+        run: |
+          pip install pytest
+          pip install pytest-cov
+          pip install confuse
+          pip install lxml==4.5
+      - name: Checkout py-mmd-tools
+        uses: actions/checkout@v2
+      - name: Run Tests
+        run: pytest -v --cov=py_mmd_tools
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v1
