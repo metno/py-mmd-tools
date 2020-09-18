@@ -12,6 +12,7 @@ RUN apt-get update && \
                 "confuse" \
                 "coverage==5.1" \
                 "coveralls>=2" \
+                "jinja2" \
                 "lxml==4.5" \
                 "mock" \
                 "netCDF4>=1.5,<=1.6" \
