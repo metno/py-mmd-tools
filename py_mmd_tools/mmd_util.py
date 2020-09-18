@@ -8,7 +8,6 @@ Utility tool to work on mmd xml files.
 
 import logging
 import pathlib
-import time
 import errno
 import os
 import confuse
@@ -96,6 +95,7 @@ def mmd_check(mmd_file, mmd_xsd_schema=None):
             xmlschema_mmd = ET.XMLSchema(ET.parse(mmd_xsd_schema))
             mmd_doc = ET.ElementTree(file=mmd_file)
             if not xmlschema_mmd.validate(mmd_doc):
+                logger.debug(xmlschema_mmd.error_log)
                 logger.error(f"mmd validation failed")
                 return False
             else:

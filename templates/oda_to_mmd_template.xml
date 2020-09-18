@@ -5,15 +5,11 @@
     <mmd:alternate_identifier type="{{ alt['Identifier_type'] }}">{{ alt['Identifier'] }}</mmd:alternate_identifier>
     {% endfor -%}
     {% endif -%}
-    <mmd:title>Observation from weather station {{ data['station_name'] }} (station ID {{ data['station_id'] }})</mmd:title>
-    <mmd:abstract>{{ data['abstract'] }}</mmd:abstract>
+    <mmd:title>{{ data['title_full'] }}</mmd:title>
+    <mmd:abstract>{{ data['abstract_full'] }}</mmd:abstract>
     <mmd:metadata_status>{{ data['metadata_status'] }}</mmd:metadata_status>
     <mmd:dataset_production_status>{{ data['dataset_production_status'] }}</mmd:dataset_production_status>
-    {% if data['collection'] -%}
-    {% for collection in data['collection'] -%}
-    <mmd:collection>{{ collection }}</mmd:collection>
-    {% endfor -%}
-    {% endif -%}
+    <mmd:collection>{{ data['collection'] }}</mmd:collection>
     <mmd:last_metadata_update>
         <mmd:update>
                 <mmd:datetime>{{ data['last_metadata_update'] }}</mmd:datetime>
@@ -28,11 +24,7 @@
     </mmd:temporal_extent>
     <mmd:iso_topic_category>{{ data['iso_topic_category'] }}</mmd:iso_topic_category>    
     <mmd:keywords vocabulary="Climate and Forecast Standard Names">
-    	{% if data['keywords_cf'] -%}
-    	{% for key in data['keywords_cf'] -%}
-    	<mmd:keyword>{{ key }}</mmd:keyword>
-    	{% endfor -%}
-    	{% endif -%}
+    	<mmd:keyword>{{ data['keywords_cf'] }}</mmd:keyword>
     </mmd:keywords>
     <mmd:dataset_language>en</mmd:dataset_language>
     {% if data['operational_status'] -%}
@@ -43,7 +35,21 @@
             <mmd:north>{{ data['rectangle']['north'] }}</mmd:north>
             <mmd:south>{{ data['rectangle']['south'] }}</mmd:south>
             <mmd:west>{{ data['rectangle']['west'] }}</mmd:west>
-	    <mmd:east>{{ data['rectangle']['east'] }} </mmd:east>
+	    <mmd:east>{{ data['rectangle']['east'] }}</mmd:east>
         </mmd:rectangle>
     </mmd:geographic_extent>
+    <mmd:personnel>
+        <mmd:role>{{ data['personnel']['role'] }}</mmd:role>
+        <mmd:name>{{ data['personnel']['name'] }}</mmd:name>
+        <mmd:email>{{ data['personnel']['email'] }}</mmd:email>
+        <mmd:phone>{{ data['personnel']['phone'] }}</mmd:phone>
+        <mmd:fax/>
+        <mmd:contact_address>
+            <mmd:address>{{ data['personnel']['contact_address']['address'] }}</mmd:address>
+            <mmd:city>{{ data['personnel']['contact_address']['city'] }}</mmd:city>
+            <mmd:province_or_state>{{ data['personnel']['contact_address']['province_or_state'] }}</mmd:province_or_state>
+            <mmd:postal_code>{{ data['personnel']['contact_address']['postal_code'] }}</mmd:postal_code>
+            <mmd:country>{{ data['personnel']['contact_address']['country'] }}</mmd:country>
+        </mmd:contact_address>
+    </mmd:personnel>
 </mmd:mmd>
