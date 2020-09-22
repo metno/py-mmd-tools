@@ -1,7 +1,6 @@
 #!/bin/bash
 
-coverage run --omit=tests/* --source py_mmd_tools -m py_mmd_tools.mmd_to_csw_iso
-coverage report
+nosetests --with-coverage --cover-package=py_mmd_tools
 
 echo
 
