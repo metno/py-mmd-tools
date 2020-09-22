@@ -25,20 +25,22 @@ jobs:
   pyTestCov:
     runs-on: ubuntu-latest
     steps:
+
       - name: Python Setup
         uses: actions/setup-python@v1
         with:
           python-version: 3.8
           architecture: x64
-      - name: Install Dependencies
-        run: |
-          pip install pytest
-          pip install pytest-cov
-          pip install confuse
-          pip install lxml==4.5
+
       - name: Checkout py-mmd-tools
         uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+
       - name: Run Tests
         run: pytest -v --cov=py_mmd_tools
+
       - name: Upload to Codecov
         uses: codecov/codecov-action@v1

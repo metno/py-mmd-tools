@@ -1,5 +1,5 @@
 import tempfile
-import os
+import pathlib
 import unittest
 from py_mmd_tools.mmd_to_csw_iso import mmd_to_iso
 
@@ -16,18 +16,18 @@ class test_pymmdtools(unittest.TestCase):
         #
         # unset the output limit when printing the xml diff
         #
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        self.reference_mmd = os.path.join(current_dir, 'data', 'reference_mmd.xml')
-        self.reference_iso = os.path.join(current_dir, 'data', 'reference_iso.xml')
-        self.mmd2iso_xslt = os.path.join(current_dir, 'data', 'mmd-to-iso.xsl')
+        current_dir = pathlib.Path.cwd()
+        self.reference_mmd = current_dir / 'tests' / 'data' / 'reference_mmd.xml'
+        self.reference_iso = current_dir / 'tests' / 'data' / 'reference_iso.xml'
+        self.mmd2iso_xslt = current_dir / 'tests' / 'data' / 'mmd-to-iso.xsl'
 
     def test_mmd2iso(self):
         self.maxDiff = None
         tested = tempfile.mkstemp()[1]
         mmd_to_iso(
-            mmd_file=self.reference_mmd,
+            mmd_file=str(self.reference_mmd),
             outputfile=tested,
-            mmd2isocsw=self.mmd2iso_xslt,
+            mmd2isocsw=str(self.mmd2iso_xslt),
         )
         with open(self.reference_iso) as reference, open(tested) as tested:
             reference_iso_string = reference.read()

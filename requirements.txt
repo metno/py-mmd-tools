@@ -1,0 +1,8 @@
+confuse
+coverage==5.1
+coveralls>=2
+lxml==4.5
+netCDF4>=1.5,<=1.6
+pytest
+pytest-cov
+nose
