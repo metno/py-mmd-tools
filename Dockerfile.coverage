@@ -10,6 +10,7 @@ COPY requirements.txt /src/requirements.txt
 
 RUN apt-get update && \
     apt-get install -y git && \
+    apt-get install -y curl && \
     apt-get clean && \
     pip install -r /src/requirements.txt
 
