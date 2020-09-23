@@ -4,15 +4,16 @@ nosetests --with-coverage --cover-package=py_mmd_tools
 
 echo
 
-if [[ -n "$COVERALLS_REPO_TOKEN" ]]
+if [[ -n "$CODECOV_TOKEN" ]]
 then
-  coveralls
+	bash <(curl -s https://codecov.io/bash)
 else
   echo %%
-  echo %% Do you want code coverage generated on https://coveralls.io with GitHub Actions.
+  echo %% Do you want code coverage generated on https://codecov.io with GitHub Actions.
   echo %%
-  echo "%%   1. Add repository to coveralls.io."
+  echo "%%   1. Add repository to codecov.io."
   echo "%%   2. Add a repository secret in [ Setting > Secrets ]."
-  echo "%%      Name it COVERALLS_REPO_TOKEN, and use the token from coveralls.io as value."
+  echo "%%      Name it CODECOV_TOKEN, and use the token from codecov.io as value."
   echo %%
 fi
+

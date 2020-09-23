@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile.coverage
     environment:
-      COVERALLS_REPO_TOKEN: "${COVERALLS_REPO_TOKEN}"
+      CODECOV_TOKEN: "${CODECOV_TOKEN}"
       CI: "${CI}"
       GITHUB_REF: "${GITHUB_REF}"
       GITHUB_SHA: "${GITHUB_SHA}"
