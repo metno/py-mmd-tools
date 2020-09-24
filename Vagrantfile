@@ -27,6 +27,6 @@ Vagrant.configure("2") do |config|
 
   config.vm.provision "shell", "run": "always", inline: <<-SHELL
     cd /vagrant
-    docker-compose -f docker-compose.coverage.yml up --build --exit-code-from coverage
+    docker-compose -f docker-compose.tests.yml up --build --exit-code-from tests
   SHELL
 end

@@ -1,5 +1,5 @@
 #
-# Docker file used in GitHub Actions run coverage tests.
+# Docker file used to run tests and coverage.
 #
 
 FROM python:3.8-slim
