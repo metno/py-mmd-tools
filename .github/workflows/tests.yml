@@ -20,4 +20,4 @@ jobs:
 
     - name: test and coverage
       run: |
-        docker-compose -f docker-compose.coverage.yml up --exit-code-from coverage
+        docker-compose -f docker-compose.tests.yml up --exit-code-from tests
