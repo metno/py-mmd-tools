@@ -1,6 +1,7 @@
 import confuse
 from confuse.exceptions import NotFoundError
 import logging
+import pathlib
 
 def get_logpath(config_name='mmdtool'):
     try:
