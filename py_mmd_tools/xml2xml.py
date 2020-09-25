@@ -9,7 +9,8 @@ import pathlib
 import time
 
 import lxml.etree as ET
-from xml_util import xml_check, xsd_check
+from py_mmd_tools.xml_util import xml_check, xsd_check
+# from py_mmd_tools.log_util import setup_log
 import errno
 import os
 
@@ -35,6 +36,8 @@ def xml2xml(
         raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), xml_file)
         
     if xsd_validation:
+        if xsd_schema is None:
+            raise TypeError
         if not pathlib.Path(xsd_schema).exists():
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), xsd_schema)
         else: 

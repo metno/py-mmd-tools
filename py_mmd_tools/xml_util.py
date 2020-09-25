@@ -11,45 +11,8 @@ import errno
 import os
 import lxml.etree as ET
 from datetime import datetime
+from lxml.etree import XMLSyntaxError
 
-import confuse
-from confuse.exceptions import NotFoundError
-import logging
-
-def get_logpath(config_name='mmdtool'):
-    try:
-        config = confuse.Configuration(config_name, __name__)
-        logfilepath = config["paths"]["logs"].get()
-    except NotFoundError:
-        logfilepath = "./logs/"
-    if not pathlib.Path(logfilepath).exists():
-        pathlib.Path(logfilepath).mkdir(parents=True, exist_ok=True)
-    return logfilepath
-
-
-def setup_log(name, logtype='file'):
-    ''' logtype = [file, stream, all]'''
-    logfilepath = get_logpath()
-    logger = logging.getLogger(name)  # > set up a new name for a new logger
-    logger.setLevel(logging.DEBUG)  # here is the missing line
-    log_format = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-    # filehandler
-    filename = pathlib.Path(logfilepath, f"{name}.log")
-    fh = logging.FileHandler(filename, mode='w', encoding='utf-8')
-    fh.setLevel(logging.DEBUG)
-    fh.setFormatter(log_format)
-    # streamhandler
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.INFO)
-    ch.setFormatter(log_format)
-    if logtype=='file':
-        logger.addHandler(fh)
-    if logtype=='stream':
-        logger.addHandler(ch)
-    if logtype=='all':
-        logger.addHandler(fh)
-        logger.addHandler(ch)
-    return logger
 
 def xml_check(xml_file):
     """[validate xml syntax from filepath]
@@ -57,18 +20,19 @@ def xml_check(xml_file):
         xml_file ([str]): [filepath to an xml file]
     Returns:
         [bool]: [return True if a valid xml filepath is provided, 
-        return False if the xmlfile is invalid, empty, or doesn't exist ]
+        raises an exception if the xmlfile is invalid, empty, or doesn't exist ]
     """
     if pathlib.Path(xml_file).is_file() and os.path.getsize(xml_file) != 0:
         try:
             xml = ET.parse(xml_file)
             return True
-        except ET.XMLSyntaxError:
+        except XMLSyntaxError:
             try:
                 xml = ET.XML(bytes(bytearray(xml_file, encoding="utf-8")))
                 return True
-            except ET.XMLSyntaxError:
-                return False
+            except XMLSyntaxError:
+                raise # return False
+
     else:
         raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), xml_file)
 
