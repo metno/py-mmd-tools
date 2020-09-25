@@ -1,20 +1,23 @@
+
 name: tests
 
 on:
   push:
+    branches:
+      - master
   pull_request:
 
 env:
   CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
+         
 jobs:
-  test:
+  build:
 
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v1
 
-    - name: run unit tests
+    - name: test and coverage
       run: |
-        docker-compose -f docker-compose.unittests.yml up --exit-code-from unittests
+        docker-compose -f docker-compose.tests.yml up --exit-code-from tests
