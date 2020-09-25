@@ -15,7 +15,7 @@ class test_pymmdtools(unittest.TestCase):
         # unset the output limit when printing the xml diff
         #
         current_dir = pathlib.Path.cwd()
-        # self.not_a_dir = current_dir / 'tests' / 'data' / 'not_a_dir'
+        # self.not_a_dir = pathlib.Path(current_dir) / 'tests' / 'data' / 'not_a_dir'
 
     def test_get_logpath_1(self):
         logpath = get_logpath()
