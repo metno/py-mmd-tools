@@ -1,3 +1,10 @@
+"""
+Tool for converting metadata from MMD format to ISO format using a specific xslt.
+ License:
+     This file is part of the S-ENDA-Prototype repository (https://github.com/metno/py-mmd-tools).
+     S-ENDA-Prototype is licensed under GPL-3.0 (https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
+"""
+
 import logging
 import pathlib
 import os
