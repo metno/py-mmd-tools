@@ -10,7 +10,6 @@ import time
 
 import lxml.etree as ET
 from py_mmd_tools.xml_util import xml_check, xsd_check
-# from py_mmd_tools.log_util import setup_log
 import errno
 import os
 

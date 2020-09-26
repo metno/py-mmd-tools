@@ -27,11 +27,11 @@ def xml_check(xml_file):
             xml = ET.parse(xml_file)
             return True
         except XMLSyntaxError:
-            try:
-                xml = ET.XML(bytes(bytearray(xml_file, encoding="utf-8")))
-                return True
-            except XMLSyntaxError:
-                raise # return False
+            #try:
+            #    xml = ET.XML(bytes(bytearray(xml_file, encoding="utf-8")))
+            #    return True
+            #except XMLSyntaxError:
+            raise # return False
 
     else:
         raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), xml_file)
