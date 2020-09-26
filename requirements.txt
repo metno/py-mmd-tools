@@ -1,4 +1,3 @@
-confuse
 coverage==5.1
 coveralls>=2
 lxml==4.5
