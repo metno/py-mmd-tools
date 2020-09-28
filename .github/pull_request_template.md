@@ -15,4 +15,4 @@ Checklist:
 - [ ] All tests are passing
 - [ ] Documentation is complete and understandable
 
-The checklist is based on the S-ENDA conventions and definition of done. The above points are not necessarily relevant to all contributions. In that case, please add a short explanation to help the reviewer.
+The checklist is based on the S-ENDA conventions and definition of done (see https://s-enda-documentation.readthedocs.io/en/latest/general_conventions.html). The above points are not necessarily relevant to all contributions. In that case, please add a short explanation to help the reviewer.
