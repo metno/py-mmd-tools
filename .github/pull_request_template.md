@@ -1,10 +1,10 @@
-Summary:
+**Summary**:
 
-Related issue: 
+**Related issue**: 
 
-Suggested reviewer(s):
+**Suggested reviewer(s)**:
 
-Checklist:
+**Checklist**:
 
 - [ ] The headers of all files contain a reference to the repository license (i.e., "License: This file is part of py-mmd-tools, licensed under the Apache License 2.0 (https://www.apache.org/licenses/LICENSE-2.0)")
 - [ ] The test coverage increased or remained the same as before
@@ -13,6 +13,7 @@ Checklist:
 - [ ] Functions with optional arguments has separate tests for all options
 - [ ] Examples are supported by doctests
 - [ ] All tests are passing
+- [ ] All names (e.g., files, classes, functions, variables) are explicit
 - [ ] Documentation is complete and understandable
 
 The checklist is based on the S-ENDA conventions and definition of done (see https://s-enda-documentation.readthedocs.io/en/latest/general_conventions.html). The above points are not necessarily relevant to all contributions. In that case, please add a short explanation to help the reviewer.
