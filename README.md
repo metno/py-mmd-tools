@@ -4,3 +4,6 @@
 # py-mmd-tools
 
 Python tools for MMD
+
+To be able to request from FROST, one must have the environment variable FROST_ID set
+`export FROST_ID='myfrostid'`

@@ -1,0 +1,39 @@
+{
+	"metadata_identifier": 564730303834357761, 
+	"alternate_identifier": [
+		{"Identifier_type": "StationID", "Identifier": "57790"}, 
+		{"Identifier_type": "ParameterID", "Identifier": "215"}, 
+		{"Identifier_type": "WigosID", "Identifier": "0-578-0-57790"}
+	], 
+	"title_full": "My title example", 
+	"abstract_full": "My abstract example",
+	"metadata_status": "Active", 
+	"dataset_production_status": "In Work", 
+	"collection": "METNCS", 
+	"last_metadata_update": "2020-09-15T07:55:54Z", 
+	"temporal_extent": {
+		"start_date": "2020-06-24T10:00:00Z"
+	}, 
+	"iso_topic_category": "climatologyMeteorologyAtmosphere", 
+	"keyword_cf": "max(air_temperature PT1H)", 
+	"operational_status": "Operational", 
+	"geographic_extent": {
+		"latitude_min": 61.6788, 
+		"latitude_max": 61.6788, 
+		"longitude_min": 5.2007, 
+		"longitude_max": 5.2007
+	}, 
+	"personnel": {
+		"role": "Technical contact", 
+		"name": "Ole Dole", 
+		"email": "ole.dole@example.com", 
+		"phone": "004711111111", 
+		"contact_address": {
+			"address": "Meteorologisk institutt, Henrik Mohnsplass 1", 
+			"city": "Oslo", 
+			"province_or_state": "Oslo", 
+			"postal_code": "0000", 
+			"country": "Norway"
+		}
+	}
+}

@@ -24,7 +24,7 @@
     </mmd:temporal_extent>
     <mmd:iso_topic_category>{{ data['iso_topic_category'] }}</mmd:iso_topic_category>    
     <mmd:keywords vocabulary="Climate and Forecast Standard Names">
-    	<mmd:keyword>{{ data['keywords_cf'] }}</mmd:keyword>
+    	<mmd:keyword>{{ data['keyword_cf'] }}</mmd:keyword>
     </mmd:keywords>
     <mmd:dataset_language>en</mmd:dataset_language>
     {% if data['operational_status'] -%}
@@ -32,10 +32,10 @@
     {% endif -%}
     <mmd:geographic_extent>
         <mmd:rectangle srsName="EPSG:4326">
-            <mmd:north>{{ data['rectangle']['north'] }}</mmd:north>
-            <mmd:south>{{ data['rectangle']['south'] }}</mmd:south>
-            <mmd:west>{{ data['rectangle']['west'] }}</mmd:west>
-	    <mmd:east>{{ data['rectangle']['east'] }}</mmd:east>
+            <mmd:north>{{ data['geographic_extent']['latitude_max'] }}</mmd:north>
+            <mmd:south>{{ data['geographic_extent']['latitude_min'] }}</mmd:south>
+            <mmd:west>{{ data['geographic_extent']['longitude_min'] }}</mmd:west>
+	    <mmd:east>{{ data['geographic_extent']['longitude_max'] }}</mmd:east>
         </mmd:rectangle>
     </mmd:geographic_extent>
     <mmd:personnel>
