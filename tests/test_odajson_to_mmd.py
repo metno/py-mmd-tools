@@ -11,7 +11,7 @@ class TestODA2MMD(unittest.TestCase):
     def setUp(self):
         current_dir = pathlib.Path.cwd()
         self.reference_in_json = str(current_dir / 'tests' / 'data' / 'reference_json.json')
-        self.reference_out_xml = '/home/elodief/Data/mmd/Output/example_02.xml'
+        self.reference_out_xml = str(current_dir / 'tests' / 'data' / 'reference_mmd_from_json.xml')
         self.xml_template = str(current_dir / 'templates' / 'oda_to_mmd_template.xml')
         self.default = str(current_dir / 'templates' / 'oda_default.yml')
         self.reference_xsd = str(current_dir / 'tests' / 'data' / 'mmd.xsd')
@@ -163,13 +163,8 @@ class TestODA2MMD(unittest.TestCase):
 
     def test_process_station_1(self):
         outdir = tempfile.mkdtemp()[1]
-        with open(self.default, 'r') as file:
-            default = yaml.load(file.read(), Loader=yaml.SafeLoader)
-        self.assertIs(odajson_to_mmd.process_station('AA', 'AA', default, outdir, self.xml_template, 'frost-staging.met.no'), False)
+        self.assertIs(odajson_to_mmd.process_station('AA', 'AA', outdir, self.default, self.xml_template, 'frost-staging.met.no'), False)
 
     def test_process_station_2(self):
         outdir = tempfile.mkdtemp()[1]
-        with open(self.default, 'r') as file:
-            default = yaml.load(file.read(), Loader=yaml.SafeLoader)
-        self.assertIs(odajson_to_mmd.process_station('18269', 'HAUGENSTUA', default, outdir, self.xml_template, 'frost-staging.met.no'), True)
-
+        self.assertIs(odajson_to_mmd.process_station('18269', 'HAUGENSTUA', outdir, self.default, self.xml_template, 'frost-staging.met.no'), True)

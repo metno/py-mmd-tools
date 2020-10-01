@@ -46,17 +46,13 @@ def process_oda(outdir, default_file, mmd_template, validate=False, mmd_schema=N
         logger.error('Problem with stations request: %s' % stations_req)
         return False
 
-    # Read static metadata elements (identical for all ODA datasets)
-    with open(default_file, 'r') as file:
-        default = yaml.load(file.read(), Loader=yaml.SafeLoader)
-
     # Looping over available stations
     for station in stations_list:
         logger.info("Processing station % (%)" % (station['name'], station['id'][2:]))
-        process_station(station['id'][2:], station['name'], outdir, default, mmd_template, frost_url, validate, mmd_schema)
+        process_station(station['id'][2:], station['name'], outdir, default_file, mmd_template, frost_url, validate, mmd_schema)
 
 
-def process_station(station_id, station_name, outdir, default, mmd_template, frost_url, validate=False, mmd_schema=None):
+def process_station(station_id, station_name, outdir, default_file, mmd_template, frost_url, validate=False, mmd_schema=None):
 
     st_url = 'https://' + frost_url + '/api/v1/availableoda?stationid=' + station_id
     logger.debug('Retrieving FROST data for station %s (id: %s).' % (station_name, station_id))
@@ -73,6 +69,10 @@ def process_station(station_id, station_name, outdir, default, mmd_template, fro
         return False
 
     logger.debug('%s datasets for station %s (id %s).' % (len(st_data), station_name, station_id))
+
+    # Read static metadata elements (identical for all ODA datasets)
+    with open(default_file, 'r') as file:
+        default = yaml.load(file.read(), Loader=yaml.SafeLoader)
 
     # Working individually on each ODA dataset
     for dataset in st_data:

@@ -1,0 +1,48 @@
+<mmd:mmd xmlns:mmd="http://www.met.no/schema/mmd" xmlns:gml="http://www.opengis.net/gml">
+    <mmd:metadata_identifier>564730303834357761</mmd:metadata_identifier>
+    <mmd:alternate_identifier type="StationID">57790</mmd:alternate_identifier>
+    <mmd:alternate_identifier type="ParameterID">215</mmd:alternate_identifier>
+    <mmd:alternate_identifier type="WigosID">0-578-0-57790</mmd:alternate_identifier>
+    <mmd:title>My title example</mmd:title>
+    <mmd:abstract>My abstract example</mmd:abstract>
+    <mmd:metadata_status>Active</mmd:metadata_status>
+    <mmd:dataset_production_status>In Work</mmd:dataset_production_status>
+    <mmd:collection>METNCS</mmd:collection>
+    <mmd:last_metadata_update>
+        <mmd:update>
+                <mmd:datetime>2020-09-15T07:55:54Z</mmd:datetime>
+                <mmd:type>Created</mmd:type>
+        </mmd:update>
+    </mmd:last_metadata_update>
+    <mmd:temporal_extent>
+        <mmd:start_date>2020-06-24T10:00:00Z</mmd:start_date>
+    	</mmd:temporal_extent>
+    <mmd:iso_topic_category>climatologyMeteorologyAtmosphere</mmd:iso_topic_category>    
+    <mmd:keywords vocabulary="Climate and Forecast Standard Names">
+    	<mmd:keyword>max(air_temperature PT1H)</mmd:keyword>
+    </mmd:keywords>
+    <mmd:dataset_language>en</mmd:dataset_language>
+    <mmd:operational_status>Operational</mmd:operational_status>
+    <mmd:geographic_extent>
+        <mmd:rectangle srsName="EPSG:4326">
+            <mmd:north>61.6788</mmd:north>
+            <mmd:south>61.6788</mmd:south>
+            <mmd:west>5.2007</mmd:west>
+	    <mmd:east>5.2007</mmd:east>
+        </mmd:rectangle>
+    </mmd:geographic_extent>
+    <mmd:personnel>
+        <mmd:role>Technical contact</mmd:role>
+        <mmd:name>Ole Dole</mmd:name>
+        <mmd:email>ole.dole@example.com</mmd:email>
+        <mmd:phone>004711111111</mmd:phone>
+        <mmd:fax/>
+        <mmd:contact_address>
+            <mmd:address>Meteorologisk institutt, Henrik Mohnsplass 1</mmd:address>
+            <mmd:city>Oslo</mmd:city>
+            <mmd:province_or_state>Oslo</mmd:province_or_state>
+            <mmd:postal_code>0000</mmd:postal_code>
+            <mmd:country>Norway</mmd:country>
+        </mmd:contact_address>
+    </mmd:personnel>
+</mmd:mmd>
