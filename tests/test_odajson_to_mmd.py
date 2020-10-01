@@ -118,7 +118,7 @@ class TestODA2MMD(unittest.TestCase):
         self.assertRaises(FileNotFoundError, odajson_to_mmd.to_mmd, self.reference_in_json, tested, self.xml_template,
                           xsd_validation=True, xsd_schema=self.not_a_file)
 
-    def test_to_mmd_6(self):
+    def test_to_mmd_7(self):
         tested = tempfile.mkstemp()[1]
         self.assertIs(odajson_to_mmd.to_mmd(self.json_with_invalid_elements, tested,
                                             self.xml_template, xsd_validation=True, xsd_schema=self.reference_xsd), False)
@@ -161,10 +161,18 @@ class TestODA2MMD(unittest.TestCase):
         dataset['Production_status'] = 'Ongoing'
         self.assertIsNone(odajson_to_mmd.prepare_elements(dataset, default))
 
+    def test_prepare_elements_5(self):
+        with open(self.default, 'r') as default_file:
+            default = yaml.load(default_file.read(), Loader=yaml.SafeLoader)
+        dataset = self.reference_oda_tag
+        dataset['Operational_status'] = ''
+        out = odajson_to_mmd.prepare_elements(dataset, default)
+        self.assertIs('operational_status' in out, False)
+
     def test_process_station_1(self):
-        outdir = tempfile.mkdtemp()[1]
+        outdir = tempfile.mkdtemp()
         self.assertIs(odajson_to_mmd.process_station('AA', 'AA', outdir, self.default, self.xml_template, 'frost-staging.met.no'), False)
 
     def test_process_station_2(self):
-        outdir = tempfile.mkdtemp()[1]
+        outdir = tempfile.mkdtemp()
         self.assertIs(odajson_to_mmd.process_station('18269', 'HAUGENSTUA', outdir, self.default, self.xml_template, 'frost-staging.met.no'), True)

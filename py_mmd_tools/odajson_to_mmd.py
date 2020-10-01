@@ -216,11 +216,8 @@ def to_mmd(input_data, output_file, template_file, xsd_validation=False, xsd_sch
     # Rendering of input in template
     if not pathlib.Path(template_file).is_file():
         raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), template_file)
-    try:
-        env = jinja2.Environment(loader=jinja2.FileSystemLoader(pathlib.Path(template_file).parent))
-        template = env.get_template(pathlib.Path(template_file).name)
-    except jinja2.exceptions.TemplateNotFound:
-        raise FileNotFoundError(pathlib.Path(template_file))
+    env = jinja2.Environment(loader=jinja2.FileSystemLoader(pathlib.Path(template_file).parent))
+    template = env.get_template(pathlib.Path(template_file).name)
     try:
         out_doc = template.render(data=in_doc)
     # todo: in what case can I have that exception?
