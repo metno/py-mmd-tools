@@ -21,7 +21,7 @@ from py_mmd_tools.log_util import setup_log
 logger = setup_log(__name__, "/home/elodief/Data/mmd/Logs/", logtype='file')
 
 
-def get_from_frost(point, user_id=None, user_pwd='', timeout_secs=10):
+def get_from_frost(point, user_id='', user_pwd='', timeout_secs=10):
     """ Request from URL. """
 
     try:
