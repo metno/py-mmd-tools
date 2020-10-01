@@ -1,8 +1,8 @@
 """
-Tool for converting metadata from MMD format to ISO format using a specific xslt.
+Utility methods to create a logger.
  License:
-     This file is part of the S-ENDA-Prototype repository (https://github.com/metno/py-mmd-tools).
-     S-ENDA-Prototype is licensed under GPL-3.0 (https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
+     This file is part of the py-mmd-tools repository (https://github.com/metno/py-mmd-tools).
+     licensed under the Apache License 2.0 (https://www.apache.org/licenses/LICENSE-2.0)
 """
 
 import logging
@@ -10,6 +10,12 @@ import pathlib
 import os
 
 def get_logpath(logdirpath):
+    """
+    Args:
+        logdirpath ([str]): [path to a directory where to store logs]
+    Returns:
+        [bool]: [return True if an existing and writable path to directory is provided] 
+    """
     if not pathlib.Path(logdirpath).exists():
         try:
             pathlib.Path(logdirpath).mkdir(parents=True, exist_ok=True)
@@ -36,11 +42,10 @@ def setup_log(name, logdirpath, logtype='stream'):
         fh.setLevel(logging.DEBUG)
         fh.setFormatter(log_format)
         logger.addHandler(fh)
-        return logger
     if logtype=='stream':
         # streamhandler
         ch = logging.StreamHandler()
         ch.setLevel(logging.INFO)
         ch.setFormatter(log_format)
         logger.addHandler(ch)
-        return logger
+    return logger

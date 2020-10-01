@@ -21,8 +21,7 @@ class test_pymmdtools(unittest.TestCase):
         self.not_a_valid_xml = str(current_dir / 'tests' / 'data' / 'not_a_valid_xml.xml')
  
     def test_xml_check_1(self):
-        unittest.TestCase.assertEqual(self, xml_check(xml_file=self.reference_xml), 
-                                    True)
+        self.assertTrue(xml_check(xml_file=self.reference_xml))
 
     def test_xml_check_2(self):
         self.assertRaises(FileNotFoundError, xml_check, self.not_a_file)
@@ -43,7 +42,14 @@ class test_pymmdtools(unittest.TestCase):
         self.assertRaises(FileNotFoundError, xsd_check, self.reference_xml, 
                                                     self.not_a_file)
 
-            
+    def test_xsl_check_4(self):
+        self.assertRaises(XMLSyntaxError, xsd_check, self.not_a_valid_xml, 
+                                                    self.reference_xsd)
+
+    def test_xsl_check_5(self):
+        self.assertRaises(FileNotFoundError, xsd_check, self.not_a_file, 
+                                                    self.not_a_file)                               
+
 if __name__=='__main__':
     unittest.main()
 
