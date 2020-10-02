@@ -4,7 +4,7 @@
 
 **Suggested reviewer(s)**:
 
-**Checklist**:
+**Reviewer checklist**:
 
 - [ ] The headers of all files contain a reference to the repository license (i.e., "License: This file is part of py-mmd-tools, licensed under the Apache License 2.0 (https://www.apache.org/licenses/LICENSE-2.0)")
 - [ ] 100% test coverage of new code - meaning:
