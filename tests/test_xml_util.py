@@ -1,7 +1,7 @@
 import tempfile
 import unittest
 import pathlib
-from py_mmd_tools.xml_util import xml_check, xsd_check
+from py_mmd_tools.xml_util import xml_check, xsd_check, xml_translate
 from lxml.etree import XMLSyntaxError
 
 
@@ -16,39 +16,95 @@ class test_pymmdtools(unittest.TestCase):
         #
         current_dir = pathlib.Path.cwd()
         self.reference_xml = str(current_dir / 'tests' / 'data' / 'reference_mmd.xml')
+        self.reference_iso = str(current_dir / 'tests' / 'data' / 'reference_iso.xml')
+        self.mmd2iso_xslt = str(current_dir / 'tests' / 'data' / 'mmd-to-iso.xsl')
         self.reference_xsd = str(current_dir / 'tests' / 'data' / 'mmd.xsd')
         self.not_a_file = str(current_dir / 'tests' / 'data' / 'not_a_file.xml')
         self.not_a_valid_xml = str(current_dir / 'tests' / 'data' / 'not_a_valid_xml.xml')
  
-    def test_xml_check_1(self):
+    def test_xml_check_assertTrue(self):
         self.assertTrue(xml_check(xml_file=self.reference_xml))
 
-    def test_xml_check_2(self):
+    def test_xml_check_assertRaises_FileNotFoundError(self):
         self.assertRaises(FileNotFoundError, xml_check, self.not_a_file)
 
-    def test_xml_check_3(self):
+    def test_xml_check_assertRaises_XMLSyntaxError(self):
         self.assertRaises(XMLSyntaxError, xml_check, self.not_a_valid_xml)        
 
-    def test_xsl_check_1(self):
-        unittest.TestCase.assertEqual(self, xsd_check(xml_file=self.reference_xml, 
-                                                    xsd_schema=self.reference_xsd), 
-                                    True)
+    def test_xsl_check_assertTrue(self):
+        self.assertTrue(xsd_check(xml_file=self.reference_xml, 
+                                            xsd_schema=self.reference_xsd))
 
-    def test_xsl_check_2(self):
+    def test_xsl_check_assertRaises_XMLSyntaxError_opt_xslschema(self):
         self.assertRaises(XMLSyntaxError, xsd_check, self.reference_xml, 
                                                     self.not_a_valid_xml)
 
-    def test_xsl_check_3(self):
-        self.assertRaises(FileNotFoundError, xsd_check, self.reference_xml, 
+    def test_xsl_check_assertRaises_OSError_opt_xslschema(self):
+        self.assertRaises(OSError, xsd_check, self.reference_xml, 
                                                     self.not_a_file)
 
-    def test_xsl_check_4(self):
+    def test_xsl_check_assertRaises_XMLSyntaxError_opt_xmlfile(self):
         self.assertRaises(XMLSyntaxError, xsd_check, self.not_a_valid_xml, 
                                                     self.reference_xsd)
 
-    def test_xsl_check_5(self):
-        self.assertRaises(FileNotFoundError, xsd_check, self.not_a_file, 
+    def test_xsl_check_assertRaises_OSError_opt_xmlfile(self):
+        self.assertRaises(OSError, xsd_check, self.not_a_file, 
                                                     self.not_a_file)                               
+
+    def test_xml_translate_assertMultiLineEqual_validation_false(self):
+        self.maxDiff = None
+        tested = tempfile.mkstemp()[1]
+        xml_translate(
+            xml_file=self.reference_xml,
+            outputfile=tested,
+            xslt=self.mmd2iso_xslt,
+        )
+        with open(self.reference_iso) as reference, open(tested) as tested:
+            reference_iso_string = reference.read()
+            tested_string = tested.read()
+            unittest.TestCase.assertMultiLineEqual(
+                self, first=reference_iso_string, second=tested_string
+            ) 
+
+    def test_xml_translate_assertMultiLineEqual_validation_true(self):
+        self.maxDiff = None
+        tested = tempfile.mkstemp()[1]
+        xml_translate(
+            xml_file=self.reference_xml,
+            outputfile=tested,
+            xslt=self.mmd2iso_xslt,
+            xsd_validation=True,
+            xsd_schema=self.reference_xsd,
+        )
+        with open(self.reference_iso) as reference, open(tested) as tested:
+            reference_iso_string = reference.read()
+            tested_string = tested.read()
+            unittest.TestCase.assertMultiLineEqual(self, 
+                                                    first=reference_iso_string, 
+                                                    second=tested_string
+                                                    )
+
+    def test_xml_translate_assertRaises_FileNotFoundError_opt_xmlfile(self):
+        self.maxDiff = None
+        tested = tempfile.mkstemp()[1]
+        self.assertRaises(FileNotFoundError, 
+                            xml_translate, 
+                            self.not_a_file, 
+                            tested, 
+                            self.mmd2iso_xslt, 
+                            True, 
+                            self.reference_xsd) 
+
+
+    def test_xml_translate_assertRaises_FileNotFoundError_opt_xsdschema(self):
+        self.maxDiff = None
+        tested = tempfile.mkstemp()[1]
+        self.assertRaises(FileNotFoundError, xml_translate, self.reference_xml, tested, self.mmd2iso_xslt, True, self.not_a_file)
+
+    def test_xml_translate_assertRaises_TypeError(self):
+        self.maxDiff = None
+        tested = tempfile.mkstemp()[1]
+        self.assertRaises(TypeError, xml_translate, self.reference_xml, tested, self.mmd2iso_xslt, True)
 
 if __name__=='__main__':
     unittest.main()
