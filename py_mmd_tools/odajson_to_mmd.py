@@ -21,44 +21,58 @@ from py_mmd_tools.log_util import setup_log
 logger = setup_log(__name__, "/home/elodief/Data/mmd/Logs/", logtype='file')
 
 
-def get_from_frost(point, user_id='', user_pwd='', timeout_secs=10):
-    """ Request from URL. """
+def retrieve_from_url(point, user_id='', user_pwd='', timeout_secs=10):
+    """[Request from an URL]
+    Args:
+        point ([str]): [URL to request to]
+        user_id ([str]): optional, user name
+        user_pwd ([str]): optional, user password
+        timeout_secs ([int]): optional, timeout in seconds
+    Returns:
+        [requests.Response object]: [return request object or None if the request fails. ]
+    """
 
     try:
         r = requests.get(point, auth=(user_id, user_pwd), timeout=timeout_secs)
         logger.debug('Data retrieved OK.')
-    except requests.exceptions.RequestException as e:  # This is the correct syntax
-        logger.info(e)
-        return False
+    except requests.exceptions.RequestException as e:
+        logger.error(e)
+        return None
     return r
 
 
-def process_oda(outdir, default_file, mmd_template, validate=False, mmd_schema=None, frost_url='frost-staging.met.no'):
-    """ Process all datasets available from FROST API. """
+# def process_oda(outdir, default_file, mmd_template, validate=False, mmd_schema=None, frost_url='frost-staging.met.no'):
+#    """ Process all datasets available from FROST API. """
+#
+#    # Get list of available stations
+#    # For now, request frost.met.no instead of frost_url as this service is not available on the staging API
+#    frost_id = os.getenv('FROST_ID')
+#    stations_req = retrieve_from_url('https://frost.met.no/sources/v0.jsonld', frost_id)
+#
+#    try:
+#        stations_list = stations_req.json()['data']
+#    except (AttributeError, KeyError, TypeError):
+#        logger.error('Unable to get stations list from request.')
+#        return False
+#
+#    # Looping over available stations
+#    for station in stations_list:
+#        logger.info("Processing station % (%)" % (station['name'], station['id'][2:]))
+#        process_station(station['id'][2:], station['name'], outdir, default_file, mmd_template, frost_url, validate, mmd_schema)
+#
+#    return True
+#
 
-    # Get list of available stations
-    # For now, request frost.met.no instead of frost_url as this service is not available on the staging API
-    frost_id = os.getenv('FROST_ID')
-    stations_req = get_from_frost('https://frost.met.no/sources/v0.jsonld', frost_id)
-    try:
-        stations_list = stations_req.json()['data']
-    except (KeyError, TypeError):
-        logger.error('Problem with stations request: %s' % stations_req)
-        return False
-
-    # Looping over available stations
-    for station in stations_list:
-        logger.info("Processing station % (%)" % (station['name'], station['id'][2:]))
-        process_station(station['id'][2:], station['name'], outdir, default_file, mmd_template, frost_url, validate, mmd_schema)
-
-
-def process_station(station_id, station_name, outdir, default_file, mmd_template, frost_url, validate=False, mmd_schema=None):
-
+def process_station(station_id, station_name, outdir, default_file, mmd_template, frost_url, validate=False,
+                    mmd_schema=None):
     st_url = 'https://' + frost_url + '/api/v1/availableoda?stationid=' + station_id
     logger.debug('Retrieving FROST data for station %s (id: %s).' % (station_name, station_id))
 
     # Request ODA tags for all datasets of current station
-    st_req = get_from_frost(st_url)
+    st_req = retrieve_from_url(st_url)
+    if st_req is None:
+        logger.error('Unable to retrieve station data.')
+        return False
 
     # Filter out stations with no tag
     try:
@@ -91,9 +105,7 @@ def process_station(station_id, station_name, outdir, default_file, mmd_template
 
         # Perform MMD transformation
         outfile = pathlib.Path(outdir, 'oda_' + str(dataset['Metadata_identifier']) + '.xml')
-        if not to_mmd(out_elements, outfile, mmd_template, validate, mmd_schema):
-            logger.warning('Conversion failed for dataset.')
-            return False
+        to_mmd(out_elements, outfile, mmd_template, validate, mmd_schema)
 
     return True
 
@@ -128,7 +140,7 @@ def prepare_elements(dataset_elements, default_elements):
         else:
             logger.warning(
                 'This type of keyword is not available yet (%s). It will not be included in the output MMD.' % keys[
-                    'keyword_type'])
+                    'Keyword_type'])
 
     # Check that dataset elements contains all the required elements
     required_keys = ['keywords_cf', 'metadata_identifier', 'last_metadata_update', 'temporal_extent']
@@ -138,7 +150,7 @@ def prepare_elements(dataset_elements, default_elements):
             return None
     if 'start_date' not in dataset_elements['temporal_extent']:
         logger.warning('Required parameter missing (\'temporal_extent\'][\'start_date\']), creation of MMD file '
-                        'aborted.')
+                       'aborted.')
         return None
 
     # Merge default and dataset specific elements
@@ -175,8 +187,7 @@ def prepare_elements(dataset_elements, default_elements):
                                             'station_id'] + '). The observations have been through the data ' \
                                                             'collection system of the Norwegian Meteorological ' \
                                                             'institute which includes a number of automated and ' \
-                                                            'manual quality control routines. The number of available ' \
-                                                            '' \
+                                                            'manual quality control routines. The number of available '\
                                                             'quality control routines is element dependent. '
     except KeyError:
         elements_out['title_full'] = elements_out['title']
@@ -203,7 +214,6 @@ def to_mmd(input_data, output_file, template_file, xsd_validation=False, xsd_sch
     """
     # Input data can be
     # a Jason file
-    # todo: check if valid Json file?
     if isinstance(input_data, str) and pathlib.Path(input_data).is_file():
         with open(input_data, 'r') as file:
             in_doc = json.load(file)
@@ -220,7 +230,6 @@ def to_mmd(input_data, output_file, template_file, xsd_validation=False, xsd_sch
     template = env.get_template(pathlib.Path(template_file).name)
     try:
         out_doc = template.render(data=in_doc)
-    # todo: in what case can I have that exception?
     except jinja2.exceptions.UndefinedError:
         logger.error("Rendering of template failed.")
         return False
@@ -274,5 +283,3 @@ def _merge_dicts(d1, d2):
         else:
             out[k] = d2[k]
     return True
-
-

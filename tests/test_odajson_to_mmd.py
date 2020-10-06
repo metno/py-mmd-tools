@@ -123,8 +123,8 @@ class TestODA2MMD(unittest.TestCase):
         self.assertIs(odajson_to_mmd.to_mmd(self.json_with_invalid_elements, tested,
                                             self.xml_template, xsd_validation=True, xsd_schema=self.reference_xsd), False)
 
-    def test_get_from_frost(self):
-        self.assertIs(odajson_to_mmd.get_from_frost('toto.no'), False)
+    def test_retrieve_from_url(self):
+        self.assertIsNone(odajson_to_mmd.retrieve_from_url('toto.no'))
 
     def test_prepare_elements_1(self):
         with open(self.default, 'r') as default_file:
@@ -168,6 +168,14 @@ class TestODA2MMD(unittest.TestCase):
         dataset['Operational_status'] = ''
         out = odajson_to_mmd.prepare_elements(dataset, default)
         self.assertIs('operational_status' in out, False)
+
+    def test_prepare_elements_6(self):
+        with open(self.default, 'r') as default_file:
+            default = yaml.load(default_file.read(), Loader=yaml.SafeLoader)
+        dataset = self.reference_oda_tag
+        dataset['Keyword'].append({'Keyword_type': 'other type', 'Keywords': [11, 22]})
+        out = odajson_to_mmd.prepare_elements(dataset, default)
+        self.assertEqual(out['keyword'], dataset['Keyword'])
 
     def test_process_station_1(self):
         outdir = tempfile.mkdtemp()
