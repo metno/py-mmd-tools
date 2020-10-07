@@ -1,6 +1,6 @@
 #!/bin/bash
 
-nosetests --with-coverage --cover-package=py_mmd_tools || exit 1
+nosetests --with-coverage --cover-package=py_mmd_tools --with-doctest || exit 1
 
 echo
 

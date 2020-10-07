@@ -237,8 +237,6 @@ def to_mmd(input_data, output_file, template_file, xsd_validation=False, xsd_sch
                           default=None
     Returns:
         True if function succeeded, False otherwise
-
-    #todo: add doctest
     """
     # Input data can be
     # a Jason file
@@ -286,6 +284,10 @@ def _lowercase(dictin):
     Returns:
         modified dictionary dictin
     Ok for nested dictionaries, but will not work for dictionaries within lists.
+
+    >>> _lowercase({'Toto': 1, 'tata': 'Tata', 'List': [{'MyKey': 'Hello'}]})
+    {'toto': 1, 'tata': 'Tata', 'list': [{'MyKey': 'Hello'}]}
+
     """
     if isinstance(dictin, dict):
         return {k.lower(): _lowercase(v) for k, v in dictin.items()}
@@ -302,7 +304,16 @@ def _merge_dicts(d1, d2):
         d1 (dict): default dictionary
         d2(dict): other dictionary
     Returns:
-        modified dictionary d1
+        True if function succeeded, False otherwise
+        Dictionary d1 will now contain the merged dictionary
+
+    >>> d1 = {'A': 1, 'B': 2}
+    >>> d2 = {'A': 3, 'C':4}
+    >>> _merge_dicts(d1, d2)
+    True
+    >>> print(d1)
+    {'A': 3, 'B': 2, 'C': 4}
+
     """
     out = d1
     for k in d2:
