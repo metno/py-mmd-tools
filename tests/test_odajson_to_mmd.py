@@ -77,6 +77,7 @@ class TestODA2MMD(unittest.TestCase):
             odajson_to_mmd._merge_dicts(dict1, dict2)
 
     def test_to_mmd_1(self):
+        # Standard use with Json file as input
         tested = tempfile.mkstemp()[1]
         odajson_to_mmd.to_mmd(input_data=self.reference_in_json, output_file=tested, template_file=self.xml_template)
         with open(self.reference_out_xml) as reference, open(tested) as tested:
@@ -85,10 +86,7 @@ class TestODA2MMD(unittest.TestCase):
             unittest.TestCase.assertMultiLineEqual(self, first=reference_iso_string, second=tested_string)
 
     def test_to_mmd_2(self):
-        tested = tempfile.mkstemp()[1]
-        self.assertRaises(TypeError, odajson_to_mmd.to_mmd, self.not_a_file, tested, self.xml_template)
-
-    def test_to_mmd_3(self):
+        # Standard use with dict as input
         tested = tempfile.mkstemp()[1]
         with open(self.reference_in_json, 'r') as file:
             dictin = json.load(file)
@@ -104,29 +102,40 @@ class TestODA2MMD(unittest.TestCase):
             tested_string = tested.read()
             unittest.TestCase.assertMultiLineEqual(self, first=reference_iso_string, second=tested_string)
 
+    def test_to_mmd_3(self):
+        # Jason input file missing
+        tested = tempfile.mkstemp()[1]
+        self.assertRaises(TypeError, odajson_to_mmd.to_mmd, self.not_a_file, tested, self.xml_template)
+
     def test_to_mmd_4(self):
+        # XML template missing
         tested = tempfile.mkstemp()[1]
         self.assertRaises(FileNotFoundError, odajson_to_mmd.to_mmd, self.reference_in_json, tested, self.not_a_file)
 
     def test_to_mmd_5(self):
+        # Validation asked but no XSD schema provided
         tested = tempfile.mkstemp()[1]
         self.assertRaises(TypeError, odajson_to_mmd.to_mmd, self.reference_in_json, tested, self.xml_template,
                           xsd_validation=True)
 
     def test_to_mmd_6(self):
+        # Validation asked but XSD schema not valid file
         tested = tempfile.mkstemp()[1]
         self.assertRaises(FileNotFoundError, odajson_to_mmd.to_mmd, self.reference_in_json, tested, self.xml_template,
                           xsd_validation=True, xsd_schema=self.not_a_file)
 
     def test_to_mmd_7(self):
+        # Validation fails with input Json with invalid elements
         tested = tempfile.mkstemp()[1]
         self.assertIs(odajson_to_mmd.to_mmd(self.json_with_invalid_elements, tested,
                                             self.xml_template, xsd_validation=True, xsd_schema=self.reference_xsd), False)
 
     def test_retrieve_from_url(self):
+        # Query to invalid URL
         self.assertIsNone(odajson_to_mmd.retrieve_from_url('toto.no'))
 
     def test_prepare_elements_1(self):
+        # Required element missing #1
         with open(self.default, 'r') as default_file:
             default = yaml.load(default_file.read(), Loader=yaml.SafeLoader)
         dataset = self.reference_oda_tag
@@ -134,6 +143,7 @@ class TestODA2MMD(unittest.TestCase):
         self.assertIsNone(odajson_to_mmd.prepare_elements(dataset, default))
 
     def test_prepare_elements_2(self):
+        # Required element missing #2
         with open(self.default, 'r') as default_file:
             default = yaml.load(default_file.read(), Loader=yaml.SafeLoader)
         dataset = self.reference_oda_tag
@@ -141,6 +151,7 @@ class TestODA2MMD(unittest.TestCase):
         self.assertIsNone(odajson_to_mmd.prepare_elements(dataset, default))
 
     def test_prepare_elements_3(self):
+        # Variables lat/lon = default value
         with open(self.default, 'r') as default_file:
             default = yaml.load(default_file.read(), Loader=yaml.SafeLoader)
         dataset = self.reference_oda_tag
@@ -155,6 +166,7 @@ class TestODA2MMD(unittest.TestCase):
         self.assertEqual(out['geographic_extent']['longitude_min'], default['geographic_extent']['longitude_min'])
 
     def test_prepare_elements_4(self):
+        # Variable 'Production_status' set to sthg not in controlled vocabulary
         with open(self.default, 'r') as default_file:
             default = yaml.load(default_file.read(), Loader=yaml.SafeLoader)
         dataset = self.reference_oda_tag
@@ -162,6 +174,7 @@ class TestODA2MMD(unittest.TestCase):
         self.assertIsNone(odajson_to_mmd.prepare_elements(dataset, default))
 
     def test_prepare_elements_5(self):
+        # Variable 'Operational_status' set to default value
         with open(self.default, 'r') as default_file:
             default = yaml.load(default_file.read(), Loader=yaml.SafeLoader)
         dataset = self.reference_oda_tag
@@ -170,6 +183,7 @@ class TestODA2MMD(unittest.TestCase):
         self.assertIs('operational_status' in out, False)
 
     def test_prepare_elements_6(self):
+        # Variable 'Keyword' includes Keyword_type that is not CF
         with open(self.default, 'r') as default_file:
             default = yaml.load(default_file.read(), Loader=yaml.SafeLoader)
         dataset = self.reference_oda_tag
@@ -178,9 +192,16 @@ class TestODA2MMD(unittest.TestCase):
         self.assertEqual(out['keyword'], dataset['Keyword'])
 
     def test_process_station_1(self):
+        # Expected normal use
+        outdir = tempfile.mkdtemp()
+        self.assertIs(odajson_to_mmd.process_station('18269', 'HAUGENSTUA', outdir, self.default, self.xml_template, 'frost-staging.met.no'), True)
+
+    def test_process_station_2(self):
+        # Non existing station
         outdir = tempfile.mkdtemp()
         self.assertIs(odajson_to_mmd.process_station('AA', 'AA', outdir, self.default, self.xml_template, 'frost-staging.met.no'), False)
 
-    def test_process_station_2(self):
+    def test_process_station_3(self):
+        # Missing default file
         outdir = tempfile.mkdtemp()
-        self.assertIs(odajson_to_mmd.process_station('18269', 'HAUGENSTUA', outdir, self.default, self.xml_template, 'frost-staging.met.no'), True)
+        self.assertIs(odajson_to_mmd.process_station('18269', 'HAUGENSTUA', outdir, self.not_a_file, self.xml_template, 'frost-staging.met.no'), True)

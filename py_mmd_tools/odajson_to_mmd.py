@@ -22,14 +22,15 @@ logger = setup_log(__name__, "/home/elodief/Data/mmd/Logs/", logtype='file')
 
 
 def retrieve_from_url(point, user_id='', user_pwd='', timeout_secs=10):
-    """[Request from an URL]
+    """
+    Request from an URL
     Args:
-        point ([str]): [URL to request to]
-        user_id ([str]): optional, user name
-        user_pwd ([str]): optional, user password
-        timeout_secs ([int]): optional, timeout in seconds
+        point (str): URL to request to
+        user_id (str): optional, user name, default=''
+        user_pwd (str): optional, user password, default=''
+        timeout_secs (int): optional, timeout in seconds, default=10
     Returns:
-        [requests.Response object]: [return request object or None if the request fails. ]
+        request object or None if the request fails.
     """
 
     try:
@@ -41,7 +42,7 @@ def retrieve_from_url(point, user_id='', user_pwd='', timeout_secs=10):
     return r
 
 
-# def process_oda(outdir, default_file, mmd_template, validate=False, mmd_schema=None, frost_url='frost-staging.met.no'):
+#def process_oda(outdir, default_file, mmd_template, validate=False, mmd_schema=None, frost_url='frost-staging.met.no'):
 #    """ Process all datasets available from FROST API. """
 #
 #    # Get list of available stations
@@ -57,24 +58,42 @@ def retrieve_from_url(point, user_id='', user_pwd='', timeout_secs=10):
 #
 #    # Looping over available stations
 #    for station in stations_list:
-#        logger.info("Processing station % (%)" % (station['name'], station['id'][2:]))
+#        logger.info("Processing station %s (id %s)" % (station['name'], station['id'][2:]))
 #        process_station(station['id'][2:], station['name'], outdir, default_file, mmd_template, frost_url, validate, mmd_schema)
 #
 #    return True
-#
+
 
 def process_station(station_id, station_name, outdir, default_file, mmd_template, frost_url, validate=False,
                     mmd_schema=None):
+    """
+    Process metadata from one station:
+     - request metadata information from all available datasets from station
+     - create MMD file for each dataset
+    Args:
+        station_id (str): station identifier
+        station_name (str): station name
+        outdir (str): directory where created MMD files will be saved
+        default_file (str): YAML file containing the default metadata (generic metadata used for all datasets)
+        mmd_template (str): XML template file
+        frost_url (str): url to query
+        validate (bool): Validate created MMD file against schema? default=False
+        mmd_schema (str): XSD file containing the schema to validate against. default=None
+    Returns:
+        True if function succeeded, False otherwise
+    """
+
+    # Station URL
     st_url = 'https://' + frost_url + '/api/v1/availableoda?stationid=' + station_id
     logger.debug('Retrieving FROST data for station %s (id: %s).' % (station_name, station_id))
 
-    # Request ODA tags for all datasets of current station
+    # Request metadata (ODA tags) for all datasets of station
     st_req = retrieve_from_url(st_url)
     if st_req is None:
         logger.error('Unable to retrieve station data.')
         return False
 
-    # Filter out stations with no tag
+    # Filter out stations with no metadata information
     try:
         st_data = st_req.json()
     except json.decoder.JSONDecodeError:
@@ -84,7 +103,7 @@ def process_station(station_id, station_name, outdir, default_file, mmd_template
 
     logger.debug('%s datasets for station %s (id %s).' % (len(st_data), station_name, station_id))
 
-    # Read static metadata elements (identical for all ODA datasets)
+    # Read static metadata elements (identical for all datasets)
     with open(default_file, 'r') as file:
         default = yaml.load(file.read(), Loader=yaml.SafeLoader)
 
@@ -101,7 +120,6 @@ def process_station(station_id, station_name, outdir, default_file, mmd_template
         # Modify elements to fit MMD template format
         # Merge dataset elements with default elements
         out_elements = prepare_elements(dataset, default)
-        logger.debug(out_elements)
 
         # Perform MMD transformation
         outfile = pathlib.Path(outdir, 'oda_' + str(dataset['Metadata_identifier']) + '.xml')
@@ -112,11 +130,19 @@ def process_station(station_id, station_name, outdir, default_file, mmd_template
 
 def prepare_elements(dataset_elements, default_elements):
     """
-    Rename, convert and modify elements to fit metadata elements expected in XML template.
-    Merge metadata elements specific to a dataset and the common default metadata.
-    """
+    Prepare a dictionary to fit MMD schema:
+     - merge dataset specific elements and default elements (default overwritten if available in dataset)
+     - rename elements
+     - modify to fit controlled vocabularies
+     - verify that elements are 'OK' (fit controlled vocabularies, required are present, ...)
+    Args:
+        dataset_elements (dict): dictionary containing all elements specific to one dataset
+        default_elements (dict): dictionary containing all default elements
+    Returns:
+        dictionary if function succeeded or None if it failed
+   """
 
-    logger.debug("Metadata elements before merging: %s" % dataset_elements)
+    logger.debug("Dataset metadata elements before merging: %s" % dataset_elements)
 
     # Rename elements keys to lowercase
     dataset_elements = _lowercase(dataset_elements)
@@ -199,16 +225,18 @@ def prepare_elements(dataset_elements, default_elements):
 
 
 def to_mmd(input_data, output_file, template_file, xsd_validation=False, xsd_schema=None):
-    """[Transform Json file or dictionary to XML using a template]
+    """
+    Transform Json file or dictionary to MMD using a template.
     Args:
-        input_data ([str or dict]): [filepath to a json file or dictionary]
-        output_file ([str]): [filepath to output xml file]
-        template_file ([str]): [filepath to a xml template file]
-        xsd_validation ([bool]): [if true, performs validation on the created xml file - requires an xsd schema]
-        xsd_schema ([str]): [xsd schema file used if xsd_validation is True]
+        input_data (str or dict): filepath to input json file or dictionary
+        output_file (str): filepath to output MMD file
+        template_file (str): filepath to a xml template file
+        xsd_validation (bool): if true, performs validation on the created xml file - requires an xsd schema
+                               default=False
+        xsd_schema (str): filepath to xsd schema file
+                          default=None
     Returns:
-        [bool]: [return True if the input data provided is successfully converted to xml,
-        return False otherwise]
+        True if function succeeded, False otherwise
 
     #todo: add doctest
     """
@@ -228,11 +256,7 @@ def to_mmd(input_data, output_file, template_file, xsd_validation=False, xsd_sch
         raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), template_file)
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(pathlib.Path(template_file).parent))
     template = env.get_template(pathlib.Path(template_file).name)
-    try:
-        out_doc = template.render(data=in_doc)
-    except jinja2.exceptions.UndefinedError:
-        logger.error("Rendering of template failed.")
-        return False
+    out_doc = template.render(data=in_doc)
 
     # Creation of output XML file
     pathlib.Path(output_file).parent.mkdir(parents=True, exist_ok=True)
@@ -254,21 +278,31 @@ def to_mmd(input_data, output_file, template_file, xsd_validation=False, xsd_sch
     return True
 
 
-def _lowercase(obj):
-    """ Make all keys from a dictionary lowercase 
-    (ok for nested dictionaries, but will not work for dictionaries within lists) """
-    if isinstance(obj, dict):
-        return {k.lower(): _lowercase(v) for k, v in obj.items()}
+def _lowercase(dictin):
+    """
+    Make all keys from a dictionary lowercase.
+    Args:
+        dictin (dict): dictionary
+    Returns:
+        modified dictionary dictin
+    Ok for nested dictionaries, but will not work for dictionaries within lists.
+    """
+    if isinstance(dictin, dict):
+        return {k.lower(): _lowercase(v) for k, v in dictin.items()}
     else:
-        return obj
+        return dictin
 
 
 def _merge_dicts(d1, d2):
     """
     Merge dictionaries d1 and d2 with values from d1 overwritten by d2 if exists in both dictionaries.
     Merging includes nested dictionaries.
-    Dictionary d1 will contain the merged dictionary.
-    Raises error if one key contains a dict in one dict but no in the other.
+    Raises error if one key contains a dictionary in one dictionary but not in the other.
+    Args:
+        d1 (dict): default dictionary
+        d2(dict): other dictionary
+    Returns:
+        modified dictionary d1
     """
     out = d1
     for k in d2:
