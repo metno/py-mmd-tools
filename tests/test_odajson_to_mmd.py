@@ -205,3 +205,9 @@ class TestODA2MMD(unittest.TestCase):
         # Missing default file
         outdir = tempfile.mkdtemp()
         self.assertIs(odajson_to_mmd.process_station('18269', 'HAUGENSTUA', outdir, self.not_a_file, self.xml_template, 'frost-staging.met.no'), True)
+
+    def test_retrieve_frost_stations(self):
+        # Request with wrong URL
+        self.assertEqual(odajson_to_mmd.retrieve_frost_stations('https://frost.met.no/sources/v.jsonld', 'id'), [])
+        # Request with wrong id
+        self.assertEqual(odajson_to_mmd.retrieve_frost_stations('https://frost.met.no/sources/v0.jsonld', 'incorrect_id'), [])

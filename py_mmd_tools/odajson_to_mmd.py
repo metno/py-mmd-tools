@@ -15,10 +15,9 @@ import pathlib
 import errno
 import os
 from py_mmd_tools.xml_util import xsd_check
-from py_mmd_tools.log_util import setup_log
+import logging
 
-# todo: how to give logdir?
-logger = setup_log(__name__, "/home/elodief/Data/mmd/Logs/", logtype='file')
+logger = logging.getLogger(__name__)
 
 
 def retrieve_from_url(point, user_id='', user_pwd='', timeout_secs=10):
@@ -42,26 +41,14 @@ def retrieve_from_url(point, user_id='', user_pwd='', timeout_secs=10):
     return r
 
 
-#def process_oda(outdir, default_file, mmd_template, validate=False, mmd_schema=None, frost_url='frost-staging.met.no'):
-#    """ Process all datasets available from FROST API. """
-#
-#    # Get list of available stations
-#    # For now, request frost.met.no instead of frost_url as this service is not available on the staging API
-#    frost_id = os.getenv('FROST_ID')
-#    stations_req = retrieve_from_url('https://frost.met.no/sources/v0.jsonld', frost_id)
-#
-#    try:
-#        stations_list = stations_req.json()['data']
-#    except (AttributeError, KeyError, TypeError):
-#        logger.error('Unable to get stations list from request.')
-#        return False
-#
-#    # Looping over available stations
-#    for station in stations_list:
-#        logger.info("Processing station %s (id %s)" % (station['name'], station['id'][2:]))
-#        process_station(station['id'][2:], station['name'], outdir, default_file, mmd_template, frost_url, validate, mmd_schema)
-#
-#    return True
+def retrieve_frost_stations(url, user_id):
+    stations_req = retrieve_from_url(url, user_id)
+    try:
+        stations_list = stations_req.json()['data']
+    except (AttributeError, KeyError, TypeError):
+        logger.error('Unable to get stations list from request.')
+        return []
+    return stations_list
 
 
 def process_station(station_id, station_name, outdir, default_file, mmd_template, frost_url, validate=False,
