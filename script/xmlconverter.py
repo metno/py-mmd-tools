@@ -4,7 +4,7 @@ import pathlib
 import sys
 import parmap
 from lxml.etree import XMLSyntaxError
-from xml2xml import xml2xml
+from py_mmd_tools.xml2xml import xml2xml
 
 """
 Script to run the xmlc onversion tools
