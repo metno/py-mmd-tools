@@ -3,7 +3,8 @@ Tool for creating metadata (MMD format) for data from ODA database.
 
 License:
      This file is part of the py-mmd-tools repository (https://github.com/metno/py-mmd-tools).
-     py-mmd-tools is licensed under GPL-3.0 (https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
+     py-mmd-tools is licensed under GPL-3.0 (
+     https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
 """
 
 import json
@@ -51,7 +52,8 @@ def retrieve_frost_stations(url, user_id):
     return stations_list
 
 
-def process_station(station_id, station_name, outdir, default_file, mmd_template, frost_url, validate=False,
+def process_station(station_id, station_name, outdir, default_file, mmd_template, frost_url,
+                    validate=False,
                     mmd_schema=None):
     """
     Process metadata from one station:
@@ -61,7 +63,8 @@ def process_station(station_id, station_name, outdir, default_file, mmd_template
         station_id (str): station identifier
         station_name (str): station name
         outdir (str): directory where created MMD files will be saved
-        default_file (str): YAML file containing the default metadata (generic metadata used for all datasets)
+        default_file (str): YAML file containing the default metadata (generic metadata used for
+        all datasets)
         mmd_template (str): XML template file
         frost_url (str): url to query
         validate (bool): Validate created MMD file against schema? default=False
@@ -100,7 +103,6 @@ def process_station(station_id, station_name, outdir, default_file, mmd_template
         logger.debug(dataset)
 
         # Add station elements
-        # todo: Temporary? Is it ok to use station data not coming from ODA tag?
         dataset['station_name'] = station_name
         dataset['station_id'] = station_id
 
@@ -118,7 +120,8 @@ def process_station(station_id, station_name, outdir, default_file, mmd_template
 def prepare_elements(dataset_elements, default_elements):
     """
     Prepare a dictionary to fit MMD schema:
-     - merge dataset specific elements and default elements (default overwritten if available in dataset)
+     - merge dataset specific elements and default elements (default overwritten if available in
+     dataset)
      - rename elements
      - modify to fit controlled vocabularies
      - verify that elements are 'OK' (fit controlled vocabularies, required are present, ...)
@@ -146,24 +149,28 @@ def prepare_elements(dataset_elements, default_elements):
 
     # Extract CF keyword names
     # The list should contain only one element
-    # todo: throw error if more than one CF name
     for keys in dataset_elements['keyword']:
         if keys['Keyword_type'] == "CF name":
             dataset_elements['keywords_cf'] = keys['Keywords'][0]
         else:
             logger.warning(
-                'This type of keyword is not available yet (%s). It will not be included in the output MMD.' % keys[
+                'This type of keyword is not available yet (%s). It will not be included in the '
+                'output MMD.' %
+                keys[
                     'Keyword_type'])
 
     # Check that dataset elements contains all the required elements
-    required_keys = ['keywords_cf', 'metadata_identifier', 'last_metadata_update', 'temporal_extent']
+    required_keys = ['keywords_cf', 'metadata_identifier', 'last_metadata_update',
+                     'temporal_extent']
     for req in required_keys:
         if req not in dataset_elements:
             logger.warning('Required parameter missing (%s), creation of MMD file aborted.' % req)
             return None
     if 'start_date' not in dataset_elements['temporal_extent']:
-        logger.warning('Required parameter missing (\'temporal_extent\'][\'start_date\']), creation of MMD file '
-                       'aborted.')
+        logger.warning(
+            'Required parameter missing (\'temporal_extent\'][\'start_date\']), creation of MMD '
+            'file '
+            'aborted.')
         return None
 
     # Merge default and dataset specific elements
@@ -176,7 +183,8 @@ def prepare_elements(dataset_elements, default_elements):
     elements_out['dataset_production_status'] = choices.get(elements_out['production_status'], None)
     if elements_out['dataset_production_status'] is None:
         logger.warning(
-            'The value for key %s (%s) is not a valid choice. Correct choices are: open/future/closed. This element '
+            'The value for key %s (%s) is not a valid choice. Correct choices are: '
+            'open/future/closed. This element '
             'is required, so the creation of MMD file is aborted.' % (
                 'production_status', elements_out['production_status']))
         return None
@@ -192,16 +200,23 @@ def prepare_elements(dataset_elements, default_elements):
 
     # Create dataset specific title and abstract if possible
     try:
-        elements_out['title_full'] = elements_out['keywords_cf'] + ' observations from weather station ' + \
-                                     elements_out['station_name'] + ' (station ID ' + elements_out['station_id'] + ').'
+        elements_out['title_full'] = elements_out[
+                                         'keywords_cf'] + ' observations from weather station ' + \
+                                     elements_out['station_name'] + ' (station ID ' + elements_out[
+                                         'station_id'] + ').'
         elements_out['abstract_full'] = 'Timeseries of ' + elements_out[
             'keywords_cf'] + ' observations from the Norwegian weather station ' + elements_out[
                                             'station_name'] + ' (station ID ' + elements_out[
-                                            'station_id'] + '). The observations have been through the data ' \
-                                                            'collection system of the Norwegian Meteorological ' \
-                                                            'institute which includes a number of automated and ' \
-                                                            'manual quality control routines. The number of available '\
-                                                            'quality control routines is element dependent. '
+                                            'station_id'] + '). The observations have been ' \
+                                                            'through the data ' \
+                                                            'collection system of the Norwegian ' \
+                                                            'Meteorological ' \
+                                                            'institute which includes a number of ' \
+                                                            'automated and ' \
+                                                            'manual quality control routines. The ' \
+                                                            'number of available ' \
+                                                            'quality control routines is element ' \
+                                                            'dependent. '
     except KeyError:
         elements_out['title_full'] = elements_out['title']
         elements_out['abstract_full'] = elements_out['abstract']
@@ -218,7 +233,8 @@ def to_mmd(input_data, output_file, template_file, xsd_validation=False, xsd_sch
         input_data (str or dict): filepath to input json file or dictionary
         output_file (str): filepath to output MMD file
         template_file (str): filepath to a xml template file
-        xsd_validation (bool): if true, performs validation on the created xml file - requires an xsd schema
+        xsd_validation (bool): if true, performs validation on the created xml file - requires an
+        xsd schema
                                default=False
         xsd_schema (str): filepath to xsd schema file
                           default=None
@@ -234,7 +250,8 @@ def to_mmd(input_data, output_file, template_file, xsd_validation=False, xsd_sch
     elif isinstance(input_data, dict):
         in_doc = input_data
     else:
-        raise TypeError("Unknown input data %s. Expecting a Jason file or a dictionary." % input_data)
+        raise TypeError(
+            "Unknown input data %s. Expecting a Jason file or a dictionary." % input_data)
 
     # Rendering of input in template
     if not pathlib.Path(template_file).is_file():
@@ -284,7 +301,8 @@ def _lowercase(dictin):
 
 def _merge_dicts(d1, d2):
     """
-    Merge dictionaries d1 and d2 with values from d1 overwritten by d2 if exists in both dictionaries.
+    Merge dictionaries d1 and d2 with values from d1 overwritten by d2 if exists in both
+    dictionaries.
     Merging includes nested dictionaries.
     Raises error if one key contains a dictionary in one dictionary but not in the other.
     Args:
