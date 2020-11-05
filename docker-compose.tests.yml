@@ -13,6 +13,6 @@ services:
       GITHUB_ACTIONS: "${GITHUB_ACTIONS}"
     volumes:
       - .:/src
-    command: ./tests.sh
+    command: ./run_tests.sh
 
 #CODECOV_TOKEN: "${CODECOV_TOKEN}"
