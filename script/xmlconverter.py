@@ -4,7 +4,7 @@ import pathlib
 import sys
 import parmap
 from lxml.etree import XMLSyntaxError
-from xml2xml import xml2xml
+from xml_utils import xml_translate
 
 """
 Script to run the xmlc onversion tools
@@ -40,14 +40,14 @@ def filelist(directory):
                 xml_files.append(file_path)
     return xml_files
 
-def writerecord(xml_file, xslt, outdir="/tmp"):
+def translate_and_write(xml_file, xslt, outdir="/tmp"):
     pathlib.Path(outdir).mkdir(parents=True, exist_ok=True)
     if not os.path.isfile(xslt):
         raise Exception("XSLT file is missing: %s" % xslt)
     outputfile = pathlib.PurePosixPath(outdir).joinpath(
         pathlib.PurePosixPath(xml_file).name
     )
-    xml2xml(
+    xml_translate(
         xml_file=xml_file,
         outputfile=outputfile,
         xslt=xslt,
@@ -58,12 +58,12 @@ def main(metadata, xslt, outdir, recover=False, parallel=False):
     if not recover:
         xmlfiles = filelist(metadata)
     else:
-        xmlfiles = recover_task(metadata, outdir, parallel)
+        xmlfiles = recover_task(sourcedir=metadata, outdir=outdir, parallel=parallel)
     print(f"Sprocessing {len(xmlfiles)} files")
     if parallel is True:
         print(f'parallel: {parallel}')
         parmap.map(
-            writerecord,
+            translate_and_write,
             xmlfiles,
             xslt=xslt,
             outdir=outdir,
@@ -72,18 +72,33 @@ def main(metadata, xslt, outdir, recover=False, parallel=False):
     else:
         for i in xmlfiles:
             try:
-                writerecord(xml_file=i, xslt=xslt, outdir=outdir)
-            except XMLSyntaxError:
-                print(f"failed on: {i}")
+                translate_and_write(xml_file=i, xslt=xslt, outdir=outdir)
+            except XMLSyntaxError as e:
+                print(f"failed on: {i} - {e.message}")
 
 
 def check_record(record, tobedone):
+    """[Returns a filepath string if the file name is present in the input list]
+    Args:
+        record ([str]): [filepath]
+        tobedone ([list]): [list of filenames]
+    Returns:
+        [str]: [filepath]
+    """
     if pathlib.Path(record).stem in tobedone:
         return record
 
 
-def recover_task(metadata, outdir, parallel=False):
-    total = filelist(metadata)
+def recover_task(sourcedir, outdir, parallel=False):
+    """[Return a list of filenames which are present in the sourcedir tree but not in outdir.]
+    Args:
+        sourcedir ([str]): [filepath to directory]
+        outdir ([str]): [filepath to directory]
+        parallel ([bool]): [True to performe the operation using multicore parallel processing]
+    Returns:
+        [list]: [list of strings]
+    """
+    total = filelist(sourcedir)
     already_done = filelist(outdir)
     total_stem = [pathlib.Path(i).stem for i in total]
     already_done_stem = [pathlib.Path(i).stem for i in already_done]
