@@ -4,7 +4,8 @@ nosetests --with-coverage --cover-package=py_mmd_tools || exit 1
 
 echo
 
-if [[ -n "$CODECOV_TOKEN" ]]
+#if [[ -n "$CODECOV_TOKEN" ]]
+if [[ "$CODECOV" ]]
 then
 	bash <(curl -s https://codecov.io/bash)
 else
