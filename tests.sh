@@ -7,7 +7,7 @@ echo
 #if [[ -n "$CODECOV_TOKEN" ]]
 if [[ "$CODECOV" ]]
 then
-	bash <(curl -s https://codecov.io/bash)
+  bash <(curl -s https://codecov.io/bash)
 else
   echo %%
   echo %% Do you want code coverage generated on https://codecov.io with GitHub Actions.
