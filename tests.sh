@@ -1,11 +1,12 @@
 #!/bin/bash
 
-nosetests --with-coverage --cover-package=py_mmd_tools || exit 1
+#nosetests --with-coverage --cover-package=py_mmd_tools || exit 1
+nosetests --with-coverage --cover-xml --cover-xml-file=/src/coverage.xml --cover-package=py_mmd_tools
+#cat /src/coverage.xml
 
 echo
 
-#if [[ -n "$CODECOV_TOKEN" ]]
-if [[ "$CODECOV" ]]
+if [[ -n "$CODECOV_TOKEN" ]]
 then
   bash <(curl -s https://codecov.io/bash)
 else
