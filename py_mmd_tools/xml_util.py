@@ -15,7 +15,8 @@ import os
 
 
 def xml_check(xml_file):
-    """[validate xml syntax from filepath]
+    """ Validate xml syntax from filepath.
+
     Args:
         xml_file ([str]): [filepath to an xml file]
     Returns:
@@ -24,13 +25,15 @@ def xml_check(xml_file):
     """
     if pathlib.Path(xml_file).is_file() and os.path.getsize(xml_file) != 0:
         try:
+            # ET.parse will raise an OSError if the file does not exist
             xml = ET.parse(xml_file)
-            return True
         except XMLSyntaxError:
             raise 
-
     else:
         raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), xml_file)
+    
+    return True
+
 
 
 def xsd_check(xml_file, xsd_schema=None):
