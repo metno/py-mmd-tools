@@ -8,8 +8,9 @@ on:
   pull_request:
 
 env:
-  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   CODECOV: true
+
+#CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
          
 jobs:
   build:
