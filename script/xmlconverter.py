@@ -78,7 +78,7 @@ def main(metadata, xslt, outdir, recover=False, parallel=False):
 
 
 def check_record(record, tobedone):
-    """[Returns a filepath string is the file name is present in the input list]
+    """[Returns a filepath string if the file name is present in the input list]
     Args:
         record ([str]): [filepath]
         tobedone ([list]): [list of filenames]
