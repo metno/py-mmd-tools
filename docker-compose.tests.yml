@@ -7,6 +7,7 @@ services:
       dockerfile: Dockerfile.tests
     environment:
       CODECOV_TOKEN: "${CODECOV_TOKEN}"
+      CODECOV: "${CODECOV}"
       CI: "${CI}"
       GITHUB_REF: "${GITHUB_REF}"
       GITHUB_SHA: "${GITHUB_SHA}"
