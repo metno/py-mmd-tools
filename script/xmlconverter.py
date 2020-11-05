@@ -4,7 +4,7 @@ import pathlib
 import sys
 import parmap
 from lxml.etree import XMLSyntaxError
-from xml_translate import xml_translate
+from xml_utils import xml_translate
 
 """
 Script to run the xmlc onversion tools
