@@ -1,7 +1,7 @@
 import tempfile
 import unittest
 import pathlib
-from py_mmd_tools.xml_util import xml_check, xsd_check, xml_translate
+from py_mmd_tools.xml_utils import xml_check, xsd_check, xml_translate
 from lxml.etree import XMLSyntaxError
 
 
