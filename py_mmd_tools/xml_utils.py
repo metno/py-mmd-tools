@@ -1,26 +1,66 @@
 """
-Tool for converting metadata from MMD format to ISO format using a specific xslt.
+Utility tool to work on mmd xml files.
  License:
-     This file is part of the S-ENDA-Prototype repository (https://github.com/metno/py-mmd-tools).
-     S-ENDA-Prototype is licensed under GPL-3.0 (https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
+     This file is part of py-mmd-tools, licensed under the Apache License 2.0 (https://www.apache.org/licenses/LICENSE-2.0)
 """
 
 import pathlib
-import time
-
+import errno
+import os
 import lxml.etree as ET
-from py_mmd_tools.xml_util import xml_check, xsd_check
+from datetime import datetime
+from lxml.etree import XMLSyntaxError
 import errno
 import os
 
-def xml2xml(
+
+def xml_check(xml_file):
+    """ Validate xml syntax from filepath.
+
+    Args:
+        xml_file ([str]): [filepath to an xml file]
+    Returns:
+        [bool]: [return True if a valid xml filepath is provided, 
+        raises an exception if the xmlfile is invalid, empty, or doesn't exist ]
+    """
+    if pathlib.Path(xml_file).is_file() and os.path.getsize(xml_file) != 0:
+        try:
+            # ET.parse will raise an OSError if the file does not exist
+            xml = ET.parse(xml_file)
+        except XMLSyntaxError:
+            raise 
+    else:
+        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), xml_file)
+    
+    return True
+
+
+
+def xsd_check(xml_file, xsd_schema=None):
+    """[validate xml file from filepath]
+    Args:
+        xmlfile ([str]): [filepath to an xml file]
+        xsd_schema ([str]): [filepath to an xsd schema file]
+    Returns:
+        [bool]: [return True if a valid xml filepath is provided, 
+        return False if the xmlfile is invalid, empty, or doesn't exist ]
+    """
+    xmlschema_mmd = ET.XMLSchema(ET.parse(xsd_schema))
+    xml_doc = ET.ElementTree(file=xml_file)
+    if not xmlschema_mmd.validate(xml_doc):
+        passing=False
+    else:
+        passing=True
+    return passing
+
+def xml_translate(
     xml_file,
     outputfile,
     xslt,
     xsd_validation=False,
     xsd_schema=None,
 ):
-    """[Transform MMD file to ISO using xslt]
+    """[Transform XML file using xslt]
     Args:
         xml_file ([str]): [filepath to an xml file]
         xslt ([str]): [filepath to a xsl transformation file]
@@ -41,7 +81,7 @@ def xml2xml(
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), xsd_schema)
         else: 
             if not xsd_check(xml_file, xsd_schema=xsd_schema):
-                return False
+                raise
     else:
         if not pathlib.Path(xslt).exists():
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), xslt)
@@ -50,8 +90,9 @@ def xml2xml(
         transform = ET.XSLT(ET.parse(xslt))
         new_doc = transform(xml_doc)
     except OSError:
-        return False
+        result=False
     xml_as_string = ET.tostring(new_doc, pretty_print=True, encoding="unicode")
     with open(outputfile, "w") as output:
         output.write(xml_as_string)
-        return True
+        result=True
+    return result

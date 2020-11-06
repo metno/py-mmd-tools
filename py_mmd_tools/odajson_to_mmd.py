@@ -15,7 +15,7 @@ import requests
 import pathlib
 import errno
 import os
-from py_mmd_tools.xml_util import xsd_check
+from py_mmd_tools.xml_utils import xsd_check
 import logging
 
 logger = logging.getLogger(__name__)

@@ -6,12 +6,13 @@ services:
       context: .
       dockerfile: Dockerfile.tests
     environment:
-      CODECOV_TOKEN: "${CODECOV_TOKEN}"
+      CODECOV: "${CODECOV}"
       CI: "${CI}"
       GITHUB_REF: "${GITHUB_REF}"
       GITHUB_SHA: "${GITHUB_SHA}"
       GITHUB_ACTIONS: "${GITHUB_ACTIONS}"
     volumes:
       - .:/src
-    command: ./tests.sh
+    command: ./run_tests.sh
 
+#CODECOV_TOKEN: "${CODECOV_TOKEN}"

@@ -1,12 +1,12 @@
 #!/bin/bash
 
-nosetests --with-coverage --cover-package=py_mmd_tools --with-doctest || exit 1
+nosetests --with-coverage --cover-xml --cover-xml-file=/src/coverage.xml --cover-package=py_mmd_tools
 
 echo
 
 if [[ -n "$CODECOV_TOKEN" ]]
 then
-	bash <(curl -s https://codecov.io/bash)
+  bash <(curl -s https://codecov.io/bash)
 else
   echo %%
   echo %% Do you want code coverage generated on https://codecov.io with GitHub Actions.
