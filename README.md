@@ -7,3 +7,8 @@ Python tools for MMD
 
 To be able to request from FROST, one must have the environment variable FROST_ID set
 `export FROST_ID='myfrostid'`
+
+To run the tests locally, without Vagrant / Docker:
+```
+nosetests --with-coverage --cover-xml --cover-package=py_mmd_tools
+```

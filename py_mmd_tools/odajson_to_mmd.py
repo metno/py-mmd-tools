@@ -74,7 +74,7 @@ def process_station(station_id, station_name, outdir, default_file, mmd_template
     """
 
     # Station URL
-    st_url = 'https://' + frost_url + '/api/v1/availableoda?stationid=' + station_id
+    st_url = 'https://' + frost_url + '/api/v1/getlabels/mmd?stationid=' + station_id
     logger.debug('Retrieving FROST data for station %s (id: %s).' % (station_name, station_id))
 
     # Request metadata (ODA tags) for all datasets of station
