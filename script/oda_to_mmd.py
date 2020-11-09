@@ -92,7 +92,6 @@ if __name__ == '__main__':
     # For now, request frost.met.no instead of frost_url as this service is not available on the
     # staging API
     frost_id = os.getenv('FROST_ID')
-    frost_id = 'b883ed98-1d54-4a72-84cf-51bf32c0a769'
     if frost_id is None:
         logger.error("Environment variable FROST_ID not set. Exiting.")
         exit(1)
