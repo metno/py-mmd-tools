@@ -1,8 +1,16 @@
+"""
+ License:
+     This file is part of the py-mmd-tools repository (https://github.com/metno/py-mmd-tools).
+     py-mmd-tools is licensed under GPL-3.0 (
+     https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
+"""
+
 import unittest
 import pathlib
 import tempfile
 import yaml
 import json
+import jinja2
 from py_mmd_tools import odajson_to_mmd
 
 
@@ -110,7 +118,7 @@ class TestODA2MMD(unittest.TestCase):
     def test_to_mmd_4(self):
         # XML template missing
         tested = tempfile.mkstemp()[1]
-        self.assertRaises(FileNotFoundError, odajson_to_mmd.to_mmd, self.reference_in_json, tested, self.not_a_file)
+        self.assertRaises(jinja2.exceptions.TemplateNotFound, odajson_to_mmd.to_mmd, self.reference_in_json, tested, self.not_a_file)
 
     def test_to_mmd_5(self):
         # Validation asked but no XSD schema provided
