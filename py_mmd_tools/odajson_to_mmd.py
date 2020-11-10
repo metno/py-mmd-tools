@@ -21,34 +21,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def retrieve_from_url(point, user_id='', user_pwd='', timeout_secs=10):
-    """
-    Request from an URL
-    Args:
-        point (str): URL to request to
-        user_id (str): optional, user name, default=''
-        user_pwd (str): optional, user password, default=''
-        timeout_secs (int): optional, timeout in seconds, default=10
-    Returns:
-        request object or None if the request fails.
-    """
-
-    try:
-        r = requests.get(point, auth=(user_id, user_pwd), timeout=timeout_secs)
-        logger.debug('Data retrieved OK.')
-    except requests.exceptions.RequestException as e:
-        logger.error(e)
-        return None
-    return r
-
-
 def retrieve_frost_stations(url, user_id):
-    stations_req = retrieve_from_url(url, user_id)
-    try:
-        stations_list = stations_req.json()['data']
-    except (AttributeError, KeyError, TypeError):
-        logger.error('Unable to get stations list from request.')
-        return []
+    stations_req = requests.get(url, auth=(user_id, ''), timeout=10)
+    stations_req.raise_for_status()
+    stations_list = stations_req.json()['data']
     return stations_list
 
 
@@ -78,10 +54,7 @@ def process_station(station_id, station_name, outdir, default_file, mmd_template
     logger.debug('Retrieving FROST data for station %s (id: %s).' % (station_name, station_id))
 
     # Request metadata (ODA tags) for all datasets of station
-    st_req = retrieve_from_url(st_url)
-    if st_req is None:
-        logger.error('Unable to retrieve station data.')
-        return False
+    st_req = requests.get(st_url, timeout=10)
 
     # Filter out stations with no metadata information
     try:

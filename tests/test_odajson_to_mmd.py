@@ -11,6 +11,7 @@ import tempfile
 import yaml
 import json
 import jinja2
+import requests
 from py_mmd_tools import odajson_to_mmd
 
 
@@ -138,10 +139,6 @@ class TestODA2MMD(unittest.TestCase):
         self.assertIs(odajson_to_mmd.to_mmd(self.json_with_invalid_elements, tested,
                                             self.xml_template, xsd_validation=True, xsd_schema=self.reference_xsd), False)
 
-    def test_retrieve_from_url(self):
-        # Query to invalid URL
-        self.assertIsNone(odajson_to_mmd.retrieve_from_url('toto.no'))
-
     def test_prepare_elements_1(self):
         # Required element missing #1
         with open(self.default, 'r') as default_file:
@@ -202,12 +199,14 @@ class TestODA2MMD(unittest.TestCase):
     def test_process_station_1(self):
         # Expected normal use
         outdir = tempfile.mkdtemp()
-        self.assertIs(odajson_to_mmd.process_station('18269', 'HAUGENSTUA', outdir, self.default, self.xml_template, 'frost-staging.met.no'), True)
+        self.assertTrue(odajson_to_mmd.process_station('18269', 'HAUGENSTUA', outdir, self.default,
+                                                    self.xml_template, 'frost-staging.met.no'))
 
     def test_process_station_2(self):
         # Non existing station
         outdir = tempfile.mkdtemp()
-        self.assertIs(odajson_to_mmd.process_station('AA', 'AA', outdir, self.default, self.xml_template, 'frost-staging.met.no'), False)
+        self.assertFalse(odajson_to_mmd.process_station('AA', 'AA', outdir, self.default,
+                                                    self.xml_template, 'frost-staging.met.no'))
 
     def test_process_station_3(self):
         # Missing default file
@@ -217,6 +216,8 @@ class TestODA2MMD(unittest.TestCase):
 
     def test_retrieve_frost_stations(self):
         # Request with wrong URL
-        self.assertEqual(odajson_to_mmd.retrieve_frost_stations('https://frost.met.no/sources/v.jsonld', 'id'), [])
+        self.assertRaises(requests.exceptions.HTTPError, odajson_to_mmd.retrieve_frost_stations,
+                 'https://frost.met.no/sources/v.jsonld', 'id')
         # Request with wrong id
-        self.assertEqual(odajson_to_mmd.retrieve_frost_stations('https://frost.met.no/sources/v0.jsonld', 'incorrect_id'), [])
+        self.assertRaises(requests.exceptions.HTTPError, odajson_to_mmd.retrieve_frost_stations,
+            'https://frost.met.no/sources/v0.jsonld', 'incorrect_id')
