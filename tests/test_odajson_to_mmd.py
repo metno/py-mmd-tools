@@ -12,6 +12,7 @@ import yaml
 import json
 import jinja2
 import requests
+from unittest.mock import patch
 from py_mmd_tools import odajson_to_mmd
 
 
@@ -196,23 +197,22 @@ class TestODA2MMD(unittest.TestCase):
         out = odajson_to_mmd.prepare_elements(dataset, default)
         self.assertEqual(out['keyword'], dataset['Keyword'])
 
-    def test_process_station_1(self):
-        # Expected normal use
-        outdir = tempfile.mkdtemp()
-        self.assertTrue(odajson_to_mmd.process_station('18269', 'HAUGENSTUA', outdir, self.default,
-                                                    self.xml_template, 'frost-staging.met.no'))
+    @patch('py_mmd_tools.odajson_to_mmd.requests')
+    def test_process_station_1(self, mock_requests):
+        odajson_to_mmd.process_station('18269', 'HAUGENSTUA', 'outdir', self.default,
+                                                    self.xml_template, 'frost-staging.met.no')
+        # Check request to end-point
+        mock_requests.get.assert_called_with(
+            'https://frost-staging.met.no/api/v1/getlabels/mmd?stationid=18269', timeout=10)
+        # Missing default file
+        self.assertRaises(FileNotFoundError, odajson_to_mmd.process_station, '18269', 'HAUGENSTUA',
+                        'outdir', self.not_a_file, self.xml_template, 'frost-staging.met.no')
 
     def test_process_station_2(self):
         # Non existing station
         outdir = tempfile.mkdtemp()
         self.assertFalse(odajson_to_mmd.process_station('AA', 'AA', outdir, self.default,
                                                     self.xml_template, 'frost-staging.met.no'))
-
-    def test_process_station_3(self):
-        # Missing default file
-        outdir = tempfile.mkdtemp()
-        self.assertRaises(FileNotFoundError, odajson_to_mmd.process_station, '18269', 'HAUGENSTUA',
-                        outdir, self.not_a_file, self.xml_template, 'frost-staging.met.no')
 
     def test_retrieve_frost_stations(self):
         # Request with wrong URL
