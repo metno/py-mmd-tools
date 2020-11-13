@@ -201,12 +201,16 @@ class TestODA2MMD(unittest.TestCase):
         out = odajson_to_mmd.prepare_elements(dataset, default)
         self.assertEqual(out['keyword'], dataset['Keyword'])
 
-    @patch('py_mmd_tools.odajson_to_mmd.requests')
-    def test_process_station_1(self, mock_requests):
+    @patch('py_mmd_tools.odajson_to_mmd.to_mmd') # avoid writing files..
+    @patch('py_mmd_tools.odajson_to_mmd.requests.Response')
+    @patch('py_mmd_tools.odajson_to_mmd.requests.get')
+    def test_process_station_1(self, mock_get, mock_response, mock_to_mmd):
+        mock_response.json.return_value = [self.reference_oda_tag, self.reference_oda_tag]
+        mock_get.return_value = mock_response
         odajson_to_mmd.process_station('18269', 'HAUGENSTUA', 'outdir', self.default,
                                                     self.xml_template, 'frost-staging.met.no')
         # Check request to end-point
-        mock_requests.get.assert_called_with(
+        mock_get.assert_called_with(
             'https://frost-staging.met.no/api/v1/getlabels/mmd?stationid=18269', timeout=10)
         # Missing default file
         self.assertRaises(FileNotFoundError, odajson_to_mmd.process_station, '18269', 'HAUGENSTUA',
