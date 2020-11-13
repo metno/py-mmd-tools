@@ -11,8 +11,12 @@ import tempfile
 import yaml
 import json
 import jinja2
-import requests
-from unittest.mock import patch
+
+from requests import Response
+from requests.exceptions import HTTPError
+
+from unittest.mock import patch, MagicMock, Mock
+from unittest.mock import DEFAULT as mock_default
 from py_mmd_tools import odajson_to_mmd
 
 
@@ -214,10 +218,23 @@ class TestODA2MMD(unittest.TestCase):
         self.assertFalse(odajson_to_mmd.process_station('AA', 'AA', outdir, self.default,
                                                     self.xml_template, 'frost-staging.met.no'))
 
-    def test_retrieve_frost_stations(self):
+    def test_retrieve_frost_stations__invalid_url(self):
         # Request with wrong URL
         self.assertRaises(requests.exceptions.HTTPError, odajson_to_mmd.retrieve_frost_stations,
                  'https://frost.met.no/sources/v.jsonld', 'id')
+
+    def test_retrieve_frost_stations__invalid_id(self):
         # Request with wrong id
         self.assertRaises(requests.exceptions.HTTPError, odajson_to_mmd.retrieve_frost_stations,
             'https://frost.met.no/sources/v0.jsonld', 'incorrect_id')
+
+    @patch('py_mmd_tools.odajson_to_mmd.requests.Response')
+    @patch('py_mmd_tools.odajson_to_mmd.requests.get')
+    def test_retrieve_frost_stations__valid(self, mock_get, mock_response):
+        url = 'https://this.is.a.valid.url/v0.jsonld'
+        id = 'id'
+        mock_response.raise_for_status.return_value = 'hei'
+        mock_response.json.return_value = {'data': ['one', 'two', 'three']}
+        mock_get.return_value = mock_response
+        # 
+        self.assertEqual(odajson_to_mmd.retrieve_frost_stations(url, id)[0], 'one')
