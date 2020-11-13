@@ -212,11 +212,13 @@ class TestODA2MMD(unittest.TestCase):
         # Check request to end-point
         mock_get.assert_called_with(
             'https://frost-staging.met.no/api/v1/getlabels/mmd?stationid=18269', timeout=10)
+        mock_to_mmd.assert_called()
         # Missing default file
         self.assertRaises(FileNotFoundError, odajson_to_mmd.process_station, '18269', 'HAUGENSTUA',
                         'outdir', self.not_a_file, self.xml_template, 'frost-staging.met.no')
 
-    def test_process_station_2(self):
+    @patch('py_mmd_tools.odajson_to_mmd.to_mmd') # avoid writing files..
+    def test_process_station_2(self, mock_to_mmd):
         # Non existing station
         outdir = tempfile.mkdtemp()
         self.assertFalse(odajson_to_mmd.process_station('AA', 'AA', outdir, self.default,
