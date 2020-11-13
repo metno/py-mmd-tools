@@ -220,12 +220,12 @@ class TestODA2MMD(unittest.TestCase):
 
     def test_retrieve_frost_stations__invalid_url(self):
         # Request with wrong URL
-        self.assertRaises(requests.exceptions.HTTPError, odajson_to_mmd.retrieve_frost_stations,
+        self.assertRaises(HTTPError, odajson_to_mmd.retrieve_frost_stations,
                  'https://frost.met.no/sources/v.jsonld', 'id')
 
     def test_retrieve_frost_stations__invalid_id(self):
         # Request with wrong id
-        self.assertRaises(requests.exceptions.HTTPError, odajson_to_mmd.retrieve_frost_stations,
+        self.assertRaises(HTTPError, odajson_to_mmd.retrieve_frost_stations,
             'https://frost.met.no/sources/v0.jsonld', 'incorrect_id')
 
     @patch('py_mmd_tools.odajson_to_mmd.requests.Response')
@@ -238,3 +238,5 @@ class TestODA2MMD(unittest.TestCase):
         mock_get.return_value = mock_response
         # 
         self.assertEqual(odajson_to_mmd.retrieve_frost_stations(url, id)[0], 'one')
+        self.assertEqual(odajson_to_mmd.retrieve_frost_stations(url, id)[1], 'two')
+        self.assertEqual(odajson_to_mmd.retrieve_frost_stations(url, id)[2], 'three')
