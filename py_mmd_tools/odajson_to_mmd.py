@@ -177,6 +177,9 @@ def prepare_elements(dataset_elements, default_elements):
                                          'keywords_cf'] + ' observations from weather station ' + \
                                      elements_out['station_name'] + ' (station ID ' + elements_out[
                                          'station_id'] + ').'
+    except KeyError:
+        elements_out['title_full'] = elements_out['title']
+    try:
         elements_out['abstract_full'] = 'Timeseries of ' + elements_out[
             'keywords_cf'] + ' observations from the Norwegian weather station ' + elements_out[
                                             'station_name'] + ' (station ID ' + elements_out[
@@ -191,7 +194,6 @@ def prepare_elements(dataset_elements, default_elements):
                                                             'quality control routines is element ' \
                                                             'dependent. '
     except KeyError:
-        elements_out['title_full'] = elements_out['title']
         elements_out['abstract_full'] = elements_out['abstract']
 
     logger.debug("Metadata elements after merging: %s" % dataset_elements)
