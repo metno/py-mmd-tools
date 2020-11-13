@@ -25,6 +25,17 @@ cd /vagrant
 sudo docker-compose -f docker-compose.tests.yml up --build --exit-code-from tests
 ```
 
+For interactive work:
+
+```
+vagrant ssh
+cd /vagrant
+sudo docker start vagrant_tests_1
+sudo docker exec -it vagrant_tests_1 bash
+ipython
+```
+
+
 ## script/oda_to_mmd.py
 
 The access to `frost-staging.met.no` is restricted. So to be able to request ODA tags, one must be on met.no network.
