@@ -1,0 +1,22 @@
+title: 'ODA title'
+abstract: 'ODA abstract'
+collection: 'METNCS'
+iso_topic_category: 'climatologyMeteorologyAtmosphere'
+metadata_status: 'Active'
+production_status: 'open'
+geographic_extent:
+        latitude_min: '-90'
+        latitude_max: '90'
+        longitude_min: '-180'
+        longitude_max: '180'
+personnel:
+        role: 'Technical contact'
+        name: 'Ole Dole'
+        email: 'ole.dole@example.com'
+        phone: '004711111111'
+        contact_address:
+                address: 'Meteorologisk institutt, Henrik Mohnsplass 1'
+                city: 'Oslo'
+                province_or_state: 'Oslo'
+                postal_code: '0000'
+                country: 'Norway'

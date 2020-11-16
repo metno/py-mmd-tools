@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#nosetests --with-coverage --cover-package=py_mmd_tools || exit 1
 nosetests --with-coverage --cover-xml --cover-xml-file=/src/coverage.xml --cover-package=py_mmd_tools
-#cat /src/coverage.xml
+#nosetests --with-coverage --cover-xml --cover-xml-file=/src/coverage.xml --cover-package=py_mmd_tools tests.test_odajson_to_mmd:TestODA2MMD.test_retrieve_frost_stations__valid
+
 
 echo
 
