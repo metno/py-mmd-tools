@@ -31,9 +31,16 @@ class testMmdCheck(unittest.TestCase):
             "</rectangle>"
             "</geographic_extent>"
             "</root>"))
-        self.etree_url_nok = ET.ElementTree(ET.XML(
+        self.etree_url_rect_nok = ET.ElementTree(ET.XML(
             "<root>"
             "<a x='123'>https://www.met.not</a>"
+            "<geographic_extent>"
+            "<rectangle>"
+            "<north>76.199661</north>"
+            "<south>71.63427</south>"
+            "<west>-28.114723</west>"
+            "</rectangle>"
+            "</geographic_extent>" 
             "</root>"))
         self.etree_ref_empty = ET.ElementTree(ET.XML(
             "<root>"
@@ -48,15 +55,14 @@ class testMmdCheck(unittest.TestCase):
     def test_full_check_2(self):
         self.assertTrue(full_check(self.etree_ref_empty))
 
+    # Full check with invalid elements
+    def test_full_check_3(self):
+        self.assertFalse(full_check(self.etree_url_rect_nok))
+
     # Check URLs OK
     def test_all_urls_1(self):
         url_elements = self.etree_ref.xpath('.//*[contains(text(),"http")]')
         self.assertTrue(check_urls(url_elements))
-
-    # Check invalid URL
-    def test_all_urls_2(self):
-        url_elements = self.etree_url_nok.xpath('.//*[contains(text(),"http")]')
-        self.assertFalse(check_urls(url_elements))
 
     # Check lat/lon OK from rectangle
     def test_rectangle_1(self):
@@ -84,3 +90,13 @@ class testMmdCheck(unittest.TestCase):
     # Check more than one rectangle as input
     def test_rectangle_4(self):
         self.assertFalse(check_rectangle(['elem1', 'elem2']))
+
+    # Check lat & long OK with namespace
+    def test_rectangle_5(self):
+        root = ET.Element("rectangle")
+        ET.SubElement(root, '{http://www.met.no/schema/mmd}south').text = '20'
+        ET.SubElement(root, '{http://www.met.no/schema/mmd}north').text = '50'
+        ET.SubElement(root, '{http://www.met.no/schema/mmd}west').text = '50'
+        ET.SubElement(root, '{http://www.met.no/schema/mmd}east').text = '0'
+        self.assertFalse(check_rectangle([root]))
+
