@@ -12,6 +12,7 @@ python checkMMD.py [-h] -i INPUT -x XSD_MMD -l LOG_DIR
 The following arguments are required: 
 * -i/--input XML file or directory containing XML files
 * -x/--mmd-xsd MMD schema 
+* -l/--log-dir directory for logs
 
 # mmd2iso
 
