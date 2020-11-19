@@ -1,6 +1,6 @@
 import unittest
 import pathlib
-from py_mmd_tools.check_mmd import check_rectangle, full_check
+from py_mmd_tools.check_mmd import check_rectangle, check_urls, full_check
 import lxml.etree as ET
 
 
@@ -19,15 +19,48 @@ class testMmdCheck(unittest.TestCase):
         self.not_a_file = str(current_dir / 'tests' / 'data' / 'not_a_file.xml')
         self.not_a_valid_xml = str(current_dir / 'tests' / 'data' / 'not_a_valid_xml.xml')
         self.doc = ET.ElementTree(file=self.reference_xml)
+        self.etree_ref = ET.ElementTree(ET.XML(
+            "<root>"
+            "<a x='123'>https://www.met.no</a>"
+            "<geographic_extent>"
+            "<rectangle>"
+            "<north>76.199661</north>"
+            "<south>71.63427</south>"
+            "<west>-28.114723</west>"
+            "<east>-11.169785</east>"
+            "</rectangle>"
+            "</geographic_extent>"
+            "</root>"))
+        self.etree_url_nok = ET.ElementTree(ET.XML(
+            "<root>"
+            "<a x='123'>https://www.met.not</a>"
+            "</root>"))
+        self.etree_ref_empty = ET.ElementTree(ET.XML(
+            "<root>"
+            "<a x='123'>'xxx'/><c/><b/></a>"
+            "</root>"))
 
-    # Check rom rectangle
+    # Full check
     def test_full_check_1(self):
-        self.assertTrue(full_check(self.doc))
+        self.assertTrue(full_check(self.etree_ref))
+
+    # Full check with no elements to check
+    def test_full_check_2(self):
+        self.assertTrue(full_check(self.etree_ref_empty))
+
+    # Check URLs OK
+    def test_all_urls_1(self):
+        url_elements = self.etree_ref.xpath('.//*[contains(text(),"http")]')
+        self.assertTrue(check_urls(url_elements))
+
+    # Check invalid URL
+    def test_all_urls_2(self):
+        url_elements = self.etree_url_nok.xpath('.//*[contains(text(),"http")]')
+        self.assertFalse(check_urls(url_elements))
 
     # Check lat/lon OK from rectangle
     def test_rectangle_1(self):
-        root = self.doc.getroot()
-        rect = self.doc.findall('./mmd:geographic_extent/mmd:rectangle', namespaces=root.nsmap)
+        rect = self.etree_ref.findall('./{*}geographic_extent/{*}rectangle')
         self.assertTrue(check_rectangle(rectangle=rect))
 
     # Check longitude NOK
@@ -51,5 +84,3 @@ class testMmdCheck(unittest.TestCase):
     # Check more than one rectangle as input
     def test_rectangle_4(self):
         self.assertFalse(check_rectangle(['elem1', 'elem2']))
-
-

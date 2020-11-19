@@ -8,6 +8,8 @@ License:
 """
 
 import logging
+import requests
+from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -51,9 +53,47 @@ def check_rectangle(rectangle):
     return True
 
 
+def check_urls(elements):
+    """
+    Check that a list of URLs is valid
+    If an URL points to 'thredds.met.no' without 'https', prints a warning.
+    Args:
+        elements: list of elements found when requesting element(s) containing string 'http'
+    Returns:
+        True / False
+    """
+
+    errs = 0
+
+    for elem in elements:
+
+        try:
+            r = requests.get(elem.text, timeout=10)
+            if r.status_code:
+                urlinfo = urlparse(elem.text)
+                if urlinfo.netloc == 'thredds.met.no' and urlinfo.scheme != 'https':
+                    logger.info(f'Warning: resource points to unsecure thredds.met.no (http) \n '
+                                f'{elem.text}')
+                logger.debug(f'OK - {elem.tag} - {elem.text}')
+            else:
+                logger.debug(f'NOK - {elem.tag} - {elem.text}')
+                logger.debug(f'Invalid URL: {elem.text}')
+                logger.debug(f'Error: {r.raise_for_status()}')
+                errs += 1
+            r.close()
+        except Exception as e:
+            logger.debug(f'NOK - {elem.tag} - {elem.text}')
+            logger.debug(e)
+            errs += 1
+
+    return errs == 0
+
+
 def full_check(doc):
     """
     Main checking scripts for in depth checking of XML file.
+     - checking URLs
+     - checking lat-lon within geographic_extent/rectangle
     Args:
         doc:  ElementTree containing the full XML document
     Returns:
@@ -61,16 +101,31 @@ def full_check(doc):
     """
 
     valid = True
-    root = doc.getroot()
+
+    # Get elements with urls and check for OK response
+    url_elements = doc.xpath('.//*[contains(text(),"http")]')
+    if len(url_elements) > 0:
+        logger.debug('Checking element(s) containing URL ...')
+        urls_ok = check_urls(url_elements)
+        if urls_ok:
+            logger.info('OK - URLs')
+        else:
+            logger.info('NOK - URLs -> check debug log')
+        valid = valid and urls_ok
+    else:
+        logger.debug('No element containing URL.')
 
     # If there is an element geographic_extent/rectangle, check that lat/lon are valid
-    rectangle = doc.findall('./mmd:geographic_extent/mmd:rectangle', namespaces=root.nsmap)
-    rect = True
+    rectangle = doc.findall('./{*}geographic_extent/{*}rectangle')
     if len(rectangle) > 0:
-        logger.debug('Checking element geographic_extent/rectangle')
-        rect = check_rectangle(rectangle)
-        if rect:
+        logger.debug('Checking element geographic_extent/rectangle ...')
+        rect_ok = check_rectangle(rectangle)
+        if rect_ok:
             logger.info('OK - geographic_extent/rectangle')
-    valid = valid * rect
+        else:
+            logger.info('NOK - geographic_extent/rectangle -> check debug log')
+        valid = valid and rect_ok
+    else:
+        logger.debug('No geographic_extent/rectangle element.')
 
     return valid
