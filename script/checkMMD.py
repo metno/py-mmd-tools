@@ -5,21 +5,21 @@ Script to check the validity of MMD files.
 Input can be either a single MMD file or a repertory, in which case all the xml files contained
 in it will be checked.
 Validity means that the XML file is valid against the schema given as reference.
+Optional in depth checks (-f True)
 
 License:
      This file is part of the S-ENDA-Prototype repository (https://github.com/metno/py-mmd-tools).
      S-ENDA-Prototype is licensed under GPL-3.0 (https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
 
-Usage: checkMMD.py [-h] -i INPUT -x MMD_XSD -l LOG_DIR
-Example: python checkMMD.py -i /home/Data/mmd/Output/ -x /home/mmd/xsd/mmd.xsd -l /home/Logs/
+Usage: checkMMD.py [-h] -i INPUT -x MMD_XSD -l LOG_DIR [-f FULL]
+Example: python checkMMD.py -i /home/Data/mmd/Output/ -x /home/mmd/xsd/mmd.xsd -l /home/Logs/ -f False
 """
 
 import argparse
 import logging.handlers
 import lxml.etree as ET
 from pathlib import Path
-from py_mmd_tools.xml_utils import xml_check
-from py_mmd_tools.check_mmd import full_check
+from py_mmd_tools.xml_utils import xml_check, full_check
 
 
 def parse_arguments():
