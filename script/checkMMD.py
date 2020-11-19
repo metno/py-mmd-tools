@@ -19,7 +19,8 @@ import argparse
 import logging.handlers
 import lxml.etree as ET
 from pathlib import Path
-from py_mmd_tools.xml_utils import xml_check, full_check
+from py_mmd_tools.xml_utils import xml_check
+from py_mmd_tools.check_mmd import full_check
 
 
 def parse_arguments():
