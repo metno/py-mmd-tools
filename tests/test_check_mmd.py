@@ -62,7 +62,7 @@ class testMmdCheck(unittest.TestCase):
     # Check URLs OK
     def test_all_urls_1(self):
         url_elements = self.etree_ref.xpath('.//*[contains(text(),"http")]')
-        self.assertTrue(check_urls(url_elements))
+        self.assertTrue(check_urls([elem.text for elem in url_elements]))
 
     # Check lat/lon OK from rectangle
     def test_rectangle_1(self):
