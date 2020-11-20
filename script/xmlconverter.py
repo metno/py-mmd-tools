@@ -1,22 +1,23 @@
+#!/usr/bin/env python3
+"""
+Script to run the xmlc onversion tools
+
+ License:
+     This file is part of the py-mmd-tools repository (https://github.com/metno/py-mmd-tools),
+     licensed under Apache License 2.0 (https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
+
+usage: xmlconverter.py [-h] -i INPUT_DIR [-o OUTPUT_DIR] -t INPUT_XSLT
+                       [-r RECOVER_CONVERSION] [-p PARALLEL_CONVERSION]
+example: python3 xmlconverter.py -i metadata/nbs_mmdv2/ -t mmd2iso.xsl -p True -r True -o metadata/nbs_iso
+"""
 import argparse
 import os
 import pathlib
 import sys
 import parmap
 from lxml.etree import XMLSyntaxError
-from xml_utils import xml_translate
+from py_mmd_tools.xml_utils import xml_translate
 
-"""
-Script to run the xmlc onversion tools
-
- License:
-     This file is part of the S-ENDA-Prototype repository (https://github.com/metno/py-mmd-tools).
-     S-ENDA-Prototype is licensed under GPL-3.0 (https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
-
-usage: xmlconverter.py [-h] -i INPUT_DIR [-o OUTPUT_DIR] -t INPUT_XSLT
-                       [-r RECOVER_CONVERSION] [-p PARALLEL_CONVERSION]
-example: python3 xmlconverter.py -i metadata/nbs_mmdv2/ -t mmd2iso.xsl -p True -r True -o metadata/nbs_iso
-"""
 
 
 def str2bool(v):
@@ -59,7 +60,7 @@ def main(metadata, xslt, outdir, recover=False, parallel=False):
         xmlfiles = filelist(metadata)
     else:
         xmlfiles = recover_task(sourcedir=metadata, outdir=outdir, parallel=parallel)
-    print(f"Sprocessing {len(xmlfiles)} files")
+    print(f"Processing {len(xmlfiles)} files")
     if parallel is True:
         print(f'parallel: {parallel}')
         parmap.map(
