@@ -1,6 +1,6 @@
 import unittest
 import pathlib
-from py_mmd_tools.check_mmd import check_rectangle, check_urls, full_check
+from py_mmd_tools.check_mmd import check_rectangle, check_urls, check_cf, full_check
 import lxml.etree as ET
 
 
@@ -40,7 +40,11 @@ class testMmdCheck(unittest.TestCase):
             "<south>71.63427</south>"
             "<west>-28.114723</west>"
             "</rectangle>"
-            "</geographic_extent>" 
+            "</geographic_extent>"
+            "<keywords vocabulary='Climate and Forecast Standard Names'>"
+            "<keyword>sea_surface_temperature</keyword>"
+            "<keyword>air_surface_temperature</keyword>"
+            "</keywords>"
             "</root>"))
         self.etree_ref_empty = ET.ElementTree(ET.XML(
             "<root>"
@@ -100,3 +104,31 @@ class testMmdCheck(unittest.TestCase):
         ET.SubElement(root, '{http://www.met.no/schema/mmd}east').text = '0'
         self.assertFalse(check_rectangle([root]))
 
+    # One real standard name and one fake
+    def test_cf_1(self):
+        self.assertTrue(check_cf(['sea_surface_temperature']))
+        self.assertFalse(check_cf(['sea_surace_temperature']))
+
+    # Twice the element keywords for the same vocabulary
+    def test_cf_2(self):
+        root = ET.Element("toto")
+        key1 = ET.SubElement(root, "keywords", vocabulary='Climate and Forecast Standard Names')
+        ET.SubElement(key1, "keyword").text = 'air_temperature'
+        key2 = ET.SubElement(root, "keywords", vocabulary='Climate and Forecast Standard Names')
+        ET.SubElement(key2, "keyword").text = 'air_temperature'
+        self.assertFalse(full_check(root))
+
+    # Correct case
+    def test_cf_3(self):
+        root = ET.Element("toto")
+        root1 = ET.SubElement(root, "keywords", vocabulary='Climate and Forecast Standard Names')
+        ET.SubElement(root1, "keyword").text = 'sea_surface_temperature'
+        self.assertTrue(full_check(root))
+
+    # Two standard names provided
+    def test_cf_4(self):
+        root = ET.Element("toto")
+        root1 = ET.SubElement(root, "keywords", vocabulary='Climate and Forecast Standard Names')
+        ET.SubElement(root1, "keyword").text = 'air_temperature'
+        ET.SubElement(root1, "keyword").text = 'sea_surface_temperature'
+        self.assertFalse(full_check(root))

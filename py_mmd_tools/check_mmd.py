@@ -9,6 +9,7 @@ License:
 
 import logging
 import requests
+import pythesint as pti
 from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
@@ -88,6 +89,25 @@ def check_urls(url_list):
     return errs == 0
 
 
+def check_cf(cf_names):
+    """
+    Check that names are valid CF standard names
+    Args:
+        cf_names: list of names to test
+    Returns:
+        True / False
+    """
+    ok = True
+    for cf_name in cf_names:
+        try:
+            pti.get_cf_standard_name(cf_name)
+            logger.debug(f'OK - {cf_name} is a CF standard name.')
+        except IndexError as e:
+            logger.info(f'Non standard name found {cf_name}: {e}')
+            ok = False
+    return ok
+
+
 def full_check(doc):
     """
     Main checking scripts for in depth checking of XML file.
@@ -127,5 +147,27 @@ def full_check(doc):
         valid = valid and rect_ok
     else:
         logger.debug('No geographic_extent/rectangle element.')
+
+    # Check that cf name provided exist in reference Standard Name Table
+    cf_elements = doc.findall('./{*}keywords[@vocabulary="Climate and Forecast Standard Names"]')
+    if len(cf_elements) == 1:
+        logger.debug('Checking elements keyword from vocabulary CF ...')
+        cf_list = [elem.text for elem in cf_elements[0]]
+        if len(cf_list) > 1:
+            logger.info(f'NOK - CF names -> only one CF name should be provided - {cf_list}')
+            valid = False
+        # Check CF names even if more than one provided
+        cf_ok = check_cf(cf_list)
+        if cf_ok:
+            logger.info('OK - CF names')
+        else:
+            logger.info('NOK - CF names -> check debug log')
+        valid = valid and cf_ok
+    elif len(cf_elements) > 1:
+        valid = False
+        logger.debug('NOK - More than one element with keywords[@vocabulary="Climate and '
+                     'Forecast Standard Names"]')
+    else:
+        logger.debug('No CF standard names element.')
 
     return valid
