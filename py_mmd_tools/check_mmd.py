@@ -10,6 +10,7 @@ License:
 import logging
 import requests
 import pythesint as pti
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,7 @@ def check_rectangle(rectangle):
         True / False
     """
 
-    directions = dict.fromkeys(['north', 'south', 'west', 'east'], 0)
+    directions = dict.fromkeys(['north', 'south', 'west', 'east'], np.nan)
 
     err = 0
     if len(rectangle) > 1:

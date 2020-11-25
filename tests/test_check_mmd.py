@@ -104,6 +104,14 @@ class testMmdCheck(unittest.TestCase):
         ET.SubElement(root, '{http://www.met.no/schema/mmd}east').text = '0'
         self.assertFalse(check_rectangle([root]))
 
+    # Check rectangle with one missing element (no west)
+    def test_rectangle_6(self):
+        root = ET.Element("rectangle")
+        ET.SubElement(root, "south").text = '-182'
+        ET.SubElement(root, "north").text = '50'
+        ET.SubElement(root, 'east').text = '180'
+        self.assertFalse(check_rectangle([root]))
+
     # One real standard name and one fake
     def test_cf_1(self):
         self.assertTrue(check_cf(['sea_surface_temperature']))
