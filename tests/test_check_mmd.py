@@ -65,8 +65,8 @@ class testMmdCheck(unittest.TestCase):
 
     # Check both valid and invalid URLs
     def test_all_urls_1(self):
-        self.assertTrue(check_urls(['https//www.met.no']))
-        self.assertFalse(check_urls(['http//met.not']))
+        self.assertTrue(check_urls(['https://www.met.no']))
+        self.assertFalse(check_urls(['http://met.not']))
 
     # Check lat/lon OK from rectangle
     def test_rectangle_1(self):
