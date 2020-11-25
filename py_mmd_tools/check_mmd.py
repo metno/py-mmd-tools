@@ -19,6 +19,7 @@ def check_rectangle(rectangle):
     """
     Check if element geographic extent/rectangle is valid:
         - only 1 existing rectangle element
+        - rectangle has north / south / west / east subelements
         - -180 <= min_lat <= max_lat <= 180
         -    0 <= min_lon <= max_lon <= 360
     Args:
@@ -30,7 +31,7 @@ def check_rectangle(rectangle):
 
     directions = dict.fromkeys(['north', 'south', 'west', 'east'], np.nan)
 
-    err = 0
+    ok = True 
     if len(rectangle) > 1:
         logger.debug("NOK - Multiple rectangle elements in file.")
         return False
@@ -43,15 +44,14 @@ def check_rectangle(rectangle):
 
     if not (-180 <= directions['west'] <= directions['east'] <= 180):
         logger.debug('NOK - Longitudes not ok')
-        err += 1
+        ok = False
     if not (-90 <= directions['south'] <= directions['north'] <= 90):
         logger.debug('NOK - Latitudes not ok')
-        err += 1
-    if err > 0:
+        ok = False
+    if not ok:
         logger.debug(directions)
-        return False
 
-    return True
+    return ok
 
 
 def check_urls(url_list):
@@ -63,8 +63,7 @@ def check_urls(url_list):
         True / False
     """
 
-    errs = 0
-
+    ok = True
     for url in url_list:
 
         try:
@@ -75,9 +74,9 @@ def check_urls(url_list):
         except Exception as e:
             logger.debug(f'NOK - {url}')
             logger.debug(e)
-            errs += 1
+            ok = False
 
-    return errs == 0
+    return ok
 
 
 def check_cf(cf_names):
@@ -94,7 +93,8 @@ def check_cf(cf_names):
             pti.get_cf_standard_name(cf_name)
             logger.debug(f'OK - {cf_name} is a CF standard name.')
         except IndexError as e:
-            logger.info(f'Non standard name found {cf_name}: {e}')
+            logger.debug(f'NOK - {cf_name} is not a CF standard name.')
+            logger.debug(e)
             ok = False
     return ok
 
