@@ -63,10 +63,10 @@ class testMmdCheck(unittest.TestCase):
     def test_full_check_3(self):
         self.assertFalse(full_check(self.etree_url_rect_nok))
 
-    # Check URLs OK
+    # Check both valid and invalid URLs
     def test_all_urls_1(self):
-        url_elements = self.etree_ref.xpath('.//*[contains(text(),"http")]')
-        self.assertTrue(check_urls([elem.text for elem in url_elements]))
+        self.assertTrue(check_urls(['https//www.met.no']))
+        self.assertFalse(check_urls(['http//met.not']))
 
     # Check lat/lon OK from rectangle
     def test_rectangle_1(self):

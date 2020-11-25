@@ -10,7 +10,6 @@ License:
 import logging
 import requests
 import pythesint as pti
-from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +56,6 @@ def check_rectangle(rectangle):
 def check_urls(url_list):
     """
     Check that a list of URLs is valid
-    If an URL points to 'thredds.met.no' without 'https', prints a warning.
     Args:
         url_list: list of URLs
     Returns:
@@ -70,16 +68,8 @@ def check_urls(url_list):
 
         try:
             r = requests.get(url, timeout=10)
-            if r.status_code:
-                urlinfo = urlparse(url)
-                if urlinfo.netloc == 'thredds.met.no' and urlinfo.scheme != 'https':
-                    logger.info(f'Warning: resource points to unsecure thredds.met.no (http) \n '
-                                f'{url}')
-                logger.debug(f'OK - {url}')
-            else:
-                logger.debug(f'NOK - {url}')
-                logger.debug(f'Error: {r.raise_for_status()}')
-                errs += 1
+            r.raise_for_status()
+            logger.debug(f'OK - {url}')
             r.close()
         except Exception as e:
             logger.debug(f'NOK - {url}')
