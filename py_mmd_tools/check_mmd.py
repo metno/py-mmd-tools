@@ -103,12 +103,16 @@ def check_vocabulary(xmldoc):
     Check controlled vocabularies for elements:
         - access_constraint
         - activity_type
-        - operational_status
+        - operational_status (comment: also checked in MMD XSD schema)
         - use_constraint
     Args:
         xmldoc: ElementTree containing the full XML document
     Returns:
         True / False
+
+    Comments: The following elements have test functions available in pythesint but are not used:
+    - area -> because it does not correspond to an element in currently tested files
+    - platform type -> because erroneous thesaurus in mmd repo?
     """
     vocabularies = {'access_constraint': 'access_constraints',
                     'activity_type': 'activity_type',
