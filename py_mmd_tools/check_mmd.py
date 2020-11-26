@@ -92,10 +92,44 @@ def check_cf(cf_names):
         try:
             pti.get_cf_standard_name(cf_name)
             logger.debug(f'OK - {cf_name} is a CF standard name.')
-        except IndexError as e:
+        except IndexError:
             logger.debug(f'NOK - {cf_name} is not a CF standard name.')
-            logger.debug(e)
             ok = False
+    return ok
+
+
+def check_vocabulary(xmldoc):
+    """
+    Check controlled vocabularies for elements:
+        - access_constraint
+        - activity_type
+        - operational_status
+        - use_constraint
+    Args:
+        xmldoc: ElementTree containing the full XML document
+    Returns:
+        True / False
+    """
+    vocabularies = {'access_constraint': 'access_constraints',
+                    'activity_type': 'activity_type',
+                    'operational_status': 'operstatus',
+                    'use_constraint': 'use_constraint_type',
+                    }
+    ok = True
+    for element_name, f_name in vocabularies.items():
+        elems_found = xmldoc.findall('./{*}' + element_name)
+        if len(elems_found) >= 1:
+            for rep in elems_found:
+                try:
+                    getattr(pti, 'get_mmd_'+f_name)(rep.text)
+                    logger.debug(f'OK - {rep.text} is correct vocabulary for element {element_name}.')
+                except IndexError:
+                    logger.debug(f'NOK - {rep.text} is not correct vocabulary for element'
+                                 f' {element_name}. \n Accepted vocabularies are '
+                                 f'{getattr(pti, "get_mmd_"+f_name+"_list")()}')
+                    ok = False
+        else:
+            logger.debug(f'Element {element_name} not present.')
     return ok
 
 
@@ -104,6 +138,9 @@ def full_check(doc):
     Main checking scripts for in depth checking of XML file.
      - checking URLs
      - checking lat-lon within geographic_extent/rectangle
+     - checking CF names against standard table
+     - checking controlled vocabularies (access_constraint / activity_type / operational_status / use_constraint)
+
     Args:
         doc:  ElementTree containing the full XML document
     Returns:
@@ -160,5 +197,13 @@ def full_check(doc):
                      'Forecast Standard Names"]')
     else:
         logger.debug('No CF standard names element.')
+
+    # Check controlled vocabularies
+    voc_ok = check_vocabulary(doc)
+    valid = valid and voc_ok
+    if voc_ok:
+        logger.info('OK - Controlled vocabularies.')
+    else:
+        logger.info('NOK - Controlled vocabularies -> check debug log')
 
     return valid

@@ -1,6 +1,7 @@
 import unittest
 import pathlib
-from py_mmd_tools.check_mmd import check_rectangle, check_urls, check_cf, full_check
+from py_mmd_tools.check_mmd import check_rectangle, check_urls, check_cf, check_vocabulary, \
+    full_check
 import lxml.etree as ET
 
 
@@ -45,6 +46,7 @@ class testMmdCheck(unittest.TestCase):
             "<keyword>sea_surface_temperature</keyword>"
             "<keyword>air_surface_temperature</keyword>"
             "</keywords>"
+            "<operational_status>NotOpen</operational_status>"
             "</root>"))
         self.etree_ref_empty = ET.ElementTree(ET.XML(
             "<root>"
@@ -140,3 +142,17 @@ class testMmdCheck(unittest.TestCase):
         ET.SubElement(root1, "keyword").text = 'air_temperature'
         ET.SubElement(root1, "keyword").text = 'sea_surface_temperature'
         self.assertFalse(full_check(root))
+
+    # Test vocabularies
+    def test_voc_1(self):
+        self.assertTrue(check_vocabulary(ET.ElementTree(ET.XML(
+            "<root>"
+            "<operational_status>Operational</operational_status>"
+            "</root>"))))
+
+    # Test vocabularies
+    def test_voc_2(self):
+        self.assertFalse(check_vocabulary(ET.ElementTree(ET.XML(
+            "<root>"
+            "<operational_status>OOperational</operational_status>"
+            "</root>"))))
