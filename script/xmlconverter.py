@@ -31,7 +31,6 @@ def str2bool(v):
         raise argparse.ArgumentTypeError("Boolean value expected.")
     
 def filelist(directory):
-    print('os.walk("%s")' % directory)
     xml_files = []
     for subdir, dirs, files in os.walk(directory):
         for file in files:

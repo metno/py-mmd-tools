@@ -9,3 +9,5 @@ nose
 requests
 pyyaml
 ipdb
+https://github.com/nansencenter/py-thesaurus-interface/archive/master.tar.gz
+numpy
