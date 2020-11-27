@@ -42,7 +42,8 @@ def check_rectangle(rectangle):
             child.tag = child.tag.split('}', 1)[1]
         directions[child.tag] = float(child.text)
 
-    if not (-180 <= directions['west'] <= directions['east'] <= 180):
+    if not (-180 <= directions['west'] <= directions['east'] <= 180) or \
+            (0 <= directions['west'] <= directions['east'] <= 360):
         logger.debug('NOK - Longitudes not ok')
         ok = False
     if not (-90 <= directions['south'] <= directions['north'] <= 90):
