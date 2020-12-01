@@ -23,7 +23,7 @@
 		"longitude_min": 5.2007, 
 		"longitude_max": 5.2007
 	}, 
-	"personnel": {
+	"personnel": [{
 		"role": "Technical contact", 
 		"name": "Ole Dole", 
 		"email": "ole.dole@example.com", 
@@ -35,5 +35,5 @@
 			"postal_code": "0000", 
 			"country": "Norway"
 		}
-	}
+	}]
 }
