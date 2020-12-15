@@ -23,15 +23,18 @@ if __name__ == '__main__':
     # Input file or thredds address?
     # Add to parse a directory?
     # Add to parse a whole server?
-    parser.add_argument('-i', '--input', type=pathlib.Path, help="Input file.")
+    parser.add_argument('-i', '--input', type=str, help="Input file.")
     args = parser.parse_args()
 
-    if args.input.is_dir():
-        inputfiles = args.input.glob('*.nc')
-    elif args.input.is_file():
+    if pathlib.Path(args.input).is_dir():
+        inputfiles = pathlib.Path(args.input).glob('*.nc')
+    elif pathlib.Path(args.input).is_file():
+        inputfiles = [args.input]
+    # URL to a remote NC file on MET OpenDAP server
+    elif args.input.startswith('https://thredds.met.no/thredds/dodsC/'):
         inputfiles = [args.input]
     else:
-        print('Invalid input')
+        print(f'Invalid input: {args.input}')
         exit(1)
 
     for file in inputfiles:
