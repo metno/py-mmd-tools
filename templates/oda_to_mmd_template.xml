@@ -1,10 +1,10 @@
 <mmd:mmd xmlns:mmd="http://www.met.no/schema/mmd" xmlns:gml="http://www.opengis.net/gml">
     <mmd:metadata_identifier>{{ data['metadata_identifier'] }}</mmd:metadata_identifier>
-    {% if data['alternate_identifier'] -%}
-    {% for alt in data['alternate_identifier'] -%}
+    {% if data['alternate_identifier'] %}
+    {% for alt in data['alternate_identifier'] %}
     <mmd:alternate_identifier type="{{ alt['Identifier_type'] }}">{{ alt['Identifier'] }}</mmd:alternate_identifier>
-    {% endfor -%}
-    {% endif -%}
+    {% endfor %}
+    {% endif %}
     <mmd:title>{{ data['title_full'] }}</mmd:title>
     <mmd:abstract>{{ data['abstract_full'] }}</mmd:abstract>
     <mmd:metadata_status>{{ data['metadata_status'] }}</mmd:metadata_status>
@@ -18,38 +18,38 @@
     </mmd:last_metadata_update>
     <mmd:temporal_extent>
         <mmd:start_date>{{ data['temporal_extent']['start_date'] }}</mmd:start_date>
-    	{% if data['temporal_extent']['end_date'] -%}
+        {% if data['temporal_extent']['end_date'] %}
         <mmd:end_date>{{ data['temporal_extent']['end_date'] }}</mmd:end_date>
-    	{% endif -%}
+        {% endif %}
     </mmd:temporal_extent>
     <mmd:iso_topic_category>{{ data['iso_topic_category'] }}</mmd:iso_topic_category>    
     <mmd:keywords vocabulary="Climate and Forecast Standard Names">
     	<mmd:keyword>{{ data['keyword_cf'] }}</mmd:keyword>
     </mmd:keywords>
     <mmd:dataset_language>en</mmd:dataset_language>
-    {% if data['operational_status'] -%}
+    {% if data['operational_status'] %}
     <mmd:operational_status>{{ data['operational_status'] }}</mmd:operational_status>
-    {% endif -%}
+    {% endif %}
     <mmd:geographic_extent>
         <mmd:rectangle srsName="EPSG:4326">
             <mmd:north>{{ data['geographic_extent']['latitude_max'] }}</mmd:north>
             <mmd:south>{{ data['geographic_extent']['latitude_min'] }}</mmd:south>
             <mmd:west>{{ data['geographic_extent']['longitude_min'] }}</mmd:west>
-	    <mmd:east>{{ data['geographic_extent']['longitude_max'] }}</mmd:east>
+            <mmd:east>{{ data['geographic_extent']['longitude_max'] }}</mmd:east>
         </mmd:rectangle>
     </mmd:geographic_extent>
+    {% for pers in data['personnel'] %}
     <mmd:personnel>
-        <mmd:role>{{ data['personnel']['role'] }}</mmd:role>
-        <mmd:name>{{ data['personnel']['name'] }}</mmd:name>
-        <mmd:email>{{ data['personnel']['email'] }}</mmd:email>
-        <mmd:phone>{{ data['personnel']['phone'] }}</mmd:phone>
-        <mmd:fax/>
+        <mmd:role>{{ pers['role'] }}</mmd:role>
+        <mmd:name>{{ pers['name'] }}</mmd:name>
+        <mmd:email>{{ pers['email'] }}</mmd:email>
         <mmd:contact_address>
-            <mmd:address>{{ data['personnel']['contact_address']['address'] }}</mmd:address>
-            <mmd:city>{{ data['personnel']['contact_address']['city'] }}</mmd:city>
-            <mmd:province_or_state>{{ data['personnel']['contact_address']['province_or_state'] }}</mmd:province_or_state>
-            <mmd:postal_code>{{ data['personnel']['contact_address']['postal_code'] }}</mmd:postal_code>
-            <mmd:country>{{ data['personnel']['contact_address']['country'] }}</mmd:country>
+            <mmd:address>{{ pers['contact_address']['address'] }}</mmd:address>
+            <mmd:city>{{ pers['contact_address']['city'] }}</mmd:city>
+            <mmd:province_or_state>{{ pers['contact_address']['province_or_state'] }}</mmd:province_or_state>
+            <mmd:postal_code>{{ pers['contact_address']['postal_code'] }}</mmd:postal_code>
+            <mmd:country>{{ pers['contact_address']['country'] }}</mmd:country>
         </mmd:contact_address>
     </mmd:personnel>
+    {% endfor %}
 </mmd:mmd>
