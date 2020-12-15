@@ -1,43 +1,45 @@
-""" Script for parsing metadata content of NetCDF files and create a MET Norway
-Metadata format specification document (MMD) based on the discovery metadata .
-
-Will work on CF and ACDD compliant files.
-
-Author(s):     Trygve Halsne
-Created:       2019-11-25 (YYYY-mm-dd)
-Modifications:
-Copyright:     (c) Norwegian Meteorological Institute, 2019
-Usage:         See main() method at the bottom of the script
-
 """
-from pathlib import Path
+Script for parsing metadata content of NetCDF files and create a MET Norway
+Metadata format specification document (MMD) based on the discovery metadata .
+Will work on CF and ACDD compliant files.
+Can also be used check to check whether the required MMD elements are present in input file.
+
+License:
+     This file is part of the py-mmd-tools repository (https://github.com/metno/py-mmd-tools).
+     py-mmd-tools is licensed under GPL-3.0 (
+     https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
+"""
+
+import pathlib
 from netCDF4 import Dataset
 import lxml.etree as ET
 
 
 class Nc_to_mmd(object):
 
-    def __init__(self, output_path, output_name, netcdf_product):
+    def __init__(self, netcdf_product, output_file=None, check_only=False):
         """
         Class for creating an MMD XML file based on the discovery metadata provided in the global attributes of NetCDF
         files that are compliant with the CF-conventions and ACDD.
 
         Args:
-            output_path (str): Output path for mmd.
-            output_name (str): Output name for mmd.
+            output_file (pathlib): Output path for mmd.
             netcdf_product (str: nc file or OPeNDAP url): input NetCDF file.
 
         """
         super(Nc_to_mmd, self).__init__()
-        self.output_path = output_path
-        self.output_name = output_name
+        self.output_file = output_file
         self.netcdf_product = netcdf_product
+        self.check_only = check_only
 
     def to_mmd(self):
         """
         Method for parsing content of NetCDF file, mapping discovery
         metadata to MMD, and writes MMD to disk.
         """
+
+        # Are all required elements present?
+        req_ok = True
 
         # Why
         cf_mmd_lut = self.generate_cf_acdd_mmd_lut()
@@ -107,8 +109,6 @@ class Nc_to_mmd(object):
             if ga in cf_mmd_lut.keys():
                 if cf_mmd_lut[ga]:
                     all_elements = cf_mmd_lut[ga].split(',')
-                    len_elements = len(all_elements)
-                    parent_element = root
 
                     for i, e in enumerate(all_elements):
                         if e.startswith('attrib_'):
@@ -139,10 +139,16 @@ class Nc_to_mmd(object):
             # check if required element is part of output MMD (ie. of NetCDF file)
             if not len(root.findall(ET.QName(ns_map['mmd'], k))) > 0:
                 print('Did not find required element: {}.'.format(k))
+                req_ok = False
                 if not v:
                     root.append(ET.Comment('<mmd:{}></mmd:{}>'.format(k, k)))
                 else:
                     root.append(ET.Comment('<mmd:{}>{}</mmd:{}>'.format(k, v, k)))
+
+        # If running in check only mode, exit now
+        # and return whether the required elements are present
+        if self.check_only:
+            return req_ok
 
         # Add OPeNDAP data_access if "netcdf_product" is OPeNDAP url
         if 'dodsC' in self.netcdf_product:
@@ -197,16 +203,8 @@ class Nc_to_mmd(object):
                                    '<mmd:resource></mmd:resource>\n\t<mmd:wms_layers>\n\t\t<mmd:wms_layer>'
                                    '</mmd:wms_layer>\n\t</mmd:wms_layers>\n</mmd:data_access>')))
 
-        # print(ET.tostring(root,pretty_print=True).decode("utf-8"))
-
-        if not self.output_name.endswith('.xml'):
-            output_file = str(self.output_path + self.output_name) + '.xml'
-        else:
-            output_file = str(self.output_path + self.output_name)
-
-        et = ET.ElementTree(root)
         et = ET.ElementTree(ET.fromstring(ET.tostring(root, pretty_print=True).decode("utf-8")))
-        et.write(output_file, pretty_print=True)
+        et.write(str(self.output_file), pretty_print=True)
 
     def required_mmd_elements(self):
         """ Create dict with required MMD elements"""
@@ -325,16 +323,3 @@ class Nc_to_mmd(object):
                 'cdm_data_type': None}
         return cf_acdd_mmd_lut
 
-
-def main(input_file=None, output_path='./'):
-    """Run the the mdd creation from netcdf"""
-
-    if input_file:
-        # This will extract the stem of the netcdf product filename
-        output_name = '{}'.format(Path(input_file).stem)
-    else:
-        output_name = 'multisensor_sic.xml'
-        input_file = ('https://thredds.met.no/thredds/dodsC/sea_ice/'
-                      'SIW-METNO-ARC-SEAICE_HR-OBS/ice_conc_svalbard_aggregated')
-    md = Nc_to_mmd(output_path, output_name, input_file)
-    md.to_mmd()

@@ -9,24 +9,20 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     # Input file or thredds address?
+    # Add to parse a directory?
+    # Add to parse a whole server?
     parser.add_argument('-i', '--input-file',
                         type=pathlib.Path,
                         dest='input_file',
                         default=None,
                         help="Input file.")
-    parser.add_argument('-d', '--output-path',
-                        type=pathlib.Path,
-                        dest='output_path',
-                        default=None,
-                        help="Output path.")
     args = parser.parse_args()
 
-    output_file = (args.output_path / args.input_file.stem).with_suffix('.xml')
+    outdir = pathlib.Path('/home/elodief/Data/mmd/Output')
+    outfile = (outdir / args.input_file.stem).with_suffix('.xml')
 
-    ##    output_name = 'multisensor_sic.xml'
-    ##    input_file = ('https://thredds.met.no/thredds/dodsC/sea_ice/'
-    ##                  'SIW-METNO-ARC-SEAICE_HR-OBS/ice_conc_svalbard_aggregated')
-
-    md = nc_to_mmd.Nc_to_mmd(output_file, str(args.input_file), check_only=True)
-    #md.to_mmd()
+    md = nc_to_mmd.Nc_to_mmd(str(args.input_file), check_only=True)
+    md = nc_to_mmd.Nc_to_mmd(str(args.input_file), outfile, check_only=False)
+    ok = md.to_mmd()
+    print(ok)
 
