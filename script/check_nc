@@ -1,28 +1,32 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
+"""
+Script to check whether a netcdf file contains all the required elements to create a valid MMD file.
+
+License:
+     This file is part of the S-ENDA-Prototype repository (https://github.com/metno/py-mmd-tools).
+     S-ENDA-Prototype is licensed under GPL-3.0 (https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
+
+Usage: check_nc [-h] -i INPUT
+Example: python check_nc -i /home/Data/mmd/Input/myfile.nc
+"""
+
 import argparse
 import pathlib
-
 from py_mmd_tools import nc_to_mmd
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Check if a netCDF file contains required "
+                                                 "elements to create an MMD file.")
 
     # Input file or thredds address?
     # Add to parse a directory?
     # Add to parse a whole server?
-    parser.add_argument('-i', '--input-file',
-                        type=pathlib.Path,
-                        dest='input_file',
-                        default=None,
-                        help="Input file.")
+    parser.add_argument('-i', '--input', type=pathlib.Path, help="Input file.")
     args = parser.parse_args()
 
-    outdir = pathlib.Path('/home/elodief/Data/mmd/Output')
-    outfile = (outdir / args.input_file.stem).with_suffix('.xml')
-
-    md = nc_to_mmd.Nc_to_mmd(str(args.input_file), check_only=True)
-    md = nc_to_mmd.Nc_to_mmd(str(args.input_file), outfile, check_only=False)
+    md = nc_to_mmd.Nc_to_mmd(str(args.input), check_only=True)
     ok = md.to_mmd()
     print(ok)
 
