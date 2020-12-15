@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+import argparse
+import pathlib
+
+from py_mmd_tools import nc_to_mmd
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+
+    # Input file or thredds address?
+    parser.add_argument('-i', '--input-file',
+                        type=pathlib.Path,
+                        dest='input_file',
+                        default=None,
+                        help="Input file.")
+    parser.add_argument('-d', '--output-path',
+                        type=pathlib.Path,
+                        dest='output_path',
+                        default=None,
+                        help="Output path.")
+    args = parser.parse_args()
+
+    output_file = (args.output_path / args.input_file.stem).with_suffix('.xml')
+
+    ##    output_name = 'multisensor_sic.xml'
+    ##    input_file = ('https://thredds.met.no/thredds/dodsC/sea_ice/'
+    ##                  'SIW-METNO-ARC-SEAICE_HR-OBS/ice_conc_svalbard_aggregated')
+
+    md = nc_to_mmd.Nc_to_mmd(output_file, str(args.input_file), check_only=True)
+    #md.to_mmd()
+
