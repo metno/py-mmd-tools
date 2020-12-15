@@ -38,9 +38,6 @@ class Nc_to_mmd(object):
         metadata to MMD, and writes MMD to disk.
         """
 
-        # Are all required elements present?
-        req_ok = True
-
         # Why
         cf_mmd_lut = self.generate_cf_acdd_mmd_lut()
         # Some mandatory MMD does not have equivalent in ACDD
@@ -133,13 +130,18 @@ class Nc_to_mmd(object):
                             else:
                                 print("Warning: don't know how to handle attrib: ", e)
 
+        # Are all required elements present?
+        msg = ''
+        req_ok = True
+
         # Add empty/commented required  MMD elements that are not found in NetCDF file
         for k, v in mmd_required_elements.items():
 
             # check if required element is part of output MMD (ie. of NetCDF file)
             if not len(root.findall(ET.QName(ns_map['mmd'], k))) > 0:
-                print('Did not find required element: {}.'.format(k))
+                #print('Did not find required element: {}.'.format(k))
                 req_ok = False
+                msg += (f"Missing element {k}\n")
                 if not v:
                     root.append(ET.Comment('<mmd:{}></mmd:{}>'.format(k, k)))
                 else:
@@ -148,7 +150,7 @@ class Nc_to_mmd(object):
         # If running in check only mode, exit now
         # and return whether the required elements are present
         if self.check_only:
-            return req_ok
+            return req_ok, msg
 
         # Add OPeNDAP data_access if "netcdf_product" is OPeNDAP url
         if 'dodsC' in self.netcdf_product:

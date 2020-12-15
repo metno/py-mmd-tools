@@ -26,7 +26,20 @@ if __name__ == '__main__':
     parser.add_argument('-i', '--input', type=pathlib.Path, help="Input file.")
     args = parser.parse_args()
 
-    md = nc_to_mmd.Nc_to_mmd(str(args.input), check_only=True)
-    ok = md.to_mmd()
-    print(ok)
+    if args.input.is_dir():
+        inputfiles = args.input.glob('*.nc')
+    elif args.input.is_file():
+        inputfiles = [args.input]
+    else:
+        print('Invalid input')
+        exit(1)
+
+    for file in inputfiles:
+        md = nc_to_mmd.Nc_to_mmd(str(file), check_only=True)
+        ok, msg = md.to_mmd()
+        if ok:
+            print(f"OK - file {file} contains all necessary elements.")
+        else:
+            print(f"NOK - file {file} does not contains all necessary elements.")
+            print(msg)
 
