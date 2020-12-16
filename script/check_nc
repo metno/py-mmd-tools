@@ -20,12 +20,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Check if a netCDF file contains required "
                                                  "elements to create an MMD file.")
 
-    # Add to parse a whole server?
     parser.add_argument('-i', '--input', type=str, help="Input file.")
     args = parser.parse_args()
 
     # args.input as str, because if pathlib.Path, it is not compatible with URLs
-
     # Directory containing nc files
     if pathlib.Path(args.input).is_dir():
         inputfiles = pathlib.Path(args.input).glob('*.nc')
