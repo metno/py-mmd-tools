@@ -127,8 +127,6 @@ class Nc_to_mmd(object):
                                 for element in root.findall(ET.QName(ns_map['mmd'], 'abstract')):
                                     element.attrib[
                                             '{http://www.w3.org/XML/1998/namespace}' + attrib] = ncin.getncattr(ga)
-                            else:
-                                print("Warning: don't know how to handle attrib: ", e)
 
         # Are all required elements present?
         msg = ''
