@@ -115,8 +115,11 @@ class Nc_to_mmd(object):
                                     keywords_element.attrib[attrib] = ncin.getncattr(ga)
                             elif ga == 'geospatial_bounds_crs':
                                 attrib = e.split('_')[-1]
-                                for keywords_element in root.findall(ET.QName(ns_map['mmd'], 'rectangle')):
-                                    keywords_element.attrib[attrib] = ncin.getncattr(ga)
+                                for keywords_element in root.findall(ET.QName(ns_map['mmd'],
+                                                                              'geographic_extent')):
+                                    for subelement in keywords_element.findall(ET.QName(ns_map[
+                                                                                            'mmd'], 'rectangle')):
+                                        subelement.attrib[attrib] = ncin.getncattr(ga)
                             elif ga == 'title_lang':
                                 attrib = e.split('_')[-1]
                                 for title_element in root.findall(ET.QName(ns_map['mmd'], 'title')):
