@@ -17,6 +17,7 @@ class TestNC2MMD(unittest.TestCase):
         #
         current_dir = pathlib.Path.cwd()
         self.reference_nc = str(current_dir / 'tests' / 'data' / 'reference_nc.nc')
+        self.fail_nc = str(current_dir / 'tests' / 'data' / 'reference_nc_fail.nc')
         self.reference_xml = str(current_dir / 'tests' / 'data' / 'reference_nc.xml')
 
     ##@patch('py_mmd_utils.nc_to_mmd.Nc_to_mmd.__init__')
@@ -138,12 +139,30 @@ class TestNC2MMD(unittest.TestCase):
                                              'cdm_data_type': None}
         self.assertEqual(nc2mmd.generate_cf_acdd_mmd_lut(), cf_acdd_mmd_lut_expected_elements)
 
-    def test_create_mmd(self):
+    def test_create_mmd_1(self):
         tested = tempfile.mkstemp()[1]
         md = Nc_to_mmd(self.reference_nc, output_file=tested)
         md.to_mmd()
         with open(self.reference_xml) as reference, open(tested) as tested:
             reference_string = reference.read()
+            tested_string = tested.read()
+            unittest.TestCase.assertMultiLineEqual(self, first=reference_string, second=tested_string)
+
+    def test_create_mmd_2(self):
+        self.maxDiff = None
+        tested = tempfile.mkstemp()[1]
+        md = Nc_to_mmd(self.fail_nc, output_file=tested)
+        md.to_mmd()
+        with open(self.reference_xml) as reference, open(tested) as tested:
+            reference_string = reference.read()
+            reference_string = reference_string.replace('</mmd:geographic_extent>\n  <mmd:metadata_identifier>npp-viirs-mband-20201127134002-20201127135124</mmd:metadata_identifier>\n  <mmd:data_center>', '</mmd:geographic_extent>\n  <mmd:data_center>')
+            reference_string = reference_string.replace('</mmd:title>\n  <!--<mmd:data_access>', '</mmd:title>\n  <!--<mmd:metadata_identifier></mmd:metadata_identifier>-->\n  <!--<mmd:data_access>')
+            reference_string = reference_string.replace('</mmd:iso_topic_category>\n  '
+                                                        '<mmd:keywords vocabulary="GCMD">\n    '
+                                                        '<mmd:keyword>Earth Science &gt; Atmosphere &gt; Atmospheric radiation</mmd:keyword>\n  </mmd:keywords>\n  <mmd:use_constraint>','</mmd:iso_topic_category>\n  <mmd:use_constraint>')
+            reference_string = reference_string.replace(
+                '</mmd:metadata_identifier>-->\n  <!--<mmd:data_access>', '</mmd:metadata_identifier>-->\n  <!--<mmd:keywords>\n\t\t<mmd:keyword></mmd:keyword>\n\t</mmd:keywords>-->\n  <!--<mmd:data_access>')
+            reference_string = reference_string.replace('<mmd:rectangle>', '<mmd:rectangle srsName="EPSG:4326">')
             tested_string = tested.read()
             unittest.TestCase.assertMultiLineEqual(self, first=reference_string, second=tested_string)
 
@@ -200,7 +219,8 @@ class TestNC2MMD(unittest.TestCase):
             unittest.TestCase.assertMultiLineEqual(self, first=reference_string, second=tested_string)
 
     def test_check_nc(self):
-        self.assertTrue(Nc_to_mmd(self.reference_nc, check_only=True))
+        md = Nc_to_mmd(self.reference_nc, check_only=True)
+        self.assertTrue(md.to_mmd())
 
 
 if __name__ == '__main__':
