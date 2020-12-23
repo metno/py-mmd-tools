@@ -1,3 +1,5 @@
+import os, sys
+import xmltodict
 import unittest
 
 class ParametrizedTestCase(unittest.TestCase):
@@ -25,6 +27,19 @@ class TestMMDYamlVsXSD(ParametrizedTestCase):
 
     def test_element_attribute(self):
         self.assertEqual(self.xsd_eattr, self.yaml_eattr)
+
+class TestElementsExistInYAML(unittest.TestCase):
+
+    def check_element_presence(self):
+        xml_file = sys.path.join(os.environ['MMD_PATH'], 'xsd/mmd.xsd')
+        with open(xml_file) as mmd_xml:
+            doc = xmltodict.parse(mmd_xml.read())
+        # Loop elements in xml and check that they are present in the yaml file
+
+
+xml_file = sys.path.join(os.environ['MMD_PATH'], 'xsd/mmd.xsd')
+with open(xml_file) as mmd_xml:
+    doc = xmltodict.parse(mmd_xml.read())
 
 suite = unittest.TestSuite()
 suite.addTest(ParametrizedTestCase.parametrize(TestMMDYamlVsXSD, xsd_eattr=42, yaml_eattr=42))
