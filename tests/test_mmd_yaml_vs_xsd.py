@@ -32,9 +32,9 @@ import py_mmd_tools
 #    def test_element_attribute(self):
 #        self.assertEqual(self.xsd_eattr, self.yaml_eattr)
 
-class TestElementsExistInYAML(unittest.TestCase):
+class TestMDDElementsInYAMLAndXSD(unittest.TestCase):
 
-    def test_element_presence(self):
+    def test_mmd_element(self):
         xml_file = os.path.join(os.environ['MMD_PATH'], 'xsd/mmd.xsd')
         with open(xml_file) as xml:
             mmd_xml = xmltodict.parse(xml.read())
