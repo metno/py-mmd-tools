@@ -22,7 +22,7 @@ collection:
   minOccurs: '1'
 
 title:
-  maxOccurs: '1'
+  maxOccurs: 'unbounded'
   minOccurs: '1'
   acdd: title
 
@@ -43,29 +43,31 @@ temporal_extent:
     minOccurs: '0'
     acdd: time_coverage_end
 
-geographic_extent/rectangle:
+geographic_extent:
   maxOccurs: '1'
   minOccurs: '1'
-  north:
+  rectangle:
     maxOccurs: '1'
-    minOccurs: '1'
-    acdd: geospatial_lat_max
-  south:
+    minOccurs: '0'
+    north:
+      maxOccurs: '1'
+      minOccurs: '1'
+      acdd: geospatial_lat_max
+    south:
+      maxOccurs: '1'
+      minOccurs: '1'
+      acdd: geospatial_lat_min
+    east:
+      maxOccurs: '1'
+      minOccurs: '1'
+      acdd: geospatial_lon_max
+    west:
+      maxOccurs: '1'
+      minOccurs: '1'
+      acdd: geospatial_lon_min
+  polygon:
     maxOccurs: '1'
-    minOccurs: '1'
-    acdd: geospatial_lat_min
-  east:
-    maxOccurs: '1'
-    minOccurs: '1'
-    acdd: geospatial_lon_max
-  west:
-    maxOccurs: '1'
-    minOccurs: '1'
-    acdd: geospatial_lon_min
-
-geographic_extent/polygon:
-  maxOccurs: '0'
-  minOccurs: '0'
+    minOccurs: '0'
 
 location:
   maxOccurs: '0'
