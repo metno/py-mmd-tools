@@ -12,7 +12,15 @@ last_metadata_update:
   maxOccurs: '1'
   minOccurs: '1'
   acdd: date_metadata_modified
-    
+  update:
+    maxOccurs: unbounded
+    minOccurs: '1'
+    datetime:
+    type:
+    note:
+      maxOccurs: '1'
+      minOccurs: '0'
+
 metadata_status:
   maxOccurs: '1'
   minOccurs: '1'
@@ -143,8 +151,14 @@ data_access:
   minOccurs: '0'
   type:
   name:
+  description:
   resource:
   wms_layers:
+    maxOccurs: '1'
+    minOccurs: '0'
+    wms_layer:
+      maxOccurs: 'unbounded'
+      minOccurs: '1'
 
 related_dataset:
   maxOccurs: unbounded
