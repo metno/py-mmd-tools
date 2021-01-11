@@ -74,8 +74,6 @@ class TestMDDElementsInYAMLAndXSD(unittest.TestCase):
         # Loop elements in list sub_type_defs
         for sub_type_def in sub_type_defs:
             sub_sub_type_defs = self.check_sub_elements(sub_type_def)
-            import ipdb
-            ipdb.set_trace()
             for sub_sub_type_def in sub_sub_type_defs:
                 sub_sub_sub_type_defs = self.check_sub_elements(sub_sub_type_def)
 
