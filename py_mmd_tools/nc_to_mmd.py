@@ -1,7 +1,7 @@
 """
-Script for parsing metadata content of NetCDF files and create a MET Norway
-Metadata format specification document (MMD) based on the discovery metadata .
-Will work on CF and ACDD compliant files.
+Tool for parsing metadata following the Attribute Convention for Data Discovery (ACDD)
+in NetCDF files to the MET Norway Metadata format specification (MMD).
+
 Can also be used check to check whether the required MMD elements are present in input file.
 
 License:
@@ -9,6 +9,10 @@ License:
      py-mmd-tools is licensed under GPL-3.0 (
      https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
 """
+
+import yaml
+from pkg_resources import resource_string
+
 
 import pathlib
 from netCDF4 import Dataset
@@ -31,6 +35,7 @@ class Nc_to_mmd(object):
         self.output_file = output_file
         self.netcdf_product = netcdf_product
         self.check_only = check_only
+        self.mmd_yaml = yaml.load(resource_string(self.__module__.split('.')[0], 'mmd_elements.yaml'), Loader=yaml.FullLoader)
 
     def to_mmd(self):
         """
