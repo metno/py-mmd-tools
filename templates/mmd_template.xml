@@ -1,32 +1,49 @@
 <mmd:mmd xmlns:mmd="http://www.met.no/schema/mmd" xmlns:gml="http://www.opengis.net/gml">
-  <mmd:metadata_identifier>npp-viirs-mband-20201127134002-20201127135124</mmd:metadata_identifier>
+  <mmd:metadata_identifier>{{ data['metadata_identifier'] }}</mmd:metadata_identifier>
   {% if data['alternate_identifier'] %}
     {% for alt in data['alternate_identifier'] %}
-      <mmd:alternate_identifier type="{{ alt['Identifier_type'] }}">{{ alt['Identifier'] }}</mmd:alternate_identifier>
+  <mmd:alternate_identifier type="{{ alt['Identifier_type'] }}">{{ alt['Identifier'] }}</mmd:alternate_identifier>
     {% endfor %}
   {% endif %}
   <mmd:last_metadata_update>
+    {% for update in data['last_metadata_update'] %}
     <mmd:update>
-      <mmd:datetime>2020-11-27T14:05:56Z</mmd:datetime>
-      <mmd:note/>
-      <mmd:type>Created</mmd:type>
+      <mmd:datetime>{{ update['datetime'] }}</mmd:datetime>
+      <mmd:type>{{ update['type'] }}</mmd:type>
+        {% if update['note'] %}
+      <mmd:note>{{ update['note'] }}</mmd:note>
+        {% endif %}
     </mmd:update>
+    {% endfor %}
   </mmd:last_metadata_update>
-  <mmd:metadata_status>Active</mmd:metadata_status>
-  <mmd:collection>GCS</mmd:collection>
-  <mmd:title xml:lang="en">Direct Broadcast data processed in satellite swath to L1C.</mmd:title>
-  <mmd:abstract xml:lang="en">Direct Broadcast data received at MET NORWAY Oslo. Processed by standard processing software to geolocated and calibrated values in satellite swath in received instrument resolution. This contains the M-Bands.</mmd:abstract>
+  <mmd:metadata_status>{{ data['metadata_status'] }}</mmd:metadata_status>
+  {% for collection in data['collection'] %}
+  <mmd:collection>{{ collection['short_name'] }}</mmd:collection>
+  {% endfor %}
+  {% for title in data['title'] %}
+  <mmd:title xml:lang="{{ title['lang'] }}">{{ title['title'] }}</mmd:title>
+  {% endfor %}
+  {% for abstract in data['abstract'] %}
+  <mmd:abstract xml:lang="{{ abstract['lang'] }}">{{ abstract['abstract'] }}</mmd:abstract>
+  {% endfor %}
+  {% for temporal_extent in data['temporal_extent'] %}
   <mmd:temporal_extent>
-    <mmd:end_date>2020-11-27T13:51:24.401505Z</mmd:end_date>
-    <mmd:start_date>2020-11-27T13:40:02.019817Z</mmd:start_date>
+    <mmd:start_date>{{ temporal_extent['start_date'] }}</mmd:start_date>
+    <mmd:end_date>{{ temporal_extent['end_date'] }}</mmd:end_date>
   </mmd:temporal_extent>
+  {% endfor %}
   <mmd:geographic_extent>
-    <mmd:rectangle>
-      <mmd:north>77.96752166748047</mmd:north>
-      <mmd:south>33.142425537109375</mmd:south>
-      <mmd:east>18.263349533081055</mmd:east>
-      <mmd:west>-68.47174835205078</mmd:west>
+    <mmd:rectangle srsName="{{ data['geographic_extent']['rectangle']['srsName'] }}">
+      <mmd:north>{{ data['geographic_extent']['rectangle']['north'] }}</mmd:north>
+      <mmd:south>{{ data['geographic_extent']['rectangle']['south'] }}</mmd:south>
+      <mmd:east>{{ data['geographic_extent']['rectangle']['east'] }}</mmd:east>
+      <mmd:west>{{ data['geographic_extent']['rectangle']['west'] }}</mmd:west>
     </mmd:rectangle>
+    {% if data['geographic_extent']['polygon'] %}
+    <mmd:polygon>
+      {{ data['geographic_extent']['polygon'] }} <!-- there is large freedom in how to define a polygon, so best to use xml code from the dict -->
+    </mmd:polygon>
+    {% endif %}
   </mmd:geographic_extent>
   {% if data['location'] %}
     <location>
@@ -39,54 +56,64 @@
       <detailed_location>{{ data['location']['detailed_location'] }}</detailed_location>
     </location>
   {% endif %}
-  <mmd:dataset_production_status>In Work</mmd:dataset_production_status>
+  <mmd:dataset_production_status>{{ data['dataset_production_status'] }}</mmd:dataset_production_status>
   {% if data['dataset_language'] %}
-    <mmd:dataset_language>{{ data['dataset_language'] }}</mmd:dataset_language>
+  <mmd:dataset_language>{{ data['dataset_language'] }}</mmd:dataset_language>
   {% endif %}
   {% if data['operational_status'] %}
-    <mmd:operational_status>{{ data['operational_status'] }}</mmd:operational_status>
+  <mmd:operational_status>{{ data['operational_status'] }}</mmd:operational_status>
   {% endif %}
   {% if data['access_constraint'] %}
-    <access_constraint>{{ data['access_constraint'] }}</access_constraint>
+  <access_constraint>{{ data['access_constraint'] }}</access_constraint>
   {% endif %}
   {% if data['use_constraint'] %}
-    <mmd:use_constraint>
-      <mmd:identifier>{{ data['use_constraint']['identifier'] }}</mmd:identifier>
-      <mmd:resource>{{ data['use_constraint']['resource'] }}</mmd:resource>
-    </mmd:use_constraint>
+  <mmd:use_constraint>
+    <mmd:identifier>{{ data['use_constraint']['identifier'] }}</mmd:identifier>
+    <mmd:resource>{{ data['use_constraint']['resource'] }}</mmd:resource>
+  </mmd:use_constraint>
   {% endif %}
+  {% for personnel in data['personnel'] %}
   <mmd:personnel>
-    <mmd:role>{{ data['personnel']['role'] }}</mmd:role>
-    <mmd:name>{{ data['personnel']['name'] }}</mmd:name>
-    <mmd:email>{{ data['personnel']['email'] }}</mmd:email>
-    <mmd:phone>{{ data['personnel']['phone'] }}</mmd:phone>
-    <mmd:fax>{{ data['personnel']['fax'] }}</mmd:fax>
-    <mmd:organisation>{{ data['personnel']['organisation'] }}</mmd:organisation>
+    <mmd:role>{{ personnel['role'] }}</mmd:role>
+    <mmd:name>{{ personnel['name'] }}</mmd:name>
+    <mmd:email>{{ personnel['email'] }}</mmd:email>
+    <mmd:phone>{{ personnel['phone'] }}</mmd:phone>
+    <mmd:fax>{{ personnel['fax'] }}</mmd:fax>
+    <mmd:organisation>{{ personnel['organisation'] }}</mmd:organisation>
     <mmd:contact_address>
-        <mmd:address>{{ data['personnel']['contact_address']['address'] }}</mmd:address>
-        <mmd:city>{{ data['personnel']['contact_address']['city'] }}</mmd:city>
-        <mmd:province_or_state>{{ data['personnel']['contact_address']['province_or_state'] }}</mmd:province_or_state>
-        <mmd:postal_code>{{ data['personnel']['contact_address']['postal_code'] }}</mmd:postal_code>
-        <mmd:country>{{ data['personnel']['contact_address']['country'] }}</mmd:country>
+        <mmd:address>{{ personnel['contact_address']['address'] }}</mmd:address>
+        <mmd:city>{{ personnel['contact_address']['city'] }}</mmd:city>
+        <mmd:province_or_state>{{ personnel['contact_address']['province_or_state'] }}</mmd:province_or_state>
+        <mmd:postal_code>{{ personnel['contact_address']['postal_code'] }}</mmd:postal_code>
+        <mmd:country>{{ personnel['contact_address']['country'] }}</mmd:country>
     </mmd:contact_address>
   </mmd:personnel>
+  {% endfor %}
+  {% if data['data_center'] %}
+    {% for data_center in data['data_center'] %}
   <mmd:data_center>
     <mmd:data_center_name>
-      <mmd:short_name>{{ data['data_center']['data_center_name']['short_name'] }}</mmd:short_name>
-      <mmd:long_name>{{ data['data_center']['data_center_name']['long_name'] }}</mmd:long_name>
+      <mmd:short_name>{{ data_center['data_center_name']['short_name'] }}</mmd:short_name>
+      <mmd:long_name>{{ data_center['data_center_name']['long_name'] }}</mmd:long_name>
     </mmd:data_center_name>
-    <mmd:data_center_url>{{ data['data_center']['data_center_url'] }}</mmd:data_center_url>
+    <mmd:data_center_url>{{ data_center['data_center_url'] }}</mmd:data_center_url>
   </mmd:data_center>
+    {% endfor %}
+  {% endif %}
+  {% if data['data_access'] %}
+    {% for data_access in data['data_access'] %}
   <mmd:data_access>
-    <mmd:type>{{ data['data_access']['type'] }}</mmd:type>
-    <mmd:resource>{{ data['data_access']['resource'] }}</mmd:resource>
-    <mmd:description>{{ data['data_access']['description'] }}</mmd:description>
+    <mmd:type>{{ data_access['type'] }}</mmd:type>
+    <mmd:resource>{{ data_access['resource'] }}</mmd:resource>
+    <mmd:description>{{ data_access['description'] }}</mmd:description>
     <mmd:wms_layers>
-      {% for layer in data['wms_layers'] %}
+      {% for layer in data_access['wms_layers'] %}
         <mmd:wms_layer>{{ layer }}</mmd:wms_layer>
       {% endfor %}
     </mmd:wms_layers>
-  </mmd:data_access>-->
+  </mmd:data_access>
+    {% endfor %}
+  {% endif %}
   {% if data['related_dataset' %}
     {% for related_dataset in data['related_dataset'] %}
     <mmd:related_dataset relation_type="{{ related_dataset['relation_type'] }}">{{ related_dataset['id'] }}</mmd:related_dataset>
@@ -102,33 +129,130 @@
     </mmd:checksum>
   </mmd:storage_information>
   {% endif %}
-  {% for related_info in data['related_information'] %}
-    <mmd:related_information>
-      <mmd:type>{{ related_info['type'] }}</mmd:type>
-      <mmd:resource>{{ related_info['resource'] }}</mmd:resource>
-    </mmd:related_information>
+  {% if data['related_information'] %}
+    {% for related_info in data['related_information'] %}
+      <mmd:related_information>
+        <mmd:type>{{ related_info['type'] }}</mmd:type>
+        <mmd:resource>{{ related_info['resource'] }}</mmd:resource>
+      </mmd:related_information>
+    {% endfor %}
+  {% endif %}
+  {% for iso_topic_category in data['iso_topic_category'] %}
+  <mmd:iso_topic_category>{{ iso_topic_category['iso_topic_category'] }}</mmd:iso_topic_category>
   {% endfor %}
-
-  <mmd:iso_topic_category>climatologyMeteorologyAtmosphere</mmd:iso_topic_category>
-  <mmd:iso_topic_category>environment</mmd:iso_topic_category>
-  <mmd:iso_topic_category>oceans</mmd:iso_topic_category>
-  <mmd:keywords vocabulary="GCMD">
-    <mmd:keyword>Earth Science &gt; Atmosphere &gt; Atmospheric radiation</mmd:keyword>
+  {% for keyword in data['keywords] %}
+  <mmd:keywords vocabulary="{{ keyword['vocabulary'] }}">
+    <mmd:keyword>{{ keyword['keyword'] }}</mmd:keyword>
+    <mmd:resource>{{ keyword['resource'] }}</mmd:resource>
+    <mmd:separator>{{ keyword['separator'] }}</mmd:separator>
   </mmd:keywords>
+  {% endfor %}
+  {% if data['project'] %}
+    {% for project in data['project'] %}
   <mmd:project>
-    <mmd:long_name>Govermental core service</mmd:long_name>
+    <mmd:short_name>{{ project['short_name'] }}</mmd:short_name>
+    <mmd:long_name>{{ project['long_name'] }}</mmd:long_name>
   </mmd:project>
+    {% endfor %}
+  {% endif %}
+  {% if data['platform'] %}
+    {% for platform in data['platform'] %}
   <mmd:platform>
-    <mmd:ancillary>
-      <mmd:timeliness>NRT</mmd:timeliness>
-    </mmd:ancillary>
+    <mmd:short_name>{{ platform['short_name'] }}</mmd:short_name>
+    <mmd:long_name>{{ platform['long_name'] }}</mmd:long_name>
+        {% if platform['resource'] %}
+    <mmd:resource>{{ platform['resource'] }}</mmd:resource>
+        {% endif %}
+        {% if platform['orbit_relative'] %}
+    <mmd:orbit_relative>{{ platform['orbit_relative'] }}</mmd:orbit_relative>
+        {% endif %}
+        {% if platform['orbit_absolute'] %}
+    <mmd:orbit_absolute>{{ platform['orbit_absolute'] }}</mmd:orbit_absolute>
+        {% endif %}
+        {% if platform['orbit_direction'] %}
+    <mmd:orbit_direction>{{ platform['orbit_direction'] }}</mmd:orbit_direction>
+        {% endif %}
     <mmd:instrument>
-      <mmd:short_name>VIIRS</mmd:short_name>
-      <mmd:long_name>Visible/Infrared Imager Radiometer Suite</mmd:long_name>
-      <mmd:resource>https://www.wmo-sat.info/oscar/instruments/view/604</mmd:resource>
+      <mmd:short_name>{{ platform['short_name'] }}</mmd:short_name>
+      <mmd:long_name>{{ platform['long_name'] }}</mmd:long_name>
+          {% if platform['resource'] %} platform
+      <mmd:resource>{{ platform['resource'] }}</mmd:resource>
+          {% endif %}
+          {% if platform['mode'] %} platform
+      <mmd:mode>{{ platform['mode'] }}</mmd:mode>
+          {% endif %}
+          {% if platform['polarisation'] %} platform
+      <mmd:polarisation>{{ platform['polarisation'] }}</mmd:polarisation>
+          {% endif %}
+          {% if platform['product_type'] %} platform
+      <mmd:product_type>{{ platform['product_type'] }}</mmd:product_type>
+          {% endif %}
     </mmd:instrument>
-    <mmd:short_name>SNPP</mmd:short_name>
-    <mmd:long_name>Suomi National Polar-orbiting Partnership</mmd:long_name>
-    <mmd:resource>https://www.wmo-sat.info/oscar/satellites/view/342</mmd:resource>
+    <mmd:ancillary>
+            {% if platform['cloud_coverage'] %}
+        <mmd:cloud_coverage>{{ platform['cloud_coverage'] }}</mmd:cloud_coverage>
+            {% endif %}
+            {% if platform['scene_coverage'] %}
+        <mmd:scene_coverage>{{ platform['scene_coverage'] }}</mmd:scene_coverage>
+            {% endif %}
+            {% if platform['timeliness'] %}
+        <mmd:timeliness>{{ platform['timeliness'] }}</mmd:timeliness>
+            {% endif %}
+    </mmd:ancillary>
   </mmd:platform>
+    {% endfor %}
+  {% endif %}
+  {% if data['activity_type'] %}
+      {% for activity_type in data['activity_type'] %}
+  <mmd:activity_type>activity_type</mmd:activity_type>
+      {% endfor %}
+  {% endif %}
+  {% if data['dataset_citation'] %}
+      {% for dataset_citation in data['dataset_citation'] %}
+  <mmd:dataset_citation>
+        {% if dataset_citation['author'] %}
+    <mmd:author>{{ dataset_citation['author'] }}</mmd:author>
+        {% endif %}
+        {% if dataset_citation['publication_date'] %}
+    <mmd:publication_date>{{ dataset_citation['publication_date'] }}</mmd:publication_date>
+        {% endif %}
+        {% if dataset_citation['title'] %}
+    <mmd:title>{{ dataset_citation['title'] }}</mmd:title>
+        {% endif %}
+        {% if dataset_citation['series'] %}
+    <mmd:series>{{ dataset_citation['series'] }}</mmd:series>
+        {% endif %}
+        {% if dataset_citation['edition'] %}
+    <mmd:edition>{{ dataset_citation['edition'] }}</mmd:edition>
+        {% endif %}
+        {% if dataset_citation['volume'] %}
+    <mmd:volume>{{ dataset_citation['volume'] }}</mmd:volume>
+        {% endif %}
+        {% if dataset_citation['issue'] %}
+    <mmd:issue>{{ dataset_citation['issue'] }}</mmd:issue>
+        {% endif %}
+        {% if dataset_citation['publication_place'] %}
+    <mmd:publication_place>{{ dataset_citation['publication_place'] }}</mmd:publication_place>
+        {% endif %}
+        {% if dataset_citation['publisher'] %}
+    <mmd:publisher>{{ dataset_citation['publisher'] }}</mmd:publisher>
+        {% endif %}
+        {% if dataset_citation['pages'] %}
+    <mmd:pages>{{ dataset_citation['pages'] }}</mmd:pages>
+        {% endif %}
+        {% if dataset_citation['isbn'] %}
+    <mmd:isbn>{{ dataset_citation['isbn'] }}</mmd:isbn>
+        {% endif %}
+        {% if dataset_citation['doi'] %}
+    <mmd:doi>{{ dataset_citation['doi'] }}</mmd:doi>
+        {% endif %}
+        {% if dataset_citation['url'] %}
+    <mmd:url>{{ dataset_citation['url'] }}</mmd:url>
+        {% endif %}
+        {% if dataset_citation['other'] %}
+    <mmd:other>{{ dataset_citation['other'] }}</mmd:other>
+        {% endif %}
+  </mmd:dataset_citation>
+      {% endfor %}
+  {% endif %}
 </mmd:mmd>
