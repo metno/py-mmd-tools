@@ -114,18 +114,20 @@
   </mmd:data_access>
     {% endfor %}
   {% endif %}
-  {% if data['related_dataset' %}
+  {% if data['related_dataset'] %}
     {% for related_dataset in data['related_dataset'] %}
     <mmd:related_dataset relation_type="{{ related_dataset['relation_type'] }}">{{ related_dataset['id'] }}</mmd:related_dataset>
     {% endfor %}
   {% endif %}
-  {% if data['storage_information' %}
+  {% if data['storage_information'] %}
   <mmd:storage_information>
     <mmd:file_name>{{ data['storage_information']['file_name'] }}</mmd:file_name>
     <mmd:file_location>{{ data['storage_information']['file_location'] }}</mmd:file_location>
     <mmd:file_format>{{ data['storage_information']['file_format'] }}</mmd:file_format>
-    <mmd:file_size unit="{{ data['storage_information']['file_size_unit'] }}">{{ data['storage_information']['file_size'] }}</file_size>
-    <mmd:checksum type="{{ data['storage_information']['checksum_type']">{{ data['storage_information']['checksum_type'] }}
+    <mmd:file_size unit="{{ data['storage_information']['file_size_unit'] }}">{{
+        data['storage_information']['file_size'] }}</mmd:file_size>
+    <mmd:checksum type="{{ data['storage_information']['checksum_type'] }}">{{
+        data['storage_information']['checksum_type'] }}
     </mmd:checksum>
   </mmd:storage_information>
   {% endif %}
@@ -140,7 +142,7 @@
   {% for iso_topic_category in data['iso_topic_category'] %}
   <mmd:iso_topic_category>{{ iso_topic_category['iso_topic_category'] }}</mmd:iso_topic_category>
   {% endfor %}
-  {% for keyword in data['keywords] %}
+  {% for keyword in data['keywords'] %}
   <mmd:keywords vocabulary="{{ keyword['vocabulary'] }}">
     <mmd:keyword>{{ keyword['keyword'] }}</mmd:keyword>
     <mmd:resource>{{ keyword['resource'] }}</mmd:resource>
