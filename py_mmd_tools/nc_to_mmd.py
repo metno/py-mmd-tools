@@ -10,6 +10,7 @@ License:
      https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
 """
 
+import warnings
 import yaml
 from pkg_resources import resource_string
 
@@ -35,7 +36,28 @@ class Nc_to_mmd(object):
         self.output_file = output_file
         self.netcdf_product = netcdf_product
         self.check_only = check_only
-        self.mmd_yaml = yaml.load(resource_string(self.__module__.split('.')[0], 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+
+    def get_acdd_metadata(self, mmd_element, ncin):
+
+        required = mmd_element.pop('minOccurs') == '1'
+        acdd = mmd_element.pop('acdd', '')
+
+        repetition_allowed = mmd_element.pop('maxOccurs') == 'unbounded'
+        """ repetition can be handled by interpreting the acdd element as a comma separated list...? """
+
+        if not acdd:
+            data = {}
+            for key, val in mmd_element.items():
+                if val:
+                    data[key] = self.get_acdd_metadata(val, ncin)
+        else:
+            if required and not acdd in ncin.ncattrs():
+                raise AttributeError('%s is a required ACDD attribute' %acdd)
+            if not required and not acdd in ncin.ncattrs():
+                return
+            data = eval('ncin.%s' %acdd)
+
+        return data
 
     def to_mmd(self):
         """
@@ -51,6 +73,15 @@ class Nc_to_mmd(object):
         mmd_required_elements = self.required_mmd_elements()
 
         ncin = Dataset(self.netcdf_product)
+
+        data = {}
+        mmd_yaml = yaml.load(resource_string(self.__module__.split('.')[0], 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        for key in mmd_yaml:
+            data[key] = self.get_acdd_metadata(mmd_yaml[key], ncin)
+
+        import ipdb
+        ipdb.set_trace()
+        print('hei')
 
         global_attributes = ncin.ncattrs()
         all_netcdf_variables = [var for var in ncin.variables]
