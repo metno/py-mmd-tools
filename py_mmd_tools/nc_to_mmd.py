@@ -12,6 +12,7 @@ License:
 
 import warnings
 import yaml
+import jinja2
 from pkg_resources import resource_string
 
 
@@ -36,15 +37,17 @@ class Nc_to_mmd(object):
         self.output_file = output_file
         self.netcdf_product = netcdf_product
         self.check_only = check_only
+        self.missing_attributes = []
 
     def get_acdd_metadata(self, mmd_element, ncin):
 
-        required = mmd_element.pop('minOccurs') == '1'
+        required = mmd_element.pop('minOccurs','') == '1'
         acdd = mmd_element.pop('acdd', '')
+        repetition_allowed = mmd_element.pop('maxOccurs','')
 
-        repetition_allowed = mmd_element.pop('maxOccurs') == 'unbounded'
+
         """ repetition can be handled by interpreting the acdd element as a comma separated list...? """
-
+        
         if not acdd:
             data = {}
             for key, val in mmd_element.items():
@@ -52,11 +55,15 @@ class Nc_to_mmd(object):
                     data[key] = self.get_acdd_metadata(val, ncin)
         else:
             if required and not acdd in ncin.ncattrs():
-                raise AttributeError('%s is a required ACDD attribute' %acdd)
+                self.missing_attributes.append('%s is a required ACDD attribute' %acdd)
+                return 
             if not required and not acdd in ncin.ncattrs():
                 return
             data = eval('ncin.%s' %acdd)
-
+        
+        if repetition_allowed and repetition_allowed not in ["0","1"]:
+            data = [data]
+                
         return data
 
     def to_mmd(self):
@@ -65,8 +72,11 @@ class Nc_to_mmd(object):
         metadata to MMD, and writes MMD to disk.
         """
 
+        template_file = "templates/mmd_template.xml"
+
         # Why
         cf_mmd_lut = self.generate_cf_acdd_mmd_lut()
+
         # Some mandatory MMD does not have equivalent in ACDD
         # Make one to one mapping
         cf_mmd_lut.update(self.generate_cf_mmd_lut_missing_acdd())
@@ -78,172 +88,99 @@ class Nc_to_mmd(object):
         mmd_yaml = yaml.load(resource_string(self.__module__.split('.')[0], 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         for key in mmd_yaml:
             data[key] = self.get_acdd_metadata(mmd_yaml[key], ncin)
+        
+        
+        for key in data:
+            if data[key] == [{}]:
+                data[key] = {}
+      
+        if len(self.missing_attributes) > 0:
+            raise AttributeError("\n\t"+"\n\t".join(self.missing_attributes))
 
-        import ipdb
-        ipdb.set_trace()
-        print('hei')
+        #Add WMS and other opendapp specific values when not over Opendap?
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader(pathlib.Path(template_file).parent),
+                             trim_blocks=True, lstrip_blocks=True)
+        template = env.get_template(pathlib.Path(template_file).name)
 
-        global_attributes = ncin.ncattrs()
-        all_netcdf_variables = [var for var in ncin.variables]
-
-        # Create XML file with namespaces
-        ns_map = {'mmd': "http://www.met.no/schema/mmd",
-                  'gml': "http://www.opengis.net/gml"}
-        root = ET.Element(ET.QName(ns_map['mmd'], 'mmd'), nsmap=ns_map)
-
-        # Write MMD elements from global attributes in NetCDF
-        for ga in global_attributes:
-
-            # Check if global attribute is in the Look Up Table
-            if ga in cf_mmd_lut.keys():
-                # Check if global attribute has a MMD mapping
-                if cf_mmd_lut[ga]:
-                    all_elements = cf_mmd_lut[ga].split(',')
-                    len_elements = len(all_elements)
-                    parent_element = root
-                    for i, e in enumerate(all_elements):
-
-                        # Check if the element is an attribute to an element
-                        if e.startswith('attrib_'):
-                            continue
-
-                        # Check if we have iterated to the end of the children
-                        elif i == len_elements-1:
-                            value_list = [ncin.getncattr(ga)]
-                            # Split some elements by comma into list
-                            if ga in 'iso_topic_category':
-                                value_list = ncin.getncattr(ga).split(',')
-                            for value in value_list:
-                                current_element = ET.SubElement(parent_element, ET.QName(ns_map['mmd'], e))
-                                current_element.text = str(value)
-
-                        # Checks to avoid duplication
-                        else:
-
-                            # Check if parent element already exist to avoid duplication
-                            if root.findall(parent_element.tag):
-                                parent_element = root.findall(parent_element.tag)[0]
-
-                            # Check if current_element already exist to avoid duplication
-                            current_element = None
-                            for c in parent_element.getchildren():
-                                if c.tag == ET.QName(ns_map['mmd'], e):
-                                    current_element = c
-                                    continue
-
-                            if current_element is None:
-                                current_element = ET.SubElement(parent_element, ET.QName(ns_map['mmd'], e))
-
-                            parent_element = current_element
-
-        # add MMD attribute values from CF and ACDD
-        for ga in global_attributes:
-
-            if ga in cf_mmd_lut.keys():
-                if cf_mmd_lut[ga]:
-                    all_elements = cf_mmd_lut[ga].split(',')
-
-                    for i, e in enumerate(all_elements):
-                        if e.startswith('attrib_'):
-                            if ga == 'keywords_vocabulary':
-                                attrib = e.split('_')[-1]
-                                for keywords_element in root.findall(ET.QName(ns_map['mmd'], 'keywords')):
-                                    keywords_element.attrib[attrib] = ncin.getncattr(ga)
-                            elif ga == 'geospatial_bounds_crs':
-                                attrib = e.split('_')[-1]
-                                for keywords_element in root.findall(ET.QName(ns_map['mmd'],
-                                                                              'geographic_extent')):
-                                    for subelement in keywords_element.findall(ET.QName(ns_map[
-                                                                                            'mmd'], 'rectangle')):
-                                        subelement.attrib[attrib] = ncin.getncattr(ga)
-                            elif ga == 'title_lang':
-                                attrib = e.split('_')[-1]
-                                for title_element in root.findall(ET.QName(ns_map['mmd'], 'title')):
-                                    title_element.attrib[
-                                            '{http://www.w3.org/XML/1998/namespace}' + attrib] = ncin.getncattr(ga)
-                            elif ga == 'summary_lang':
-                                attrib = e.split('_')[-1]
-                                for element in root.findall(ET.QName(ns_map['mmd'], 'abstract')):
-                                    element.attrib[
-                                            '{http://www.w3.org/XML/1998/namespace}' + attrib] = ncin.getncattr(ga)
-
+        out_doc = template.render(data=data)
         # Are all required elements present?
         msg = ''
         req_ok = True
 
-        # Add empty/commented required  MMD elements that are not found in NetCDF file
-        for k, v in mmd_required_elements.items():
+        # # Add empty/commented required  MMD elements that are not found in NetCDF file
+        # for k, v in mmd_required_elements.items():
 
-            # check if required element is part of output MMD (ie. of NetCDF file)
-            if not len(root.findall(ET.QName(ns_map['mmd'], k))) > 0:
-                #print('Did not find required element: {}.'.format(k))
-                req_ok = False
-                msg += (f"Missing element {k}\n")
-                if not v:
-                    root.append(ET.Comment('<mmd:{}></mmd:{}>'.format(k, k)))
-                else:
-                    root.append(ET.Comment('<mmd:{}>{}</mmd:{}>'.format(k, v, k)))
+        #     # check if required element is part of output MMD (ie. of NetCDF file)
+        #     if not len(root.findall(ET.QName(ns_map['mmd'], k))) > 0:
+        #         #print('Did not find required element: {}.'.format(k))
+        #         req_ok = False
+        #         msg += (f"Missing element {k}\n")
+        #         if not v:
+        #             root.append(ET.Comment('<mmd:{}></mmd:{}>'.format(k, k)))
+        #         else:
+        #             root.append(ET.Comment('<mmd:{}>{}</mmd:{}>'.format(k, v, k)))
 
         # If running in check only mode, exit now
         # and return whether the required elements are present
         if self.check_only:
             return req_ok, msg
 
-        # Add OPeNDAP data_access if "netcdf_product" is OPeNDAP url
-        if 'dodsC' in self.netcdf_product:
-            da_element = ET.SubElement(root, ET.QName(ns_map['mmd'], 'data_access'))
-            type_sub_element = ET.SubElement(da_element, ET.QName(ns_map['mmd'], 'type'))
-            description_sub_element = ET.SubElement(da_element, ET.QName(ns_map['mmd'], 'description'))
-            resource_sub_element = ET.SubElement(da_element, ET.QName(ns_map['mmd'], 'resource'))
-            type_sub_element.text = "OPeNDAP"
-            description_sub_element.text = "Open-source Project for a Network Data Access Protocol"
-            resource_sub_element.text = self.netcdf_product
+        # # Add OPeNDAP data_access if "netcdf_product" is OPeNDAP url
+        # if 'dodsC' in self.netcdf_product:
+        #     da_element = ET.SubElement(root, ET.QName(ns_map['mmd'], 'data_access'))
+        #     type_sub_element = ET.SubElement(da_element, ET.QName(ns_map['mmd'], 'type'))
+        #     description_sub_element = ET.SubElement(da_element, ET.QName(ns_map['mmd'], 'description'))
+        #     resource_sub_element = ET.SubElement(da_element, ET.QName(ns_map['mmd'], 'resource'))
+        #     type_sub_element.text = "OPeNDAP"
+        #     description_sub_element.text = "Open-source Project for a Network Data Access Protocol"
+        #     resource_sub_element.text = self.netcdf_product
 
-            _desc = ['Open-source Project for a Network Data Access Protocol.',
-                     'OGC Web Mapping Service, URI to GetCapabilities Document.']
-            _res = [self.netcdf_product.replace('dodsC', 'fileServer'),
-                    self.netcdf_product.replace('dodsC', 'wms')]
-            access_list = []
-            _desc = []
-            _res = []
-            add_wms_data_access = True
-            if add_wms_data_access:
-                access_list.append('OGC WMS')
-                _desc.append('OGC Web Mapping Service, URI to GetCapabilities Document.')
-                _res.append(self.netcdf_product.replace('dodsC', 'wms'))
-            add_http_data_access = True
-            if add_http_data_access:
-                access_list.append('HTTP')
-                _desc.append('Open-source Project for a Network Data Access Protocol.')
-                _res.append(self.netcdf_product.replace('dodsC', 'fileServer'))
-            for prot_type, desc, res in zip(access_list, _desc, _res):
-                dacc = ET.SubElement(root, ET.QName(ns_map['mmd'], 'data_access'))
-                dacc_type = ET.SubElement(dacc, ET.QName(ns_map['mmd'], 'type'))
-                dacc_type.text = prot_type
-                dacc_desc = ET.SubElement(dacc, ET.QName(ns_map['mmd'], 'description'))
-                dacc_desc.text = str(desc)
-                dacc_res = ET.SubElement(dacc, ET.QName(ns_map['mmd'], 'resource'))
-                if 'OGC WMS' in prot_type:
-                    wms_layers = ET.SubElement(dacc, ET.QName(ns_map['mmd'], 'wms_layers'))
-                    # Don't add variables containing these names to the wms layers
-                    skip_layers = ['latitude', 'longitude', 'angle']
-                    for w_layer in all_netcdf_variables:
-                        if any(skip_layer in w_layer for skip_layer in skip_layers):
-                            continue
-                        wms_layer = ET.SubElement(wms_layers, ET.QName(ns_map['mmd'], 'wms_layer'))
-                        wms_layer.text = w_layer
-                    # Need to add get capabilities to the wms resource
-                    res += '?service=WMS&version=1.3.0&request=GetCapabilities'
-                dacc_res.text = res
+        #     _desc = ['Open-source Project for a Network Data Access Protocol.',
+        #              'OGC Web Mapping Service, URI to GetCapabilities Document.']
+        #     _res = [self.netcdf_product.replace('dodsC', 'fileServer'),
+        #             self.netcdf_product.replace('dodsC', 'wms')]
+        #     access_list = []
+        #     _desc = []
+        #     _res = []
+        #     add_wms_data_access = True
+        #     if add_wms_data_access:
+        #         access_list.append('OGC WMS')
+        #         _desc.append('OGC Web Mapping Service, URI to GetCapabilities Document.')
+        #         _res.append(self.netcdf_product.replace('dodsC', 'wms'))
+        #     add_http_data_access = True
+        #     if add_http_data_access:
+        #         access_list.append('HTTP')
+        #         _desc.append('Open-source Project for a Network Data Access Protocol.')
+        #         _res.append(self.netcdf_product.replace('dodsC', 'fileServer'))
+        #     for prot_type, desc, res in zip(access_list, _desc, _res):
+        #         dacc = ET.SubElement(root, ET.QName(ns_map['mmd'], 'data_access'))
+        #         dacc_type = ET.SubElement(dacc, ET.QName(ns_map['mmd'], 'type'))
+        #         dacc_type.text = prot_type
+        #         dacc_desc = ET.SubElement(dacc, ET.QName(ns_map['mmd'], 'description'))
+        #         dacc_desc.text = str(desc)
+        #         dacc_res = ET.SubElement(dacc, ET.QName(ns_map['mmd'], 'resource'))
+        #         if 'OGC WMS' in prot_type:
+        #             wms_layers = ET.SubElement(dacc, ET.QName(ns_map['mmd'], 'wms_layers'))
+        #             # Don't add variables containing these names to the wms layers
+        #             skip_layers = ['latitude', 'longitude', 'angle']
+        #             for w_layer in all_netcdf_variables:
+        #                 if any(skip_layer in w_layer for skip_layer in skip_layers):
+        #                     continue
+        #                 wms_layer = ET.SubElement(wms_layers, ET.QName(ns_map['mmd'], 'wms_layer'))
+        #                 wms_layer.text = w_layer
+        #             # Need to add get capabilities to the wms resource
+        #             res += '?service=WMS&version=1.3.0&request=GetCapabilities'
+        #         dacc_res.text = res
 
-        # Add OGC WMS data_access as comment
-        root.append(ET.Comment(str('<mmd:data_access>\n\t<mmd:type>OGC WMS</mmd:type>\n\t<mmd:description>OGC Web '
+        # Add OGC WMS data_access as comment (Should be implemented above)
+        out_doc+= str('<!--\n<mmd:data_access>\n\t<mmd:type>OGC WMS</mmd:type>\n\t<mmd:description>OGC Web '
                                    'Mapping Service, URI to GetCapabilities Document.</mmd:description>\n\t'
                                    '<mmd:resource></mmd:resource>\n\t<mmd:wms_layers>\n\t\t<mmd:wms_layer>'
-                                   '</mmd:wms_layer>\n\t</mmd:wms_layers>\n</mmd:data_access>')))
+                                   '</mmd:wms_layer>\n\t</mmd:wms_layers>\n</mmd:data_access>\n-->')
 
-        et = ET.ElementTree(ET.fromstring(ET.tostring(root, pretty_print=True).decode("utf-8")))
-        et.write(str(self.output_file), pretty_print=True)
+        et = ET.ElementTree(ET.fromstring(out_doc))
+        if self.output_file:
+            et.write(str(self.output_file), pretty_print=True)
 
     def required_mmd_elements(self):
         """ Create dict with required MMD elements"""
