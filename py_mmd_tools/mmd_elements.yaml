@@ -32,12 +32,23 @@ collection:
 title:
   maxOccurs: 'unbounded'
   minOccurs: '1'
-  acdd: title
+  title:
+    maxOccurs: '1'
+    minOccurs: '1'
+    acdd: title
+  lang:
+    maxOccurs: '1'
+
 
 abstract:
   maxOccurs: unbounded
   minOccurs: '1'
-  acdd: summary
+  abstract:
+    maxOccurs: '1'
+    minOccurs: '1'
+    acdd: summary
+  lang:
+    maxOccurs: '1'
 
 temporal_extent:
   maxOccurs: unbounded
@@ -110,8 +121,12 @@ use_constraint:
   minOccurs: '0'
   identifier:
     acdd: license
+    maxOccurs: '1'
+    minOccurs: '0'
   resource:
     acdd: license_resource
+    maxOccurs: '1'
+    minOccurs: '0'
 
 personnel:
   maxOccurs: unbounded
@@ -123,19 +138,17 @@ personnel:
   name:
     maxOccurs: '1'
     minOccurs: '1'
-    acdd: 
-      - creator_name
-      - publisher_name
+    acdd: creator_name
   email:
     maxOccurs: '1'
     minOccurs: '1'
-    acdd: 
-      - creator_email
-      - publisher_email
+    acdd: creator_email
   phone:
   fax:
   organisation:
-    acdd: publisher_institution
+    acdd: creator_institution
+    maxOccurs: '1'
+    minOccurs: '1'
   contact_address:
     address:
     city:
@@ -143,6 +156,8 @@ personnel:
     postal_code:
     country:
       acdd: publisher_country
+      maxOccurs: '1'
+      minOccurs: '1'
   
 data_center:
   maxOccurs: unbounded
