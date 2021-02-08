@@ -15,7 +15,6 @@ import yaml
 import jinja2
 from pkg_resources import resource_string
 
-
 import pathlib
 from netCDF4 import Dataset
 import lxml.etree as ET
@@ -43,6 +42,7 @@ class Nc_to_mmd(object):
 
         required = mmd_element.pop('minOccurs','') == '1'
         acdd = mmd_element.pop('acdd', '')
+        default = mmd_element.pop('default', '')
         repetition_allowed = mmd_element.pop('maxOccurs','')
 
 
@@ -54,12 +54,15 @@ class Nc_to_mmd(object):
                 if val:
                     data[key] = self.get_acdd_metadata(val, ncin)
         else:
-            if required and not acdd in ncin.ncattrs():
+            if required and not default and not acdd in ncin.ncattrs():
                 self.missing_attributes.append('%s is a required ACDD attribute' %acdd)
                 return 
-            if not required and not acdd in ncin.ncattrs():
+            if not required and not default and not acdd in ncin.ncattrs():
                 return
-            data = eval('ncin.%s' %acdd)
+            if default and not acdd in ncin.ncattrs():
+                data = default
+            else:
+                data = eval('ncin.%s' %acdd)
         
         if repetition_allowed and repetition_allowed not in ["0","1"]:
             data = [data]
