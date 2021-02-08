@@ -1,7 +1,14 @@
 from unittest.mock import patch, Mock, DEFAULT
 import unittest
+
 import pathlib
 import tempfile
+import yaml
+import datetime
+from pkg_resources import resource_string
+
+from netCDF4 import Dataset
+
 from py_mmd_tools.nc_to_mmd import Nc_to_mmd
 
 
@@ -26,6 +33,14 @@ class TestNC2MMD(unittest.TestCase):
     ##    mock_init.return_value = None
     ##    self.assertTrue(mock_init.called)
     ##    self.assertTrue(mock_to_mmd.called)
+
+    def test_use_defaults_for_temporal_extent(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        data = nc2mmd.get_acdd_metadata(mmd_yaml['temporal_extent'], ncin)
+        self.assertEqual(data[0]['start_date'], datetime.datetime(1850, 1, 1, 0, 0, tzinfo=datetime.timezone.utc))
+
 
     @patch('py_mmd_tools.nc_to_mmd.Nc_to_mmd.__init__')
     def test_required_mmd_elements(self, mock_init):
