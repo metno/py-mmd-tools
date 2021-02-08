@@ -11,12 +11,16 @@ alternate_identifier:
 last_metadata_update:
   maxOccurs: '1'
   minOccurs: '1'
-  acdd: date_metadata_modified
   update:
     maxOccurs: unbounded
     minOccurs: '1'
     datetime:
+      maxOccurs: '1'
+      minOccurs: '1'
+      acdd: date_metadata_modified
     type:
+      maxOccurs: '1'
+      minOccurs: '0'
     note:
       maxOccurs: '1'
       minOccurs: '0'
@@ -24,31 +28,38 @@ last_metadata_update:
 metadata_status:
   maxOccurs: '1'
   minOccurs: '1'
+  default: Active
 
+# this is set during harvesting and should not normally be needed in the nc files
 collection:
   maxOccurs: unbounded
-  minOccurs: '1'
+  minOccurs: '0'
+  acdd_ext: collection
 
 title:
   maxOccurs: 'unbounded'
   minOccurs: '1'
+  separator: ';'
   title:
     maxOccurs: '1'
     minOccurs: '1'
     acdd: title
   lang:
     maxOccurs: '1'
+    default: en
 
 
 abstract:
   maxOccurs: unbounded
   minOccurs: '1'
+  separator: ';'
   abstract:
     maxOccurs: '1'
     minOccurs: '1'
     acdd: summary
   lang:
     maxOccurs: '1'
+    default: en
 
 temporal_extent:
   maxOccurs: unbounded
@@ -69,6 +80,8 @@ geographic_extent:
   rectangle:
     maxOccurs: '1'
     minOccurs: '0'
+    srsName: 
+      default: EPSG:4326
     north:
       maxOccurs: '1'
       minOccurs: '1'
@@ -107,10 +120,12 @@ location:
 dataset_production_status:
   maxOccurs: '1'
   minOccurs: '1'
+  acdd_ext: dataset_production_status
 
 dataset_language:
   maxOccurs: '1'
   minOccurs: '0'
+  default: en
 
 operational_status:
   maxOccurs: '1'
@@ -186,7 +201,7 @@ data_access:
     minOccurs: '0'
     wms_layer:
       maxOccurs: 'unbounded'
-      minOccurs: '1'
+      minOccurs: '0'
 
 related_dataset:
   maxOccurs: unbounded
@@ -211,6 +226,7 @@ related_information:
 iso_topic_category:
   maxOccurs: unbounded
   minOccurs: '1'
+  acdd_ext: iso_topic_category
 
 keywords:
   maxOccurs: unbounded

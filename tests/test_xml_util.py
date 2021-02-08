@@ -18,7 +18,7 @@ class test_pymmdtools(unittest.TestCase):
         self.reference_xml = str(current_dir / 'tests' / 'data' / 'reference_mmd.xml')
         self.reference_iso = str(current_dir / 'tests' / 'data' / 'reference_iso.xml')
         self.mmd2iso_xslt = str(current_dir / 'tests' / 'data' / 'mmd-to-iso.xsl')
-        self.reference_xsd = str(current_dir / 'tests' / 'data' / 'mmd.xsd')
+        self.reference_xsd = os.path.join(os.environ['MMD_PATH'], 'xsd/mmd.xsd')
         self.not_a_file = str(current_dir / 'tests' / 'data' / 'not_a_file.xml')
         self.not_a_valid_xml = str(current_dir / 'tests' / 'data' / 'not_a_valid_xml.xml')
  

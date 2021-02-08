@@ -6,10 +6,12 @@
     {% endfor %}
   {% endif %}
   <mmd:last_metadata_update>
-    {% for update in data['last_metadata_update'] %}
+    {% for update in data['last_metadata_update']['update'] %}
     <mmd:update>
       <mmd:datetime>{{ update['datetime'] }}</mmd:datetime>
+        {% if update['type'] %}
       <mmd:type>{{ update['type'] }}</mmd:type>
+        {% endif %}
         {% if update['note'] %}
       <mmd:note>{{ update['note'] }}</mmd:note>
         {% endif %}
@@ -18,7 +20,7 @@
   </mmd:last_metadata_update>
   <mmd:metadata_status>{{ data['metadata_status'] }}</mmd:metadata_status>
   {% for collection in data['collection'] %}
-  <mmd:collection>{{ collection['short_name'] }}</mmd:collection>
+  <mmd:collection>{{ collection }}</mmd:collection>
   {% endfor %}
   {% for title in data['title'] %}
   <mmd:title xml:lang="{{ title['lang'] }}">{{ title['title'] }}</mmd:title>
@@ -80,6 +82,7 @@
     <mmd:phone>{{ personnel['phone'] }}</mmd:phone>
     <mmd:fax>{{ personnel['fax'] }}</mmd:fax>
     <mmd:organisation>{{ personnel['organisation'] }}</mmd:organisation>
+        {% if personnel['contact_address'] %}
     <mmd:contact_address>
         <mmd:address>{{ personnel['contact_address']['address'] }}</mmd:address>
         <mmd:city>{{ personnel['contact_address']['city'] }}</mmd:city>
@@ -87,13 +90,16 @@
         <mmd:postal_code>{{ personnel['contact_address']['postal_code'] }}</mmd:postal_code>
         <mmd:country>{{ personnel['contact_address']['country'] }}</mmd:country>
     </mmd:contact_address>
+        {% endif %}
   </mmd:personnel>
   {% endfor %}
   {% if data['data_center'] %}
     {% for data_center in data['data_center'] %}
   <mmd:data_center>
     <mmd:data_center_name>
+        {% if data_center['data_center_name']['short_name'] %}
       <mmd:short_name>{{ data_center['data_center_name']['short_name'] }}</mmd:short_name>
+        {% endif %}
       <mmd:long_name>{{ data_center['data_center_name']['long_name'] }}</mmd:long_name>
     </mmd:data_center_name>
     <mmd:data_center_url>{{ data_center['data_center_url'] }}</mmd:data_center_url>

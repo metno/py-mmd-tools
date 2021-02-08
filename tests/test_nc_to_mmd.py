@@ -1,6 +1,7 @@
 from unittest.mock import patch, Mock, DEFAULT
 import unittest
 
+import os
 import pathlib
 import tempfile
 import yaml
@@ -9,6 +10,7 @@ from pkg_resources import resource_string
 
 from netCDF4 import Dataset
 
+from py_mmd_tools.xml_utils import xsd_check
 from py_mmd_tools.nc_to_mmd import Nc_to_mmd
 
 
@@ -26,6 +28,7 @@ class TestNC2MMD(unittest.TestCase):
         self.reference_nc = str(current_dir / 'tests' / 'data' / 'reference_nc.nc')
         self.fail_nc = str(current_dir / 'tests' / 'data' / 'reference_nc_fail.nc')
         self.reference_xml = str(current_dir / 'tests' / 'data' / 'reference_nc.xml')
+        self.reference_xsd = os.path.join(os.environ['MMD_PATH'], 'xsd/mmd.xsd')
 
     ##@patch('py_mmd_utils.nc_to_mmd.Nc_to_mmd.__init__')
     ##@patch('mmd_utils.nc_to_mmd.Nc_to_mmd.to_mmd')
@@ -38,28 +41,98 @@ class TestNC2MMD(unittest.TestCase):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
-        data = nc2mmd.get_acdd_metadata(mmd_yaml['geographic_extent'], ncin)
-        self.assertEqual(data['rectangle']['north'], 90)
-        self.assertEqual(data['rectangle']['south'], -90)
-        self.assertEqual(data['rectangle']['east'], 180)
-        self.assertEqual(data['rectangle']['west'], -180)
+        value = nc2mmd.get_acdd_metadata(mmd_yaml['geographic_extent'], ncin)
+        self.assertEqual(value['rectangle']['north'], 90)
+        self.assertEqual(value['rectangle']['south'], -90)
+        self.assertEqual(value['rectangle']['east'], 180)
+        self.assertEqual(value['rectangle']['west'], -180)
+
+    def test_collection_not_set(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'),
+                Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_acdd_metadata(mmd_yaml['collection'], ncin)
+        # nc files should normally not have a collection element, as this is
+        # set during harvesting
+        self.assertEqual(value, None)
+
+    def test_collection_set(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'),
+                Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_acdd_metadata(mmd_yaml['collection'], ncin)
+        # nc files should normally not have a collection element, as this is
+        # set during harvesting
+        self.assertEqual(value, ['METNCS', 'SIOS', 'ADC'])
+
+    def test_data_center(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'),
+                Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_data_centers(mmd_yaml['data_center'], ncin)
+        self.assertEqual(type(value), list)
+        self.assertEqual(value, [{'data_center_name': {'long_name': 'NASA'}}, 
+                                    {'data_center_name': {'long_name': 'MET NORWAY'}}])
+
+    def test_data_access(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'),
+                Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_acdd_metadata(mmd_yaml['data_access'], ncin)
+        self.assertEqual(value, {'wms_layers': {'wms_layer': []}})
+
+    def test_dataset_production_status(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'),
+                Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_acdd_metadata(mmd_yaml['dataset_production_status'], ncin)
+        self.assertEqual(value, 'In Work')
+
+    def test_alternate_identifier(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'),
+                Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_acdd_metadata(mmd_yaml['alternate_identifier'], ncin)
+        self.assertEqual(value, None)
+
+    def test_metadata_status_is_active(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'),
+                Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_acdd_metadata(mmd_yaml['metadata_status'], ncin)
+        self.assertEqual(value, 'Active')
+
+    def test_last_metadata_update(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'),
+                Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_acdd_metadata(mmd_yaml['last_metadata_update'], ncin)
+        self.assertEqual(value['update'][0]['datetime'], '2020-11-27T14:05:56Z')
 
     def test_use_defaults_for_personnel(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
-        data = nc2mmd.get_acdd_metadata(mmd_yaml['personnel'], ncin)
-        self.assertEqual(data[0]['role'], 'unknown')
-        self.assertEqual(data[0]['name'], 'unknown')
-        self.assertEqual(data[0]['email'], 'unknown')
-        self.assertEqual(data[0]['organisation'], 'unknown')
+        value = nc2mmd.get_acdd_metadata(mmd_yaml['personnel'], ncin)
+        self.assertEqual(value[0]['role'], 'unknown')
+        self.assertEqual(value[0]['name'], 'unknown')
+        self.assertEqual(value[0]['email'], 'unknown')
+        self.assertEqual(value[0]['organisation'], 'unknown')
 
     def test_use_defaults_for_temporal_extent(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
-        data = nc2mmd.get_acdd_metadata(mmd_yaml['temporal_extent'], ncin)
-        self.assertEqual(data[0]['start_date'], datetime.datetime(1850, 1, 1, 0, 0, tzinfo=datetime.timezone.utc))
+        value = nc2mmd.get_acdd_metadata(mmd_yaml['temporal_extent'], ncin)
+        self.assertEqual(value[0]['start_date'], datetime.datetime(1850, 1, 1, 0, 0, tzinfo=datetime.timezone.utc))
 
 
     @patch('py_mmd_tools.nc_to_mmd.Nc_to_mmd.__init__')
@@ -178,10 +251,9 @@ class TestNC2MMD(unittest.TestCase):
         tested = tempfile.mkstemp()[1]
         md = Nc_to_mmd(self.reference_nc, output_file=tested)
         md.to_mmd()
-        with open(self.reference_xml) as reference, open(tested) as tested:
-            reference_string = reference.read()
-            tested_string = tested.read()
-            unittest.TestCase.assertMultiLineEqual(self, first=reference_string, second=tested_string)
+        import ipdb
+        ipdb.set_trace()
+        self.assertTrue(xsd_check(xml_file=tested, xsd_schema=self.reference_xsd))
 
     def test_create_mmd_2(self):
         self.maxDiff = None

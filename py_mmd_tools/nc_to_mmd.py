@@ -36,37 +36,83 @@ class Nc_to_mmd(object):
         self.output_file = output_file
         self.netcdf_product = netcdf_product
         self.check_only = check_only
-        self.missing_attributes = []
+        self.missing_attributes = {
+                    'errors': [],
+                    'warnings': []
+                }
+
+    def separate_repeated(self, repetition_allowed, acdd_attr, separator=','):
+        if repetition_allowed:
+            acdd_attr = [ss.strip() for ss in acdd_attr.split(separator)]
+        return acdd_attr
 
     def get_acdd_metadata(self, mmd_element, ncin):
+        """ Recursive function to trenslate from ACDD to MMD.
+
+        If ACDD does not exist for a given MMD element, the function looks 
+        for an alternative acdd_ext element instead. It may also use a default 
+        value as specified in mmd_elements.yaml. Repetition is handled by 
+        treating the acdd element as a comma separated list.
+        """
+        # TODO: clean up and refactor to get rid of all the ifs...
 
         required = mmd_element.pop('minOccurs','') == '1'
         acdd = mmd_element.pop('acdd', '')
+        acdd_ext = mmd_element.pop('acdd_ext', '')
         default = mmd_element.pop('default', '')
-        repetition_allowed = mmd_element.pop('maxOccurs','')
-
-
-        """ repetition can be handled by interpreting the acdd element as a comma separated list...? """
+        repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['', '0', '1']
+        separator = mmd_element.pop('separator',',')
         
         if not acdd:
-            data = {}
-            for key, val in mmd_element.items():
-                if val:
-                    data[key] = self.get_acdd_metadata(val, ncin)
-        else:
-            if required and not default and not acdd in ncin.ncattrs():
-                self.missing_attributes.append('%s is a required ACDD attribute' %acdd)
-                return 
-            if not required and not default and not acdd in ncin.ncattrs():
-                return
-            if default and not acdd in ncin.ncattrs():
-                data = default
+            if len(mmd_element.items()) == 0:
+                if acdd_ext and acdd_ext in ncin.ncattrs():
+                    data = self.separate_repeated(repetition_allowed, 
+                            eval('ncin.%s' %acdd_ext), separator)
+                elif default:
+                    data = default
+                elif not required:
+                    if repetition_allowed:
+                        return []
+                    else:
+                        return None
             else:
-                data = eval('ncin.%s' %acdd)
-        
-        if repetition_allowed and repetition_allowed not in ["0","1"]:
-            data = [data]
-                
+                data = {}
+                for key, val in mmd_element.items():
+                    if val:
+                        data[key] = self.get_acdd_metadata(val, ncin)
+        else:
+            if acdd in ncin.ncattrs():
+                data = self.separate_repeated(repetition_allowed, eval('ncin.%s' %acdd), separator)
+            elif required:
+                if default:
+                    # We allow some missing elements (in particular for datasets from outside MET)
+                    data = default
+                    self.missing_attributes['warnings'].append('%s is a required ACDD attribute' %acdd)
+                else:
+                    self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd)
+                    return 
+            else:
+                return
+
+        return data
+
+    def get_data_centers(self, mmd_element, ncin):
+        required = mmd_element.pop('minOccurs','') == '1'
+        acdd = mmd_element.pop('acdd', '')
+        acdd_ext = mmd_element.pop('acdd_ext', '')
+        default = mmd_element.pop('default', '')
+        repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['', '0', '1']
+        separator = mmd_element.pop('separator',',')
+        data = []
+        for key, val in mmd_element.items():
+            if val:
+                xx = self.get_acdd_metadata(val, ncin)
+                subvals = []
+                subkeys = []
+                for subkey, _tmp_val in xx.items():
+                    subkeys.append(subkey)
+                    for subval in [ss.strip() for ss in _tmp_val.split(separator)]:
+                        data.append({key: {subkey: subval}})
         return data
 
     def to_mmd(self):
@@ -89,26 +135,34 @@ class Nc_to_mmd(object):
 
         data = {}
         mmd_yaml = yaml.load(resource_string(self.__module__.split('.')[0], 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+
+        # handle tricky exceptions first
+        data['data_center'] = self.get_data_centers(mmd_yaml.pop('data_center'), ncin)
+
         for key in mmd_yaml:
             data[key] = self.get_acdd_metadata(mmd_yaml[key], ncin)
-        
         
         for key in data:
             if data[key] == [{}]:
                 data[key] = {}
       
-        if len(self.missing_attributes) > 0:
-            raise AttributeError("\n\t"+"\n\t".join(self.missing_attributes))
+        if len(self.missing_attributes['errors']) > 0:
+            raise AttributeError("\n\t"+"\n\t".join(self.missing_attributes['errors']))
 
-        #Add WMS and other opendapp specific values when not over Opendap?
+        # Add WMS and other opendap specific values when not over Opendap?
+
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(pathlib.Path(template_file).parent),
                              trim_blocks=True, lstrip_blocks=True)
         template = env.get_template(pathlib.Path(template_file).name)
 
         out_doc = template.render(data=data)
+
+        with open(self.output_file, 'w') as fh:
+            fh.write(out_doc)
+
         # Are all required elements present?
-        msg = ''
-        req_ok = True
+        #msg = ''
+        #req_ok = True
 
         # # Add empty/commented required  MMD elements that are not found in NetCDF file
         # for k, v in mmd_required_elements.items():
@@ -125,8 +179,8 @@ class Nc_to_mmd(object):
 
         # If running in check only mode, exit now
         # and return whether the required elements are present
-        if self.check_only:
-            return req_ok, msg
+        #if self.check_only:
+        #    return req_ok, msg
 
         # # Add OPeNDAP data_access if "netcdf_product" is OPeNDAP url
         # if 'dodsC' in self.netcdf_product:
@@ -175,15 +229,15 @@ class Nc_to_mmd(object):
         #             res += '?service=WMS&version=1.3.0&request=GetCapabilities'
         #         dacc_res.text = res
 
-        # Add OGC WMS data_access as comment (Should be implemented above)
-        out_doc+= str('<!--\n<mmd:data_access>\n\t<mmd:type>OGC WMS</mmd:type>\n\t<mmd:description>OGC Web '
-                                   'Mapping Service, URI to GetCapabilities Document.</mmd:description>\n\t'
-                                   '<mmd:resource></mmd:resource>\n\t<mmd:wms_layers>\n\t\t<mmd:wms_layer>'
-                                   '</mmd:wms_layer>\n\t</mmd:wms_layers>\n</mmd:data_access>\n-->')
+        ## Add OGC WMS data_access as comment (Should be implemented above)
+        #out_doc+= str('<!--\n<mmd:data_access>\n\t<mmd:type>OGC WMS</mmd:type>\n\t<mmd:description>OGC Web '
+        #                           'Mapping Service, URI to GetCapabilities Document.</mmd:description>\n\t'
+        #                           '<mmd:resource></mmd:resource>\n\t<mmd:wms_layers>\n\t\t<mmd:wms_layer>'
+        #                           '</mmd:wms_layer>\n\t</mmd:wms_layers>\n</mmd:data_access>\n-->')
 
-        et = ET.ElementTree(ET.fromstring(out_doc))
-        if self.output_file:
-            et.write(str(self.output_file), pretty_print=True)
+        #et = ET.ElementTree(ET.fromstring(out_doc))
+        #if self.output_file:
+        #    et.write(str(self.output_file), pretty_print=True)
 
     def required_mmd_elements(self):
         """ Create dict with required MMD elements"""
