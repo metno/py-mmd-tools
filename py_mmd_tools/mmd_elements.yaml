@@ -135,34 +135,35 @@ use_constraint:
 
 personnel:
   maxOccurs: unbounded
-  minOccurs: '1'
+  minOccurs: '0'
   role:
     maxOccurs: '1'
     minOccurs: '1'
+    default: 'unknown'
     acdd: creator_role
   name:
     maxOccurs: '1'
     minOccurs: '1'
+    default: 'unknown'
     acdd: creator_name
   email:
     maxOccurs: '1'
     minOccurs: '1'
+    default: 'unknown'
     acdd: creator_email
   phone:
   fax:
   organisation:
-    acdd: creator_institution
     maxOccurs: '1'
     minOccurs: '1'
+    default: 'unknown'
+    acdd: creator_institution
   contact_address:
     address:
     city:
     province_or_state:
     postal_code:
     country:
-      acdd: publisher_country
-      maxOccurs: '1'
-      minOccurs: '1'
   
 data_center:
   maxOccurs: unbounded

@@ -44,6 +44,16 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(data['rectangle']['east'], 180)
         self.assertEqual(data['rectangle']['west'], -180)
 
+    def test_use_defaults_for_personnel(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        data = nc2mmd.get_acdd_metadata(mmd_yaml['personnel'], ncin)
+        self.assertEqual(data[0]['role'], 'unknown')
+        self.assertEqual(data[0]['name'], 'unknown')
+        self.assertEqual(data[0]['email'], 'unknown')
+        self.assertEqual(data[0]['organisation'], 'unknown')
+
     def test_use_defaults_for_temporal_extent(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc')
