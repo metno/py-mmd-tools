@@ -52,10 +52,11 @@ abstract:
 
 temporal_extent:
   maxOccurs: unbounded
-  minOccurs: '1'
+  minOccurs: '0' # relaxed requirement to allow external datasets with missing start_date
   start_date:
     maxOccurs: '1'
     minOccurs: '1'
+    default: 1850-01-01T00:00:00Z
     acdd: time_coverage_start
   end_date:
     maxOccurs: '1'
