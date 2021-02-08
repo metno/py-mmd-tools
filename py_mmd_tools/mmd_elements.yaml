@@ -65,25 +65,29 @@ temporal_extent:
 
 geographic_extent:
   maxOccurs: '1'
-  minOccurs: '1'
+  minOccurs: '0'
   rectangle:
     maxOccurs: '1'
     minOccurs: '0'
     north:
       maxOccurs: '1'
       minOccurs: '1'
+      default: 90
       acdd: geospatial_lat_max
     south:
       maxOccurs: '1'
       minOccurs: '1'
+      default: -90
       acdd: geospatial_lat_min
     east:
       maxOccurs: '1'
       minOccurs: '1'
+      default: 180
       acdd: geospatial_lon_max
     west:
       maxOccurs: '1'
       minOccurs: '1'
+      default: -180
       acdd: geospatial_lon_min
   polygon:
     maxOccurs: '1'

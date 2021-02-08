@@ -34,6 +34,16 @@ class TestNC2MMD(unittest.TestCase):
     ##    self.assertTrue(mock_init.called)
     ##    self.assertTrue(mock_to_mmd.called)
 
+    def test_use_defaults_for_geographic_extent(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        data = nc2mmd.get_acdd_metadata(mmd_yaml['geographic_extent'], ncin)
+        self.assertEqual(data['rectangle']['north'], 90)
+        self.assertEqual(data['rectangle']['south'], -90)
+        self.assertEqual(data['rectangle']['east'], 180)
+        self.assertEqual(data['rectangle']['west'], -180)
+
     def test_use_defaults_for_temporal_extent(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc')
