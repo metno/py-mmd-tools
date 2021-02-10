@@ -33,7 +33,7 @@ if __name__ == '__main__':
     # Single nc file
     elif pathlib.Path(args.input).is_file():
         inputfiles = [args.input]
-    # URL to a remote nc file on MET OpenDAP server
+    # URL to a remote dataset available through OPeNDAP (e.g., https://thredds.met.no/thredds/dodsC/remotesensingsatellite/polar-swath/2020/12/17/terra-modis-1km-20201217094244-20201217094455.nc)
     elif args.input.startswith('https://thredds.met.no/thredds/dodsC/'):
         inputfiles = [args.input]
     else:
