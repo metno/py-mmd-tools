@@ -4,7 +4,7 @@
 Script to create an MMD xml file from a netcdf file.
 
 License:
-     This file is part of the S-ENDA-Prototype repository (https://github.com/metno/py-mmd-tools).
+     This file is part of the py-mmd-tools repository (https://github.com/metno/py-mmd-tools).
      S-ENDA-Prototype is licensed under GPL-3.0 (https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
 
 Usage: nc_to_mmd [-h] -i INPUT -o OUTPUT_DIR
