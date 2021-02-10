@@ -23,7 +23,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Check if a netCDF file contains required "
                                                  "elements to create an MMD file.")
 
-    parser.add_argument('-i', '--input', type=str, help="Input file.")
+    parser.add_argument('-i', '--input', type=str, help="Input file, folder or OPeNDAP url.")
     args = parser.parse_args()
 
     # args.input as str, because if pathlib.Path, it is not compatible with URLs
