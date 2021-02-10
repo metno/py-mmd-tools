@@ -229,8 +229,13 @@ def to_mmd(input_data, output_file, template_file, xsd_validation=False, xsd_sch
             "Unknown input data %s. Expecting a Jason file or a dictionary." % input_data)
 
     # Rendering of input in template
-    env = jinja2.Environment(loader=jinja2.FileSystemLoader(pathlib.Path(template_file).parent),
-                             trim_blocks=True, lstrip_blocks=True)
+    env = jinja2.Environment(
+            loader=jinja2.PackageLoader(globals()['__name__'].split('.')[0], 'templates'),
+            autoescape=jinja2.select_autoescape(['html', 'xml']),
+            trim_blocks=True, lstrip_blocks=True
+        )
+    #env = jinja2.Environment(loader=jinja2.FileSystemLoader(pathlib.Path(template_file).parent),
+    #                         trim_blocks=True, lstrip_blocks=True)
     template = env.get_template(pathlib.Path(template_file).name)
     out_doc = template.render(data=in_doc)
 

@@ -13,6 +13,7 @@ License:
 import warnings
 import yaml
 import jinja2
+
 from pkg_resources import resource_string
 from dateutil.parser import parse
 from dateutil.parser._parser import ParserError
@@ -20,7 +21,6 @@ from dateutil.parser._parser import ParserError
 import pathlib
 from netCDF4 import Dataset
 import lxml.etree as ET
-
 
 class Nc_to_mmd(object):
 
@@ -56,7 +56,7 @@ class Nc_to_mmd(object):
         value as specified in mmd_elements.yaml. Repetition is handled by 
         treating the acdd element as a comma separated list.
         """
-        # TODO: clean up and refactor to get rid of all the ifs...
+        # TODO: clean up and refactor to get rid of all the ifs...?
 
         required = mmd_element.pop('minOccurs','') == '1'
         acdd = mmd_element.pop('acdd', '')
@@ -243,6 +243,9 @@ class Nc_to_mmd(object):
         acdd_keyword = mmd_element['keyword'].pop('acdd')
         if acdd_keyword in ncin.ncattrs():
             keywords = self.separate_repeated(True, eval('ncin.%s' %acdd_keyword))
+        else:
+            self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd_keyword)
+            return
         data = []
         for i in range(len(keywords)):
             keyword = keywords[i]
@@ -379,7 +382,7 @@ class Nc_to_mmd(object):
         metadata to MMD, and writes MMD to disk.
         """
 
-        template_file = "templates/mmd_template.xml"
+        #template_file = resource_string(self.__module__.split('.')[0], 'mmd_template.xml')
 
         # Why
         cf_mmd_lut = self.generate_cf_acdd_mmd_lut()
@@ -423,18 +426,26 @@ class Nc_to_mmd(object):
 
         # Add WMS and other opendap specific values when not over Opendap?
 
-        env = jinja2.Environment(loader=jinja2.FileSystemLoader(pathlib.Path(template_file).parent),
-                             trim_blocks=True, lstrip_blocks=True)
-        template = env.get_template(pathlib.Path(template_file).name)
+        env = jinja2.Environment(
+            loader=jinja2.PackageLoader(self.__module__.split('.')[0], 'templates'),
+            autoescape=jinja2.select_autoescape(['html', 'xml']),
+            trim_blocks=True, lstrip_blocks=True
+        )
+        template = env.get_template('mmd_template.xml')
 
         out_doc = template.render(data=data)
+
+        # Are all required elements present?
+        msg = ''
+        req_ok = True
+        # If running in check only mode, exit now
+        # and return whether the required elements are present
+        if self.check_only:
+            return req_ok, msg
 
         with open(self.output_file, 'w') as fh:
             fh.write(out_doc)
 
-        # Are all required elements present?
-        #msg = ''
-        #req_ok = True
 
         # # Add empty/commented required  MMD elements that are not found in NetCDF file
         # for k, v in mmd_required_elements.items():
@@ -448,11 +459,6 @@ class Nc_to_mmd(object):
         #             root.append(ET.Comment('<mmd:{}></mmd:{}>'.format(k, k)))
         #         else:
         #             root.append(ET.Comment('<mmd:{}>{}</mmd:{}>'.format(k, v, k)))
-
-        # If running in check only mode, exit now
-        # and return whether the required elements are present
-        #if self.check_only:
-        #    return req_ok, msg
 
         # # Add OPeNDAP data_access if "netcdf_product" is OPeNDAP url
         # if 'dodsC' in self.netcdf_product:

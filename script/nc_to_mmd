@@ -8,7 +8,8 @@ License:
      S-ENDA-Prototype is licensed under GPL-3.0 (https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
 
 Usage: nc_to_mmd [-h] -i INPUT -o OUTPUT_DIR
-Example: python nc_to_mmd -i /home/Data/mmd/Input/myfile.nc -o /home/Data/mmd/Output/
+Example: 
+    $ python nc_to_mmd -i ../tests/data/reference_nc.nc -o .
 """
 
 import argparse
