@@ -18,7 +18,7 @@ from py_mmd_tools import nc_to_mmd
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Check if a netCDF file contains required "
+    parser = argparse.ArgumentParser(description="Create an MMD xml file from an input netCDF file.")
                                                  "elements to create an MMD file.")
 
     # Add to parse a whole server?
@@ -45,4 +45,3 @@ if __name__ == '__main__':
         outfile = (args.output_dir / pathlib.Path(file).stem).with_suffix('.xml')
         md = nc_to_mmd.Nc_to_mmd(str(file), output_file=outfile)
         md.to_mmd()
-
