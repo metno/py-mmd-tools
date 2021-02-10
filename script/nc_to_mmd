@@ -34,7 +34,7 @@ if __name__ == '__main__':
     elif pathlib.Path(args.input).is_file():
         inputfiles = [args.input]
     # A remote OPeNDAP url
-    elif args.input.startswith('https://thredds.met.no/thredds/dodsC/'):
+    elif 'dodsC' in args.input: #args.input.startswith('https://thredds.met.no/thredds/dodsC/'):
         inputfiles = [args.input]
     else:
         print(f'Invalid input: {args.input}')

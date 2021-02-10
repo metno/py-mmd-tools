@@ -18,7 +18,9 @@ last_metadata_update:
     datetime:
       maxOccurs: '1'
       minOccurs: '1'
-      acdd: date_metadata_modified
+      acdd: 
+        - date_created
+        - date_metadata_modified
     type:
       maxOccurs: '1'
       minOccurs: '0'

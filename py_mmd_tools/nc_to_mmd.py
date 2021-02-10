@@ -65,6 +65,7 @@ class Nc_to_mmd(object):
         repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['', '0', '1']
         separator = mmd_element.pop('separator',',')
         
+        data = []
         if not acdd:
             if len(mmd_element.items()) == 0:
                 if acdd_ext and acdd_ext in ncin.ncattrs():
@@ -104,7 +105,10 @@ class Nc_to_mmd(object):
         acdd_long_name = mmd_element['data_center_name']['long_name'].pop('acdd')
         long_names = self.separate_repeated(True, eval('ncin.%s' %acdd_long_name))
         acdd_url = mmd_element['data_center_url'].pop('acdd')
-        urls = self.separate_repeated(True, eval('ncin.%s' %acdd_url))
+        try:
+            urls = self.separate_repeated(True, eval('ncin.%s' %acdd_url))
+        except AttributeError:
+            urls = ''
         data = []
         for i in range(len(short_names)):
             if len(urls)<=i:
@@ -122,7 +126,15 @@ class Nc_to_mmd(object):
 
     def get_metadata_updates(self, mmd_element, ncin):
         acdd_time = mmd_element['update']['datetime'].pop('acdd', '')
-        times = self.separate_repeated(True, eval('ncin.%s' %acdd_time))
+        times = []
+        for field_name in acdd_time:
+            if field_name in ncin.ncattrs():
+                times = self.separate_repeated(True, eval('ncin.%s' %field_name))
+                break
+        if not times:
+            self.missing_attributes['errors'].append('ACDD attribute %s or %s is required' %(acdd_time[0], acdd_time[1]))
+            return
+
         acdd_type = mmd_element['update']['type'].pop('acdd', '')
         if acdd_type:
             types = self.separate_repeated(True, eval('ncin.%s' %acdd_type))
@@ -147,7 +159,11 @@ class Nc_to_mmd(object):
         acdd = mmd_element['abstract'].pop('acdd')
         separator = mmd_element.pop('separator')
         data = []
-        abstracts = self.separate_repeated(True, eval('ncin.%s' %acdd), separator)
+        if acdd in ncin.ncattrs():
+            abstracts = self.separate_repeated(True, eval('ncin.%s' %acdd), separator)
+        else:
+            self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd)
+            return
         for abstract in abstracts:
             data.append({'abstract': abstract, 'lang': mmd_element['lang']['default']})
         return data
@@ -239,6 +255,8 @@ class Nc_to_mmd(object):
         acdd_resource = mmd_element['resource'].pop('acdd')
         if acdd_resource in ncin.ncattrs():
             resources = self.separate_repeated(True, eval('ncin.%s' %acdd_resource))
+        else:
+            resources = []
 
         acdd_keyword = mmd_element['keyword'].pop('acdd')
         if acdd_keyword in ncin.ncattrs():
@@ -247,6 +265,7 @@ class Nc_to_mmd(object):
             self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd_keyword)
             return
         data = []
+        resource = ''
         for i in range(len(keywords)):
             keyword = keywords[i]
             if len(resources)<=i:
@@ -258,9 +277,11 @@ class Nc_to_mmd(object):
 
     def get_projects(self, mmd_element, ncin):
         acdd = mmd_element['long_name'].pop('acdd')
+        projects = []
         if acdd in ncin.ncattrs():
             projects = self.separate_repeated(True, eval('ncin.%s' %acdd))
         acdd_short = mmd_element['short_name'].pop('acdd')
+        projects_short = []
         if acdd_short in ncin.ncattrs():
             projects_short = self.separate_repeated(True, eval('ncin.%s' %acdd_short))
         data = []
@@ -272,10 +293,12 @@ class Nc_to_mmd(object):
         return data
 
     def get_platforms(self, mmd_element, ncin):
+        short_names = []
         acdd_short_name = mmd_element['short_name'].pop('acdd')
         if acdd_short_name in ncin.ncattrs():
             short_names = self.separate_repeated(True, eval('ncin.%s' %acdd_short_name))
 
+        long_names = []
         acdd_long_name = mmd_element['long_name'].pop('acdd')
         if acdd_long_name in ncin.ncattrs():
             long_names = self.separate_repeated(True, eval('ncin.%s' %acdd_long_name))
@@ -341,6 +364,8 @@ class Nc_to_mmd(object):
         acdd_author = mmd_element['author'].pop('acdd')
         if acdd_author in ncin.ncattrs():
             authors = eval('ncin.%s' %acdd_author)
+
+        publication_dates = []
         acdd_publication_date = mmd_element['publication_date'].pop('acdd')
         if acdd_publication_date in ncin.ncattrs():
             publication_dates = self.separate_repeated(True, eval('ncin.%s' %acdd_publication_date))
@@ -392,7 +417,10 @@ class Nc_to_mmd(object):
         cf_mmd_lut.update(self.generate_cf_mmd_lut_missing_acdd())
         mmd_required_elements = self.required_mmd_elements()
 
-        ncin = Dataset(self.netcdf_product)
+        try:
+            ncin = Dataset(self.netcdf_product)
+        except OSError:
+            ncin = Dataset(self.netcdf_product+'#fillmismatch')
 
         data = {}
         mmd_yaml = yaml.load(resource_string(self.__module__.split('.')[0], 'mmd_elements.yaml'), Loader=yaml.FullLoader)
@@ -412,7 +440,11 @@ class Nc_to_mmd(object):
 
         # Data access should not be read from the netCDF-CF file
         _ = mmd_yaml.pop('data_access')
-        data['data_access'] = []
+        # Add OPeNDAP data_access if "netcdf_product" is OPeNDAP url
+        if 'dodsC' in self.netcdf_product:
+            data['data_access'] = self.get_data_access_dict(ncin)
+        else:
+            data['data_access'] = []
 
         for key in mmd_yaml:
             data[key] = self.get_acdd_metadata(mmd_yaml[key], ncin)
@@ -423,8 +455,6 @@ class Nc_to_mmd(object):
       
         if len(self.missing_attributes['errors']) > 0:
             raise AttributeError("\n\t"+"\n\t".join(self.missing_attributes['errors']))
-
-        # Add WMS and other opendap specific values when not over Opendap?
 
         env = jinja2.Environment(
             loader=jinja2.PackageLoader(self.__module__.split('.')[0], 'templates'),
@@ -446,6 +476,49 @@ class Nc_to_mmd(object):
         with open(self.output_file, 'w') as fh:
             fh.write(out_doc)
 
+    def get_data_access_dict(self, ncin, add_wms_data_access=True, add_http_data_access=True):
+        all_netcdf_variables = [var for var in ncin.variables]
+        data_accesses = [{
+                'type': 'OPeNDAP',
+                'description': 'Open-source Project for a Network Data Access Protocol',
+                'resource': self.netcdf_product,
+                }]
+
+        access_list = []
+        _desc = []
+        _res = []
+        if add_wms_data_access:
+            access_list.append('OGC WMS')
+            _desc.append('OGC Web Mapping Service, URI to GetCapabilities Document.')
+            _res.append(self.netcdf_product.replace('dodsC', 'wms'))
+        if add_http_data_access:
+            access_list.append('HTTP')
+            _desc.append('Direct download of file')
+            _res.append(self.netcdf_product.replace('dodsC', 'fileServer'))
+
+        for prot_type, desc, res in zip(access_list, _desc, _res):
+            data_access = {
+                'type': prot_type,
+                'description': desc,
+                }
+            if 'OGC WMS' in prot_type:
+                data_access['wms_layers'] = []
+                # Don't add variables containing these names to the wms layers
+                skip_layers = ['latitude', 'longitude', 'angle']
+                for w_layer in all_netcdf_variables:
+                    if any(skip_layer in w_layer for skip_layer in skip_layers):
+                        continue
+                    data_access['wms_layers'].append(w_layer)
+                # Need to add get capabilities to the wms resource
+                res += '?service=WMS&version=1.3.0&request=GetCapabilities'
+            data_access['resource'] = res
+
+        data_accesses.append(data_access)
+
+        return data_accesses
+
+
+
 
         # # Add empty/commented required  MMD elements that are not found in NetCDF file
         # for k, v in mmd_required_elements.items():
@@ -460,8 +533,6 @@ class Nc_to_mmd(object):
         #         else:
         #             root.append(ET.Comment('<mmd:{}>{}</mmd:{}>'.format(k, v, k)))
 
-        # # Add OPeNDAP data_access if "netcdf_product" is OPeNDAP url
-        # if 'dodsC' in self.netcdf_product:
         #     da_element = ET.SubElement(root, ET.QName(ns_map['mmd'], 'data_access'))
         #     type_sub_element = ET.SubElement(da_element, ET.QName(ns_map['mmd'], 'type'))
         #     description_sub_element = ET.SubElement(da_element, ET.QName(ns_map['mmd'], 'description'))

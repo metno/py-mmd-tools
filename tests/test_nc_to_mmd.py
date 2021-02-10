@@ -363,7 +363,7 @@ class TestNC2MMD(unittest.TestCase):
         self.maxDiff = None
         tested = tempfile.mkstemp()[1]
         md = Nc_to_mmd(self.fail_nc, output_file=tested)
-        with self.assertRaises(UnboundLocalError):
+        with self.assertRaises(AttributeError):
             md.to_mmd()
         #with open(self.reference_xml) as reference, open(tested) as tested:
         #    reference_string = reference.read()

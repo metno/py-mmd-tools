@@ -124,11 +124,13 @@
     <mmd:type>{{ data_access['type'] }}</mmd:type>
     <mmd:resource>{{ data_access['resource'] }}</mmd:resource>
     <mmd:description>{{ data_access['description'] }}</mmd:description>
+        {% if data_access['wms_layers'] %}
     <mmd:wms_layers>
-      {% for layer in data_access['wms_layers'] %}
+            {% for layer in data_access['wms_layers'] %}
         <mmd:wms_layer>{{ layer }}</mmd:wms_layer>
-      {% endfor %}
+            {% endfor %}
     </mmd:wms_layers>
+        {% endif %}
   </mmd:data_access>
     {% endfor %}
   {% endif %}
