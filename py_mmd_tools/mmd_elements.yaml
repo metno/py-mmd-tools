@@ -14,6 +14,7 @@ last_metadata_update:
   update:
     maxOccurs: unbounded
     minOccurs: '1'
+    separator: ','
     datetime:
       maxOccurs: '1'
       minOccurs: '1'
@@ -21,6 +22,7 @@ last_metadata_update:
     type:
       maxOccurs: '1'
       minOccurs: '0'
+      default: Created
     note:
       maxOccurs: '1'
       minOccurs: '0'
@@ -48,7 +50,6 @@ title:
     maxOccurs: '1'
     default: en
 
-
 abstract:
   maxOccurs: unbounded
   minOccurs: '1'
@@ -64,10 +65,11 @@ abstract:
 temporal_extent:
   maxOccurs: unbounded
   minOccurs: '0' # relaxed requirement to allow external datasets with missing start_date
+  separator: ','
   start_date:
     maxOccurs: '1'
     minOccurs: '1'
-    default: 1850-01-01T00:00:00Z
+    default: '1850-01-01T00:00:00Z'
     acdd: time_coverage_start
   end_date:
     maxOccurs: '1'
@@ -185,9 +187,11 @@ data_center:
   minOccurs: '0'
   data_center_name:
     short_name:
+      acdd: institution
     long_name: 
       acdd: institution
   data_center_url:
+    acdd: publisher_url
 
 data_access:
   maxOccurs: unbounded
@@ -241,6 +245,7 @@ project:
   maxOccurs: unbounded
   minOccurs: '0'
   short_name:
+    acdd: project
   long_name:
     acdd: project
 
@@ -248,16 +253,21 @@ platform:
   maxOccurs: unbounded
   minOccurs: '0'
   short_name:
+    acdd: platform
   long_name:
     acdd: platform
   resource:
+    acdd: platform_vocabulary
   orbit_relative:
   orbit_absolute:
   orbit_direction:
   instrument:
     short_name:
+      acdd: instrument
     long_name:
+      acdd: instrument
     resource:
+      acdd: instrument_vocabulary
     mode:
     polarisation:
     product_type:
@@ -275,19 +285,34 @@ dataset_citation:
   maxOccurs: unbounded
   minOccurs: '0'
   author:
+    maxOccurs: unbounded
+    minOccurs: '1'
+    acdd: creator_name
   publication_date:
+    maxOccurs: '1'
+    minOccurs: '1'
+    acdd: date_created
   title:
+    maxOccurs: '1'
+    minOccurs: '1'
+    acdd: title
   series:
   edition:
   volume:
   issue:
   publication_place:
   publisher:
-    acdd: creator_institution
+    maxOccurs: '1'
+    minOccurs: '1'
+    acdd: publisher_name
   pages:
   isbn:
   doi:
   url:
+    maxOccurs: '1'
+    minOccurs: '0'
     acdd: metadata_link
   other:
+    maxOccurs: '1'
+    minOccurs: '0'
     acdd: references

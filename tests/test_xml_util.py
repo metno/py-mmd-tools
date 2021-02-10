@@ -1,3 +1,4 @@
+import os
 import tempfile
 import unittest
 import pathlib
@@ -33,7 +34,7 @@ class test_pymmdtools(unittest.TestCase):
 
     def test_xsl_check_assertTrue(self):
         self.assertTrue(xsd_check(xml_file=self.reference_xml, 
-                                            xsd_schema=self.reference_xsd))
+                                            xsd_schema=self.reference_xsd)[0])
 
     def test_xsl_check_assertRaises_XMLSyntaxError_opt_xslschema(self):
         self.assertRaises(XMLSyntaxError, xsd_check, self.reference_xml, 

@@ -248,7 +248,7 @@ def to_mmd(input_data, output_file, template_file, xsd_validation=False, xsd_sch
         if not pathlib.Path(xsd_schema).is_file():
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), xsd_schema)
         else:
-            if not xsd_check(output_file, xsd_schema=xsd_schema):
+            if not xsd_check(output_file, xsd_schema=xsd_schema)[0]:
                 return False
 
     return True

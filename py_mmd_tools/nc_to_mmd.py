@@ -14,6 +14,8 @@ import warnings
 import yaml
 import jinja2
 from pkg_resources import resource_string
+from dateutil.parser import parse
+from dateutil.parser._parser import ParserError
 
 import pathlib
 from netCDF4 import Dataset
@@ -97,22 +99,278 @@ class Nc_to_mmd(object):
         return data
 
     def get_data_centers(self, mmd_element, ncin):
-        required = mmd_element.pop('minOccurs','') == '1'
-        acdd = mmd_element.pop('acdd', '')
-        acdd_ext = mmd_element.pop('acdd_ext', '')
-        default = mmd_element.pop('default', '')
-        repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['', '0', '1']
-        separator = mmd_element.pop('separator',',')
+        acdd_short_name = mmd_element['data_center_name']['short_name'].pop('acdd')
+        short_names = self.separate_repeated(True, eval('ncin.%s' %acdd_short_name))
+        acdd_long_name = mmd_element['data_center_name']['long_name'].pop('acdd')
+        long_names = self.separate_repeated(True, eval('ncin.%s' %acdd_long_name))
+        acdd_url = mmd_element['data_center_url'].pop('acdd')
+        urls = self.separate_repeated(True, eval('ncin.%s' %acdd_url))
         data = []
-        for key, val in mmd_element.items():
-            if val:
-                xx = self.get_acdd_metadata(val, ncin)
-                subvals = []
-                subkeys = []
-                for subkey, _tmp_val in xx.items():
-                    subkeys.append(subkey)
-                    for subval in [ss.strip() for ss in _tmp_val.split(separator)]:
-                        data.append({key: {subkey: subval}})
+        for i in range(len(short_names)):
+            if len(urls)<=i:
+                url = ''
+            else:
+                url = urls[i]
+            data.append({
+                'data_center_name': {
+                    'short_name': short_names[i],
+                    'long_name': long_names[i],
+                    },
+                'data_center_url': url,
+                })
+        return data
+
+    def get_metadata_updates(self, mmd_element, ncin):
+        acdd_time = mmd_element['update']['datetime'].pop('acdd', '')
+        times = self.separate_repeated(True, eval('ncin.%s' %acdd_time))
+        acdd_type = mmd_element['update']['type'].pop('acdd', '')
+        if acdd_type:
+            types = self.separate_repeated(True, eval('ncin.%s' %acdd_type))
+        else:
+            types =  [mmd_element['update']['type'].pop('default', '') for i in range(len(times))]
+        data = {}
+        data['update'] = []
+        for i in range(len(times)):
+            data['update'].append({'datetime': times[i], 'type': types[i]}) 
+        return data
+
+    def get_titles(self, mmd_element, ncin):
+        acdd = mmd_element['title'].pop('acdd')
+        separator = mmd_element.pop('separator')
+        data = []
+        titles = self.separate_repeated(True, eval('ncin.%s' %acdd), separator)
+        for title in titles:
+            data.append({'title': title, 'lang': mmd_element['lang']['default']})
+        return data
+
+    def get_abstracts(self, mmd_element, ncin):
+        acdd = mmd_element['abstract'].pop('acdd')
+        separator = mmd_element.pop('separator')
+        data = []
+        abstracts = self.separate_repeated(True, eval('ncin.%s' %acdd), separator)
+        for abstract in abstracts:
+            data.append({'abstract': abstract, 'lang': mmd_element['lang']['default']})
+        return data
+
+    def get_temporal_extents(self, mmd_element, ncin):
+        separator = mmd_element.pop('separator')
+        acdd_start = mmd_element['start_date'].pop('acdd')
+        acdd_end = mmd_element['end_date'].pop('acdd')
+        if acdd_start in ncin.ncattrs():
+            start_dates = [eval('ncin.%s' %acdd_start)]
+        else:
+            start_dates = [mmd_element['start_date'].pop('default')]
+        if acdd_end in ncin.ncattrs():
+            end_dates = [eval('ncin.%s' %acdd_end)]
+        else:
+            end_dates = []
+        
+        try:
+            _ = parse(start_dates[0])
+        except ParserError:
+            start_dates = self.separate_repeated(True, start_dates[0], separator)
+        if end_dates:
+            try:
+                _ = parse(end_dates[0])
+            except ParserError:
+                end_dates = self.separate_repeated(True, end_dates[0], separator)
+
+        data = []
+        for i in range(len(start_dates)):
+            t_ext = {}
+            t_ext['start_date'] = start_dates[i]
+            if len(end_dates)>i:
+                t_ext['end_date'] = end_dates[i]
+            data.append(t_ext)
+        return data
+
+    def get_personnel(self, mmd_element, ncin):
+        """ This function expects one value for the acdd fields, i.e., creator*. 
+        Later, we should also add, e.g., publisher_*, and loop the acdd fields.
+        """
+        acdd_role = mmd_element['role'].pop('acdd')
+        if acdd_role in ncin.ncattrs():
+            roles = self.separate_repeated(True, eval('ncin.%s' %acdd_role))
+        else:
+            roles = [mmd_element['role'].pop('default')]
+
+        acdd_name = mmd_element['name'].pop('acdd')
+        if acdd_name in ncin.ncattrs():
+            names = self.separate_repeated(True, eval('ncin.%s' %acdd_name))
+        else:
+            names = [mmd_element['name'].pop('default')]
+
+        acdd_email = mmd_element['email'].pop('acdd')
+        if acdd_email in ncin.ncattrs():
+            emails = self.separate_repeated(True, eval('ncin.%s' %acdd_email))
+        else:
+            emails = [mmd_element['email'].pop('default')]
+
+        acdd_organisation = mmd_element['organisation'].pop('acdd')
+        if acdd_organisation in ncin.ncattrs():
+            organisations = self.separate_repeated(True, eval('ncin.%s' %acdd_organisation))
+        else:
+            organisations = [mmd_element['organisation'].pop('default')]
+
+        data = []
+        for i in range(len(roles)):
+            role = roles[i]
+            if len(names)<=i:
+                name = name
+            else:
+                name = names[i]
+            if len(emails)<=i:
+                email = email
+            else:
+                email = emails[i]
+            if len(organisations)<=i:
+                organisation = organisation
+            else:
+                organisation = organisations[i]
+            data.append({
+                'role': role, 
+                'name': name, 
+                'email': email,
+                'organisation': organisation,
+                })
+        return data
+
+    def get_keywords(self, mmd_element, ncin):
+        acdd_resource = mmd_element['resource'].pop('acdd')
+        if acdd_resource in ncin.ncattrs():
+            resources = self.separate_repeated(True, eval('ncin.%s' %acdd_resource))
+
+        acdd_keyword = mmd_element['keyword'].pop('acdd')
+        if acdd_keyword in ncin.ncattrs():
+            keywords = self.separate_repeated(True, eval('ncin.%s' %acdd_keyword))
+        data = []
+        for i in range(len(keywords)):
+            keyword = keywords[i]
+            if len(resources)<=i:
+                resource = resource
+            else:
+                resource = resources[i]
+            data.append({'resource': resource, 'keyword': keyword})
+        return data
+
+    def get_projects(self, mmd_element, ncin):
+        acdd = mmd_element['long_name'].pop('acdd')
+        if acdd in ncin.ncattrs():
+            projects = self.separate_repeated(True, eval('ncin.%s' %acdd))
+        acdd_short = mmd_element['short_name'].pop('acdd')
+        if acdd_short in ncin.ncattrs():
+            projects_short = self.separate_repeated(True, eval('ncin.%s' %acdd_short))
+        data = []
+        for i in range(len(projects)):
+            data.append({
+                'long_name': projects[i],
+                'short_name': projects_short[i]
+                })
+        return data
+
+    def get_platforms(self, mmd_element, ncin):
+        acdd_short_name = mmd_element['short_name'].pop('acdd')
+        if acdd_short_name in ncin.ncattrs():
+            short_names = self.separate_repeated(True, eval('ncin.%s' %acdd_short_name))
+
+        acdd_long_name = mmd_element['long_name'].pop('acdd')
+        if acdd_long_name in ncin.ncattrs():
+            long_names = self.separate_repeated(True, eval('ncin.%s' %acdd_long_name))
+
+        resources = []
+        acdd_resource = mmd_element['resource'].pop('acdd')
+        if acdd_resource in ncin.ncattrs():
+            resources = self.separate_repeated(True, eval('ncin.%s' %acdd_resource))
+
+        ishort_names = []
+        acdd_instrument_short_name = mmd_element['instrument']['short_name'].pop('acdd')
+        if acdd_instrument_short_name in ncin.ncattrs():
+            ishort_names = self.separate_repeated(True, eval('ncin.%s' %acdd_instrument_short_name))
+
+        ilong_names = []
+        acdd_instrument_long_name = mmd_element['instrument']['long_name'].pop('acdd')
+        if acdd_instrument_long_name in ncin.ncattrs():
+            ilong_names = self.separate_repeated(True, eval('ncin.%s' %acdd_instrument_long_name))
+
+        iresources = []
+        acdd_instrument_resource = mmd_element['instrument']['resource'].pop('acdd')
+        if acdd_instrument_resource in ncin.ncattrs():
+            iresources = self.separate_repeated(True, eval('ncin.%s' %acdd_instrument_resource))
+
+        data = []
+        for i in range(len(long_names)):
+            short_name = short_names[i]
+            long_name = long_names[i]
+            if len(resources)<=i:
+                resource = ''
+            else:
+                resource = resources[i]
+            if len(ishort_names)<=i:
+                ishort_name = ''
+            else:
+                ishort_name = ishort_names[i]
+            if len(ilong_names)<=i:
+                ilong_name = ''
+            else:
+                ilong_name = ilong_names[i]
+            if len(iresources)<=i:
+                iresource = ''
+            else:
+                iresource = iresources[i]
+            data.append({
+                'short_name': short_name,
+                'long_name': long_name,
+                'resource': resource,
+                'instrument': {
+                    'short_name': ishort_name, 
+                    'long_name': ilong_name, 
+                    'resource': iresource,
+                    }
+                })
+        return data
+
+    def get_dataset_citations(self, mmd_element, ncin):
+        """ MMD allows several dataset citations. This will lead to problems with 
+        associating the diffetent elements to each other. In practice, most 
+        datasets will only have one citation, so will handle that eventuality if 
+        it arrives.
+        """
+        acdd_author = mmd_element['author'].pop('acdd')
+        if acdd_author in ncin.ncattrs():
+            authors = eval('ncin.%s' %acdd_author)
+        acdd_publication_date = mmd_element['publication_date'].pop('acdd')
+        if acdd_publication_date in ncin.ncattrs():
+            publication_dates = self.separate_repeated(True, eval('ncin.%s' %acdd_publication_date))
+        acdd_title = mmd_element['title'].pop('acdd')
+        if acdd_title in ncin.ncattrs():
+            titles = self.separate_repeated(True, eval('ncin.%s' %acdd_title))
+        acdd_url = mmd_element['url'].pop('acdd')
+        urls = []
+        if acdd_url in ncin.ncattrs():
+            urls = self.separate_repeated(True, eval('ncin.%s' %acdd_url))
+        acdd_other = mmd_element['other'].pop('acdd')
+        others = []
+        if acdd_other in ncin.ncattrs():
+            others = self.separate_repeated(True, eval('ncin.%s' %acdd_other))
+        data = []
+        for i in range(len(publication_dates)):
+            publication_date = publication_dates[i]
+            title = titles[i]
+            if len(urls)<=i:
+                url = ''
+            else:
+                url = urls[i]
+            if len(others)<=i:
+                other = ''
+            else:
+                other = others[i]
+            data.append({
+                'author': authors,
+                'publication_date': publication_date,
+                'title': title,
+                'url': url,
+                'other': other,
+                })
         return data
 
     def to_mmd(self):
@@ -138,6 +396,20 @@ class Nc_to_mmd(object):
 
         # handle tricky exceptions first
         data['data_center'] = self.get_data_centers(mmd_yaml.pop('data_center'), ncin)
+        data['last_metadata_update'] = self.get_metadata_updates(
+                                            mmd_yaml.pop('last_metadata_update'), ncin)
+        data['title'] = self.get_titles(mmd_yaml.pop('title'), ncin)
+        data['abstract'] = self.get_abstracts(mmd_yaml.pop('abstract'), ncin)
+        data['temporal_extent'] = self.get_temporal_extents(mmd_yaml.pop('temporal_extent'), ncin)
+        data['personnel'] = self.get_personnel(mmd_yaml.pop('personnel'), ncin)
+        data['keywords'] = self.get_keywords(mmd_yaml.pop('keywords'), ncin)
+        data['project'] = self.get_projects(mmd_yaml.pop('project'), ncin)
+        data['platform'] = self.get_platforms(mmd_yaml.pop('platform'), ncin)
+        data['dataset_citation'] = self.get_dataset_citations(mmd_yaml.pop('dataset_citation'), ncin)
+
+        # Data access should not be read from the netCDF-CF file
+        _ = mmd_yaml.pop('data_access')
+        data['data_access'] = []
 
         for key in mmd_yaml:
             data[key] = self.get_acdd_metadata(mmd_yaml[key], ncin)

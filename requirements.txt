@@ -12,3 +12,4 @@ pytest-cov
 pyyaml
 requests
 xmltodict
+python-dateutil

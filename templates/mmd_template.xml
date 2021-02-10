@@ -5,6 +5,17 @@
   <mmd:alternate_identifier type="{{ alt['Identifier_type'] }}">{{ alt['Identifier'] }}</mmd:alternate_identifier>
     {% endfor %}
   {% endif %}
+  {% for title in data['title'] %}
+  <mmd:title xml:lang="{{ title['lang'] }}">{{ title['title'] }}</mmd:title>
+  {% endfor %}
+  {% for abstract in data['abstract'] %}
+  <mmd:abstract xml:lang="{{ abstract['lang'] }}">{{ abstract['abstract'] }}</mmd:abstract>
+  {% endfor %}
+  <mmd:metadata_status>{{ data['metadata_status'] }}</mmd:metadata_status>
+  <mmd:dataset_production_status>{{ data['dataset_production_status'] }}</mmd:dataset_production_status>
+  {% for collection in data['collection'] %}
+  <mmd:collection>{{ collection }}</mmd:collection>
+  {% endfor %}
   <mmd:last_metadata_update>
     {% for update in data['last_metadata_update']['update'] %}
     <mmd:update>
@@ -18,21 +29,21 @@
     </mmd:update>
     {% endfor %}
   </mmd:last_metadata_update>
-  <mmd:metadata_status>{{ data['metadata_status'] }}</mmd:metadata_status>
-  {% for collection in data['collection'] %}
-  <mmd:collection>{{ collection }}</mmd:collection>
-  {% endfor %}
-  {% for title in data['title'] %}
-  <mmd:title xml:lang="{{ title['lang'] }}">{{ title['title'] }}</mmd:title>
-  {% endfor %}
-  {% for abstract in data['abstract'] %}
-  <mmd:abstract xml:lang="{{ abstract['lang'] }}">{{ abstract['abstract'] }}</mmd:abstract>
-  {% endfor %}
   {% for temporal_extent in data['temporal_extent'] %}
   <mmd:temporal_extent>
     <mmd:start_date>{{ temporal_extent['start_date'] }}</mmd:start_date>
     <mmd:end_date>{{ temporal_extent['end_date'] }}</mmd:end_date>
   </mmd:temporal_extent>
+  {% endfor %}
+  {% for iso_topic_category in data['iso_topic_category'] %}
+  <mmd:iso_topic_category>{{ iso_topic_category }}</mmd:iso_topic_category>
+  {% endfor %}
+  {% for keyword in data['keywords'] %}
+  <mmd:keywords vocabulary="{{ keyword['resource'] }}">
+    <mmd:keyword>{{ keyword['keyword'] }}</mmd:keyword>
+    <mmd:resource>{{ keyword['resource'] }}</mmd:resource>
+    <mmd:separator>{{ keyword['separator'] }}</mmd:separator>
+  </mmd:keywords>
   {% endfor %}
   <mmd:geographic_extent>
     <mmd:rectangle srsName="{{ data['geographic_extent']['rectangle']['srsName'] }}">
@@ -58,7 +69,6 @@
       <detailed_location>{{ data['location']['detailed_location'] }}</detailed_location>
     </location>
   {% endif %}
-  <mmd:dataset_production_status>{{ data['dataset_production_status'] }}</mmd:dataset_production_status>
   {% if data['dataset_language'] %}
   <mmd:dataset_language>{{ data['dataset_language'] }}</mmd:dataset_language>
   {% endif %}
@@ -100,7 +110,9 @@
         {% if data_center['data_center_name']['short_name'] %}
       <mmd:short_name>{{ data_center['data_center_name']['short_name'] }}</mmd:short_name>
         {% endif %}
+        {% if data_center['data_center_name']['long_name'] %}
       <mmd:long_name>{{ data_center['data_center_name']['long_name'] }}</mmd:long_name>
+        {% endif %}
     </mmd:data_center_name>
     <mmd:data_center_url>{{ data_center['data_center_url'] }}</mmd:data_center_url>
   </mmd:data_center>
@@ -145,29 +157,27 @@
       </mmd:related_information>
     {% endfor %}
   {% endif %}
-  {% for iso_topic_category in data['iso_topic_category'] %}
-  <mmd:iso_topic_category>{{ iso_topic_category['iso_topic_category'] }}</mmd:iso_topic_category>
-  {% endfor %}
-  {% for keyword in data['keywords'] %}
-  <mmd:keywords vocabulary="{{ keyword['vocabulary'] }}">
-    <mmd:keyword>{{ keyword['keyword'] }}</mmd:keyword>
-    <mmd:resource>{{ keyword['resource'] }}</mmd:resource>
-    <mmd:separator>{{ keyword['separator'] }}</mmd:separator>
-  </mmd:keywords>
-  {% endfor %}
   {% if data['project'] %}
     {% for project in data['project'] %}
   <mmd:project>
+      {% if project['short_name'] %}
     <mmd:short_name>{{ project['short_name'] }}</mmd:short_name>
+      {% endif %}
+      {% if project['long_name'] %}
     <mmd:long_name>{{ project['long_name'] }}</mmd:long_name>
+      {% endif %}
   </mmd:project>
     {% endfor %}
   {% endif %}
   {% if data['platform'] %}
     {% for platform in data['platform'] %}
   <mmd:platform>
+        {% if platform['short_name'] %}
     <mmd:short_name>{{ platform['short_name'] }}</mmd:short_name>
+        {% endif %}
+        {% if platform['long_name'] %}
     <mmd:long_name>{{ platform['long_name'] }}</mmd:long_name>
+        {% endif %}
         {% if platform['resource'] %}
     <mmd:resource>{{ platform['resource'] }}</mmd:resource>
         {% endif %}
@@ -180,33 +190,41 @@
         {% if platform['orbit_direction'] %}
     <mmd:orbit_direction>{{ platform['orbit_direction'] }}</mmd:orbit_direction>
         {% endif %}
+        {% if platform['instrument'] %}
     <mmd:instrument>
-      <mmd:short_name>{{ platform['short_name'] }}</mmd:short_name>
-      <mmd:long_name>{{ platform['long_name'] }}</mmd:long_name>
-          {% if platform['resource'] %} platform
-      <mmd:resource>{{ platform['resource'] }}</mmd:resource>
-          {% endif %}
-          {% if platform['mode'] %} platform
-      <mmd:mode>{{ platform['mode'] }}</mmd:mode>
-          {% endif %}
-          {% if platform['polarisation'] %} platform
-      <mmd:polarisation>{{ platform['polarisation'] }}</mmd:polarisation>
-          {% endif %}
-          {% if platform['product_type'] %} platform
-      <mmd:product_type>{{ platform['product_type'] }}</mmd:product_type>
-          {% endif %}
+            {% if platform['instrument']['short_name'] %}
+      <mmd:short_name>{{ platform['instrument']['short_name'] }}</mmd:short_name>
+            {% endif %}
+            {% if platform['instrument']['long_name'] %}
+      <mmd:long_name>{{ platform['instrument']['long_name'] }}</mmd:long_name>
+            {% endif %}
+            {% if platform['instrument']['resource'] %}
+      <mmd:resource>{{ platform['instrument']['resource'] }}</mmd:resource>
+            {% endif %}
+            {% if platform['instrument']['mode'] %}
+      <mmd:mode>{{ platform['instrument']['mode'] }}</mmd:mode>
+            {% endif %}
+            {% if platform['instrument']['polarisation'] %}
+      <mmd:polarisation>{{ platform['instrument']['polarisation'] }}</mmd:polarisation>
+            {% endif %}
+            {% if platform['instrument']['product_type'] %}
+      <mmd:product_type>{{ platform['instrument']['product_type'] }}</mmd:product_type>
+            {% endif %}
     </mmd:instrument>
+        {% endif %}
+        {% if platform['ancillary'] %}
     <mmd:ancillary>
-            {% if platform['cloud_coverage'] %}
-        <mmd:cloud_coverage>{{ platform['cloud_coverage'] }}</mmd:cloud_coverage>
+            {% if platform['ancillary']['cloud_coverage'] %}
+        <mmd:cloud_coverage>{{ platform['ancillary']['cloud_coverage'] }}</mmd:cloud_coverage>
             {% endif %}
-            {% if platform['scene_coverage'] %}
-        <mmd:scene_coverage>{{ platform['scene_coverage'] }}</mmd:scene_coverage>
+            {% if platform['ancillary']['scene_coverage'] %}
+        <mmd:scene_coverage>{{ platform['ancillary']['scene_coverage'] }}</mmd:scene_coverage>
             {% endif %}
-            {% if platform['timeliness'] %}
-        <mmd:timeliness>{{ platform['timeliness'] }}</mmd:timeliness>
+            {% if platform['ancillary']['timeliness'] %}
+        <mmd:timeliness>{{ platform['ancillary']['timeliness'] }}</mmd:timeliness>
             {% endif %}
     </mmd:ancillary>
+        {% endif %}
   </mmd:platform>
     {% endfor %}
   {% endif %}
