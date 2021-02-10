@@ -21,7 +21,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Create an MMD xml file from an input netCDF file.")
 
     # Add to parse a whole server?
-    parser.add_argument('-i', '--input', type=str, help="Input file or directory or URL.")
+    parser.add_argument('-i', '--input', type=str, help="Input file, folder or OPeNDAP url.")
     parser.add_argument('-o', '--output_dir', type=pathlib.Path, help="Output directory.")
     args = parser.parse_args()
 
