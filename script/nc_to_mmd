@@ -19,7 +19,6 @@ from py_mmd_tools import nc_to_mmd
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Create an MMD xml file from an input netCDF file.")
-                                                 "elements to create an MMD file.")
 
     # Add to parse a whole server?
     parser.add_argument('-i', '--input', type=str, help="Input file or directory or URL.")
