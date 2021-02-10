@@ -5,7 +5,7 @@ Script to check whether a netcdf file contains all the required elements to crea
 
 License:
      This file is part of the py-mmd-tools repository (https://github.com/metno/py-mmd-tools).
-     S-ENDA-Prototype is licensed under GPL-3.0 (https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
+     py-mmd-tools is licensed under the Apache License 2.0 (https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
 
 Usage: check_nc [-h] -i INPUT
 Example: python check_nc -i /home/Data/mmd/Input/myfile.nc
