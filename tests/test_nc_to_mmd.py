@@ -365,6 +365,19 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(self.fail_nc, output_file=tested)
         with self.assertRaises(AttributeError):
             md.to_mmd()
+
+    def test_create_mmd_missing_publisher_url(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), 
+                Loader=yaml.FullLoader)
+        md = Nc_to_mmd(self.fail_nc)
+        ncin = Dataset(md.netcdf_product)
+        value = md.get_data_centers(mmd_yaml['data_center'], ncin)
+        self.assertEqual(value, [{
+            'data_center_name': {
+                'short_name': 'MET NORWAY',
+                'long_name': 'MET NORWAY'},
+            'data_center_url': ''}])
+
         #with open(self.reference_xml) as reference, open(tested) as tested:
         #    reference_string = reference.read()
         #    reference_string = reference_string.replace('</mmd:geographic_extent>\n  <mmd:metadata_identifier>npp-viirs-mband-20201127134002-20201127135124</mmd:metadata_identifier>\n  <mmd:data_center>', '</mmd:geographic_extent>\n  <mmd:data_center>')
