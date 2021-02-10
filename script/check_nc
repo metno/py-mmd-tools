@@ -46,5 +46,5 @@ if __name__ == '__main__':
         if ok:
             print(f"OK - file {file} contains all necessary elements.")
         else:
-            print(f"NOK - file {file} does not contains all necessary elements.")
+            print(f"Not OK - file {file} does not contain all necessary elements.")
             print(msg)
