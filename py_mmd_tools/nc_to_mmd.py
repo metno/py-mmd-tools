@@ -6,7 +6,7 @@ Can also be used check to check whether the required MMD elements are present in
 
 License:
      This file is part of the py-mmd-tools repository (https://github.com/metno/py-mmd-tools).
-     py-mmd-tools is licensed under GPL-3.0 (
+     py-mmd-tools is licensed under the Apache License 2.0 (
      https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
 """
 
@@ -633,4 +633,3 @@ class Nc_to_mmd(object):
                 'instrument_vocabulary': None,
                 'cdm_data_type': None}
         return cf_acdd_mmd_lut
-
