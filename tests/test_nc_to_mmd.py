@@ -271,12 +271,31 @@ class TestNC2MMD(unittest.TestCase):
         value = nc2mmd.get_projects(mmd_yaml['project'], ncin)
         self.assertEqual(value[0]['long_name'], 'Govermental core service')
 
+    def test_dataset_citation_missing_attrs(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_keywords_vocab.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
+        self.assertEqual(value[0]['url'], '')
+        self.assertEqual(value[0]['other'], '')
+
     def test_dataset_citation(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
         self.assertEqual(value[0]['title'], ncin.getncattr('title'))
+
+    @patch('py_mmd_tools.nc_to_mmd.Dataset')
+    def test_oserror_opendap(self, mock_nc_dataset):
+        mock_nc_dataset.side_effect = OSError
+        fn = 'http://nbstds.met.no/thredds/dodsC/NBS/S1A/2021/01/31/IW/S1A_IW_GRDH_1SDV_20210131T172816_20210131T172841_036385_04452D_505F.nc'
+        nc2mmd = Nc_to_mmd(fn)
+        try:
+            nc2mmd.to_mmd()
+        except:
+            xx=1
+        mock_nc_dataset.assert_called_with(fn+'#fillmismatch')
 
     @patch('py_mmd_tools.nc_to_mmd.Nc_to_mmd.__init__')
     def test_required_mmd_elements(self, mock_init):
