@@ -225,6 +225,14 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[1], 'environment')
         self.assertEqual(value[2], 'oceans')
 
+    def test_missing_vocabulary_platform(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), 
+                Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_keywords_vocab.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_platforms(mmd_yaml['platform'], ncin)
+        self.assertEqual(value[0]['resource'], '')
+
     def test_keywords_missing_vocabulary(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), 
                 Loader=yaml.FullLoader)
