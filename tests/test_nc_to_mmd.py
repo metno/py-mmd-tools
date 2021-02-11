@@ -187,6 +187,18 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[0]['start_date'], '2020-11-27T13:40:02.019817Z')
         self.assertEqual(value[0]['end_date'], '2020-11-27T13:51:24.401505Z')
 
+    def test_personnel_multiple_mixed(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_attrs_multiple_mixed_creator.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_personnel(mmd_yaml['personnel'], ncin)
+        self.assertEqual(value[0]['name'], 'Trygve')
+        self.assertEqual(value[1]['name'], 'Trygve')
+        self.assertEqual(value[0]['email'], 'trygve@meti.no')
+        self.assertEqual(value[1]['email'], 'trygve@meti.no')
+        self.assertEqual(value[0]['role'], 'Investigator')
+        self.assertEqual(value[1]['role'], 'Technical contact')
+
     def test_personnel_multiple(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_attrs_multiple.nc')
