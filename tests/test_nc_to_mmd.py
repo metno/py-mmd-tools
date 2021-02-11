@@ -175,7 +175,9 @@ class TestNC2MMD(unittest.TestCase):
         value = nc2mmd.get_temporal_extents(mmd_yaml['temporal_extent'], ncin)
         self.assertEqual(value[0]['start_date'], '2020-11-27T13:40:02.019817Z')
         self.assertEqual(value[1]['start_date'], '2020-12-27T13:40:02.019817Z')
+        self.assertEqual(value[2]['start_date'], '2021-01-27T13:40:02.019817Z')
         self.assertEqual(value[0]['end_date'], '2020-11-27T13:51:24.401505Z')
+        self.assertEqual(value[1]['end_date'], '2020-12-27T13:51:24.019817Z')
 
     def test_temporal_extent(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
