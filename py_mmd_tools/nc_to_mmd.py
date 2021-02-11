@@ -136,10 +136,11 @@ class Nc_to_mmd(object):
             return
 
         acdd_type = mmd_element['update']['type'].pop('acdd', '')
-        if acdd_type:
-            types = self.separate_repeated(True, eval('ncin.%s' %acdd_type))
-        else:
-            types =  [mmd_element['update']['type'].pop('default', '') for i in range(len(times))]
+        # acdd is not added to the type field in mmd_elements.yaml..
+        #if acdd_type:
+        #    types = self.separate_repeated(True, eval('ncin.%s' %acdd_type))
+        #else:
+        types =  [mmd_element['update']['type'].pop('default', '') for i in range(len(times))]
         data = {}
         data['update'] = []
         for i in range(len(times)):
