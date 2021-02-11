@@ -387,6 +387,15 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(md.missing_attributes['errors'][0],
                 'ACDD attribute date_created or date_metadata_modified is required')
 
+    def test_create_mmd_missing_abstract(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), 
+                Loader=yaml.FullLoader)
+        md = Nc_to_mmd(self.fail_nc)
+        ncin = Dataset(md.netcdf_product)
+        value = md.get_abstracts(mmd_yaml['abstract'], ncin)
+        self.assertEqual(md.missing_attributes['errors'][0],
+                'summary is a required ACDD attribute')
+
         #with open(self.reference_xml) as reference, open(tested) as tested:
         #    reference_string = reference.read()
         #    reference_string = reference_string.replace('</mmd:geographic_extent>\n  <mmd:metadata_identifier>npp-viirs-mband-20201127134002-20201127135124</mmd:metadata_identifier>\n  <mmd:data_center>', '</mmd:geographic_extent>\n  <mmd:data_center>')
