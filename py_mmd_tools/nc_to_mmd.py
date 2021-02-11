@@ -48,13 +48,15 @@ class Nc_to_mmd(object):
             acdd_attr = [ss.strip() for ss in acdd_attr.split(separator)]
         return acdd_attr
 
-    def get_acdd_metadata(self, mmd_element, ncin):
+    def get_acdd_metadata(self, mmd_element, ncin, mmd_element_name):
         """ Recursive function to trenslate from ACDD to MMD.
 
         If ACDD does not exist for a given MMD element, the function looks 
         for an alternative acdd_ext element instead. It may also use a default 
         value as specified in mmd_elements.yaml. Repetition is handled by 
         treating the acdd element as a comma separated list.
+
+        The accd_ext and default values helps to make sure that this passes without errors.
         """
         # TODO: clean up and refactor to get rid of all the ifs...?
 
@@ -73,6 +75,8 @@ class Nc_to_mmd(object):
                             eval('ncin.%s' %acdd_ext), separator)
                 elif default:
                     data = default
+                    if required:
+                        self.missing_attributes['warnings'].append('Using default value %s for %s' %(str(default), mmd_element_name))
                 elif not required:
                     if repetition_allowed:
                         return []
@@ -82,18 +86,14 @@ class Nc_to_mmd(object):
                 data = {}
                 for key, val in mmd_element.items():
                     if val:
-                        data[key] = self.get_acdd_metadata(val, ncin)
+                        data[key] = self.get_acdd_metadata(val, ncin, key)
         else:
             if acdd in ncin.ncattrs():
                 data = self.separate_repeated(repetition_allowed, eval('ncin.%s' %acdd), separator)
             elif required:
-                if default:
-                    # We allow some missing elements (in particular for datasets from outside MET)
-                    data = default
-                    self.missing_attributes['warnings'].append('%s is a required ACDD attribute' %acdd)
-                else:
-                    self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd)
-                    return 
+                # We allow some missing elements (in particular for datasets from outside MET)
+                data = default
+                self.missing_attributes['warnings'].append('Using default value %s for %s' %(str(default), mmd_element_name))
             else:
                 return
 
@@ -482,7 +482,7 @@ class Nc_to_mmd(object):
             data['data_access'] = []
 
         for key in mmd_yaml:
-            data[key] = self.get_acdd_metadata(mmd_yaml[key], ncin)
+            data[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
         
         if len(self.missing_attributes['errors']) > 0:
             raise AttributeError("\n\t"+"\n\t".join(self.missing_attributes['errors']))

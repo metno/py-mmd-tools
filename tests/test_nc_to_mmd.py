@@ -45,7 +45,7 @@ class TestNC2MMD(unittest.TestCase):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
-        value = nc2mmd.get_acdd_metadata(mmd_yaml['geographic_extent'], ncin)
+        value = nc2mmd.get_acdd_metadata(mmd_yaml['geographic_extent'], ncin, 'geographic_extent')
         self.assertEqual(value['rectangle']['north'], 90)
         self.assertEqual(value['rectangle']['south'], -90)
         self.assertEqual(value['rectangle']['east'], 180)
@@ -56,7 +56,7 @@ class TestNC2MMD(unittest.TestCase):
                 Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
-        value = nc2mmd.get_acdd_metadata(mmd_yaml['collection'], ncin)
+        value = nc2mmd.get_acdd_metadata(mmd_yaml['collection'], ncin, 'collection')
         # nc files should normally not have a collection element, as this is
         # set during harvesting
         self.assertEqual(value, [])
@@ -66,7 +66,7 @@ class TestNC2MMD(unittest.TestCase):
                 Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
-        value = nc2mmd.get_acdd_metadata(mmd_yaml['collection'], ncin)
+        value = nc2mmd.get_acdd_metadata(mmd_yaml['collection'], ncin, 'collection')
         # nc files should normally not have a collection element, as this is
         # set during harvesting
         self.assertEqual(value, ['METNCS', 'SIOS', 'ADC'])
@@ -116,7 +116,7 @@ class TestNC2MMD(unittest.TestCase):
                 Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
-        value = None #nc2mmd.get_acdd_metadata(mmd_yaml['data_access'], ncin)
+        value = None
         self.assertEqual(value, None)
 
     def test_dataset_production_status(self):
@@ -124,7 +124,7 @@ class TestNC2MMD(unittest.TestCase):
                 Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
-        value = nc2mmd.get_acdd_metadata(mmd_yaml['dataset_production_status'], ncin)
+        value = nc2mmd.get_acdd_metadata(mmd_yaml['dataset_production_status'], ncin, 'dataset_production_status')
         self.assertEqual(value, 'In Work')
 
     def test_alternate_identifier(self):
@@ -132,7 +132,7 @@ class TestNC2MMD(unittest.TestCase):
                 Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
-        value = nc2mmd.get_acdd_metadata(mmd_yaml['alternate_identifier'], ncin)
+        value = nc2mmd.get_acdd_metadata(mmd_yaml['alternate_identifier'], ncin, 'alternate_identifier')
         self.assertEqual(value, [])
 
     def test_metadata_status_is_active(self):
@@ -140,7 +140,7 @@ class TestNC2MMD(unittest.TestCase):
                 Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
-        value = nc2mmd.get_acdd_metadata(mmd_yaml['metadata_status'], ncin)
+        value = nc2mmd.get_acdd_metadata(mmd_yaml['metadata_status'], ncin, 'metadata_status')
         self.assertEqual(value, 'Active')
 
     def test_last_metadata_update(self):
@@ -220,7 +220,7 @@ class TestNC2MMD(unittest.TestCase):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
-        value = nc2mmd.get_acdd_metadata(mmd_yaml['iso_topic_category'], ncin)
+        value = nc2mmd.get_acdd_metadata(mmd_yaml['iso_topic_category'], ncin, 'iso_topic_category')
         self.assertEqual(value[0], 'climatologyMeteorologyAtmosphere')
         self.assertEqual(value[1], 'environment')
         self.assertEqual(value[2], 'oceans')
@@ -358,6 +358,13 @@ class TestNC2MMD(unittest.TestCase):
         valid = xsd_check(xml_file=tested, xsd_schema=self.reference_xsd)
         self.assertTrue(valid[0])
 
+    def test_get_acdd_metadata_sets_warning_msg(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        md = Nc_to_mmd(self.fail_nc)
+        ncin = Dataset(md.netcdf_product)
+        value = md.get_acdd_metadata(mmd_yaml['metadata_status'], ncin, 'metadata_status')
+        self.assertEqual(md.missing_attributes['warnings'][0], 'Using default value Active for metadata_status')
+
     def test_create_mmd_2(self):
         self.maxDiff = None
         tested = tempfile.mkstemp()[1]
@@ -394,76 +401,6 @@ class TestNC2MMD(unittest.TestCase):
         value = md.get_abstracts(mmd_yaml['abstract'], ncin)
         self.assertEqual(md.missing_attributes['errors'][0],
                 'summary is a required ACDD attribute')
-
-        #with open(self.reference_xml) as reference, open(tested) as tested:
-        #    reference_string = reference.read()
-        #    reference_string = reference_string.replace('</mmd:geographic_extent>\n  <mmd:metadata_identifier>npp-viirs-mband-20201127134002-20201127135124</mmd:metadata_identifier>\n  <mmd:data_center>', '</mmd:geographic_extent>\n  <mmd:data_center>')
-        #    reference_string = reference_string.replace('</mmd:title>\n  <!--<mmd:data_access>', '</mmd:title>\n  <!--<mmd:metadata_identifier></mmd:metadata_identifier>-->\n  <!--<mmd:data_access>')
-        #    reference_string = reference_string.replace('</mmd:iso_topic_category>\n  '
-        #                                                '<mmd:keywords vocabulary="GCMD">\n    '
-        #                                                '<mmd:keyword>Earth Science &gt; Atmosphere &gt; Atmospheric radiation</mmd:keyword>\n  </mmd:keywords>\n  <mmd:use_constraint>','</mmd:iso_topic_category>\n  <mmd:use_constraint>')
-        #    reference_string = reference_string.replace(
-        #        '</mmd:metadata_identifier>-->\n  <!--<mmd:data_access>', '</mmd:metadata_identifier>-->\n  <!--<mmd:keywords>\n\t\t<mmd:keyword></mmd:keyword>\n\t</mmd:keywords>-->\n  <!--<mmd:data_access>')
-        #    reference_string = reference_string.replace('<mmd:rectangle>', '<mmd:rectangle srsName="EPSG:4326">')
-        #    tested_string = tested.read()
-        #    unittest.TestCase.assertMultiLineEqual(self, first=reference_string, second=tested_string)
-
-    #def test_create_mmd_from_url(self):
-    #    tested = tempfile.mkstemp()[1]
-    #    self.maxDiff = None
-    #    md = Nc_to_mmd('https://thredds.met.no/thredds/dodsC/remotesensingsatellite/polar-swath'
-    #                   '/2020/11/27/npp-viirs-mband-20201127134002-20201127135124.nc', output_file=tested)
-    #    md.to_mmd()
-    #    with open(self.reference_xml) as reference, open(tested) as tested:
-    #        reference_string = reference.read()
-    #        reference_string = reference_string.replace('</mmd:title>\n  <!--<mmd:data_access>',
-    #                                 '</mmd:title>\n  <mmd:data_access>\n    '
-    #                                 '<mmd:type>OPeNDAP</mmd:type>\n    '
-    #                                 '<mmd:description>Open-source Project for a Network Data '
-    #                                 'Access Protocol</mmd:description>\n    '
-    #                                 '<mmd:resource>https://thredds.met.no/thredds/dodsC'
-    #                                 '/remotesensingsatellite/polar-swath/2020/11/27/npp-viirs'
-    #                                 '-mband-20201127134002-20201127135124.nc</mmd:resource>\n  '
-    #                                 '</mmd:data_access>\n  <mmd:data_access>\n    <mmd:type>OGC '
-    #                                 'WMS</mmd:type>\n    <mmd:description>OGC Web Mapping '
-    #                                 'Service, URI to GetCapabilities '
-    #                                 'Document.</mmd:description>\n    '
-    #                                 '<mmd:resource>https://thredds.met.no/thredds/wms'
-    #                                 '/remotesensingsatellite/polar-swath/2020/11/27/npp-viirs'
-    #                                 '-mband-20201127134002-20201127135124.nc?service=WMS&amp'
-    #                                 ';version=1.3.0&amp;request=GetCapabilities</mmd:resource>\n '
-    #                                 '   <mmd:wms_layers>\n      '
-    #                                 '<mmd:wms_layer>M09</mmd:wms_layer>\n      '
-    #                                 '<mmd:wms_layer>M01</mmd:wms_layer>\n      '
-    #                                 '<mmd:wms_layer>M04</mmd:wms_layer>\n      '
-    #                                 '<mmd:wms_layer>M02</mmd:wms_layer>\n      '
-    #                                 '<mmd:wms_layer>M16</mmd:wms_layer>\n      '
-    #                                 '<mmd:wms_layer>M13</mmd:wms_layer>\n      '
-    #                                 '<mmd:wms_layer>M14</mmd:wms_layer>\n      '
-    #                                 '<mmd:wms_layer>M12</mmd:wms_layer>\n      '
-    #                                 '<mmd:wms_layer>M07</mmd:wms_layer>\n      '
-    #                                 '<mmd:wms_layer>M10</mmd:wms_layer>\n      '
-    #                                 '<mmd:wms_layer>M08</mmd:wms_layer>\n      '
-    #                                 '<mmd:wms_layer>M15</mmd:wms_layer>\n      '
-    #                                 '<mmd:wms_layer>M03</mmd:wms_layer>\n      '
-    #                                 '<mmd:wms_layer>M05</mmd:wms_layer>\n      '
-    #                                 '<mmd:wms_layer>M06</mmd:wms_layer>\n      '
-    #                                 '<mmd:wms_layer>M11</mmd:wms_layer>\n    </mmd:wms_layers>\n '
-    #                                 ' </mmd:data_access>\n  <mmd:data_access>\n    '
-    #                                 '<mmd:type>HTTP</mmd:type>\n    <mmd:description>Open-source '
-    #                                 'Project for a Network Data Access '
-    #                                 'Protocol.</mmd:description>\n    '
-    #                                 '<mmd:resource>https://thredds.met.no/thredds/fileServer'
-    #                                 '/remotesensingsatellite/polar-swath/2020/11/27/npp-viirs'
-    #                                 '-mband-20201127134002-20201127135124.nc</mmd:resource>\n  '
-    #                                 '</mmd:data_access>\n  <!--<mmd:data_access>')
-    #        tested_string = tested.read()
-    #        unittest.TestCase.assertMultiLineEqual(self, first=reference_string, second=tested_string)
-
-    #def test_check_nc(self):
-    #    md = Nc_to_mmd(self.reference_nc, check_only=True)
-    #    self.assertTrue(md.to_mmd())
-
 
 if __name__ == '__main__':
     unittest.main()
