@@ -303,14 +303,22 @@ class TestNC2MMD(unittest.TestCase):
             xx=1
         mock_nc_dataset.assert_called_with(fn+'#fillmismatch')
 
+    def test_get_data_access_dict_with_wms(self):
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        nc2mmd.netcdf_product = 'https://thredds.met.no/thredds/dodsC/arcticdata/S2S_drift_TCD/SIDRIFT_S2S_SH/2019/07/31/' + nc2mmd.netcdf_product
+        data = nc2mmd.get_data_access_dict(ncin, add_wms_data_access=True)
+        self.assertEqual(data[0]['type'], 'OPeNDAP')
+        self.assertEqual(data[1]['type'], 'OGC WMS')
+        self.assertEqual(data[2]['type'], 'HTTP')
+
     def test_get_data_access_dict(self):
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
         nc2mmd.netcdf_product = 'https://thredds.met.no/thredds/dodsC/arcticdata/S2S_drift_TCD/SIDRIFT_S2S_SH/2019/07/31/' + nc2mmd.netcdf_product
         data = nc2mmd.get_data_access_dict(ncin)
         self.assertEqual(data[0]['type'], 'OPeNDAP')
-        self.assertEqual(data[1]['type'], 'OGC WMS')
-        self.assertEqual(data[2]['type'], 'HTTP')
+        self.assertEqual(data[1]['type'], 'HTTP')
 
     def test_missing_id(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
@@ -350,6 +358,47 @@ class TestNC2MMD(unittest.TestCase):
         value = nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
         self.assertTrue(Nc_to_mmd.is_valid_uuid(value))
         self.assertEqual(id, value)
+
+    def test__to_mmd__missing_id(self):
+        tested = tempfile.mkstemp()[1]
+        # nc file is missing the id attribute
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_id_missing.nc', output_file=tested)
+        nc2mmd.to_mmd()
+        self.assertEqual(nc2mmd.missing_attributes['warnings'][0], 'id ACDD attribute is missing - created metadata_identifier MMD element as uuid.')
+        self.assertEqual(nc2mmd.missing_attributes['warnings'][1], 'Using default value Active for metadata_status')
+        self.assertEqual(nc2mmd.missing_attributes['errors'], [])
+        self.assertTrue(Nc_to_mmd.is_valid_uuid(nc2mmd.metadata['metadata_identifier']))
+
+    def test__to_mmd__create_do_not_require_uuid(self):
+        tested = tempfile.mkstemp()[1]
+        # The id attribute is not a uuid
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_id_not_uuid.nc', output_file=tested)
+        nc2mmd.to_mmd(require_uuid=False)
+        ncin = Dataset(nc2mmd.netcdf_product)
+        id = ncin.getncattr('id')
+        self.assertFalse(Nc_to_mmd.is_valid_uuid(nc2mmd.metadata['metadata_identifier']))
+        self.assertEqual(id, nc2mmd.metadata['metadata_identifier'])
+
+    def test__to_mmd__create_new_id_if_accd_id_is_invalid(self):
+        tested = tempfile.mkstemp()[1]
+        # The id attribute is not a uuid
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_id_not_uuid.nc', output_file=tested)
+        nc2mmd.to_mmd()
+        self.assertEqual(nc2mmd.missing_attributes['warnings'][0], 'id ACDD attribute is not unique - created metadata_identifier MMD element as uuid.')
+        self.assertEqual(nc2mmd.missing_attributes['warnings'][1], 'Using default value Active for metadata_status')
+        self.assertEqual(nc2mmd.missing_attributes['errors'], [])
+        self.assertTrue(Nc_to_mmd.is_valid_uuid(nc2mmd.metadata['metadata_identifier']))
+        ncin = Dataset(nc2mmd.netcdf_product)
+        id = ncin.getncattr('id')
+        self.assertNotEqual(id, nc2mmd.metadata['metadata_identifier'])
+
+    def test__to_mmd__get_correct_id_from_ncfile(self):
+        tested = tempfile.mkstemp()[1]
+        # The id attribute is a uuid
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', output_file=tested)
+        nc2mmd.to_mmd()
+        self.assertEqual(nc2mmd.missing_attributes['warnings'][0], 'Using default value Active for metadata_status')
+        self.assertEqual(nc2mmd.missing_attributes['errors'], [])
 
     def test_create_mmd_1(self):
         tested = tempfile.mkstemp()[1]

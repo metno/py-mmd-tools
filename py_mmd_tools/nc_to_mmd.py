@@ -446,7 +446,7 @@ class Nc_to_mmd(object):
                     '%s ACDD attribute is missing - created metadata_identifier MMD element as uuid.' %acdd)
         return id
 
-    def to_mmd(self):
+    def to_mmd(self, *args, **kwargs):
         """
         Method for parsing content of NetCDF file, mapping discovery
         metadata to MMD, and writes MMD to disk.
@@ -456,33 +456,33 @@ class Nc_to_mmd(object):
         except OSError:
             ncin = Dataset(self.netcdf_product+'#fillmismatch')
 
-        data = {}
+        self.metadata = {}
         mmd_yaml = yaml.load(resource_string(self.__module__.split('.')[0], 'mmd_elements.yaml'), Loader=yaml.FullLoader)
 
         # handle tricky exceptions first
-        data['metadata_identifier'] = self.get_metadata_identifier(mmd_yaml.pop('metadata_identifier'), ncin)
-        data['data_center'] = self.get_data_centers(mmd_yaml.pop('data_center'), ncin)
-        data['last_metadata_update'] = self.get_metadata_updates(
-                                            mmd_yaml.pop('last_metadata_update'), ncin)
-        data['title'] = self.get_titles(mmd_yaml.pop('title'), ncin)
-        data['abstract'] = self.get_abstracts(mmd_yaml.pop('abstract'), ncin)
-        data['temporal_extent'] = self.get_temporal_extents(mmd_yaml.pop('temporal_extent'), ncin)
-        data['personnel'] = self.get_personnel(mmd_yaml.pop('personnel'), ncin)
-        data['keywords'] = self.get_keywords(mmd_yaml.pop('keywords'), ncin)
-        data['project'] = self.get_projects(mmd_yaml.pop('project'), ncin)
-        data['platform'] = self.get_platforms(mmd_yaml.pop('platform'), ncin)
-        data['dataset_citation'] = self.get_dataset_citations(mmd_yaml.pop('dataset_citation'), ncin)
+        self.metadata['metadata_identifier'] = self.get_metadata_identifier(mmd_yaml.pop('metadata_identifier'), ncin, **kwargs)
+        self.metadata['data_center'] = self.get_data_centers(mmd_yaml.pop('data_center'), ncin)
+        self.metadata['last_metadata_update'] = self.get_metadata_updates(
+                mmd_yaml.pop('last_metadata_update'), ncin)
+        self.metadata['title'] = self.get_titles(mmd_yaml.pop('title'), ncin)
+        self.metadata['abstract'] = self.get_abstracts(mmd_yaml.pop('abstract'), ncin)
+        self.metadata['temporal_extent'] = self.get_temporal_extents(mmd_yaml.pop('temporal_extent'), ncin)
+        self.metadata['personnel'] = self.get_personnel(mmd_yaml.pop('personnel'), ncin)
+        self.metadata['keywords'] = self.get_keywords(mmd_yaml.pop('keywords'), ncin)
+        self.metadata['project'] = self.get_projects(mmd_yaml.pop('project'), ncin)
+        self.metadata['platform'] = self.get_platforms(mmd_yaml.pop('platform'), ncin)
+        self.metadata['dataset_citation'] = self.get_dataset_citations(mmd_yaml.pop('dataset_citation'), ncin)
 
         # Data access should not be read from the netCDF-CF file
         _ = mmd_yaml.pop('data_access')
         # Add OPeNDAP data_access if "netcdf_product" is OPeNDAP url
         if 'dodsC' in self.netcdf_product:
-            data['data_access'] = self.get_data_access_dict(ncin)
+            self.metadata['data_access'] = self.get_data_access_dict(ncin, **kwargs)
         else:
-            data['data_access'] = []
+            self.metadata['data_access'] = []
 
         for key in mmd_yaml:
-            data[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
+            self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
         
         if len(self.missing_attributes['errors']) > 0:
             raise AttributeError("\n\t"+"\n\t".join(self.missing_attributes['errors']))
@@ -496,7 +496,7 @@ class Nc_to_mmd(object):
         )
         template = env.get_template('mmd_template.xml')
 
-        out_doc = template.render(data=data)
+        out_doc = template.render(data=self.metadata)
 
         # Are all required elements present?
         msg = ''
@@ -509,7 +509,7 @@ class Nc_to_mmd(object):
         with open(self.output_file, 'w') as fh:
             fh.write(out_doc)
 
-    def get_data_access_dict(self, ncin, add_wms_data_access=True, add_http_data_access=True):
+    def get_data_access_dict(self, ncin, add_wms_data_access=False, add_http_data_access=True):
         all_netcdf_variables = []
         for var in ncin.variables:
             if 'standard_name' in ncin.variables[var].ncattrs():
