@@ -122,7 +122,10 @@ def check_vocabulary(xmldoc):
                     }
     ok = True
     for element_name, f_name in vocabularies.items():
-        elems_found = xmldoc.findall('./{*}' + element_name)
+        if f_name == 'use_constraint_type':
+            elems_found = xmldoc.findall('./{*}' + element_name + '/{*}identifier')
+        else:
+            elems_found = xmldoc.findall('./{*}' + element_name)
         if len(elems_found) >= 1:
             for rep in elems_found:
                 try:
