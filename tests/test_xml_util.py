@@ -1,3 +1,4 @@
+import os
 import tempfile
 import unittest
 import pathlib
@@ -18,7 +19,7 @@ class test_pymmdtools(unittest.TestCase):
         self.reference_xml = str(current_dir / 'tests' / 'data' / 'reference_mmd.xml')
         self.reference_iso = str(current_dir / 'tests' / 'data' / 'reference_iso.xml')
         self.mmd2iso_xslt = str(current_dir / 'tests' / 'data' / 'mmd-to-iso.xsl')
-        self.reference_xsd = str(current_dir / 'tests' / 'data' / 'mmd.xsd')
+        self.reference_xsd = os.path.join(os.environ['MMD_PATH'], 'xsd/mmd.xsd')
         self.not_a_file = str(current_dir / 'tests' / 'data' / 'not_a_file.xml')
         self.not_a_valid_xml = str(current_dir / 'tests' / 'data' / 'not_a_valid_xml.xml')
  
@@ -33,7 +34,7 @@ class test_pymmdtools(unittest.TestCase):
 
     def test_xsl_check_assertTrue(self):
         self.assertTrue(xsd_check(xml_file=self.reference_xml, 
-                                            xsd_schema=self.reference_xsd))
+                                            xsd_schema=self.reference_xsd)[0])
 
     def test_xsl_check_assertRaises_XMLSyntaxError_opt_xslschema(self):
         self.assertRaises(XMLSyntaxError, xsd_check, self.reference_xml, 

@@ -11,9 +11,20 @@ COPY requirements.txt /src/requirements.txt
 RUN apt-get update && \
     apt-get install -y git && \
     apt-get install -y curl && \
-    apt-get clean && \
-    pip install -r /src/requirements.txt
+    apt-get clean
+
+RUN pip3 install --upgrade pip && \
+      pip3 install --no-cache -r /src/requirements.txt
 
 VOLUME /src
 WORKDIR /src
 
+RUN git clone https://github.com/metno/py-thesaurus-interface; \
+    cd py-thesaurus-interface; \
+    python setup.py install
+
+ENV MMD_PATH=/usr/local/share/mmd
+RUN git clone --branch issue125_temporal_extent_maxOccurs https://github.com/metno/mmd; \
+    cp -r mmd /usr/local/share/
+
+RUN ls ${MMD_PATH}

@@ -27,7 +27,14 @@ class TestODA2MMD(unittest.TestCase):
         self.reference_in_json = str(current_dir / 'tests' / 'data' / 'reference_json.json')
         self.reference_out_xml = str(current_dir / 'tests' / 'data' / 'reference_mmd_from_json.xml')
         self.xml_template = str(current_dir / 'templates' / 'oda_to_mmd_template.xml')
-        self.default = str(current_dir / 'templates' / 'oda_default.yml')
+
+        env = jinja2.Environment(
+            loader=jinja2.PackageLoader('py_mmd_tools', 'templates'),
+            autoescape=jinja2.select_autoescape(['html', 'xml']),
+            trim_blocks=True, lstrip_blocks=True
+        )
+        self.default = env.get_template('oda_default.yml').filename
+
         self.reference_xsd = str(current_dir / 'tests' / 'data' / 'mmd.xsd')
         self.not_a_file = str(current_dir / 'tests' / 'data' / 'not_a_file.xml')
         self.json_with_invalid_elements = str(current_dir / 'tests' / 'data' / 'json_invalid_element.json')
@@ -246,3 +253,6 @@ class TestODA2MMD(unittest.TestCase):
         self.assertEqual(odajson_to_mmd.retrieve_frost_stations(url, id)[0], 'one')
         self.assertEqual(odajson_to_mmd.retrieve_frost_stations(url, id)[1], 'two')
         self.assertEqual(odajson_to_mmd.retrieve_frost_stations(url, id)[2], 'three')
+
+if __name__ == '__main__':
+    unittest.main()

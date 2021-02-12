@@ -1,0 +1,320 @@
+---
+metadata_identifier:
+  maxOccurs: '1'
+  minOccurs: '1'
+  acdd: id
+
+alternate_identifier:
+  maxOccurs: unbounded
+  minOccurs: '0'
+
+last_metadata_update:
+  maxOccurs: '1'
+  minOccurs: '1'
+  update:
+    maxOccurs: unbounded
+    minOccurs: '1'
+    separator: ','
+    datetime:
+      maxOccurs: '1'
+      minOccurs: '1'
+      acdd: 
+        - date_created
+        - date_metadata_modified
+    type:
+      maxOccurs: '1'
+      minOccurs: '0'
+      default: Created
+    note:
+      maxOccurs: '1'
+      minOccurs: '0'
+
+metadata_status:
+  maxOccurs: '1'
+  minOccurs: '1'
+  default: Active
+
+# this is set during harvesting and should not normally be needed in the nc files
+collection:
+  maxOccurs: unbounded
+  minOccurs: '0'
+  acdd_ext: collection
+
+title:
+  maxOccurs: 'unbounded'
+  minOccurs: '1'
+  separator: ';'
+  title:
+    maxOccurs: '1'
+    minOccurs: '1'
+    acdd: title
+  lang:
+    maxOccurs: '1'
+    default: en
+
+abstract:
+  maxOccurs: unbounded
+  minOccurs: '1'
+  separator: ';'
+  abstract:
+    maxOccurs: '1'
+    minOccurs: '1'
+    acdd: summary
+  lang:
+    maxOccurs: '1'
+    default: en
+
+temporal_extent:
+  maxOccurs: unbounded
+  minOccurs: '0' # relaxed requirement to allow external datasets with missing start_date
+  separator: ','
+  start_date:
+    maxOccurs: '1'
+    minOccurs: '1'
+    default: '1850-01-01T00:00:00Z'
+    acdd: time_coverage_start
+  end_date:
+    maxOccurs: '1'
+    minOccurs: '0'
+    acdd: time_coverage_end
+
+geographic_extent:
+  maxOccurs: '1'
+  minOccurs: '0'
+  rectangle:
+    maxOccurs: '1'
+    minOccurs: '0'
+    srsName: 
+      default: EPSG:4326
+    north:
+      maxOccurs: '1'
+      minOccurs: '1'
+      default: 90
+      acdd: geospatial_lat_max
+    south:
+      maxOccurs: '1'
+      minOccurs: '1'
+      default: -90
+      acdd: geospatial_lat_min
+    east:
+      maxOccurs: '1'
+      minOccurs: '1'
+      default: 180
+      acdd: geospatial_lon_max
+    west:
+      maxOccurs: '1'
+      minOccurs: '1'
+      default: -180
+      acdd: geospatial_lon_min
+  polygon:
+    maxOccurs: '1'
+    minOccurs: '0'
+
+location:
+  maxOccurs: '0'
+  minOccurs: '0'
+  location_vocabulary:
+  location_category:
+  location_type:
+  location_subregion1:
+  location_subregion2:
+  location_subregion3:
+  detailed_location:
+
+dataset_production_status:
+  maxOccurs: '1'
+  minOccurs: '1'
+  acdd_ext: dataset_production_status
+
+dataset_language:
+  maxOccurs: '1'
+  minOccurs: '0'
+  default: en
+
+operational_status:
+  maxOccurs: '1'
+  minOccurs: '0'
+  acdd: processing_level
+
+access_constraint:
+  maxOccurs: '1'
+  minOccurs: '0'
+
+use_constraint:
+  maxOccurs: '1'
+  minOccurs: '0'
+  identifier:
+    acdd: license
+    maxOccurs: '1'
+    minOccurs: '0'
+  resource:
+    acdd: license_resource
+    maxOccurs: '1'
+    minOccurs: '0'
+
+personnel:
+  maxOccurs: unbounded
+  minOccurs: '0'
+  role:
+    maxOccurs: '1'
+    minOccurs: '1'
+    default: 'unknown'
+    acdd: creator_role
+  name:
+    maxOccurs: '1'
+    minOccurs: '1'
+    default: 'unknown'
+    acdd: creator_name
+  email:
+    maxOccurs: '1'
+    minOccurs: '1'
+    default: 'unknown'
+    acdd: creator_email
+  phone:
+  fax:
+  organisation:
+    maxOccurs: '1'
+    minOccurs: '1'
+    default: 'unknown'
+    acdd: creator_institution
+  contact_address:
+    address:
+    city:
+    province_or_state:
+    postal_code:
+    country:
+  
+data_center:
+  maxOccurs: unbounded
+  minOccurs: '0'
+  data_center_name:
+    short_name:
+      acdd: institution
+    long_name: 
+      acdd: institution
+  data_center_url:
+    acdd: publisher_url
+
+data_access:
+  maxOccurs: unbounded
+  minOccurs: '0'
+  type:
+  name:
+  description:
+  resource:
+  wms_layers:
+    maxOccurs: '1'
+    minOccurs: '0'
+    wms_layer:
+      maxOccurs: 'unbounded'
+      minOccurs: '0'
+
+related_dataset:
+  maxOccurs: unbounded
+  minOccurs: '0'
+
+storage_information:
+  maxOccurs: '1'
+  minOccurs: '0'
+  file_name:
+  file_location:
+  file_format:
+  file_size:
+  checksum:
+
+related_information:
+  maxOccurs: unbounded
+  minOccurs: '0'
+  type:
+  resource:
+  description:
+
+iso_topic_category:
+  maxOccurs: unbounded
+  minOccurs: '1'
+  acdd_ext: iso_topic_category
+
+keywords:
+  maxOccurs: unbounded
+  minOccurs: '1'
+  resource:
+    acdd: keywords_vocabulary
+  keyword:
+    acdd: keywords
+  separator:
+
+project:
+  maxOccurs: unbounded
+  minOccurs: '0'
+  short_name:
+    acdd: project
+  long_name:
+    acdd: project
+
+platform:
+  maxOccurs: unbounded
+  minOccurs: '0'
+  short_name:
+    acdd: platform
+  long_name:
+    acdd: platform
+  resource:
+    acdd: platform_vocabulary
+  orbit_relative:
+  orbit_absolute:
+  orbit_direction:
+  instrument:
+    short_name:
+      acdd: instrument
+    long_name:
+      acdd: instrument
+    resource:
+      acdd: instrument_vocabulary
+    mode:
+    polarisation:
+    product_type:
+  ancillary:
+    cloud_coverage:
+    scene_coverage:
+    timeliness:
+
+activity_type:
+  maxOccurs: unbounded
+  minOccurs: '0'
+  acdd: source
+
+dataset_citation:
+  maxOccurs: unbounded
+  minOccurs: '0'
+  author:
+    maxOccurs: unbounded
+    minOccurs: '1'
+    acdd: creator_name
+  publication_date:
+    maxOccurs: '1'
+    minOccurs: '1'
+    acdd: date_created
+  title:
+    maxOccurs: '1'
+    minOccurs: '1'
+    acdd: title
+  series:
+  edition:
+  volume:
+  issue:
+  publication_place:
+  publisher:
+    maxOccurs: '1'
+    minOccurs: '1'
+    acdd: publisher_name
+  pages:
+  isbn:
+  doi:
+  url:
+    maxOccurs: '1'
+    minOccurs: '0'
+    acdd: metadata_link
+  other:
+    maxOccurs: '1'
+    minOccurs: '0'
+    acdd: references

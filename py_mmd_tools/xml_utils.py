@@ -47,11 +47,9 @@ def xsd_check(xml_file, xsd_schema=None):
     """
     xmlschema_mmd = ET.XMLSchema(ET.parse(xsd_schema))
     xml_doc = ET.ElementTree(file=xml_file)
-    if not xmlschema_mmd.validate(xml_doc):
-        passing=False
-    else:
-        passing=True
-    return passing
+    valid = xmlschema_mmd.validate(xml_doc)
+    msg = xmlschema_mmd.error_log
+    return valid, msg
 
 def xml_translate(
     xml_file,
@@ -80,7 +78,7 @@ def xml_translate(
         if not pathlib.Path(xsd_schema).exists():
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), xsd_schema)
         else: 
-            if not xsd_check(xml_file, xsd_schema=xsd_schema):
+            if not xsd_check(xml_file, xsd_schema=xsd_schema)[0]:
                 raise
     else:
         if not pathlib.Path(xslt).exists():
