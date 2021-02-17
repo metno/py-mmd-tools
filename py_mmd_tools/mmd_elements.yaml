@@ -14,20 +14,21 @@ last_metadata_update:
   update:
     maxOccurs: unbounded
     minOccurs: '1'
-    separator: ','
     datetime:
-      maxOccurs: '1'
       minOccurs: '1'
+      separator: ','
       acdd: 
         - date_created
         - date_metadata_modified
     type:
-      maxOccurs: '1'
-      minOccurs: '0'
+      minOccurs: '1'
+      separator: ','
+      acdd_ext: date_created_type
+      #- Created
+      #- Minor modification
+      #- Major modification
       default: Created
     note:
-      maxOccurs: '1'
-      minOccurs: '0'
 
 metadata_status:
   maxOccurs: '1'
@@ -39,17 +40,19 @@ collection:
   maxOccurs: unbounded
   minOccurs: '0'
   acdd_ext: collection
+  separator: ','
 
 title:
   maxOccurs: 'unbounded'
   minOccurs: '1'
-  separator: ';'
   title:
-    maxOccurs: '1'
     minOccurs: '1'
     acdd: title
+    separator: ';'
   lang:
-    maxOccurs: '1'
+    minOccurs: '1'
+    acdd_ext: title_lang
+    separator: ','
     default: en
 
 abstract:
@@ -57,33 +60,32 @@ abstract:
   minOccurs: '1'
   separator: ';'
   abstract:
-    maxOccurs: '1'
     minOccurs: '1'
     acdd: summary
+    separator: ';'
   lang:
-    maxOccurs: '1'
+    minOccurs: '1'
+    acdd_ext: abstract_lang
+    separator: ','
     default: en
 
 temporal_extent:
   maxOccurs: unbounded
   minOccurs: '0' # relaxed requirement to allow external datasets with missing start_date
-  separator: ','
   start_date:
-    maxOccurs: '1'
-    minOccurs: '1'
     default: '1850-01-01T00:00:00Z'
     acdd: time_coverage_start
+    separator: ','
   end_date:
-    maxOccurs: '1'
-    minOccurs: '0'
+    separator: ','
     acdd: time_coverage_end
 
 geographic_extent:
   maxOccurs: '1'
-  minOccurs: '0'
+  minOccurs: '1'
   rectangle:
     maxOccurs: '1'
-    minOccurs: '0'
+    minOccurs: '1'
     srsName: 
       default: EPSG:4326
     north:
@@ -144,38 +146,32 @@ use_constraint:
   maxOccurs: '1'
   minOccurs: '0'
   identifier:
+    maxOccurs: '1'
     acdd: license
-    maxOccurs: '1'
-    minOccurs: '0'
   resource:
-    acdd: license_resource
     maxOccurs: '1'
-    minOccurs: '0'
+    acdd: license_resource
 
 personnel:
   maxOccurs: unbounded
   minOccurs: '0'
   role:
-    maxOccurs: '1'
-    minOccurs: '1'
     default: 'unknown'
+    separator: ','
     acdd: creator_role
   name:
-    maxOccurs: '1'
-    minOccurs: '1'
     default: 'unknown'
+    separator: ','
     acdd: creator_name
   email:
-    maxOccurs: '1'
-    minOccurs: '1'
     default: 'unknown'
+    separator: ','
     acdd: creator_email
   phone:
   fax:
   organisation:
-    maxOccurs: '1'
-    minOccurs: '1'
     default: 'unknown'
+    separator: ','
     acdd: creator_institution
   contact_address:
     address:
@@ -189,10 +185,13 @@ data_center:
   minOccurs: '0'
   data_center_name:
     short_name:
+      separator: ','
       acdd: institution
     long_name: 
+      separator: ','
       acdd: institution
   data_center_url:
+    separator: ','
     acdd: publisher_url
 
 data_access:
@@ -233,13 +232,18 @@ iso_topic_category:
   maxOccurs: unbounded
   minOccurs: '1'
   acdd_ext: iso_topic_category
+  separator: ','
 
 keywords:
   maxOccurs: unbounded
   minOccurs: '1'
   resource:
+    minOccurs: '1'
     acdd: keywords_vocabulary
+    separator: ','
   keyword:
+    minOccurs: '1'
+    separator: ','
     acdd: keywords
   separator:
 
@@ -247,28 +251,36 @@ project:
   maxOccurs: unbounded
   minOccurs: '0'
   short_name:
+    separator: ';'
     acdd: project
   long_name:
+    separator: ';'
     acdd: project
 
 platform:
   maxOccurs: unbounded
   minOccurs: '0'
   short_name:
+    separator: ','
     acdd: platform
   long_name:
+    separator: ','
     acdd: platform
   resource:
+    separator: ','
     acdd: platform_vocabulary
   orbit_relative:
   orbit_absolute:
   orbit_direction:
   instrument:
     short_name:
+      separator: ','
       acdd: instrument
     long_name:
+      separator: ','
       acdd: instrument
     resource:
+      separator: ','
       acdd: instrument_vocabulary
     mode:
     polarisation:
@@ -282,21 +294,19 @@ activity_type:
   maxOccurs: unbounded
   minOccurs: '0'
   acdd: source
+  separator: ';'
 
 dataset_citation:
   maxOccurs: unbounded
   minOccurs: '0'
   author:
-    maxOccurs: unbounded
-    minOccurs: '1'
     acdd: creator_name
+    separator: ','
   publication_date:
-    maxOccurs: '1'
-    minOccurs: '1'
+    separator: ','
     acdd: date_created
   title:
-    maxOccurs: '1'
-    minOccurs: '1'
+    separator: ','
     acdd: title
   series:
   edition:
@@ -304,17 +314,14 @@ dataset_citation:
   issue:
   publication_place:
   publisher:
-    maxOccurs: '1'
-    minOccurs: '1'
+    separator: ','
     acdd: publisher_name
   pages:
   isbn:
   doi:
   url:
-    maxOccurs: '1'
-    minOccurs: '0'
+    separator: ','
     acdd: metadata_link
   other:
-    maxOccurs: '1'
-    minOccurs: '0'
+    separator: ','
     acdd: references

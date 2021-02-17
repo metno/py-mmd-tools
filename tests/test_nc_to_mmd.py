@@ -10,13 +10,21 @@ import pathlib
 import tempfile
 import yaml
 import datetime
+import warnings
 from pkg_resources import resource_string
 
 from netCDF4 import Dataset
 
 from py_mmd_tools.xml_utils import xsd_check
-from py_mmd_tools.nc_to_mmd import Nc_to_mmd
+from py_mmd_tools.nc_to_mmd import Nc_to_mmd, nc_attrs_from_yaml
 
+warnings.simplefilter("ignore", ResourceWarning)
+
+class TestNCAttrsFromYaml(unittest.TestCase):
+
+    def test_nc_attrs_from_yaml(self):
+        adoc = nc_attrs_from_yaml()
+        self.assertEqual(type(adoc), str)
 
 class TestNC2MMD(unittest.TestCase):
 
