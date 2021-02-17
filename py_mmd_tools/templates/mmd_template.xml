@@ -32,7 +32,9 @@
   {% for temporal_extent in data['temporal_extent'] %}
   <mmd:temporal_extent>
     <mmd:start_date>{{ temporal_extent['start_date'] }}</mmd:start_date>
+        {% if temporal_extent['end_date'] %}
     <mmd:end_date>{{ temporal_extent['end_date'] }}</mmd:end_date>
+        {% endif %}
   </mmd:temporal_extent>
   {% endfor %}
   {% for iso_topic_category in data['iso_topic_category'] %}

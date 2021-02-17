@@ -246,7 +246,7 @@ keywords:
     acdd: keywords_vocabulary
     separator: ','
   resource:
-    minOccurs: '1'
+    minOccurs: '0'
     acdd_ext: keywords_resource
     separator: ','
   keyword:

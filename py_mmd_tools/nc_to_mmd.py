@@ -24,23 +24,23 @@ from netCDF4 import Dataset
 import lxml.etree as ET
 
 def get_attr_info(key, convention, normalized):
-    max_occurs_key = key.rstrip(convention)+'maxOccurs'
+    max_occurs_key = key.replace(convention, '')+'maxOccurs'
     if max_occurs_key in normalized.keys():
         max_occurs = normalized[max_occurs_key]
     else:
         max_occurs = ''
     repetition_allowed = 'yes' if max_occurs not in ['0', '1'] else 'no'
-    min_occurs_key = key.rstrip(convention)+'minOccurs'
+    min_occurs_key = key.replace(convention, '')+'minOccurs'
     if min_occurs_key in normalized.keys():
         required = int(normalized[min_occurs_key])
     else:
         required = 0
-    separator_key = key.rstrip(convention)+'separator'
+    separator_key = key.replace(convention, '')+'separator'
     if separator_key in normalized.keys():
         separator = normalized[separator_key]
     else:
         separator = ''
-    default_key = key.rstrip(convention)+'default'
+    default_key = key.replace(convention, '')+'default'
     if default_key in normalized.keys():
         default = normalized[default_key]
     else:
@@ -70,6 +70,7 @@ def nc_attrs_from_yaml():
             required, repetition_allowed, separator, default = get_attr_info(key, 'acdd', normalized)
             if required:
                 attributes['acdd']['required'].append({
+                    'mmd_field': key.replace('>acdd', ''),
                     'attribute': val, 
                     'repetition_allowed': repetition_allowed,
                     'separator': separator,
@@ -77,6 +78,7 @@ def nc_attrs_from_yaml():
                 })
             else:
                 attributes['acdd']['not_required'].append({
+                    'mmd_field': key.replace('>acdd', ''),
                     'attribute': val,
                     'repetition_allowed': repetition_allowed,
                     'separator': separator,
@@ -85,6 +87,7 @@ def nc_attrs_from_yaml():
         if key.endswith('acdd_ext'):
             required, repetition_allowed, separator, default = get_attr_info(key, 'acdd_ext', normalized)
             attributes['acdd_ext'].append({
+                    'mmd_field': key.replace('>acdd_ext', ''),
                     'attribute': val, 
                     'repetition_allowed': repetition_allowed,
                     'separator': separator,
@@ -312,7 +315,7 @@ class Nc_to_mmd(object):
                 these_names = [mmd_element['name']['default']]
             names.extend(these_names)
             num_names = len(these_names)
-            acdd_main = acdd_name.rstrip('_name')
+            acdd_main = acdd_name.replace('_name', '')
             # Get roles
             acdd_role = [role for role in acdd_roles if acdd_main in role][0]
             if acdd_role in ncin.ncattrs():
@@ -365,6 +368,8 @@ class Nc_to_mmd(object):
                     roles.pop(ind)
                     emails.pop(ind)
                     organisations.pop(ind)
+                else:
+                    clean = 0
 
         data = []
         for i in range(len(names)):
@@ -377,11 +382,18 @@ class Nc_to_mmd(object):
         return data
 
     def get_keywords(self, mmd_element, ncin):
-        acdd_resource = mmd_element['resource'].pop('acdd')
+        acdd_vocabulary = mmd_element['vocabulary'].pop('acdd')
+        if acdd_vocabulary in ncin.ncattrs():
+            vocabularies = self.separate_repeated(True, eval('ncin.%s' %acdd_vocabulary))
+        else:
+            self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd_vocabulary)
+            return
+
+        acdd_resource = mmd_element['resource'].pop('acdd_ext')
         if acdd_resource in ncin.ncattrs():
             resources = self.separate_repeated(True, eval('ncin.%s' %acdd_resource))
         else:
-            resources = []
+            resources = ['']
 
         acdd_keyword = mmd_element['keyword'].pop('acdd')
         if acdd_keyword in ncin.ncattrs():
@@ -392,12 +404,11 @@ class Nc_to_mmd(object):
         data = []
         resource = ''
         for i in range(len(keywords)):
-            keyword = keywords[i]
             if len(resources)<=i:
                 resource = resource
             else:
                 resource = resources[i]
-            data.append({'resource': resource, 'keyword': keyword})
+            data.append({'resource': resource, 'keyword': keywords[i], 'vocabulary': vocabularies[i]})
         return data
 
     def get_projects(self, mmd_element, ncin):
