@@ -232,7 +232,7 @@
   {% endif %}
   {% if data['activity_type'] %}
       {% for activity_type in data['activity_type'] %}
-  <mmd:activity_type>activity_type</mmd:activity_type>
+  <mmd:activity_type>{{ activity_type }}</mmd:activity_type>
       {% endfor %}
   {% endif %}
   {% if data['dataset_citation'] %}
