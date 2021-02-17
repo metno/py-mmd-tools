@@ -17,6 +17,7 @@ from netCDF4 import Dataset
 
 from py_mmd_tools.xml_utils import xsd_check
 from py_mmd_tools.nc_to_mmd import Nc_to_mmd, nc_attrs_from_yaml
+from py_mmd_tools.check_mmd import full_check
 
 warnings.simplefilter("ignore", ResourceWarning)
 
@@ -199,23 +200,46 @@ class TestNC2MMD(unittest.TestCase):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_attrs_multiple_mixed_creator.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
-        value = nc2mmd.get_personnel(mmd_yaml['personnel'], ncin)
-        self.assertEqual(value[0]['name'], 'Trygve')
-        self.assertEqual(value[1]['name'], 'Trygve')
-        self.assertEqual(value[0]['email'], 'trygve@meti.no')
-        self.assertEqual(value[1]['email'], 'trygve@meti.no')
-        self.assertEqual(value[0]['role'], 'Investigator')
-        self.assertEqual(value[1]['role'], 'Technical contact')
+        with self.assertRaises(Exception):
+            value = nc2mmd.get_personnel(mmd_yaml['personnel'], ncin)
+
+        #self.assertEqual(value[0]['name'], 'Trygve')
+        #self.assertEqual(value[1]['name'], 'Trygve')
+        #self.assertEqual(value[2]['name'], 'Morten')
+        #self.assertEqual(value[0]['email'], 'trygve@meti.no')
+        #self.assertEqual(value[1]['email'], 'trygve@meti.no')
+        #self.assertEqual(value[2]['email'], 'unknown')
+        #self.assertEqual(value[0]['role'], 'Investigator')
+        #self.assertEqual(value[1]['role'], 'Technical contact')
+        #self.assertEqual(value[2]['role'], 'Investigator')
 
     def test_personnel_multiple(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_attrs_multiple.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_personnel(mmd_yaml['personnel'], ncin)
+        self.assertEqual(value[0]['name'], 'Trygve')
+        self.assertEqual(value[1]['name'], 'Nina')
         self.assertEqual(value[0]['email'], 'trygve@meti.no')
         self.assertEqual(value[1]['email'], 'post@met.no')
         self.assertEqual(value[0]['role'], 'Investigator')
         self.assertEqual(value[1]['role'], 'Technical contact')
+
+    def test_personnel_multiple_creator_and_contributor(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_attrs_multiple_and_contributor.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_personnel(mmd_yaml['personnel'], ncin)
+        self.assertEqual(value[0]['name'], 'Trygve')
+        self.assertEqual(value[1]['name'], 'Nina')
+        self.assertEqual(value[2]['name'], 'Morten')
+        self.assertEqual(value[0]['email'], 'trygve@meti.no')
+        self.assertEqual(value[1]['email'], 'post@met.no')
+        self.assertEqual(value[2]['email'], 'unknown')
+        self.assertEqual(value[2]['organisation'], 'unknown')
+        self.assertEqual(value[0]['role'], 'Investigator')
+        self.assertEqual(value[1]['role'], 'Technical contact')
+        self.assertEqual(value[2]['role'], 'Investigator')
 
     def test_personnel(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
@@ -428,6 +452,20 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(self.fail_nc, output_file=tested)
         with self.assertRaises(AttributeError):
             md.to_mmd()
+
+    def test_all_valid_nc_files_passing(self):
+        tested = tempfile.mkstemp()[1]
+        valid_files = [
+                os.path.join(pathlib.Path.cwd(), 'tests/data/reference_nc.nc'),
+                os.path.join(pathlib.Path.cwd(), 'tests/data/reference_nc_id_missing.nc'),
+                os.path.join(pathlib.Path.cwd(), 'tests/data/reference_nc_id_not_uuid.nc'),
+                os.path.join(pathlib.Path.cwd(), 'tests/data/reference_nc_attrs_multiple.nc'),
+            ]
+        for file in valid_files:
+            md = Nc_to_mmd(file, output_file=tested)
+            md.to_mmd()
+            valid = xsd_check(xml_file=tested, xsd_schema=self.reference_xsd)
+            self.assertTrue(valid[0])
 
     def test_create_mmd_missing_publisher_url(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), 

@@ -7,10 +7,12 @@
 
 In order to add netCDF-CF datasets to the discovery metadata catalog, the data producer should populate the file with certain global attributes mainly described in the Attribute Convention for Data Discovery (ACDD). For a complete description of the ACDD elements, please refer to http://wiki.esipfed.org/index.php/Attribute_Convention_for_Data_Discovery.
 
+The ACDD recommendations should always be followed in order to properly document your netCDF-CF files. However, the below tables summarizes the attributes that are needed to properly populate the discovery metadata catalog.
+
 The following ACDD elements are required:
 [cols=",,,"]
 |=======================================================================
-|Attribute |Repetition allowed |Separator |Default
+|ACDD Attribute |Repetition allowed |Separator |Default
 {% for elem in data['acdd']['required'] %}
     {% if elem['attribute'] | is_list %}
         {% for subelem in elem['attribute'] %}
@@ -25,7 +27,7 @@ The following ACDD elements are required:
 The following ACDD elements are recommended:
 [cols=",,,"]
 |=======================================================================
-|Attribute |Repetition allowed |Separator |Default
+|ACDD Attribute |Repetition allowed |Separator |Default
 {% for elem in data['acdd']['not_required'] %}
     {% if elem[0] | is_list %}
         {% for subelem in elem[0] %}
@@ -40,7 +42,7 @@ The following ACDD elements are recommended:
 In addition, some global attributes are useful for the discovery metadata catalog but do not exist in ACDD. Please refer to the documentation of https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html[MMD] for a description of these elements:
 [cols=",,,"]
 |=======================================================================
-|Attribute |Repetition allowed |Separator |Default
+|Extra Attribute |Repetition allowed |Separator |Default
 {% for elem in data['acdd_ext'] %}
 |{{ elem['attribute'] }} | {{ elem['repetition_allowed'] }} | {{ elem['separator'] }} | {{ elem['default'] }}
 {% endfor %}
