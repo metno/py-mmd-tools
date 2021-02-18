@@ -288,16 +288,15 @@ class Nc_to_mmd(object):
         return data
 
     def get_personnel(self, mmd_element, ncin):
-        # Flatten dict
-        df = pd.json_normalize(mmd_element, sep='>')
-        normalized = df.to_dict(orient='records')[0]
-
         names = []
         roles = []
         emails = []
         organisations = []
+        acdd_names = mmd_element['name'].pop('acdd')
+        if not isinstance(acdd_names, list):
+            acdd_names = [acdd_names]
         acdd_roles = mmd_element['role'].pop('acdd')
-        if not isinstance(roles, list):
+        if not isinstance(acdd_roles, list):
             acdd_roles = [acdd_roles]
         acdd_emails = mmd_element['email'].pop('acdd')
         if not isinstance(acdd_emails, list):
@@ -314,7 +313,7 @@ class Nc_to_mmd(object):
             acdd_ext_organisations = [acdd_ext_organisations]
         acdd_organisations.extend(acdd_ext_organisations)
 
-        for acdd_name in normalized['name>acdd']:
+        for acdd_name in acdd_names:
             # Get names
             num_names = 0
             if acdd_name in ncin.ncattrs(): 
@@ -323,9 +322,14 @@ class Nc_to_mmd(object):
                 these_names = [mmd_element['name']['default']]
             names.extend(these_names)
             num_names = len(these_names)
-            acdd_main = acdd_name.replace('_name', '')
+            tmp = acdd_name
+            acdd_main = tmp.replace('_name', '')
             # Get roles
-            acdd_role = [role for role in acdd_roles if acdd_main in role][0]
+            try:
+                acdd_role = [role for role in acdd_roles if acdd_main in role][0]
+            except:
+                import ipdb
+                ipdb.set_trace()
             if acdd_role in ncin.ncattrs():
                 roles.extend(self.separate_repeated(True, eval('ncin.%s' %acdd_role)))
             else:

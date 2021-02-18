@@ -246,12 +246,20 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_attrs_multiple_and_contributor.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
         tmp = mmd_yaml['personnel']['name']['acdd'].pop(-1)
+        mmd_yaml['personnel']['name']['acdd'] = mmd_yaml['personnel']['name']['acdd'][0]
         tmp = mmd_yaml['personnel']['role']['acdd'].pop(-1)
+        mmd_yaml['personnel']['role']['acdd'] = mmd_yaml['personnel']['role']['acdd'][0]
         tmp = mmd_yaml['personnel']['email'].pop('acdd_ext')
         tmp = mmd_yaml['personnel']['organisation'].pop('acdd_ext')
         value = nc2mmd.get_personnel(mmd_yaml['personnel'], ncin)
         self.assertEqual(value[0]['name'], 'Trygve')
         self.assertEqual(value[1]['name'], 'Nina')
+        self.assertEqual(value[0]['role'], 'Investigator')
+        self.assertEqual(value[1]['role'], 'Technical contact')
+        self.assertEqual(value[0]['email'], 'trygve@meti.no')
+        self.assertEqual(value[1]['email'], 'post@met.no')
+        self.assertEqual(value[0]['organisation'], 'MET NORWAY')
+        self.assertEqual(value[1]['organisation'], 'MET NORWAY')
 
     def test_personnel(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
