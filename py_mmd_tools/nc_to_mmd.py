@@ -288,6 +288,7 @@ class Nc_to_mmd(object):
         return data
 
     def get_attribute_name_list(self, mmd_element):
+        """ Return list of attribute names either in ACDD or in an extension to ACDD """
         att_names_acdd = mmd_element.pop('acdd')
         if not isinstance(att_names_acdd, list):
             att_names_acdd = [att_names_acdd]
@@ -329,10 +330,7 @@ class Nc_to_mmd(object):
             if len(acdd_emails)>1:
                 acdd_email = [email for email in acdd_emails if acdd_main in email][0]
             else:
-                if acdd_main in acdd_emails[0]:
-                    acdd_email = acdd_emails[0]
-                else:
-                    acdd_email = ''
+                acdd_email = acdd_emails[0]
             if acdd_email and acdd_email in ncin.ncattrs():
                 emails.extend(self.separate_repeated(True, eval('ncin.%s' %acdd_email)))
             else:
@@ -341,10 +339,7 @@ class Nc_to_mmd(object):
             if len(acdd_organisations)>1:
                 acdd_organisation = [organisation for organisation in acdd_organisations if acdd_main in organisation][0]
             else:
-                if acdd_main in acdd_organisations[0]:
-                    acdd_organisation = acdd_organisations[0]
-                else:
-                    acdd_organisation = ''
+                acdd_organisation = acdd_organisations[0]
             if acdd_organisation and acdd_organisation in ncin.ncattrs():
                 these_orgs = self.separate_repeated(True, eval('ncin.%s' %acdd_organisation))
             else:
