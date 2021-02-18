@@ -287,31 +287,26 @@ class Nc_to_mmd(object):
             data.append(t_ext)
         return data
 
+    def get_attribute_name_list(self, mmd_element):
+        att_names_acdd = mmd_element.pop('acdd')
+        if not isinstance(att_names_acdd, list):
+            att_names_acdd = [att_names_acdd]
+        att_names_acdd_ext = mmd_element.pop('acdd_ext', '')
+        if att_names_acdd_ext:
+            if not isinstance(att_names_acdd_ext, list):
+                att_names_acdd_ext = [att_names_acdd_ext]
+            att_names_acdd.extend(att_names_acdd_ext)
+        return att_names_acdd
+
     def get_personnel(self, mmd_element, ncin):
         names = []
         roles = []
         emails = []
         organisations = []
-        acdd_names = mmd_element['name'].pop('acdd')
-        if not isinstance(acdd_names, list):
-            acdd_names = [acdd_names]
-        acdd_roles = mmd_element['role'].pop('acdd')
-        if not isinstance(acdd_roles, list):
-            acdd_roles = [acdd_roles]
-        acdd_emails = mmd_element['email'].pop('acdd')
-        if not isinstance(acdd_emails, list):
-            acdd_emails = [acdd_emails]
-        acdd_ext_emails = mmd_element['email'].pop('acdd_ext', '')
-        if not acdd_ext_emails or not isinstance(acdd_ext_emails, list):
-            acdd_ext_emails = [acdd_ext_emails]
-        acdd_emails.extend(acdd_ext_emails)
-        acdd_organisations = mmd_element['organisation'].pop('acdd')
-        if not isinstance(acdd_organisations, list):
-            acdd_organisations = [acdd_organisations]
-        acdd_ext_organisations = mmd_element['organisation'].pop('acdd_ext', '')
-        if not acdd_ext_organisations or not isinstance(acdd_ext_organisations, list):
-            acdd_ext_organisations = [acdd_ext_organisations]
-        acdd_organisations.extend(acdd_ext_organisations)
+        acdd_names = self.get_attribute_name_list(mmd_element['name'])
+        acdd_roles = self.get_attribute_name_list(mmd_element['role'])
+        acdd_emails = self.get_attribute_name_list(mmd_element['email'])
+        acdd_organisations = self.get_attribute_name_list(mmd_element['organisation'])
 
         for acdd_name in acdd_names:
             # Get names
@@ -325,11 +320,7 @@ class Nc_to_mmd(object):
             tmp = acdd_name
             acdd_main = tmp.replace('_name', '')
             # Get roles
-            try:
-                acdd_role = [role for role in acdd_roles if acdd_main in role][0]
-            except:
-                import ipdb
-                ipdb.set_trace()
+            acdd_role = [role for role in acdd_roles if acdd_main in role][0]
             if acdd_role in ncin.ncattrs():
                 roles.extend(self.separate_repeated(True, eval('ncin.%s' %acdd_role)))
             else:
