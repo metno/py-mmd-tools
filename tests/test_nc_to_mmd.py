@@ -307,7 +307,7 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_keywords(mmd_yaml['keywords'], ncin)
         self.assertEqual(value[0]['vocabulary'], 'GCMD')
-        self.assertEqual(value[0]['resource'], 'https://gcmd.nasa.gov/')
+        self.assertEqual(value[0]['resource'], 'https://gcmdservices.gsfc.nasa.gov/static/kms/')
         self.assertEqual(value[0]['keyword'], 'Earth Science > Atmosphere > Atmospheric radiation')
 
     def test_keywords_multiple(self):
@@ -316,7 +316,7 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_keywords(mmd_yaml['keywords'], ncin)
         self.assertEqual(value[0]['vocabulary'], 'GCMD')
-        self.assertEqual(value[0]['resource'], 'https://gcmd.nasa.gov/')
+        self.assertEqual(value[0]['resource'], 'https://gcmdservices.gsfc.nasa.gov/static/kms/')
         self.assertEqual(value[0]['keyword'], 'Earth Science > Atmosphere > Atmospheric radiation')
 
     def test_platforms(self):
