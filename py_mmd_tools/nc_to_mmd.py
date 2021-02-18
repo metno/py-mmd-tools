@@ -302,9 +302,17 @@ class Nc_to_mmd(object):
         acdd_emails = mmd_element['email'].pop('acdd')
         if not isinstance(acdd_emails, list):
             acdd_emails = [acdd_emails]
+        acdd_ext_emails = mmd_element['email'].pop('acdd_ext')
+        if not isinstance(acdd_ext_emails, list):
+            acdd_ext_emails = [acdd_ext_emails]
+        acdd_emails.extend(acdd_ext_emails)
         acdd_organisations = mmd_element['organisation'].pop('acdd')
         if not isinstance(acdd_organisations, list):
             acdd_organisations = [acdd_organisations]
+        acdd_ext_organisations = mmd_element['organisation'].pop('acdd_ext')
+        if not isinstance(acdd_ext_organisations, list):
+            acdd_ext_organisations = [acdd_ext_organisations]
+        acdd_organisations.extend(acdd_ext_organisations)
 
         for acdd_name in normalized['name>acdd']:
             # Get names

@@ -171,12 +171,14 @@ personnel:
     default: 'unknown'
     separator: ','
     acdd: creator_email
+    acdd_ext: contributor_email
   phone:
   fax:
   organisation:
     default: 'unknown'
     separator: ','
     acdd: creator_institution
+    acdd_ext: contributor_organisation
   contact_address:
     address:
     city:
