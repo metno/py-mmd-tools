@@ -406,7 +406,11 @@ class Nc_to_mmd(object):
                 resource = resource
             else:
                 resource = resources[i]
-            data.append({'resource': resource, 'keyword': keywords[i], 'vocabulary': vocabularies[i]})
+            if len(vocabularies)<=i:
+                vocabulary = vocabularies
+            else:
+                vocabulary = vocabularies[i]
+            data.append({'resource': resource, 'keyword': keywords[i], 'vocabulary': vocabulary})
         return data
 
     def get_projects(self, mmd_element, ncin):
