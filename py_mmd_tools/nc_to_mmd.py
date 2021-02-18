@@ -385,7 +385,6 @@ class Nc_to_mmd(object):
             vocabularies = self.separate_repeated(True, eval('ncin.%s' %acdd_vocabulary))
         else:
             self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd_vocabulary)
-            return
 
         acdd_resource = mmd_element['resource'].pop('acdd_ext')
         if acdd_resource in ncin.ncattrs():
@@ -398,7 +397,8 @@ class Nc_to_mmd(object):
             keywords = self.separate_repeated(True, eval('ncin.%s' %acdd_keyword))
         else:
             self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd_keyword)
-            return
+        if len(self.missing_attributes['errors']) > 0:
+            raise AttributeError("\n\t"+"\n\t".join(self.missing_attributes['errors']))
         data = []
         resource = ''
         for i in range(len(keywords)):

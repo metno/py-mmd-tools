@@ -293,7 +293,17 @@ class TestNC2MMD(unittest.TestCase):
         value = nc2mmd.get_platforms(mmd_yaml['platform'], ncin)
         self.assertEqual(value[0]['resource'], '')
 
-    def test_keywords_missing_vocabulary(self):
+    def test_keywords_missing(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), 
+                Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_fail.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        with self.assertRaises(AttributeError):
+            value = nc2mmd.get_keywords(mmd_yaml['keywords'], ncin)
+        self.assertEqual(nc2mmd.missing_attributes['errors'][0], 'keywords_vocabulary is a required ACDD attribute')
+        self.assertEqual(nc2mmd.missing_attributes['errors'][1], 'keywords is a required ACDD attribute')
+
+    def test_keywords_vocabulary_missing(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), 
                 Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_keywords_vocab.nc')
