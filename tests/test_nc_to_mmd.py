@@ -241,6 +241,18 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[1]['role'], 'Technical contact')
         self.assertEqual(value[2]['role'], 'Investigator')
 
+    def test_personnel_acdd_roles_not_list(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_attrs_multiple_and_contributor.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        tmp = mmd_yaml['personnel']['name']['acdd'].pop(-1)
+        tmp = mmd_yaml['personnel']['role']['acdd'].pop(-1)
+        tmp = mmd_yaml['personnel']['email'].pop('acdd_ext')
+        tmp = mmd_yaml['personnel']['organisation'].pop('acdd_ext')
+        value = nc2mmd.get_personnel(mmd_yaml['personnel'], ncin)
+        self.assertEqual(value[0]['name'], 'Trygve')
+        self.assertEqual(value[1]['name'], 'Nina')
+
     def test_personnel(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
