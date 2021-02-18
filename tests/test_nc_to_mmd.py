@@ -200,8 +200,8 @@ class TestNC2MMD(unittest.TestCase):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_attrs_multiple_mixed_creator.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
-        with self.assertRaises(Exception):
-            value = nc2mmd.get_personnel(mmd_yaml['personnel'], ncin)
+        value = nc2mmd.get_personnel(mmd_yaml['personnel'], ncin)
+        self.assertEqual(nc2mmd.missing_attributes['errors'][0], 'Attributes must have same number of entries')
 
         #self.assertEqual(value[0]['name'], 'Trygve')
         #self.assertEqual(value[1]['name'], 'Trygve')
@@ -298,8 +298,7 @@ class TestNC2MMD(unittest.TestCase):
                 Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_fail.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
-        with self.assertRaises(AttributeError):
-            value = nc2mmd.get_keywords(mmd_yaml['keywords'], ncin)
+        value = nc2mmd.get_keywords(mmd_yaml['keywords'], ncin)
         self.assertEqual(nc2mmd.missing_attributes['errors'][0], 'keywords_vocabulary is a required ACDD attribute')
         self.assertEqual(nc2mmd.missing_attributes['errors'][1], 'keywords is a required ACDD attribute')
 
@@ -308,8 +307,7 @@ class TestNC2MMD(unittest.TestCase):
                 Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_keywords_vocab.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
-        with self.assertRaises(AttributeError):
-            value = nc2mmd.get_keywords(mmd_yaml['keywords'], ncin)
+        value = nc2mmd.get_keywords(mmd_yaml['keywords'], ncin)
         self.assertEqual(nc2mmd.missing_attributes['errors'][0], 'keywords_vocabulary is a required ACDD attribute')
 
     def test_keywords(self):

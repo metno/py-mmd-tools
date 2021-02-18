@@ -351,7 +351,7 @@ class Nc_to_mmd(object):
             organisations.extend(these_orgs)
 
         if not len(names)==len(roles)==len(emails)==len(organisations):
-            raise Exception
+            self.missing_attributes['errors'].append('Attributes must have same number of entries')
         clean = 0
         if len(names)>1 and 'unknown' in names:
             clean = 1
@@ -381,6 +381,7 @@ class Nc_to_mmd(object):
 
     def get_keywords(self, mmd_element, ncin):
         acdd_vocabulary = mmd_element['vocabulary'].pop('acdd')
+        vocabularies = []
         if acdd_vocabulary in ncin.ncattrs():
             vocabularies = self.separate_repeated(True, eval('ncin.%s' %acdd_vocabulary))
         else:
@@ -392,13 +393,12 @@ class Nc_to_mmd(object):
         else:
             resources = ['']
 
+        keywords = []
         acdd_keyword = mmd_element['keyword'].pop('acdd')
         if acdd_keyword in ncin.ncattrs():
             keywords = self.separate_repeated(True, eval('ncin.%s' %acdd_keyword))
         else:
             self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd_keyword)
-        if len(self.missing_attributes['errors']) > 0:
-            raise AttributeError("\n\t"+"\n\t".join(self.missing_attributes['errors']))
         data = []
         resource = ''
         for i in range(len(keywords)):
