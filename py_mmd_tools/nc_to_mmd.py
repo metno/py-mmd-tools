@@ -633,6 +633,7 @@ class Nc_to_mmd(object):
                 'file_size': pathlib.Path(self.netcdf_product).stat().st_size / (1024 * 1024),
                 'file_size_unit': 'MB',
                 'checksum': fchecksum,
+                'checksum_type': '%ssum'%md5hasher.hash_algorithm,
             }
         
         if len(self.missing_attributes['errors']) > 0:
