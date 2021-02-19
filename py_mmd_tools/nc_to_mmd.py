@@ -520,7 +520,7 @@ class Nc_to_mmd(object):
             others = self.separate_repeated(True, eval('ncin.%s' %acdd_other))
         data = []
         for i in range(len(publication_dates)):
-            publication_date = publication_dates[i]
+            publication_date = parse(publication_dates[i]).strftime('%Y-%m-%d')
             title = titles[i]
             if len(urls)<=i:
                 url = ''

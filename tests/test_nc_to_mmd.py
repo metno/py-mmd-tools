@@ -527,5 +527,15 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(md.missing_attributes['errors'][0],
                 'summary is a required ACDD attribute')
 
+    def test_publication_date(self):
+        format = '%Y-%m-%d'
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
+        dt = datetime.datetime.strptime(value[0]['publication_date'], format)
+        self.assertEqual(dt, datetime.datetime(2020, 11, 27, 0, 0))
+
+
 if __name__ == '__main__':
     unittest.main()
