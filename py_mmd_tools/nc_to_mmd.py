@@ -629,11 +629,11 @@ class Nc_to_mmd(object):
                 print('Downloading NetCDF file to calculate checksum...')
                 file_for_checksum_calculation = wget.download(resource)
                 rm_file_for_checksum_calculation = True
-            file_size = pathlib.Path(file_for_checksum_calculation).stat().st_size / (1024 * 1024)
         else:
             self.metadata['data_access'] = []
             file_for_checksum_calculation = self.netcdf_product
-            file_size = pathlib.Path(self.netcdf_product).stat().st_size / (1024 * 1024)
+
+        file_size = pathlib.Path(file_for_checksum_calculation).stat().st_size / (1024 * 1024)
 
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
