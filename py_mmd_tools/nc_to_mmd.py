@@ -13,6 +13,7 @@ import os
 import warnings
 import yaml
 import jinja2
+import wget
 import pandas as pd
 
 from filehash import FileHash
@@ -585,7 +586,7 @@ class Nc_to_mmd(object):
                     '%s ACDD attribute is missing - created metadata_identifier MMD element as uuid.' %acdd)
         return id
 
-    def to_mmd(self, *args, **kwargs):
+    def to_mmd(self, netcdf_local_path='', *args, **kwargs):
         """
         Method for parsing content of NetCDF file, mapping discovery
         metadata to MMD, and writes MMD to disk.
@@ -615,11 +616,24 @@ class Nc_to_mmd(object):
         # Data access should not be read from the netCDF-CF file
         _ = mmd_yaml.pop('data_access')
         # Add OPeNDAP data_access if "netcdf_product" is OPeNDAP url
+        rm_file_for_checksum_calculation = False
         if 'dodsC' in self.netcdf_product:
             self.metadata['data_access'] = self.get_data_access_dict(ncin, **kwargs)
+            if netcdf_local_path:
+                file_for_checksum_calculation = netcdf_local_path
+            else:
+                resource = ''
+                for access in self.metadata['data_access']:
+                    if access['type'] == 'HTTP':
+                        resource = access['resource']
+                print('Downloading NetCDF file to calculate checksum...')
+                file_for_checksum_calculation = wget.download(resource)
+                rm_file_for_checksum_calculation = True
+            file_size = pathlib.Path(file_for_checksum_calculation).stat().st_size / (1024 * 1024)
         else:
             self.metadata['data_access'] = []
             file_for_checksum_calculation = self.netcdf_product
+            file_size = pathlib.Path(self.netcdf_product).stat().st_size / (1024 * 1024)
 
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
@@ -629,13 +643,16 @@ class Nc_to_mmd(object):
         fchecksum = md5hasher.hash_file(file_for_checksum_calculation)
         self.metadata['storage_information'] = {
                 'file_name': os.path.basename(self.netcdf_product),
-                'file_location': os.path.abspath(self.netcdf_product).replace(os.path.basename(self.netcdf_product),''),
+                'file_location': self.netcdf_product.replace(os.path.basename(self.netcdf_product),''),
                 'file_format': 'NetCDF-CF',
-                'file_size': pathlib.Path(self.netcdf_product).stat().st_size / (1024 * 1024),
+                'file_size': '%.2f'%file_size,
                 'file_size_unit': 'MB',
                 'checksum': fchecksum,
                 'checksum_type': '%ssum'%md5hasher.hash_algorithm,
             }
+
+        if rm_file_for_checksum_calculation:
+            os.remove(file_for_checksum_calculation)
         
         if len(self.missing_attributes['errors']) > 0:
             raise AttributeError("\n\t"+"\n\t".join(self.missing_attributes['errors']))
