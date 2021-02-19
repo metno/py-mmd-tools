@@ -2,8 +2,8 @@
 License:
      This file is part of the py-mmd-tools repository (https://github.com/metno/py-mmd-tools). py-mmd-tools is licensed under Apache License 2.0 (https://github.com/metno/py-mmd-tools/blob/master/LICENSE).
  """
-from unittest.mock import patch, Mock, DEFAULT
 import unittest
+from unittest.mock import patch, Mock, DEFAULT
 
 import os
 import pathlib
@@ -11,8 +11,9 @@ import tempfile
 import yaml
 import datetime
 import warnings
-from pkg_resources import resource_string
 
+from filehash import FileHash
+from pkg_resources import resource_string
 from netCDF4 import Dataset
 
 from py_mmd_tools.xml_utils import xsd_check
@@ -536,6 +537,33 @@ class TestNC2MMD(unittest.TestCase):
         dt = datetime.datetime.strptime(value[0]['publication_date'], format)
         self.assertEqual(dt, datetime.datetime(2020, 11, 27, 0, 0))
 
+    def test_checksum(self):
+        tested = tempfile.mkstemp()[1]
+        fn = 'tests/data/reference_nc.nc'
+        nc2mmd = Nc_to_mmd(fn, check_only=True)
+        nc2mmd.to_mmd()
+        checksum = nc2mmd.metadata['storage_information']['checksum']
+        with open(tested, 'w') as tt:
+            tt.write('%s *%s'%(checksum, fn))
+        md5hasher = FileHash('md5')
+        self.assertTrue(md5hasher.verify_checksums(tested)[0].hashes_match)
+
+    def test_file_on_thredds(self):
+        fn = 'https://thredds.met.no/thredds/dodsC/remotesensingsatellite/polar-swath/2020/12/01/metopb-avhrr-20201201155244-20201201160030.nc'
+        nc2mmd = Nc_to_mmd(fn, check_only=True)
+        try:
+            nc2mmd.to_mmd()
+        except OSError as e:
+            warnings.warn('%s is not available' %fn)
+            self.assertEqual(e.strerror, 'NetCDF: file not found')
+        else:
+            self.assertEqual(nc2mmd.metadata['storage_information']['file_name'], 'metopb-avhrr-20201201155244-20201201160030.nc')
+
+    def test_file_on_faked_thredds(self):
+        fn = 'tests/data/dodsC/reference_nc.nc'
+        nc2mmd = Nc_to_mmd(fn, check_only=True)
+        nc2mmd.to_mmd(netcdf_local_path=fn)
+        self.assertEqual(nc2mmd.metadata['storage_information']['file_name'], 'reference_nc.nc')
 
 if __name__ == '__main__':
     unittest.main()

@@ -9,11 +9,14 @@ License:
      py-mmd-tools is licensed under the Apache License 2.0 (
      https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
 """
+import os
 import warnings
 import yaml
 import jinja2
+import wget
 import pandas as pd
 
+from filehash import FileHash
 from pkg_resources import resource_string
 from dateutil.parser import parse
 from dateutil.parser._parser import ParserError
@@ -583,7 +586,7 @@ class Nc_to_mmd(object):
                     '%s ACDD attribute is missing - created metadata_identifier MMD element as uuid.' %acdd)
         return id
 
-    def to_mmd(self, *args, **kwargs):
+    def to_mmd(self, netcdf_local_path='', *args, **kwargs):
         """
         Method for parsing content of NetCDF file, mapping discovery
         metadata to MMD, and writes MMD to disk.
@@ -613,18 +616,51 @@ class Nc_to_mmd(object):
         # Data access should not be read from the netCDF-CF file
         _ = mmd_yaml.pop('data_access')
         # Add OPeNDAP data_access if "netcdf_product" is OPeNDAP url
+        rm_file_for_checksum_calculation = False
         if 'dodsC' in self.netcdf_product:
             self.metadata['data_access'] = self.get_data_access_dict(ncin, **kwargs)
+            if netcdf_local_path:
+                file_for_checksum_calculation = netcdf_local_path
+            else:
+                resource = ''
+                for access in self.metadata['data_access']:
+                    if access['type'] == 'HTTP':
+                        resource = access['resource']
+                print('Downloading NetCDF file to calculate checksum...')
+                file_for_checksum_calculation = wget.download(resource)
+                rm_file_for_checksum_calculation = True
         else:
             self.metadata['data_access'] = []
+            file_for_checksum_calculation = self.netcdf_product
+
+        file_size = pathlib.Path(file_for_checksum_calculation).stat().st_size / (1024 * 1024)
 
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
+
+        # Set storage_information
+        md5hasher = FileHash('md5')
+        fchecksum = md5hasher.hash_file(file_for_checksum_calculation)
+        self.metadata['storage_information'] = {
+                'file_name': os.path.basename(self.netcdf_product),
+                'file_location': self.netcdf_product.replace(os.path.basename(self.netcdf_product),''),
+                'file_format': 'NetCDF-CF',
+                'file_size': '%.2f'%file_size,
+                'file_size_unit': 'MB',
+                'checksum': fchecksum,
+                'checksum_type': '%ssum'%md5hasher.hash_algorithm,
+            }
+
+        if rm_file_for_checksum_calculation:
+            os.remove(file_for_checksum_calculation)
         
         if len(self.missing_attributes['errors']) > 0:
             raise AttributeError("\n\t"+"\n\t".join(self.missing_attributes['errors']))
         if len(self.missing_attributes['warnings']) > 0:
             warnings.warn("\n\t"+"\n\t".join(self.missing_attributes['warnings']))
+
+        # Finally, check that the conventions attribute contains CF and ACCD
+        assert 'CF' in ncin.getncattr('Conventions') and 'ACDD' in ncin.getncattr('Conventions')
 
         env = jinja2.Environment(
             loader=jinja2.PackageLoader(self.__module__.split('.')[0], 'templates'),
