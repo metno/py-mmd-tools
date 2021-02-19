@@ -32,14 +32,16 @@
   {% for temporal_extent in data['temporal_extent'] %}
   <mmd:temporal_extent>
     <mmd:start_date>{{ temporal_extent['start_date'] }}</mmd:start_date>
+        {% if temporal_extent['end_date'] %}
     <mmd:end_date>{{ temporal_extent['end_date'] }}</mmd:end_date>
+        {% endif %}
   </mmd:temporal_extent>
   {% endfor %}
   {% for iso_topic_category in data['iso_topic_category'] %}
   <mmd:iso_topic_category>{{ iso_topic_category }}</mmd:iso_topic_category>
   {% endfor %}
   {% for keyword in data['keywords'] %}
-  <mmd:keywords vocabulary="{{ keyword['resource'] }}">
+  <mmd:keywords vocabulary="{{ keyword['vocabulary'] }}">
     <mmd:keyword>{{ keyword['keyword'] }}</mmd:keyword>
     <mmd:resource>{{ keyword['resource'] }}</mmd:resource>
     <mmd:separator>{{ keyword['separator'] }}</mmd:separator>
@@ -89,9 +91,15 @@
     <mmd:role>{{ personnel['role'] }}</mmd:role>
     <mmd:name>{{ personnel['name'] }}</mmd:name>
     <mmd:email>{{ personnel['email'] }}</mmd:email>
+        {% if personnel['phone'] %}
     <mmd:phone>{{ personnel['phone'] }}</mmd:phone>
+        {% endif %}
+        {% if personnel['fax'] %}
     <mmd:fax>{{ personnel['fax'] }}</mmd:fax>
+        {% endif %}
+        {% if personnel['organisation'] %}
     <mmd:organisation>{{ personnel['organisation'] }}</mmd:organisation>
+        {% endif %}
         {% if personnel['contact_address'] %}
     <mmd:contact_address>
         <mmd:address>{{ personnel['contact_address']['address'] }}</mmd:address>

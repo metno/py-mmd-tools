@@ -24,23 +24,23 @@ from netCDF4 import Dataset
 import lxml.etree as ET
 
 def get_attr_info(key, convention, normalized):
-    max_occurs_key = key.rstrip(convention)+'maxOccurs'
+    max_occurs_key = key.replace(convention, '')+'maxOccurs'
     if max_occurs_key in normalized.keys():
         max_occurs = normalized[max_occurs_key]
     else:
         max_occurs = ''
     repetition_allowed = 'yes' if max_occurs not in ['0', '1'] else 'no'
-    min_occurs_key = key.rstrip(convention)+'minOccurs'
+    min_occurs_key = key.replace(convention, '')+'minOccurs'
     if min_occurs_key in normalized.keys():
         required = int(normalized[min_occurs_key])
     else:
         required = 0
-    separator_key = key.rstrip(convention)+'separator'
+    separator_key = key.replace(convention, '')+'separator'
     if separator_key in normalized.keys():
         separator = normalized[separator_key]
     else:
         separator = ''
-    default_key = key.rstrip(convention)+'default'
+    default_key = key.replace(convention, '')+'default'
     if default_key in normalized.keys():
         default = normalized[default_key]
     else:
@@ -70,6 +70,7 @@ def nc_attrs_from_yaml():
             required, repetition_allowed, separator, default = get_attr_info(key, 'acdd', normalized)
             if required:
                 attributes['acdd']['required'].append({
+                    'mmd_field': key.replace('>acdd', ''),
                     'attribute': val, 
                     'repetition_allowed': repetition_allowed,
                     'separator': separator,
@@ -77,6 +78,7 @@ def nc_attrs_from_yaml():
                 })
             else:
                 attributes['acdd']['not_required'].append({
+                    'mmd_field': key.replace('>acdd', ''),
                     'attribute': val,
                     'repetition_allowed': repetition_allowed,
                     'separator': separator,
@@ -85,6 +87,7 @@ def nc_attrs_from_yaml():
         if key.endswith('acdd_ext'):
             required, repetition_allowed, separator, default = get_attr_info(key, 'acdd_ext', normalized)
             attributes['acdd_ext'].append({
+                    'mmd_field': key.replace('>acdd_ext', ''),
                     'attribute': val, 
                     'repetition_allowed': repetition_allowed,
                     'separator': separator,
@@ -284,79 +287,130 @@ class Nc_to_mmd(object):
             data.append(t_ext)
         return data
 
+    def get_attribute_name_list(self, mmd_element):
+        """ Return list of attribute names either in ACDD or in an extension to ACDD """
+        att_names_acdd = mmd_element.pop('acdd')
+        if not isinstance(att_names_acdd, list):
+            att_names_acdd = [att_names_acdd]
+        att_names_acdd_ext = mmd_element.pop('acdd_ext', '')
+        if att_names_acdd_ext:
+            if not isinstance(att_names_acdd_ext, list):
+                att_names_acdd_ext = [att_names_acdd_ext]
+            att_names_acdd.extend(att_names_acdd_ext)
+        return att_names_acdd
+
     def get_personnel(self, mmd_element, ncin):
-        """ This function expects one value for the acdd fields, i.e., creator*. 
-        Later, we should also add, e.g., publisher_*, and loop the acdd fields.
-        """
-        acdd_role = mmd_element['role'].pop('acdd')
-        if acdd_role in ncin.ncattrs():
-            roles = self.separate_repeated(True, eval('ncin.%s' %acdd_role))
-        else:
-            roles = [mmd_element['role'].pop('default')]
+        names = []
+        roles = []
+        emails = []
+        organisations = []
+        acdd_names = self.get_attribute_name_list(mmd_element['name'])
+        acdd_roles = self.get_attribute_name_list(mmd_element['role'])
+        acdd_emails = self.get_attribute_name_list(mmd_element['email'])
+        acdd_organisations = self.get_attribute_name_list(mmd_element['organisation'])
 
-        acdd_name = mmd_element['name'].pop('acdd')
-        if acdd_name in ncin.ncattrs():
-            names = self.separate_repeated(True, eval('ncin.%s' %acdd_name))
-        else:
-            names = [mmd_element['name'].pop('default')]
+        for acdd_name in acdd_names:
+            # Get names
+            num_names = 0
+            if acdd_name in ncin.ncattrs(): 
+                these_names = self.separate_repeated(True, eval('ncin.%s' %acdd_name))
+            else:
+                these_names = [mmd_element['name']['default']]
+            names.extend(these_names)
+            num_names = len(these_names)
+            tmp = acdd_name
+            acdd_main = tmp.replace('_name', '')
+            # Get roles
+            acdd_role = [role for role in acdd_roles if acdd_main in role][0]
+            if acdd_role in ncin.ncattrs():
+                roles.extend(self.separate_repeated(True, eval('ncin.%s' %acdd_role)))
+            else:
+                roles.extend([mmd_element['role']['default']])
+            # Get emails
+            if len(acdd_emails)>1:
+                acdd_email = [email for email in acdd_emails if acdd_main in email][0]
+            else:
+                acdd_email = acdd_emails[0]
+            if acdd_email and acdd_email in ncin.ncattrs():
+                emails.extend(self.separate_repeated(True, eval('ncin.%s' %acdd_email)))
+            else:
+                emails.extend([mmd_element['email']['default']])
+            # Get organisations
+            if len(acdd_organisations)>1:
+                acdd_organisation = [organisation for organisation in acdd_organisations if acdd_main in organisation][0]
+            else:
+                acdd_organisation = acdd_organisations[0]
+            if acdd_organisation and acdd_organisation in ncin.ncattrs():
+                these_orgs = self.separate_repeated(True, eval('ncin.%s' %acdd_organisation))
+            else:
+                these_orgs = [mmd_element['organisation']['default']]
+            if not len(these_orgs)==len(these_names):
+                for i in range(len(these_names)):
+                    if len(these_orgs)-1<i:
+                        these_orgs.append(these_orgs[i-1])
+            organisations.extend(these_orgs)
 
-        acdd_email = mmd_element['email'].pop('acdd')
-        if acdd_email in ncin.ncattrs():
-            emails = self.separate_repeated(True, eval('ncin.%s' %acdd_email))
-        else:
-            emails = [mmd_element['email'].pop('default')]
-
-        acdd_organisation = mmd_element['organisation'].pop('acdd')
-        if acdd_organisation in ncin.ncattrs():
-            organisations = self.separate_repeated(True, eval('ncin.%s' %acdd_organisation))
-        else:
-            organisations = [mmd_element['organisation'].pop('default')]
+        if not len(names)==len(roles)==len(emails)==len(organisations):
+            self.missing_attributes['errors'].append('Attributes must have same number of entries')
+        clean = 0
+        if len(names)>1 and 'unknown' in names:
+            clean = 1
+        while clean:
+            try:
+                ind = names.index('unknown')
+            except ValueError:
+                clean = 0
+            else:
+                if len(names)>1:
+                    names.pop(ind)
+                    roles.pop(ind)
+                    emails.pop(ind)
+                    organisations.pop(ind)
+                else:
+                    clean = 0
 
         data = []
-        for i in range(len(roles)):
-            role = roles[i]
-            if len(names)<=i:
-                name = name
-            else:
-                name = names[i]
-            if len(emails)<=i:
-                email = email
-            else:
-                email = emails[i]
-            if len(organisations)<=i:
-                organisation = organisation
-            else:
-                organisation = organisations[i]
+        for i in range(len(names)):
             data.append({
-                'role': role, 
-                'name': name, 
-                'email': email,
-                'organisation': organisation,
+                'role': roles[i], 
+                'name': names[i], 
+                'email': emails[i],
+                'organisation': organisations[i],
                 })
         return data
 
     def get_keywords(self, mmd_element, ncin):
-        acdd_resource = mmd_element['resource'].pop('acdd')
+        acdd_vocabulary = mmd_element['vocabulary'].pop('acdd')
+        vocabularies = []
+        if acdd_vocabulary in ncin.ncattrs():
+            vocabularies = self.separate_repeated(True, eval('ncin.%s' %acdd_vocabulary))
+        else:
+            self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd_vocabulary)
+
+        acdd_resource = mmd_element['resource'].pop('acdd_ext')
         if acdd_resource in ncin.ncattrs():
             resources = self.separate_repeated(True, eval('ncin.%s' %acdd_resource))
         else:
-            resources = []
+            resources = ['']
 
+        keywords = []
         acdd_keyword = mmd_element['keyword'].pop('acdd')
         if acdd_keyword in ncin.ncattrs():
             keywords = self.separate_repeated(True, eval('ncin.%s' %acdd_keyword))
         else:
             self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd_keyword)
-            return
         data = []
         resource = ''
         for i in range(len(keywords)):
-            keyword = keywords[i]
             if len(resources)<=i:
                 resource = resource
             else:
                 resource = resources[i]
-            data.append({'resource': resource, 'keyword': keyword})
+            if len(vocabularies)<=i:
+                vocabulary = vocabularies
+            else:
+                vocabulary = vocabularies[i]
+            data.append({'resource': resource, 'keyword': keywords[i], 'vocabulary': vocabulary})
         return data
 
     def get_projects(self, mmd_element, ncin):

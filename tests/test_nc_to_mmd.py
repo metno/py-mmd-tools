@@ -17,6 +17,7 @@ from netCDF4 import Dataset
 
 from py_mmd_tools.xml_utils import xsd_check
 from py_mmd_tools.nc_to_mmd import Nc_to_mmd, nc_attrs_from_yaml
+from py_mmd_tools.check_mmd import full_check
 
 warnings.simplefilter("ignore", ResourceWarning)
 
@@ -200,22 +201,55 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_attrs_multiple_mixed_creator.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_personnel(mmd_yaml['personnel'], ncin)
-        self.assertEqual(value[0]['name'], 'Trygve')
-        self.assertEqual(value[1]['name'], 'Trygve')
-        self.assertEqual(value[0]['email'], 'trygve@meti.no')
-        self.assertEqual(value[1]['email'], 'trygve@meti.no')
-        self.assertEqual(value[0]['role'], 'Investigator')
-        self.assertEqual(value[1]['role'], 'Technical contact')
+        self.assertEqual(nc2mmd.missing_attributes['errors'][0], 'Attributes must have same number of entries')
 
     def test_personnel_multiple(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_attrs_multiple.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_personnel(mmd_yaml['personnel'], ncin)
+        self.assertEqual(value[0]['name'], 'Trygve')
+        self.assertEqual(value[1]['name'], 'Nina')
         self.assertEqual(value[0]['email'], 'trygve@meti.no')
         self.assertEqual(value[1]['email'], 'post@met.no')
         self.assertEqual(value[0]['role'], 'Investigator')
         self.assertEqual(value[1]['role'], 'Technical contact')
+
+    def test_personnel_multiple_creator_and_contributor(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_attrs_multiple_and_contributor.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_personnel(mmd_yaml['personnel'], ncin)
+        self.assertEqual(value[0]['name'], 'Trygve')
+        self.assertEqual(value[1]['name'], 'Nina')
+        self.assertEqual(value[2]['name'], 'Morten')
+        self.assertEqual(value[0]['email'], 'trygve@meti.no')
+        self.assertEqual(value[1]['email'], 'post@met.no')
+        self.assertEqual(value[2]['email'], 'morten@met.no')
+        self.assertEqual(value[2]['organisation'], 'MET NORWAY')
+        self.assertEqual(value[0]['role'], 'Investigator')
+        self.assertEqual(value[1]['role'], 'Technical contact')
+        self.assertEqual(value[2]['role'], 'Investigator')
+
+    def test_personnel_acdd_roles_not_list(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_attrs_multiple_and_contributor.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        tmp = mmd_yaml['personnel']['name']['acdd'].pop(-1)
+        mmd_yaml['personnel']['name']['acdd'] = mmd_yaml['personnel']['name']['acdd'][0]
+        tmp = mmd_yaml['personnel']['role']['acdd'].pop(-1)
+        mmd_yaml['personnel']['role']['acdd'] = mmd_yaml['personnel']['role']['acdd'][0]
+        tmp = mmd_yaml['personnel']['email'].pop('acdd_ext')
+        tmp = mmd_yaml['personnel']['organisation'].pop('acdd_ext')
+        value = nc2mmd.get_personnel(mmd_yaml['personnel'], ncin)
+        self.assertEqual(value[0]['name'], 'Trygve')
+        self.assertEqual(value[1]['name'], 'Nina')
+        self.assertEqual(value[0]['role'], 'Investigator')
+        self.assertEqual(value[1]['role'], 'Technical contact')
+        self.assertEqual(value[0]['email'], 'trygve@meti.no')
+        self.assertEqual(value[1]['email'], 'post@met.no')
+        self.assertEqual(value[0]['organisation'], 'MET NORWAY')
+        self.assertEqual(value[1]['organisation'], 'MET NORWAY')
 
     def test_personnel(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
@@ -249,20 +283,40 @@ class TestNC2MMD(unittest.TestCase):
         value = nc2mmd.get_platforms(mmd_yaml['platform'], ncin)
         self.assertEqual(value[0]['resource'], '')
 
-    def test_keywords_missing_vocabulary(self):
+    def test_keywords_missing(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), 
+                Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_fail.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_keywords(mmd_yaml['keywords'], ncin)
+        self.assertEqual(nc2mmd.missing_attributes['errors'][0], 'keywords_vocabulary is a required ACDD attribute')
+        self.assertEqual(nc2mmd.missing_attributes['errors'][1], 'keywords is a required ACDD attribute')
+
+    def test_keywords_vocabulary_missing(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), 
                 Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_keywords_vocab.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_keywords(mmd_yaml['keywords'], ncin)
-        self.assertEqual(value[0]['keyword'], 'Earth Science > Atmosphere > Atmospheric radiation')
+        self.assertEqual(nc2mmd.missing_attributes['errors'][0], 'keywords_vocabulary is a required ACDD attribute')
 
     def test_keywords(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_keywords(mmd_yaml['keywords'], ncin)
-        self.assertEqual(value[0]['resource'], 'GCMD')
+        self.assertEqual(value[0]['vocabulary'], 'GCMD')
+        self.assertEqual(value[0]['resource'], 'https://gcmdservices.gsfc.nasa.gov/static/kms/')
+        self.assertEqual(value[0]['keyword'], 'Earth Science > Atmosphere > Atmospheric radiation')
+
+    def test_keywords_multiple(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_attrs_multiple.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_keywords(mmd_yaml['keywords'], ncin)
+        self.assertEqual(value[0]['vocabulary'], 'GCMD')
+        self.assertEqual(value[0]['resource'], 'https://gcmdservices.gsfc.nasa.gov/static/kms/')
+        self.assertEqual(value[0]['keyword'], 'Earth Science > Atmosphere > Atmospheric radiation')
 
     def test_platforms(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
@@ -428,6 +482,20 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(self.fail_nc, output_file=tested)
         with self.assertRaises(AttributeError):
             md.to_mmd()
+
+    def test_all_valid_nc_files_passing(self):
+        valid_files = [
+                os.path.join(pathlib.Path.cwd(), 'tests/data/reference_nc.nc'),
+                os.path.join(pathlib.Path.cwd(), 'tests/data/reference_nc_id_missing.nc'),
+                os.path.join(pathlib.Path.cwd(), 'tests/data/reference_nc_id_not_uuid.nc'),
+                os.path.join(pathlib.Path.cwd(), 'tests/data/reference_nc_attrs_multiple.nc'),
+            ]
+        for file in valid_files:
+            tested = tempfile.mkstemp()[1]
+            md = Nc_to_mmd(file, output_file=tested)
+            md.to_mmd()
+            valid = xsd_check(xml_file=tested, xsd_schema=self.reference_xsd)
+            self.assertTrue(valid[0])
 
     def test_create_mmd_missing_publisher_url(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), 

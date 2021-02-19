@@ -150,7 +150,7 @@ use_constraint:
     acdd: license
   resource:
     maxOccurs: '1'
-    acdd: license_resource
+    acdd_ext: license_resource
 
 personnel:
   maxOccurs: unbounded
@@ -158,21 +158,27 @@ personnel:
   role:
     default: 'unknown'
     separator: ','
-    acdd: creator_role
+    acdd: 
+      - creator_role
+      - contributor_role
   name:
     default: 'unknown'
     separator: ','
-    acdd: creator_name
+    acdd:
+      - creator_name
+      - contributor_name
   email:
     default: 'unknown'
     separator: ','
     acdd: creator_email
+    acdd_ext: contributor_email
   phone:
   fax:
   organisation:
     default: 'unknown'
     separator: ','
     acdd: creator_institution
+    acdd_ext: contributor_organisation
   contact_address:
     address:
     city:
@@ -237,9 +243,13 @@ iso_topic_category:
 keywords:
   maxOccurs: unbounded
   minOccurs: '1'
-  resource:
+  vocabulary:
     minOccurs: '1'
     acdd: keywords_vocabulary
+    separator: ','
+  resource:
+    minOccurs: '0'
+    acdd_ext: keywords_resource
     separator: ','
   keyword:
     minOccurs: '1'
