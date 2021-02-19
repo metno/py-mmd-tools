@@ -2,8 +2,8 @@
 License:
      This file is part of the py-mmd-tools repository (https://github.com/metno/py-mmd-tools). py-mmd-tools is licensed under Apache License 2.0 (https://github.com/metno/py-mmd-tools/blob/master/LICENSE).
  """
-from unittest.mock import patch, Mock, DEFAULT
 import unittest
+from unittest.mock import patch, Mock, DEFAULT
 
 import os
 import pathlib
@@ -11,8 +11,9 @@ import tempfile
 import yaml
 import datetime
 import warnings
-from pkg_resources import resource_string
 
+from filehash import FileHash
+from pkg_resources import resource_string
 from netCDF4 import Dataset
 
 from py_mmd_tools.xml_utils import xsd_check
@@ -535,6 +536,28 @@ class TestNC2MMD(unittest.TestCase):
         value = nc2mmd.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
         dt = datetime.datetime.strptime(value[0]['publication_date'], format)
         self.assertEqual(dt, datetime.datetime(2020, 11, 27, 0, 0))
+
+    def test_checksum(self):
+        tested = tempfile.mkstemp()[1]
+        fn = 'tests/data/reference_nc.nc'
+        nc2mmd = Nc_to_mmd(fn, check_only=True)
+        nc2mmd.to_mmd()
+        checksum = nc2mmd.metadata['storage_information']['checksum']
+        with open(tested, 'w') as tt:
+            tt.write('%s *%s'%(checksum, fn))
+        md5hasher = FileHash('md5')
+        self.assertTrue(md5hasher.verify_checksums(tested)[0].hashes_match)
+
+    def test_checksum_is_equal_as_stored(self):
+        # NOTE: if the netcdf file is changed, this test will fail
+        fn = 'tests/data/reference_nc.nc'
+        nc2mmd = Nc_to_mmd(fn, check_only=True)
+        nc2mmd.to_mmd()
+        checksum = nc2mmd.metadata['storage_information']['checksum']
+        with open('tests/data/hashes.md5', 'r') as f:
+            ll=f.readline()
+        self.assertEqual(ll.split(' ')[0], checksum)
+
 
 
 if __name__ == '__main__':

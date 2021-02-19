@@ -9,11 +9,13 @@ License:
      py-mmd-tools is licensed under the Apache License 2.0 (
      https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
 """
+import os
 import warnings
 import yaml
 import jinja2
 import pandas as pd
 
+from filehash import FileHash
 from pkg_resources import resource_string
 from dateutil.parser import parse
 from dateutil.parser._parser import ParserError
@@ -620,11 +622,26 @@ class Nc_to_mmd(object):
 
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
+
+        # Set storage_information
+        md5hasher = FileHash('md5')
+        fchecksum = md5hasher.hash_file(self.netcdf_product)
+        self.metadata['storage_information'] = {
+                'file_name': os.path.basename(self.netcdf_product),
+                'file_location': os.path.abspath(self.netcdf_product).replace(os.path.basename(self.netcdf_product),''),
+                'file_format': 'NetCDF-CF',
+                'file_size': pathlib.Path(self.netcdf_product).stat().st_size / (1024 * 1024),
+                'file_size_unit': 'MB',
+                'checksum': fchecksum,
+            }
         
         if len(self.missing_attributes['errors']) > 0:
             raise AttributeError("\n\t"+"\n\t".join(self.missing_attributes['errors']))
         if len(self.missing_attributes['warnings']) > 0:
             warnings.warn("\n\t"+"\n\t".join(self.missing_attributes['warnings']))
+
+        # Finally, check that the conventions attribute contains CF and ACCD
+        assert 'CF' in ncin.getncattr('Conventions') and 'ACDD' in ncin.getncattr('Conventions')
 
         env = jinja2.Environment(
             loader=jinja2.PackageLoader(self.__module__.split('.')[0], 'templates'),
