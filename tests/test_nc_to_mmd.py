@@ -203,16 +203,6 @@ class TestNC2MMD(unittest.TestCase):
         value = nc2mmd.get_personnel(mmd_yaml['personnel'], ncin)
         self.assertEqual(nc2mmd.missing_attributes['errors'][0], 'Attributes must have same number of entries')
 
-        #self.assertEqual(value[0]['name'], 'Trygve')
-        #self.assertEqual(value[1]['name'], 'Trygve')
-        #self.assertEqual(value[2]['name'], 'Morten')
-        #self.assertEqual(value[0]['email'], 'trygve@meti.no')
-        #self.assertEqual(value[1]['email'], 'trygve@meti.no')
-        #self.assertEqual(value[2]['email'], 'unknown')
-        #self.assertEqual(value[0]['role'], 'Investigator')
-        #self.assertEqual(value[1]['role'], 'Technical contact')
-        #self.assertEqual(value[2]['role'], 'Investigator')
-
     def test_personnel_multiple(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_attrs_multiple.nc')
