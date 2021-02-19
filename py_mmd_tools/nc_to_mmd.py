@@ -617,8 +617,6 @@ class Nc_to_mmd(object):
         # Add OPeNDAP data_access if "netcdf_product" is OPeNDAP url
         if 'dodsC' in self.netcdf_product:
             self.metadata['data_access'] = self.get_data_access_dict(ncin, **kwargs)
-            import ipdb
-            ipdb.set_trace()
         else:
             self.metadata['data_access'] = []
             file_for_checksum_calculation = self.netcdf_product
