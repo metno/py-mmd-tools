@@ -549,12 +549,12 @@ class TestNC2MMD(unittest.TestCase):
         self.assertTrue(md5hasher.verify_checksums(tested)[0].hashes_match)
 
     def test_file_on_thredds(self):
-        # Can this file be copied to a permanent file 
         fn = 'https://thredds.met.no/thredds/dodsC/remotesensingsatellite/polar-swath/2020/12/01/metopb-avhrr-20201201155244-20201201160030.nc'
         nc2mmd = Nc_to_mmd(fn, check_only=True)
         try:
             nc2mmd.to_mmd()
         except OSError as e:
+            warnings.warn('%s is not available' %fn)
             self.assertEqual(e.strerror, 'NetCDF: file not found')
         else:
             self.assertEqual(nc2mmd.metadata['storage_information']['file_name'], 'metopb-avhrr-20201201155244-20201201160030.nc')
