@@ -617,15 +617,18 @@ class Nc_to_mmd(object):
         # Add OPeNDAP data_access if "netcdf_product" is OPeNDAP url
         if 'dodsC' in self.netcdf_product:
             self.metadata['data_access'] = self.get_data_access_dict(ncin, **kwargs)
+            import ipdb
+            ipdb.set_trace()
         else:
             self.metadata['data_access'] = []
+            file_for_checksum_calculation = self.netcdf_product
 
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
 
         # Set storage_information
         md5hasher = FileHash('md5')
-        fchecksum = md5hasher.hash_file(self.netcdf_product)
+        fchecksum = md5hasher.hash_file(file_for_checksum_calculation)
         self.metadata['storage_information'] = {
                 'file_name': os.path.basename(self.netcdf_product),
                 'file_location': os.path.abspath(self.netcdf_product).replace(os.path.basename(self.netcdf_product),''),

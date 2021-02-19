@@ -548,15 +548,16 @@ class TestNC2MMD(unittest.TestCase):
         md5hasher = FileHash('md5')
         self.assertTrue(md5hasher.verify_checksums(tested)[0].hashes_match)
 
-    def test_checksum_is_equal_as_stored(self):
-        # NOTE: if the netcdf file is changed, this test will fail
-        fn = 'tests/data/reference_nc.nc'
+    def test_file_on_thredds(self):
+        # Note this test may fail when thredds is down...
+        fn = 'https://thredds.met.no/thredds/dodsC/remotesensingsatellite/polar-swath/2020/12/01/metopb-avhrr-20201201155244-20201201160030.nc'
         nc2mmd = Nc_to_mmd(fn, check_only=True)
-        nc2mmd.to_mmd()
-        checksum = nc2mmd.metadata['storage_information']['checksum']
-        with open('tests/data/hashes.md5', 'r') as f:
-            ll=f.readline()
-        self.assertEqual(ll.split(' ')[0], checksum)
+        try:
+            nc2mmd.to_mmd()
+        except OSError as e:
+            self.assertEqual(e.strerror, 'NetCDF: file not found')
+        else:
+            self.assertTrue(True)
 
 if __name__ == '__main__':
     unittest.main()
