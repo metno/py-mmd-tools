@@ -1,4 +1,5 @@
 coverage==5.1
+filehash
 ipdb
 jinja2
 lxml==4.5
