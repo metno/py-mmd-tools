@@ -558,7 +558,5 @@ class TestNC2MMD(unittest.TestCase):
             ll=f.readline()
         self.assertEqual(ll.split(' ')[0], checksum)
 
-
-
 if __name__ == '__main__':
     unittest.main()
