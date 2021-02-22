@@ -639,7 +639,7 @@ class Nc_to_mmd(object):
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
 
         # Set storage_information
-        md5hasher = FileHash('md5')
+        md5hasher = FileHash('md5', chunk_size=1048576)
         fchecksum = md5hasher.hash_file(file_for_checksum_calculation)
         self.metadata['storage_information'] = {
                 'file_name': os.path.basename(self.netcdf_product),

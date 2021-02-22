@@ -152,11 +152,8 @@
     <mmd:file_name>{{ data['storage_information']['file_name'] }}</mmd:file_name>
     <mmd:file_location>{{ data['storage_information']['file_location'] }}</mmd:file_location>
     <mmd:file_format>{{ data['storage_information']['file_format'] }}</mmd:file_format>
-    <mmd:file_size unit="{{ data['storage_information']['file_size_unit'] }}">{{
-        data['storage_information']['file_size'] }}</mmd:file_size>
-    <mmd:checksum type="{{ data['storage_information']['checksum_type'] }}">{{
-        data['storage_information']['checksum'] }}
-    </mmd:checksum>
+    <mmd:file_size unit="{{ data['storage_information']['file_size_unit'] }}">{{ data['storage_information']['file_size'] }}</mmd:file_size>
+    <mmd:checksum type="{{ data['storage_information']['checksum_type'] }}">{{ data['storage_information']['checksum'] }}</mmd:checksum>
   </mmd:storage_information>
   {% endif %}
   {% if data['related_information'] %}
