@@ -1,10 +1,8 @@
 """
 Tools for checking if an XML MMD file is valid.
 
-License:
-     This file is part of the py-mmd-tools repository (https://github.com/metno/py-mmd-tools).
-     py-mmd-tools is licensed under GPL-3.0 (
-     https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
+License: This file is part of py-mmd-tools, licensed under the Apache License 2.0
+         (https://www.apache.org/licenses/LICENSE-2.0).
 """
 
 import logging

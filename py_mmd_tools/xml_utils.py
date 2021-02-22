@@ -1,7 +1,7 @@
 """
 Utility tool to work on mmd xml files.
- License:
-     This file is part of py-mmd-tools, licensed under the Apache License 2.0 (https://www.apache.org/licenses/LICENSE-2.0)
+
+License: This file is part of py-mmd-tools, licensed under the Apache License 2.0 (https://www.apache.org/licenses/LICENSE-2.0)
 """
 
 import pathlib
