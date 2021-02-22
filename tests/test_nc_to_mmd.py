@@ -18,7 +18,6 @@ from netCDF4 import Dataset
 
 from py_mmd_tools.xml_utils import xsd_check
 from py_mmd_tools.nc_to_mmd import Nc_to_mmd, nc_attrs_from_yaml
-from py_mmd_tools.check_mmd import full_check
 
 warnings.simplefilter("ignore", ResourceWarning)
 
