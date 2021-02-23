@@ -65,6 +65,8 @@ def check_urls(url_list):
     ok = True
     for url in url_list:
 
+        if 'dodsC' in url:
+            url += ".html"
         try:
             r = requests.get(url, timeout=10)
             r.raise_for_status()
