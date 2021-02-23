@@ -644,7 +644,7 @@ class Nc_to_mmd(object):
         file_location = netcdf_local_path or self.netcdf_product
         self.metadata['storage_information'] = {
                 'file_name': os.path.basename(self.netcdf_product),
-                'file_location': file_location
+                'file_location': file_location,
                 'file_format': 'NetCDF-CF',
                 'file_size': '%.2f'%file_size,
                 'file_size_unit': 'MB',
