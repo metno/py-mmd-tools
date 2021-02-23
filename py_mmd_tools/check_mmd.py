@@ -159,7 +159,7 @@ def full_check(doc):
 
     # Get elements with urls and check for OK response
     url_elements = doc.xpath('.//*[contains(text(),"http")]')
-    urls = [elem.text for elem in url_elements]
+    urls = [elem.text for elem in url_elements if 'file_location' not in elem.tag]
     if len(urls) > 0:
         logger.debug('Checking element(s) containing URL ...')
         urls_ok = check_urls(urls)
