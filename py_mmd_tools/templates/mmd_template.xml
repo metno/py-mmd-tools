@@ -144,7 +144,7 @@
   {% endif %}
   {% if data['related_dataset'] %}
     {% for related_dataset in data['related_dataset'] %}
-    <mmd:related_dataset relation_type="{{ related_dataset['relation_type'] }}">{{ related_dataset['id'] }}</mmd:related_dataset>
+  <mmd:related_dataset relation_type="{{ related_dataset['relation_type'] }}">{{ related_dataset['id'] }}</mmd:related_dataset>
     {% endfor %}
   {% endif %}
   {% if data['storage_information'] %}
@@ -158,10 +158,10 @@
   {% endif %}
   {% if data['related_information'] %}
     {% for related_info in data['related_information'] %}
-      <mmd:related_information>
-        <mmd:type>{{ related_info['type'] }}</mmd:type>
-        <mmd:resource>{{ related_info['resource'] }}</mmd:resource>
-      </mmd:related_information>
+  <mmd:related_information>
+    <mmd:type>{{ related_info['type'] }}</mmd:type>
+    <mmd:resource>{{ related_info['resource'] }}</mmd:resource>
+  </mmd:related_information>
     {% endfor %}
   {% endif %}
   {% if data['project'] %}
