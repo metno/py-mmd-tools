@@ -76,12 +76,13 @@ class testMmdCheck(unittest.TestCase):
     @patch('requests.get')
     def test_special_urls_1(self, mock_get):
         # Check urls with WMS
-        self.assertTrue(check_urls(['https://thredds.met.no/thredds/wms/remotesensingsatellite/polar-swath/2020/12/01/metopb-avhrr-20201201155244-20201201160030.nc?service=WMS&version=1.3.0&request=GetCapabilities']))
+        self.assertTrue(check_urls(['WMS&ploppetyboppety&GetCapabilities']))
+        self.assertFalse(check_urls(['WMS']))
 
     @patch('requests.head')
     def test_special_urls_2(self, mock_head):
         # Check urls with string dodsC
-        self.assertTrue(check_urls(['https://thredds.met.no/thredds/dodsC/remotesensingsatellite/polar-swath/2020/12/01/metopb-avhrr-20201201155244-20201201160030.nc']))
+        self.assertTrue(check_urls(['dodsC/fake/url']))
 
     # Check lat/lon OK from rectangle
     def test_rectangle_1(self):
