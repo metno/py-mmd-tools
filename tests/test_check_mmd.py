@@ -4,6 +4,8 @@ from py_mmd_tools.check_mmd import check_rectangle, check_urls, check_cf, check_
     full_check
 import lxml.etree as ET
 
+from unittest.mock import patch
+
 
 class testMmdCheck(unittest.TestCase):
     def setUp(self):
@@ -69,6 +71,18 @@ class testMmdCheck(unittest.TestCase):
     def test_all_urls_1(self):
         self.assertTrue(check_urls(['https://www.met.no']))
         self.assertFalse(check_urls(['http://met.not']))
+
+    # Check special urls
+    @patch('requests.get')
+    def test_special_urls_1(self, mock_get):
+        # Check urls with WMS
+        self.assertTrue(check_urls(['WMS&ploppetyboppety&GetCapabilities']))
+        self.assertFalse(check_urls(['WMS']))
+
+    @patch('requests.head')
+    def test_special_urls_2(self, mock_head):
+        # Check urls with string dodsC
+        self.assertTrue(check_urls(['dodsC/fake/url']))
 
     # Check lat/lon OK from rectangle
     def test_rectangle_1(self):

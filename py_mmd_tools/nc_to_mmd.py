@@ -569,7 +569,7 @@ class Nc_to_mmd(object):
             return False
         return str(uuid_obj) == uuid_to_test
 
-    def get_metadata_identifier(self, mmd_element, ncin, require_uuid=True):
+    def get_metadata_identifier(self, mmd_element, ncin, require_uuid=True, **kwargs):
         acdd = mmd_element.pop('acdd')
         valid = False
         invalid_chars = ['\\', '/', ':', ' ']
@@ -641,9 +641,10 @@ class Nc_to_mmd(object):
         # Set storage_information
         md5hasher = FileHash('md5', chunk_size=1048576)
         fchecksum = md5hasher.hash_file(file_for_checksum_calculation)
+        file_location = netcdf_local_path or self.netcdf_product
         self.metadata['storage_information'] = {
                 'file_name': os.path.basename(self.netcdf_product),
-                'file_location': self.netcdf_product.replace(os.path.basename(self.netcdf_product),''),
+                'file_location': file_location,
                 'file_format': 'NetCDF-CF',
                 'file_size': '%.2f'%file_size,
                 'file_size_unit': 'MB',

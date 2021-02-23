@@ -65,8 +65,13 @@ def check_urls(url_list):
     ok = True
     for url in url_list:
 
+        if 'dodsC' in url:
+            url += ".html"
         try:
-            r = requests.get(url, timeout=10)
+            if 'WMS' in url and 'GetCapabilities' in url:
+                r = requests.get(url, timeout=60)
+            else:
+                r = requests.head(url, timeout=10)
             r.raise_for_status()
             logger.debug(f'OK - {url}')
             r.close()
