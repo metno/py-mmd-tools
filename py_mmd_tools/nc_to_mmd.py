@@ -569,7 +569,7 @@ class Nc_to_mmd(object):
             return False
         return str(uuid_obj) == uuid_to_test
 
-    def get_metadata_identifier(self, mmd_element, ncin, require_uuid=True):
+    def get_metadata_identifier(self, mmd_element, ncin, require_uuid=True, **kwargs):
         acdd = mmd_element.pop('acdd')
         valid = False
         invalid_chars = ['\\', '/', ':', ' ']
