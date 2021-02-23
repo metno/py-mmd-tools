@@ -586,6 +586,24 @@ class Nc_to_mmd(object):
                     '%s ACDD attribute is missing - created metadata_identifier MMD element as uuid.' %acdd)
         return id
 
+    def get_related_dataset(self, mmd_element, ncin):
+        acdd_ext_relation_type = mmd_element['relation_type']['acdd_ext']
+        relation_types = []
+        if acdd_ext_relation_type in ncin.ncattrs():
+            relation_types = self.separate_repeated(True, eval('ncin.%s' %acdd_ext_relation_type))
+        acdd_ext_id = mmd_element['id']['acdd_ext']
+        ids = []
+        if acdd_ext_id in ncin.ncattrs():
+            ids = self.separate_repeated(True, eval('ncin.%s' %acdd_ext_id))
+        assert len(relation_types) == len(ids)
+        data = []
+        for i in range(len(ids)):
+            data.append({
+                    'id': ids[i],
+                    'relation_type': relation_types[i],
+                })
+        return data
+
     def to_mmd(self, netcdf_local_path='', *args, **kwargs):
         """
         Method for parsing content of NetCDF file, mapping discovery
@@ -612,6 +630,7 @@ class Nc_to_mmd(object):
         self.metadata['project'] = self.get_projects(mmd_yaml.pop('project'), ncin)
         self.metadata['platform'] = self.get_platforms(mmd_yaml.pop('platform'), ncin)
         self.metadata['dataset_citation'] = self.get_dataset_citations(mmd_yaml.pop('dataset_citation'), ncin)
+        self.metadata['related_dataset'] = self.get_related_dataset(mmd_yaml.pop('related_dataset'), ncin)
 
         # Data access should not be read from the netCDF-CF file
         _ = mmd_yaml.pop('data_access')

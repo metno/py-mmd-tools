@@ -382,6 +382,13 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(data[0]['type'], 'OPeNDAP')
         self.assertEqual(data[1]['type'], 'HTTP')
 
+    def test_related_dataset(self):
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_id_missing.nc')
+        ncin = Dataset('tests/data/reference_nc_id_missing.nc')
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        data = nc2mmd.get_related_dataset(mmd_yaml['related_dataset'], ncin)
+        self.assertEqual(data[0]['id'], 'b7cb7934-77ca-4439-812e-f560df3fe7eb')
+
     def test_missing_id(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         # nc file is missing the id attribute
