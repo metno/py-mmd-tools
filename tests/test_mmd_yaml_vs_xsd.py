@@ -50,9 +50,6 @@ class TestMDDElementsInYAMLAndXSD(unittest.TestCase):
                     yaml_entry = yaml_entry[tde_name]
                     yaml_loginfo = yaml_loginfo + "['%s']" %tde_name
                 self.assertIn(elem['@name'], yaml_entry.keys(), msg='%s: %s' %(yaml_loginfo, elem['@name']))
-                #except AttributeError: #AssertionError:
-                #    import ipdb
-                #    ipdb.set_trace()
                 if elem['@type'].startswith('mmd:'):
                     tmp = type_defs[elem_name].copy()
                     tmp.append(elem['@name'])

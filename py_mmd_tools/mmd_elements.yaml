@@ -217,6 +217,10 @@ data_access:
 related_dataset:
   maxOccurs: unbounded
   minOccurs: '0'
+  relation_type:
+    acdd_ext: related_dataset_relation_type
+  id:
+    acdd_ext: related_dataset_id
 
 storage_information:
   maxOccurs: '1'
