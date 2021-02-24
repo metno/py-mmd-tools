@@ -144,7 +144,7 @@
   {% endif %}
   {% if data['related_dataset'] %}
     {% for related_dataset in data['related_dataset'] %}
-  <mmd:related_dataset relation_type="{{ related_dataset['relation_type'] }}">{{ related_dataset['id'] }}</mmd:related_dataset>
+  <mmd:related_dataset mmd:relation_type="{{ related_dataset['relation_type'] }}">{{ related_dataset['id'] }}</mmd:related_dataset>
     {% endfor %}
   {% endif %}
   {% if data['storage_information'] %}
