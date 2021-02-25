@@ -266,20 +266,20 @@ class Nc_to_mmd(object):
         acdd_start = mmd_element['start_date'].pop('acdd')
         acdd_end = mmd_element['end_date'].pop('acdd')
         data = []
+        start_dates = []
         if acdd_start in ncin.ncattrs():
             start_dates = [eval('ncin.%s' %acdd_start)]
         else:
             self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd_start)
-            return data
+        end_dates = []
         if acdd_end in ncin.ncattrs():
             end_dates = [eval('ncin.%s' %acdd_end)]
-        else:
-            end_dates = []
         
-        try:
-            _ = parse(start_dates[0])
-        except ParserError:
-            start_dates = self.separate_repeated(True, start_dates[0], separator)
+        if start_dates:
+            try:
+                _ = parse(start_dates[0])
+            except ParserError:
+                start_dates = self.separate_repeated(True, start_dates[0], separator)
         if end_dates:
             try:
                 _ = parse(end_dates[0])
