@@ -71,9 +71,9 @@ abstract:
 
 temporal_extent:
   maxOccurs: unbounded
-  minOccurs: '0' # relaxed requirement to allow external datasets with missing start_date
+  minOccurs: '1'
   start_date:
-    default: '1850-01-01T00:00:00Z'
+    #default: '1850-01-01T00:00:00Z'
     acdd: time_coverage_start
     separator: ','
   end_date:
@@ -91,22 +91,22 @@ geographic_extent:
     north:
       maxOccurs: '1'
       minOccurs: '1'
-      default: 90
+      #default: 90
       acdd: geospatial_lat_max
     south:
       maxOccurs: '1'
       minOccurs: '1'
-      default: -90
+      #default: -90
       acdd: geospatial_lat_min
     east:
       maxOccurs: '1'
       minOccurs: '1'
-      default: 180
+      #default: 180
       acdd: geospatial_lon_max
     west:
       maxOccurs: '1'
       minOccurs: '1'
-      default: -180
+      #default: -180
       acdd: geospatial_lon_min
   polygon:
     maxOccurs: '1'
