@@ -529,7 +529,7 @@ class TestNC2MMD(unittest.TestCase):
             md = Nc_to_mmd(file, output_file=tested)
             md.to_mmd()
             valid = xsd_check(xml_file=tested, xsd_schema=self.reference_xsd)
-            self.assertTrue(valid[0])
+            self.assertTrue(valid[0], msg='%s'%valid[1])
 
     def test_create_mmd_missing_publisher_url(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), 

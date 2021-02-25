@@ -180,13 +180,14 @@ class Nc_to_mmd(object):
             if acdd in ncin.ncattrs():
                 data = self.separate_repeated(repetition_allowed, eval('ncin.%s' %acdd), separator)
             elif required:
-                # We allow some missing elements (in particular for datasets from outside MET)
-                if default:
-                    data = default
-                    self.missing_attributes['warnings'].append('Using default value %s for %s' %(str(default), acdd))
-                else:
-                    data = None
-                    self.missing_attributes['errors'].append('%s is a required attribute' %acdd)
+                ## We may allow some missing elements (in particular for datasets from outside MET) but this 
+                ## is currently not needed. The below code is therefore commented..
+                #if default:
+                #    data = default
+                #    self.missing_attributes['warnings'].append('Using default value %s for %s' %(str(default), acdd))
+                #else:
+                data = None
+                self.missing_attributes['errors'].append('%s is a required attribute' %acdd)
 
         return data
 
