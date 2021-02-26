@@ -50,15 +50,25 @@ class TestNC2MMD(unittest.TestCase):
     ##    self.assertTrue(mock_init.called)
     ##    self.assertTrue(mock_to_mmd.called)
 
-    def test_use_defaults_for_geographic_extent(self):
+    def test_missing_geographic_extent(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_acdd_metadata(mmd_yaml['geographic_extent'], ncin, 'geographic_extent')
-        self.assertEqual(value['rectangle']['north'], 90)
-        self.assertEqual(value['rectangle']['south'], -90)
-        self.assertEqual(value['rectangle']['east'], 180)
-        self.assertEqual(value['rectangle']['west'], -180)
+        self.assertEqual(value['rectangle']['north'], None)
+        self.assertEqual(nc2mmd.missing_attributes['errors'][0], 'geospatial_lat_max is a required attribute')
+
+    def test_missing_geographic_extent_but_provided_as_kwarg(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc')
+        with self.assertRaises(AttributeError):
+            nc2mmd.to_mmd(geographic_extent_rectangle={
+                'geospatial_lat_max': 90,
+                'geospatial_lat_min': -90,
+                'geospatial_lon_min': -180,
+                'geospatial_lon_max': 180
+                })
+        self.assertEqual(nc2mmd.metadata['geographic_extent']['rectangle']['north'], 90)
 
     def test_collection_not_set(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'),
@@ -170,12 +180,28 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[0]['email'], 'unknown')
         self.assertEqual(value[0]['organisation'], 'unknown')
 
-    def test_use_defaults_for_temporal_extent(self):
+    def test_missing_temporal_extent(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_temporal_extents(mmd_yaml['temporal_extent'], ncin)
-        self.assertEqual(value[0]['start_date'], '1850-01-01T00:00:00Z')
+        self.assertEqual(value, [])
+        self.assertEqual(nc2mmd.missing_attributes['errors'][0], 'time_coverage_start is a required ACDD attribute')
+
+    def test_missing_temporal_extent_but_start_provided_as_kwarg(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc')
+        with self.assertRaises(AttributeError):
+            nc2mmd.to_mmd(time_coverage_start='1850-01-01T00:00:00Z')
+        self.assertEqual(nc2mmd.metadata['temporal_extent']['start_date'], '1850-01-01T00:00:00Z')
+
+    def test_missing_temporal_extent_but_start_and_end_provided_as_kwargs(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc')
+        with self.assertRaises(AttributeError):
+            nc2mmd.to_mmd(time_coverage_start='1850-01-01T00:00:00Z', time_coverage_end='1950-01-01T00:00:00Z')
+        self.assertEqual(nc2mmd.metadata['temporal_extent']['start_date'], '1850-01-01T00:00:00Z')
+        self.assertEqual(nc2mmd.metadata['temporal_extent']['end_date'], '1950-01-01T00:00:00Z')
 
     def test_temporal_extent_two_startdates(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
@@ -503,7 +529,7 @@ class TestNC2MMD(unittest.TestCase):
             md = Nc_to_mmd(file, output_file=tested)
             md.to_mmd()
             valid = xsd_check(xml_file=tested, xsd_schema=self.reference_xsd)
-            self.assertTrue(valid[0])
+            self.assertTrue(valid[0], msg='%s'%valid[1])
 
     def test_create_mmd_missing_publisher_url(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), 

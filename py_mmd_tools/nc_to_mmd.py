@@ -166,11 +166,11 @@ class Nc_to_mmd(object):
                     data = default
                     if required:
                         self.missing_attributes['warnings'].append('Using default value %s for %s' %(str(default), mmd_element_name))
-                elif not required:
-                    if repetition_allowed:
-                        return []
-                    else:
-                        return None
+                elif not required and not repetition_allowed:
+                    data = None
+                #        return data
+                #    else:
+                #        return None
             else:
                 data = {}
                 for key, val in mmd_element.items():
@@ -180,11 +180,14 @@ class Nc_to_mmd(object):
             if acdd in ncin.ncattrs():
                 data = self.separate_repeated(repetition_allowed, eval('ncin.%s' %acdd), separator)
             elif required:
-                # We allow some missing elements (in particular for datasets from outside MET)
-                data = default
-                self.missing_attributes['warnings'].append('Using default value %s for %s' %(str(default), mmd_element_name))
-            else:
-                return
+                ## We may allow some missing elements (in particular for datasets from outside MET) but this 
+                ## is currently not needed. The below code is therefore commented..
+                #if default:
+                #    data = default
+                #    self.missing_attributes['warnings'].append('Using default value %s for %s' %(str(default), acdd))
+                #else:
+                data = None
+                self.missing_attributes['errors'].append('%s is a required attribute' %acdd)
 
         return data
 
@@ -253,7 +256,7 @@ class Nc_to_mmd(object):
             abstracts = self.separate_repeated(True, eval('ncin.%s' %acdd), separator)
         else:
             self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd)
-            return
+            return data
         for abstract in abstracts:
             data.append({'abstract': abstract, 'lang': mmd_element['lang']['default']})
         return data
@@ -262,26 +265,27 @@ class Nc_to_mmd(object):
         separator = mmd_element['start_date'].pop('separator')
         acdd_start = mmd_element['start_date'].pop('acdd')
         acdd_end = mmd_element['end_date'].pop('acdd')
+        data = []
+        start_dates = []
         if acdd_start in ncin.ncattrs():
             start_dates = [eval('ncin.%s' %acdd_start)]
         else:
-            start_dates = [mmd_element['start_date'].pop('default')]
+            self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd_start)
+        end_dates = []
         if acdd_end in ncin.ncattrs():
             end_dates = [eval('ncin.%s' %acdd_end)]
-        else:
-            end_dates = []
         
-        try:
-            _ = parse(start_dates[0])
-        except ParserError:
-            start_dates = self.separate_repeated(True, start_dates[0], separator)
+        if start_dates:
+            try:
+                _ = parse(start_dates[0])
+            except ParserError:
+                start_dates = self.separate_repeated(True, start_dates[0], separator)
         if end_dates:
             try:
                 _ = parse(end_dates[0])
             except ParserError:
                 end_dates = self.separate_repeated(True, end_dates[0], separator)
 
-        data = []
         for i in range(len(start_dates)):
             t_ext = {}
             t_ext['start_date'] = start_dates[i]
@@ -503,6 +507,7 @@ class Nc_to_mmd(object):
         it arrives.
         """
         acdd_author = mmd_element['author'].pop('acdd')
+        authors = []
         if acdd_author in ncin.ncattrs():
             authors = eval('ncin.%s' %acdd_author)
 
@@ -605,15 +610,39 @@ class Nc_to_mmd(object):
         return data
 
     def to_mmd(self, netcdf_local_path='', *args, **kwargs):
+        """Method for parsing and mapping NetCDF attributes to MMD.
+
+        Some times the data producers have missed some required elements in their netCDF attributes. These are possible to override by adding certain optional keyword arguments (see below parameter list).
+
+        Parameters
+        ----------
+        netcdf_local_path   : str, optional
+        time_coverage_start : str, optional
+            The start date and time, in iso8601 format, for data collection or model coverage.
+        time_coverage_end   : str, optional
+            The end date and time, in iso8601 format, for data collection or model coverage.
+        geographic_extent_rectangle : dict, optional
+            The geographic extent of the datasets defined as a rectangle in lat/lon projection. The extent is defined using the following child elements: {
+                'geospatial_lat_max': geospatial_lat_max - The northernmost point covered by the dataset.
+                'geospatial_lat_min': geospatial_lat_min - The southernmost point covered by the dataset.
+                'geospatial_lon_min': geospatial_lon_min - The easternmost point covered by the dataset.
+                'geospatial_lon_max': geospatial_lon_max - The westernmost point covered by the dataset.
+            }
+
+        This list can be extended but requires some new code...
         """
-        Method for parsing content of NetCDF file, mapping discovery
-        metadata to MMD, and writes MMD to disk.
-        """
+        # kwargs that were not added in the function def:
+        time_coverage_start = kwargs.pop('time_coverage_start', '')
+        time_coverage_end = kwargs.pop('time_coverage_end', '')
+        geographic_extent_rectangle = kwargs.pop('geographic_extent_rectangle', '')
+
+        # Open netcdf file for reading
         try:
             ncin = Dataset(self.netcdf_product)
         except OSError:
             ncin = Dataset(self.netcdf_product+'#fillmismatch')
 
+        # Get list of MMD elements
         self.metadata = {}
         mmd_yaml = yaml.load(resource_string(self.__module__.split('.')[0], 'mmd_elements.yaml'), Loader=yaml.FullLoader)
 
@@ -624,14 +653,30 @@ class Nc_to_mmd(object):
                 mmd_yaml.pop('last_metadata_update'), ncin)
         self.metadata['title'] = self.get_titles(mmd_yaml.pop('title'), ncin)
         self.metadata['abstract'] = self.get_abstracts(mmd_yaml.pop('abstract'), ncin)
-        self.metadata['temporal_extent'] = self.get_temporal_extents(mmd_yaml.pop('temporal_extent'), ncin)
+        if time_coverage_start:
+            self.metadata['temporal_extent'] = {'start_date': time_coverage_start}
+            if time_coverage_end:
+                self.metadata['temporal_extent']['end_date'] = time_coverage_end
+            mmd_yaml.pop('temporal_extent')
+        else:
+            self.metadata['temporal_extent'] = self.get_temporal_extents(mmd_yaml.pop('temporal_extent'), ncin)
         self.metadata['personnel'] = self.get_personnel(mmd_yaml.pop('personnel'), ncin)
         self.metadata['keywords'] = self.get_keywords(mmd_yaml.pop('keywords'), ncin)
         self.metadata['project'] = self.get_projects(mmd_yaml.pop('project'), ncin)
         self.metadata['platform'] = self.get_platforms(mmd_yaml.pop('platform'), ncin)
         self.metadata['dataset_citation'] = self.get_dataset_citations(mmd_yaml.pop('dataset_citation'), ncin)
         self.metadata['related_dataset'] = self.get_related_dataset(mmd_yaml.pop('related_dataset'), ncin)
-
+        if geographic_extent_rectangle:
+            self.metadata['geographic_extent'] = {
+                    'rectangle': {
+                        'srsName': 'EPSG:4326',
+                        'north': geographic_extent_rectangle['geospatial_lat_max'],
+                        'south': geographic_extent_rectangle['geospatial_lat_min'],
+                        'west': geographic_extent_rectangle['geospatial_lon_min'],
+                        'east': geographic_extent_rectangle['geospatial_lon_max']
+                    }
+                }
+            mmd_yaml.pop('geographic_extent')
         # Data access should not be read from the netCDF-CF file
         _ = mmd_yaml.pop('data_access')
         # Add OPeNDAP data_access if "netcdf_product" is OPeNDAP url
