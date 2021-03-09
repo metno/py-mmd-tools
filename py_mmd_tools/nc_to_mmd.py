@@ -407,11 +407,10 @@ class Nc_to_mmd(object):
         else:
             self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd_keyword)
         data = []
-        resource = ''
         for vocabulary in vocabularies:
             prefix = vocabulary.split(':')[0]
-            resource = [r.replace(prefix+':','') for r in resources if prefix in r][0]
-            keywords_this = [k.replace(prefix+':','') for k in keywords if prefix in k]
+            resource = [r.replace(prefix+':','') if prefix in r else r for r in resources][0]
+            keywords_this = [k.replace(prefix+':','') if prefix in k else k for k in keywords]
             for keyword in keywords_this:
                 data.append({'resource': resource, 'keyword': keyword, 'vocabulary': prefix})
         return data
