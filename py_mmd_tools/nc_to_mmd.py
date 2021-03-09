@@ -407,17 +407,12 @@ class Nc_to_mmd(object):
         else:
             self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd_keyword)
         data = []
-        resource = ''
-        for i in range(len(keywords)):
-            if len(resources)<=i:
-                resource = resource
-            else:
-                resource = resources[i]
-            if len(vocabularies)<=i:
-                vocabulary = vocabularies
-            else:
-                vocabulary = vocabularies[i]
-            data.append({'resource': resource, 'keyword': keywords[i], 'vocabulary': vocabulary})
+        for vocabulary in vocabularies:
+            prefix = vocabulary.split(':')[0]
+            resource = [r.replace(prefix+':','') if prefix in r else r for r in resources][0]
+            keywords_this = [k.replace(prefix+':','') if prefix in k else k for k in keywords]
+            for keyword in keywords_this:
+                data.append({'resource': resource, 'keyword': keyword, 'vocabulary': prefix})
         return data
 
     def get_projects(self, mmd_element, ncin):
