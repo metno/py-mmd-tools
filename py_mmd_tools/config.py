@@ -3,7 +3,8 @@
 PY-MMD-TOOLS : Package Config Class
 ==============================
 
-Copyright 2020–2021 MET Norway
+License:
+     This file is part of the py-mmd-tools repository (https://github.com/metno/py-mmd-tools). py-mmd-tools is licensed under the Apache License 2.0 (https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
