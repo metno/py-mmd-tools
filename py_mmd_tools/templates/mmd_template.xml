@@ -40,11 +40,13 @@
   {% for iso_topic_category in data['iso_topic_category'] %}
   <mmd:iso_topic_category>{{ iso_topic_category }}</mmd:iso_topic_category>
   {% endfor %}
-  {% for keyword in data['keywords'] %}
-  <mmd:keywords vocabulary="{{ keyword['vocabulary'] }}">
-    <mmd:keyword>{{ keyword['keyword'] }}</mmd:keyword>
-    <mmd:resource>{{ keyword['resource'] }}</mmd:resource>
-    <mmd:separator>{{ keyword['separator'] }}</mmd:separator>
+  {% for vocabulary in data['keywords'] %}
+  <mmd:keywords vocabulary="{{ vocabulary['vocabulary'] }}">
+      {% for keyword in vocabulary['keyword'] %}
+    <mmd:keyword>{{ keyword }}</mmd:keyword>
+      {% endfor %}
+    <mmd:resource>{{ vocabulary['resource'] }}</mmd:resource>
+    <mmd:separator>{{ vocabulary['separator'] }}</mmd:separator>
   </mmd:keywords>
   {% endfor %}
   <mmd:geographic_extent>

@@ -333,7 +333,11 @@ class TestNC2MMD(unittest.TestCase):
         value = nc2mmd.get_keywords(mmd_yaml['keywords'], ncin)
         self.assertEqual(value[0]['vocabulary'], 'GCMD')
         self.assertEqual(value[0]['resource'], 'https://gcmdservices.gsfc.nasa.gov/static/kms/')
-        self.assertEqual(value[0]['keyword'], 'Earth Science > Atmosphere > Atmospheric radiation')
+        self.assertEqual(value[0]['keyword'], ['Earth Science > Atmosphere > Atmospheric radiation'])
+        self.assertEqual(value[1]['vocabulary'], 'GEMET')
+        self.assertEqual(value[1]['resource'], 'http://inspire.ec.europa.eu/theme')
+        self.assertEqual(value[1]['keyword'], ['Meteorological geographical features', 
+            'Atmospheric conditions', 'Oceanographic geographical features'])
 
     def test_keywords_multiple(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
@@ -342,7 +346,8 @@ class TestNC2MMD(unittest.TestCase):
         value = nc2mmd.get_keywords(mmd_yaml['keywords'], ncin)
         self.assertEqual(value[0]['vocabulary'], 'GCMD')
         self.assertEqual(value[0]['resource'], 'https://gcmdservices.gsfc.nasa.gov/static/kms/')
-        self.assertEqual(value[0]['keyword'], 'Earth Science > Atmosphere > Atmospheric radiation')
+        self.assertEqual(value[0]['keyword'], ['Earth Science > Atmosphere > Atmospheric radiation', 
+            'EARTH SCIENCE > BIOLOGICAL CLASSIFICATION > ANIMALS/VERTEBRATES'])
 
     def test_platforms(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
@@ -378,7 +383,7 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
-        self.assertEqual(value[0]['title'], ncin.getncattr('title'))
+        self.assertEqual(value[0]['title'], 'Direct Broadcast data processed in satellite swath to L1C.')
 
     @patch('py_mmd_tools.nc_to_mmd.Dataset')
     def test_oserror_opendap(self, mock_nc_dataset):
@@ -569,6 +574,7 @@ class TestNC2MMD(unittest.TestCase):
         value = nc2mmd.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
         dt = datetime.datetime.strptime(value[0]['publication_date'], format)
         self.assertEqual(dt, datetime.datetime(2020, 11, 27, 0, 0))
+        self.assertEqual(value[0]['title'], 'Direct Broadcast data processed in satellite swath to L1C.')
 
     def test_checksum(self):
         tested = tempfile.mkstemp()[1]

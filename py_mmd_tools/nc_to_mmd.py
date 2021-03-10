@@ -415,10 +415,13 @@ class Nc_to_mmd(object):
         data = []
         for vocabulary in vocabularies:
             prefix = vocabulary.split(':')[0]
-            resource = [r.replace(prefix+':','') if prefix in r else r for r in resources][0]
-            keywords_this = [k.replace(prefix+':','') if prefix in k else k for k in keywords]
-            for keyword in keywords_this:
-                data.append({'resource': resource, 'keyword': keyword, 'vocabulary': prefix})
+            if len(vocabularies)>1:
+                resource = [r.replace(prefix+':','') for r in resources if prefix in r][0]
+                keywords_this = [k.replace(prefix+':','') for k in keywords if prefix in k]
+            else:
+                resource = resources[0]
+                keywords_this = keywords
+            data.append({'resource': resource, 'keyword': keywords_this, 'vocabulary': prefix})
         return data
 
     def get_projects(self, mmd_element, ncin):
@@ -518,7 +521,8 @@ class Nc_to_mmd(object):
             publication_dates = self.separate_repeated(True, eval('ncin.%s' %acdd_publication_date))
         acdd_title = mmd_element['title'].pop('acdd')
         if acdd_title in ncin.ncattrs():
-            titles = self.separate_repeated(True, eval('ncin.%s' %acdd_title))
+            sep = mmd_element['title'].pop('separator')
+            titles = self.separate_repeated(True, eval('ncin.%s' %acdd_title), separator=sep)
         acdd_url = mmd_element['url'].pop('acdd')
         urls = []
         if acdd_url in ncin.ncattrs():
@@ -530,7 +534,8 @@ class Nc_to_mmd(object):
         data = []
         for i in range(len(publication_dates)):
             publication_date = parse(publication_dates[i]).strftime('%Y-%m-%d')
-            title = titles[i]
+            prefix = 'en'
+            title = [r.replace(prefix+':','') if prefix in r else r for r in titles][0]
             if len(urls)<=i:
                 url = ''
             else:
