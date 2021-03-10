@@ -320,7 +320,7 @@ dataset_citation:
     separator: ','
     acdd: date_created
   title:
-    separator: ','
+    separator: ';'
     acdd: title
   series:
   edition:
