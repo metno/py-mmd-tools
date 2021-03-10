@@ -245,7 +245,10 @@ class Nc_to_mmd(object):
         data = []
         titles = self.separate_repeated(True, eval('ncin.%s' %acdd), separator)
         for title in titles:
-            data.append({'title': title, 'lang': mmd_element['lang']['default']})
+            title_list = title.split(':')
+            title_lang = title_list[0]
+            title_desc = title_list[1]
+            data.append({'title': title_desc, 'lang': title_lang})
         return data
 
     def get_abstracts(self, mmd_element, ncin):
@@ -258,7 +261,10 @@ class Nc_to_mmd(object):
             self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd)
             return data
         for abstract in abstracts:
-            data.append({'abstract': abstract, 'lang': mmd_element['lang']['default']})
+            abstract_list = abstract.split(':')
+            abstract_lang = abstract_list[0]
+            abstract_desc = abstract_list[1]
+            data.append({'abstract': abstract_desc, 'lang': abstract_lang})
         return data
 
     def get_temporal_extents(self, mmd_element, ncin):
