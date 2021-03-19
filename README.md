@@ -3,7 +3,7 @@
 
 # py-mmd-tools
 
-Python tools for MMD
+Python tools for MMD.
 
 To run the tests locally:
 ```
