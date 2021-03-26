@@ -240,31 +240,35 @@ class Nc_to_mmd(object):
         return data
 
     def get_titles(self, mmd_element, ncin):
-        acdd = mmd_element['title'].pop('acdd')
-        separator = mmd_element['title'].pop('separator')
-        data = []
-        titles = self.separate_repeated(True, eval('ncin.%s' %acdd), separator)
-        for title in titles:
-            title_list = title.split(':')
-            title_lang = title_list[0]
-            title_desc = title_list[1]
-            data.append({'title': title_desc, 'lang': title_lang})
-        return data
+        return self.get_title_or_abstract('title', mmd_element, ncin)
 
     def get_abstracts(self, mmd_element, ncin):
-        acdd = mmd_element['abstract'].pop('acdd')
-        separator = mmd_element.pop('separator')
+        return self.get_title_or_abstract('abstract', mmd_element, ncin)
+
+    def get_title_or_abstract(self, elem_name, mmd_element, ncin):
+        acdd = mmd_element[elem_name].pop('acdd')
+        separator = mmd_element[elem_name].pop('separator')
+        acdd_ext_lang = mmd_element['lang'].pop('acdd_ext')
+        lang_sep = mmd_element['lang'].pop('separator')
         data = []
         if acdd in ncin.ncattrs():
-            abstracts = self.separate_repeated(True, eval('ncin.%s' %acdd), separator)
+            contents = self.separate_repeated(True, eval('ncin.%s' %acdd), separator)
         else:
             self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd)
             return data
-        for abstract in abstracts:
-            abstract_list = abstract.split(':')
-            abstract_lang = abstract_list[0]
-            abstract_desc = abstract_list[1]
-            data.append({'abstract': abstract_desc, 'lang': abstract_lang})
+        if acdd_ext_lang in ncin.ncattrs():
+            content_langs = self.separate_repeated(True, eval('ncin.%s' %acdd_ext_lang), lang_sep)
+        else:
+            content_langs = ['en']
+        for i in range(len(contents)):
+            content_list = contents[i].split(':')
+            if len(content_list) > 1:
+                content_lang = content_list[0]
+                content_desc = content_list[1]
+            else:
+                content_lang = content_langs[i]
+                content_desc = contents[i]
+            data.append({elem_name: content_desc, 'lang': content_lang})
         return data
 
     def get_temporal_extents(self, mmd_element, ncin):
@@ -350,12 +354,12 @@ class Nc_to_mmd(object):
                 emails.extend([mmd_element['email']['default']])
             # Get organisations
             if len(acdd_organisations)>1:
-                acdd_organisation = [organisation for organisation in acdd_organisations if acdd_main in organisation][0]
-            else:
-                acdd_organisation = acdd_organisations[0]
-            if acdd_organisation and acdd_organisation in ncin.ncattrs():
-                these_orgs = self.separate_repeated(True, eval('ncin.%s' %acdd_organisation))
-            else:
+                acdd_organisations = [organisation for organisation in acdd_organisations if acdd_main in organisation]
+            these_orgs = []
+            for org_elem in acdd_organisations:
+                if org_elem and org_elem in ncin.ncattrs():
+                    these_orgs.extend(self.separate_repeated(True, eval('ncin.%s' %org_elem)))
+            if not these_orgs:
                 these_orgs = [mmd_element['organisation']['default']]
             if not len(these_orgs)==len(these_names):
                 for i in range(len(these_names)):

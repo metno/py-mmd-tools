@@ -110,6 +110,16 @@ class TestNC2MMD(unittest.TestCase):
         self.assertTrue('lang' in value[0].keys())
         self.assertTrue('title' in value[0].keys())
 
+    def test_title_one_language_only(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'),
+                Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_id_missing.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_titles(mmd_yaml['title'], ncin)
+        self.assertEqual(type(value), list)
+        self.assertTrue('lang' in value[0].keys())
+        self.assertTrue('title' in value[0].keys())
+
     def test_data_center(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'),
                 Loader=yaml.FullLoader)
@@ -252,6 +262,8 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[0]['email'], 'trygve@meti.no')
         self.assertEqual(value[1]['email'], 'post@met.no')
         self.assertEqual(value[2]['email'], 'morten@met.no')
+        self.assertEqual(value[0]['organisation'], 'MET NORWAY')
+        self.assertEqual(value[1]['organisation'], 'MET NORWAY')
         self.assertEqual(value[2]['organisation'], 'MET NORWAY')
         self.assertEqual(value[0]['role'], 'Investigator')
         self.assertEqual(value[1]['role'], 'Technical contact')

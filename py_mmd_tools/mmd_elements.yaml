@@ -65,7 +65,7 @@ abstract:
     separator: ';'
   lang:
     minOccurs: '1'
-    acdd_ext: abstract_lang
+    acdd_ext: summary_lang
     separator: ','
     default: en
 
@@ -178,7 +178,9 @@ personnel:
     default: 'unknown'
     separator: ','
     acdd: creator_institution
-    acdd_ext: contributor_organisation
+    acdd_ext: 
+      - contributor_institution
+      - contributor_organisation
   contact_address:
     address:
     city:
