@@ -366,8 +366,17 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_platforms(mmd_yaml['platform'], ncin)
-        self.assertEqual(value[0]['long_name'], 'SNPP')
-        self.assertEqual(value[0]['instrument']['long_name'], 'VIIRS')
+        self.assertEqual(value[0]['long_name'], 'Suomi National Polar-orbiting Partnership')
+        self.assertEqual(value[0]['instrument']['long_name'], 'Visible/Infrared Imager Radiometer Suite')
+
+    def test_platform_with_gcmd_vocabulary(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_gcmd_platform.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_platforms(mmd_yaml['platform'], ncin)
+        self.assertEqual(value[0]['short_name'], 'Sentinel-1B')
+        self.assertEqual(value[0]['long_name'], 'Sentinel-1B')
+        self.assertEqual(value[0]['instrument']['long_name'], 'Synthetic Aperture Radar')
 
     def test_projects(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)

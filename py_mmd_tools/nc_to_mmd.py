@@ -15,6 +15,7 @@ import yaml
 import jinja2
 import wget
 import pandas as pd
+import pythesint as pti
 
 from filehash import FileHash
 from pkg_resources import resource_string
@@ -445,17 +446,35 @@ class Nc_to_mmd(object):
                 })
         return data
 
+    def get_gcmd_platforms(self, platforms, platform_resource, instruments, instrument_resource):
+        data = []
+        for i in range(len(platforms)):
+            pp_dict = pti.get_gcmd_platform([elem.strip() for elem in platforms[i].split('>')][-1])
+            ii_dict = pti.get_gcmd_instrument([elem.strip() for elem in instruments[i].split('>')][-1])
+            data.append({
+                'short_name': pp_dict['Short_Name'],
+                'long_name': pp_dict['Long_Name'],
+                'resource': platform_resource,
+                'instrument': {
+                    'short_name': ii_dict['Short_Name'], 
+                    'long_name': ii_dict['Long_Name'], 
+                    'resource': instrument_resource,
+                }
+            })
+        return data
+
     def get_platforms(self, mmd_element, ncin):
+        """ Get dict with MMD entries for the observation platform.
+
+        NOTE: This function should be rewritten according to a solution to https://github.com/metno/py-mmd-tools/issues/72
+        """
         short_names = []
         acdd_short_name = mmd_element['short_name'].pop('acdd')
         if acdd_short_name in ncin.ncattrs():
             short_names = self.separate_repeated(True, eval('ncin.%s' %acdd_short_name))
 
-        long_names = []
-        acdd_long_name = mmd_element['long_name'].pop('acdd')
-        if acdd_long_name in ncin.ncattrs():
-            long_names = self.separate_repeated(True, eval('ncin.%s' %acdd_long_name))
-
+        # There is only one entry for platform and instrument in ACDD - we need to use a controlled vocabulary to get the correct values
+        # That is easy if the controlled vocabulary is GCMD but in other cases we may depend on a solution to https://github.com/metno/py-mmd-tools/issues/72
         resources = []
         acdd_resource = mmd_element['resource'].pop('acdd')
         if acdd_resource in ncin.ncattrs():
@@ -466,46 +485,54 @@ class Nc_to_mmd(object):
         if acdd_instrument_short_name in ncin.ncattrs():
             ishort_names = self.separate_repeated(True, eval('ncin.%s' %acdd_instrument_short_name))
 
-        ilong_names = []
-        acdd_instrument_long_name = mmd_element['instrument']['long_name'].pop('acdd')
-        if acdd_instrument_long_name in ncin.ncattrs():
-            ilong_names = self.separate_repeated(True, eval('ncin.%s' %acdd_instrument_long_name))
-
         iresources = []
         acdd_instrument_resource = mmd_element['instrument']['resource'].pop('acdd')
         if acdd_instrument_resource in ncin.ncattrs():
             iresources = self.separate_repeated(True, eval('ncin.%s' %acdd_instrument_resource))
 
-        data = []
-        for i in range(len(long_names)):
-            short_name = short_names[i]
-            long_name = long_names[i]
-            if len(resources)<=i:
-                resource = ''
-            else:
-                resource = resources[i]
-            if len(ishort_names)<=i:
-                ishort_name = ''
-            else:
-                ishort_name = ishort_names[i]
-            if len(ilong_names)<=i:
-                ilong_name = ''
-            else:
-                ilong_name = ilong_names[i]
-            if len(iresources)<=i:
-                iresource = ''
-            else:
-                iresource = iresources[i]
-            data.append({
-                'short_name': short_name,
-                'long_name': long_name,
-                'resource': resource,
-                'instrument': {
-                    'short_name': ishort_name, 
-                    'long_name': ilong_name, 
-                    'resource': iresource,
-                    }
-                })
+        if resources and 'gcmd' in resources[0].lower():
+            data = self.get_gcmd_platforms(short_names, resources[0], ishort_names, iresources[0])
+        else:
+            long_names = []
+            acdd_long_name = mmd_element['long_name'].pop('acdd')
+            if acdd_long_name in ncin.ncattrs():
+                long_names = self.separate_repeated(True, eval('ncin.%s' %acdd_long_name))
+
+            ilong_names = []
+            acdd_instrument_long_name = mmd_element['instrument']['long_name'].pop('acdd')
+            if acdd_instrument_long_name in ncin.ncattrs():
+                ilong_names = self.separate_repeated(True, eval('ncin.%s' %acdd_instrument_long_name))
+
+            data = []
+            for i in range(len(long_names)):
+                short_name = short_names[i]
+                long_name = long_names[i]
+                if len(resources)<=i:
+                    resource = ''
+                else:
+                    resource = resources[i]
+                if len(ishort_names)<=i:
+                    ishort_name = ''
+                else:
+                    ishort_name = ishort_names[i]
+                if len(ilong_names)<=i:
+                    ilong_name = ''
+                else:
+                    ilong_name = ilong_names[i]
+                if len(iresources)<=i:
+                    iresource = ''
+                else:
+                    iresource = iresources[i]
+                data.append({
+                    'short_name': short_name,
+                    'long_name': long_name,
+                    'resource': resource,
+                    'instrument': {
+                        'short_name': ishort_name, 
+                        'long_name': ilong_name, 
+                        'resource': iresource,
+                        }
+                    })
         return data
 
     def get_dataset_citations(self, mmd_element, ncin):
