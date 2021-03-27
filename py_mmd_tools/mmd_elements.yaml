@@ -111,6 +111,7 @@ geographic_extent:
   polygon:
     maxOccurs: '1'
     minOccurs: '0'
+    acdd: geospatial_bounds
 
 location:
   maxOccurs: '0'

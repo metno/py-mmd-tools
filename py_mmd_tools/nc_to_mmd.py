@@ -16,6 +16,7 @@ import jinja2
 import wget
 import pandas as pd
 import pythesint as pti
+import shapely.wkt
 
 from filehash import FileHash
 from pkg_resources import resource_string
@@ -646,6 +647,36 @@ class Nc_to_mmd(object):
                 })
         return data
 
+    def get_geographic_extent_polygon(self, mmd_element, ncin):
+        acdd = mmd_element['acdd']
+        if not acdd in ncin.ncattrs():
+            return None
+        wkt = eval('ncin.%s'%acdd)
+        pp = shapely.wkt.loads(wkt)
+        lat = pp.exterior.coords.xy[0]
+        lon = pp.exterior.coords.xy[1]
+        pos = []
+        for i in range(len(lat)):
+            pos.append('%.2f %.2f'%(lat[i], lon[i]))
+        data = {
+                'srsName': ncin.geospatial_bounds_crs,
+                'pos': pos
+            }
+        return data
+
+    def get_geographic_extent_rectangle(self, mmd_element, ncin):
+        data = {}
+        acdd_north = mmd_element['north']['acdd']
+        acdd_south = mmd_element['south']['acdd']
+        acdd_east = mmd_element['east']['acdd']
+        acdd_west = mmd_element['west']['acdd']
+        data['srsName'] = mmd_element['srsName']['default']
+        data['north'] = eval('ncin.%s' %acdd_north)
+        data['south'] = eval('ncin.%s' %acdd_south)
+        data['east'] = eval('ncin.%s' %acdd_east)
+        data['west'] = eval('ncin.%s' %acdd_west)
+        return data
+
     def to_mmd(self, netcdf_local_path='', *args, **kwargs):
         """Method for parsing and mapping NetCDF attributes to MMD.
 
@@ -703,17 +734,24 @@ class Nc_to_mmd(object):
         self.metadata['platform'] = self.get_platforms(mmd_yaml.pop('platform'), ncin)
         self.metadata['dataset_citation'] = self.get_dataset_citations(mmd_yaml.pop('dataset_citation'), ncin)
         self.metadata['related_dataset'] = self.get_related_dataset(mmd_yaml.pop('related_dataset'), ncin)
+        # Optionally add geographic extent
+        self.metadata['geographic_extent'] = {}
         if geographic_extent_rectangle:
-            self.metadata['geographic_extent'] = {
-                    'rectangle': {
+            self.metadata['geographic_extent']['rectangle'] = {
                         'srsName': 'EPSG:4326',
                         'north': geographic_extent_rectangle['geospatial_lat_max'],
                         'south': geographic_extent_rectangle['geospatial_lat_min'],
                         'west': geographic_extent_rectangle['geospatial_lon_min'],
                         'east': geographic_extent_rectangle['geospatial_lon_max']
                     }
-                }
-            mmd_yaml.pop('geographic_extent')
+            mmd_yaml['geographic_extent'].pop('rectangle')
+        else:
+            self.metadata['geographic_extent']['rectangle'] = self.get_geographic_extent_rectangle(mmd_yaml['geographic_extent'].pop('rectangle'), ncin)
+        # Check for geographic_extent/polygon
+        polygon = self.get_geographic_extent_polygon(mmd_yaml['geographic_extent'].pop('polygon'), ncin)
+        if polygon:
+            self.metadata['geographic_extent']['polygon'] = polygon
+        mmd_yaml.pop('geographic_extent')
         # Data access should not be read from the netCDF-CF file
         _ = mmd_yaml.pop('data_access')
         # Add OPeNDAP data_access if "netcdf_product" is OPeNDAP url

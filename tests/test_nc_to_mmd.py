@@ -50,6 +50,14 @@ class TestNC2MMD(unittest.TestCase):
     ##    self.assertTrue(mock_init.called)
     ##    self.assertTrue(mock_to_mmd.called)
 
+    def test_geographic_extent_polygon(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_geographic_extent_polygon(mmd_yaml['geographic_extent']['polygon'], ncin)
+        self.assertEqual(value['srsName'], 'EPSG:4326')
+        self.assertEqual(value['pos'][0], '69.00 3.79')
+
     def test_missing_geographic_extent(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc')

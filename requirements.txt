@@ -14,5 +14,6 @@ python-dateutil
 #pythesint
 pyyaml
 requests
+shapely
 wget
 xmltodict
