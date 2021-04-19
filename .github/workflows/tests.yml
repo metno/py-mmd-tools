@@ -10,8 +10,6 @@ on:
 env:
   CODECOV: true
 
-#CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-         
 jobs:
   build:
 
