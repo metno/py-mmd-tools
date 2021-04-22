@@ -93,7 +93,9 @@ if __name__ == "__main__":
         #        logger.info(f'NOK - File {xml_file} not valid.')
         #        logger.debug(e)
         if raise_error_if_invalid and not valid:
-            raise Exception
+            raise Exception('Invalid xml file - please check the log..')
 
     if fcount == 0:
         logger.info(f'No xml files found in {args.input}')
+
+    logger.info(f'OK - The xml file is valid')

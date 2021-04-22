@@ -58,7 +58,15 @@
     </mmd:rectangle>
     {% if data['geographic_extent']['polygon'] %}
     <mmd:polygon>
-      {{ data['geographic_extent']['polygon'] }} <!-- there is large freedom in how to define a polygon, so best to use xml code from the dict -->
+      <gml:Polygon id="polygon" srsName="{{ data['geographic_extent']['polygon']['srsName'] }}">
+        <gml:exterior>
+          <gml:LinearRing>
+        {% for pos in data['geographic_extent']['polygon']['pos'] %}
+            <gml:pos>{{ pos }}</gml:pos>
+        {% endfor %}
+          </gml:LinearRing>
+        </gml:exterior>
+      </gml:Polygon>
     </mmd:polygon>
     {% endif %}
   </mmd:geographic_extent>

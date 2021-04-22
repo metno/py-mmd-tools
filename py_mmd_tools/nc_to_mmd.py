@@ -15,6 +15,8 @@ import yaml
 import jinja2
 import wget
 import pandas as pd
+import pythesint as pti
+import shapely.wkt
 
 from filehash import FileHash
 from pkg_resources import resource_string
@@ -240,31 +242,35 @@ class Nc_to_mmd(object):
         return data
 
     def get_titles(self, mmd_element, ncin):
-        acdd = mmd_element['title'].pop('acdd')
-        separator = mmd_element['title'].pop('separator')
-        data = []
-        titles = self.separate_repeated(True, eval('ncin.%s' %acdd), separator)
-        for title in titles:
-            title_list = title.split(':')
-            title_lang = title_list[0]
-            title_desc = title_list[1]
-            data.append({'title': title_desc, 'lang': title_lang})
-        return data
+        return self.get_title_or_abstract('title', mmd_element, ncin)
 
     def get_abstracts(self, mmd_element, ncin):
-        acdd = mmd_element['abstract'].pop('acdd')
-        separator = mmd_element.pop('separator')
+        return self.get_title_or_abstract('abstract', mmd_element, ncin)
+
+    def get_title_or_abstract(self, elem_name, mmd_element, ncin):
+        acdd = mmd_element[elem_name].pop('acdd')
+        separator = mmd_element[elem_name].pop('separator')
+        acdd_ext_lang = mmd_element['lang'].pop('acdd_ext')
+        lang_sep = mmd_element['lang'].pop('separator')
         data = []
         if acdd in ncin.ncattrs():
-            abstracts = self.separate_repeated(True, eval('ncin.%s' %acdd), separator)
+            contents = self.separate_repeated(True, eval('ncin.%s' %acdd), separator)
         else:
             self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd)
             return data
-        for abstract in abstracts:
-            abstract_list = abstract.split(':')
-            abstract_lang = abstract_list[0]
-            abstract_desc = abstract_list[1]
-            data.append({'abstract': abstract_desc, 'lang': abstract_lang})
+        if acdd_ext_lang in ncin.ncattrs():
+            content_langs = self.separate_repeated(True, eval('ncin.%s' %acdd_ext_lang), lang_sep)
+        else:
+            content_langs = ['en']
+        for i in range(len(contents)):
+            content_list = contents[i].split(':')
+            if len(content_list) > 1:
+                content_lang = content_list[0]
+                content_desc = content_list[1]
+            else:
+                content_lang = content_langs[i]
+                content_desc = contents[i]
+            data.append({elem_name: content_desc, 'lang': content_lang})
         return data
 
     def get_temporal_extents(self, mmd_element, ncin):
@@ -350,12 +356,12 @@ class Nc_to_mmd(object):
                 emails.extend([mmd_element['email']['default']])
             # Get organisations
             if len(acdd_organisations)>1:
-                acdd_organisation = [organisation for organisation in acdd_organisations if acdd_main in organisation][0]
-            else:
-                acdd_organisation = acdd_organisations[0]
-            if acdd_organisation and acdd_organisation in ncin.ncattrs():
-                these_orgs = self.separate_repeated(True, eval('ncin.%s' %acdd_organisation))
-            else:
+                acdd_organisations = [organisation for organisation in acdd_organisations if acdd_main in organisation]
+            these_orgs = []
+            for org_elem in acdd_organisations:
+                if org_elem and org_elem in ncin.ncattrs():
+                    these_orgs.extend(self.separate_repeated(True, eval('ncin.%s' %org_elem)))
+            if not these_orgs:
                 these_orgs = [mmd_element['organisation']['default']]
             if not len(these_orgs)==len(these_names):
                 for i in range(len(these_names)):
@@ -441,17 +447,35 @@ class Nc_to_mmd(object):
                 })
         return data
 
+    def get_gcmd_platforms(self, platforms, platform_resource, instruments, instrument_resource):
+        data = []
+        for i in range(len(platforms)):
+            pp_dict = pti.get_gcmd_platform([elem.strip() for elem in platforms[i].split('>')][-1])
+            ii_dict = pti.get_gcmd_instrument([elem.strip() for elem in instruments[i].split('>')][-1])
+            data.append({
+                'short_name': pp_dict['Short_Name'],
+                'long_name': pp_dict['Long_Name'],
+                'resource': platform_resource,
+                'instrument': {
+                    'short_name': ii_dict['Short_Name'], 
+                    'long_name': ii_dict['Long_Name'], 
+                    'resource': instrument_resource,
+                }
+            })
+        return data
+
     def get_platforms(self, mmd_element, ncin):
+        """ Get dict with MMD entries for the observation platform.
+
+        NOTE: This function should be rewritten according to a solution to https://github.com/metno/py-mmd-tools/issues/72
+        """
         short_names = []
         acdd_short_name = mmd_element['short_name'].pop('acdd')
         if acdd_short_name in ncin.ncattrs():
             short_names = self.separate_repeated(True, eval('ncin.%s' %acdd_short_name))
 
-        long_names = []
-        acdd_long_name = mmd_element['long_name'].pop('acdd')
-        if acdd_long_name in ncin.ncattrs():
-            long_names = self.separate_repeated(True, eval('ncin.%s' %acdd_long_name))
-
+        # There is only one entry for platform and instrument in ACDD - we need to use a controlled vocabulary to get the correct values
+        # That is easy if the controlled vocabulary is GCMD but in other cases we may depend on a solution to https://github.com/metno/py-mmd-tools/issues/72
         resources = []
         acdd_resource = mmd_element['resource'].pop('acdd')
         if acdd_resource in ncin.ncattrs():
@@ -462,46 +486,54 @@ class Nc_to_mmd(object):
         if acdd_instrument_short_name in ncin.ncattrs():
             ishort_names = self.separate_repeated(True, eval('ncin.%s' %acdd_instrument_short_name))
 
-        ilong_names = []
-        acdd_instrument_long_name = mmd_element['instrument']['long_name'].pop('acdd')
-        if acdd_instrument_long_name in ncin.ncattrs():
-            ilong_names = self.separate_repeated(True, eval('ncin.%s' %acdd_instrument_long_name))
-
         iresources = []
         acdd_instrument_resource = mmd_element['instrument']['resource'].pop('acdd')
         if acdd_instrument_resource in ncin.ncattrs():
             iresources = self.separate_repeated(True, eval('ncin.%s' %acdd_instrument_resource))
 
-        data = []
-        for i in range(len(long_names)):
-            short_name = short_names[i]
-            long_name = long_names[i]
-            if len(resources)<=i:
-                resource = ''
-            else:
-                resource = resources[i]
-            if len(ishort_names)<=i:
-                ishort_name = ''
-            else:
-                ishort_name = ishort_names[i]
-            if len(ilong_names)<=i:
-                ilong_name = ''
-            else:
-                ilong_name = ilong_names[i]
-            if len(iresources)<=i:
-                iresource = ''
-            else:
-                iresource = iresources[i]
-            data.append({
-                'short_name': short_name,
-                'long_name': long_name,
-                'resource': resource,
-                'instrument': {
-                    'short_name': ishort_name, 
-                    'long_name': ilong_name, 
-                    'resource': iresource,
-                    }
-                })
+        if resources and 'gcmd' in resources[0].lower():
+            data = self.get_gcmd_platforms(short_names, resources[0], ishort_names, iresources[0])
+        else:
+            long_names = []
+            acdd_long_name = mmd_element['long_name'].pop('acdd')
+            if acdd_long_name in ncin.ncattrs():
+                long_names = self.separate_repeated(True, eval('ncin.%s' %acdd_long_name))
+
+            ilong_names = []
+            acdd_instrument_long_name = mmd_element['instrument']['long_name'].pop('acdd')
+            if acdd_instrument_long_name in ncin.ncattrs():
+                ilong_names = self.separate_repeated(True, eval('ncin.%s' %acdd_instrument_long_name))
+
+            data = []
+            for i in range(len(long_names)):
+                short_name = short_names[i]
+                long_name = long_names[i]
+                if len(resources)<=i:
+                    resource = ''
+                else:
+                    resource = resources[i]
+                if len(ishort_names)<=i:
+                    ishort_name = ''
+                else:
+                    ishort_name = ishort_names[i]
+                if len(ilong_names)<=i:
+                    ilong_name = ''
+                else:
+                    ilong_name = ilong_names[i]
+                if len(iresources)<=i:
+                    iresource = ''
+                else:
+                    iresource = iresources[i]
+                data.append({
+                    'short_name': short_name,
+                    'long_name': long_name,
+                    'resource': resource,
+                    'instrument': {
+                        'short_name': ishort_name, 
+                        'long_name': ilong_name, 
+                        'resource': iresource,
+                        }
+                    })
         return data
 
     def get_dataset_citations(self, mmd_element, ncin):
@@ -615,6 +647,36 @@ class Nc_to_mmd(object):
                 })
         return data
 
+    def get_geographic_extent_polygon(self, mmd_element, ncin):
+        acdd = mmd_element['acdd']
+        if not acdd in ncin.ncattrs():
+            return None
+        wkt = eval('ncin.%s'%acdd)
+        pp = shapely.wkt.loads(wkt)
+        lat = pp.exterior.coords.xy[0]
+        lon = pp.exterior.coords.xy[1]
+        pos = []
+        for i in range(len(lat)):
+            pos.append('%.2f %.2f'%(lat[i], lon[i]))
+        data = {
+                'srsName': ncin.geospatial_bounds_crs,
+                'pos': pos
+            }
+        return data
+
+    def get_geographic_extent_rectangle(self, mmd_element, ncin):
+        data = {}
+        acdd_north = mmd_element['north']['acdd']
+        acdd_south = mmd_element['south']['acdd']
+        acdd_east = mmd_element['east']['acdd']
+        acdd_west = mmd_element['west']['acdd']
+        data['srsName'] = mmd_element['srsName']['default']
+        data['north'] = eval('ncin.%s' %acdd_north)
+        data['south'] = eval('ncin.%s' %acdd_south)
+        data['east'] = eval('ncin.%s' %acdd_east)
+        data['west'] = eval('ncin.%s' %acdd_west)
+        return data
+
     def to_mmd(self, netcdf_local_path='', *args, **kwargs):
         """Method for parsing and mapping NetCDF attributes to MMD.
 
@@ -672,17 +734,24 @@ class Nc_to_mmd(object):
         self.metadata['platform'] = self.get_platforms(mmd_yaml.pop('platform'), ncin)
         self.metadata['dataset_citation'] = self.get_dataset_citations(mmd_yaml.pop('dataset_citation'), ncin)
         self.metadata['related_dataset'] = self.get_related_dataset(mmd_yaml.pop('related_dataset'), ncin)
+        # Optionally add geographic extent
+        self.metadata['geographic_extent'] = {}
         if geographic_extent_rectangle:
-            self.metadata['geographic_extent'] = {
-                    'rectangle': {
+            self.metadata['geographic_extent']['rectangle'] = {
                         'srsName': 'EPSG:4326',
                         'north': geographic_extent_rectangle['geospatial_lat_max'],
                         'south': geographic_extent_rectangle['geospatial_lat_min'],
                         'west': geographic_extent_rectangle['geospatial_lon_min'],
                         'east': geographic_extent_rectangle['geospatial_lon_max']
                     }
-                }
-            mmd_yaml.pop('geographic_extent')
+            mmd_yaml['geographic_extent'].pop('rectangle')
+        else:
+            self.metadata['geographic_extent']['rectangle'] = self.get_geographic_extent_rectangle(mmd_yaml['geographic_extent'].pop('rectangle'), ncin)
+        # Check for geographic_extent/polygon
+        polygon = self.get_geographic_extent_polygon(mmd_yaml['geographic_extent'].pop('polygon'), ncin)
+        if polygon:
+            self.metadata['geographic_extent']['polygon'] = polygon
+        mmd_yaml.pop('geographic_extent')
         # Data access should not be read from the netCDF-CF file
         _ = mmd_yaml.pop('data_access')
         # Add OPeNDAP data_access if "netcdf_product" is OPeNDAP url

@@ -65,7 +65,7 @@ abstract:
     separator: ';'
   lang:
     minOccurs: '1'
-    acdd_ext: abstract_lang
+    acdd_ext: summary_lang
     separator: ','
     default: en
 
@@ -111,6 +111,7 @@ geographic_extent:
   polygon:
     maxOccurs: '1'
     minOccurs: '0'
+    acdd: geospatial_bounds
 
 location:
   maxOccurs: '0'
@@ -178,7 +179,9 @@ personnel:
     default: 'unknown'
     separator: ','
     acdd: creator_institution
-    acdd_ext: contributor_organisation
+    acdd_ext: 
+      - contributor_institution
+      - contributor_organisation
   contact_address:
     address:
     city:

@@ -50,6 +50,14 @@ class TestNC2MMD(unittest.TestCase):
     ##    self.assertTrue(mock_init.called)
     ##    self.assertTrue(mock_to_mmd.called)
 
+    def test_geographic_extent_polygon(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_geographic_extent_polygon(mmd_yaml['geographic_extent']['polygon'], ncin)
+        self.assertEqual(value['srsName'], 'EPSG:4326')
+        self.assertEqual(value['pos'][0], '69.00 3.79')
+
     def test_missing_geographic_extent(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc')
@@ -104,6 +112,16 @@ class TestNC2MMD(unittest.TestCase):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'),
                 Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_titles(mmd_yaml['title'], ncin)
+        self.assertEqual(type(value), list)
+        self.assertTrue('lang' in value[0].keys())
+        self.assertTrue('title' in value[0].keys())
+
+    def test_title_one_language_only(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'),
+                Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_id_missing.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_titles(mmd_yaml['title'], ncin)
         self.assertEqual(type(value), list)
@@ -252,6 +270,8 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[0]['email'], 'trygve@meti.no')
         self.assertEqual(value[1]['email'], 'post@met.no')
         self.assertEqual(value[2]['email'], 'morten@met.no')
+        self.assertEqual(value[0]['organisation'], 'MET NORWAY')
+        self.assertEqual(value[1]['organisation'], 'MET NORWAY')
         self.assertEqual(value[2]['organisation'], 'MET NORWAY')
         self.assertEqual(value[0]['role'], 'Investigator')
         self.assertEqual(value[1]['role'], 'Technical contact')
@@ -354,8 +374,17 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_platforms(mmd_yaml['platform'], ncin)
-        self.assertEqual(value[0]['long_name'], 'SNPP')
-        self.assertEqual(value[0]['instrument']['long_name'], 'VIIRS')
+        self.assertEqual(value[0]['long_name'], 'Suomi National Polar-orbiting Partnership')
+        self.assertEqual(value[0]['instrument']['long_name'], 'Visible/Infrared Imager Radiometer Suite')
+
+    def test_platform_with_gcmd_vocabulary(self):
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_gcmd_platform.nc')
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_platforms(mmd_yaml['platform'], ncin)
+        self.assertEqual(value[0]['short_name'], 'Sentinel-1B')
+        self.assertEqual(value[0]['long_name'], 'Sentinel-1B')
+        self.assertEqual(value[0]['instrument']['long_name'], 'Synthetic Aperture Radar')
 
     def test_projects(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
