@@ -2,7 +2,7 @@ import os
 import tempfile
 import unittest
 import pathlib
-from py_mmd_tools.xml_utils import xml_check, xsd_check, xml_translate_and_write
+from py_mmd_tools.xml_utils import xml_check, xsd_check, xml_translate_and_write, xml_translate
 from lxml.etree import XMLSyntaxError
 
 
@@ -51,7 +51,7 @@ class test_pymmdtools(unittest.TestCase):
         self.assertRaises(OSError, xsd_check, self.not_a_file, 
                                                     self.not_a_file)                               
 
-    def test_xml_translate_assertMultiLineEqual_validation_false(self):
+    def test_xml_translate_and_write_assertMultiLineEqual_validation_false(self):
         self.maxDiff = None
         tested = tempfile.mkstemp()[1]
         xml_translate_and_write(
@@ -66,7 +66,7 @@ class test_pymmdtools(unittest.TestCase):
                 self, first=reference_iso_string, second=tested_string
             ) 
 
-    def test_xml_translate_assertMultiLineEqual_validation_true(self):
+    def test_xml_translate_and_write_assertMultiLineEqual_validation_true(self):
         self.maxDiff = None
         tested = tempfile.mkstemp()[1]
         xml_translate_and_write(
@@ -84,7 +84,7 @@ class test_pymmdtools(unittest.TestCase):
                                                     second=tested_string
                                                     )
 
-    def test_xml_translate_assertRaises_FileNotFoundError_opt_xmlfile(self):
+    def test_xml_translate_and_write_assertRaises_FileNotFoundError_opt_xmlfile(self):
         self.maxDiff = None
         tested = tempfile.mkstemp()[1]
         self.assertRaises(FileNotFoundError, 
@@ -95,18 +95,23 @@ class test_pymmdtools(unittest.TestCase):
                             True, 
                             self.reference_xsd) 
 
+    def test_xml_translate__assertRaises_FileNotFoundError_opt_xml(self):
+        self.assertRaises(FileNotFoundError, xml_translate, self.not_a_file, self.mmd2iso_xslt)
 
-    def test_xml_translate_assertRaises_FileNotFoundError_opt_xslt(self):
+    def test_xml_translate__assertRaises_FileNotFoundError_opt_xslt(self):
+        self.assertRaises(FileNotFoundError, xml_translate, self.reference_xml, self.not_a_file)
+
+    def test_xml_translate_and_write_assertRaises_FileNotFoundError_opt_xslt(self):
         self.maxDiff = None
         tested = tempfile.mkstemp()[1]
         self.assertRaises(FileNotFoundError, xml_translate_and_write, self.reference_xml, tested, self.not_a_file, True, self.reference_xsd)
 
-    def test_xml_translate_assertRaises_FileNotFoundError_opt_xsdschema(self):
+    def test_xml_translate_and_write_assertRaises_FileNotFoundError_opt_xsdschema(self):
         self.maxDiff = None
         tested = tempfile.mkstemp()[1]
         self.assertRaises(FileNotFoundError, xml_translate_and_write, self.reference_xml, tested, self.mmd2iso_xslt, True, self.not_a_file)
 
-    def test_xml_translate_assertRaises_TypeError(self):
+    def test_xml_translate_and_write_assertRaises_TypeError(self):
         self.maxDiff = None
         tested = tempfile.mkstemp()[1]
         self.assertRaises(TypeError, xml_translate_and_write, self.reference_xml, tested, self.mmd2iso_xslt, True)

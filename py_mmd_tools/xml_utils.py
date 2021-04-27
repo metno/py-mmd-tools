@@ -114,6 +114,8 @@ def xml_translate(xml_file, xslt):
     """
     if not pathlib.Path(xml_file).exists():
         raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), xml_file)
+    if not pathlib.Path(xslt).exists():
+        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), xslt)
         
     xml_doc = ET.ElementTree(file=xml_file)
     transform = ET.XSLT(ET.parse(xslt))
