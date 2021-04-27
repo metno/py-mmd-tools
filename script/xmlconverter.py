@@ -16,7 +16,7 @@ import pathlib
 import sys
 import parmap
 from lxml.etree import XMLSyntaxError
-from py_mmd_tools.xml_utils import xml_translate
+from py_mmd_tools.xml_utils import xml_translate_and_write
 
 
 
@@ -47,7 +47,7 @@ def translate_and_write(xml_file, xslt, outdir="/tmp"):
     outputfile = pathlib.PurePosixPath(outdir).joinpath(
         pathlib.PurePosixPath(xml_file).name
     )
-    xml_translate(
+    xml_translate_and_write(
         xml_file=xml_file,
         outputfile=outputfile,
         xslt=xslt,
