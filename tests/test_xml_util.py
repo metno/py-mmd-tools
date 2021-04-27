@@ -22,7 +22,12 @@ class test_pymmdtools(unittest.TestCase):
         self.reference_xsd = os.path.join(os.environ['MMD_PATH'], 'xsd/mmd.xsd')
         self.not_a_file = str(current_dir / 'tests' / 'data' / 'not_a_file.xml')
         self.not_a_valid_xml = str(current_dir / 'tests' / 'data' / 'not_a_valid_xml.xml')
+        self.not_a_valid_mmd = str(current_dir / 'tests' / 'data' / 'not_a_valid_mmd.xml')
  
+    def test_xml_translate_and_write__raises_exception(self):
+        tested = tempfile.mkstemp()[1]
+        self.assertRaises(Exception, xml_translate_and_write, self.not_a_valid_mmd, tested, self.mmd2iso_xslt, True, self.reference_xsd)
+
     def test_xml_check_assertTrue(self):
         self.assertTrue(xml_check(xml_file=self.reference_xml))
 
