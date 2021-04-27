@@ -96,6 +96,11 @@ class test_pymmdtools(unittest.TestCase):
                             self.reference_xsd) 
 
 
+    def test_xml_translate_assertRaises_FileNotFoundError_opt_xslt(self):
+        self.maxDiff = None
+        tested = tempfile.mkstemp()[1]
+        self.assertRaises(FileNotFoundError, xml_translate_and_write, self.reference_xml, tested, self.not_a_file, True, self.reference_xsd)
+
     def test_xml_translate_assertRaises_FileNotFoundError_opt_xsdschema(self):
         self.maxDiff = None
         tested = tempfile.mkstemp()[1]
