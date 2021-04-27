@@ -534,7 +534,7 @@ class TestNC2MMD(unittest.TestCase):
         tested = tempfile.mkstemp()[1]
         md = Nc_to_mmd(self.reference_nc, output_file=tested)
         md.to_mmd()
-        valid = xsd_check(xml_file=tested, xsd_schema=self.reference_xsd)
+        valid = xsd_check(tested, self.reference_xsd)
         self.assertTrue(valid[0])
 
     def test_get_acdd_metadata_sets_warning_msg(self):
@@ -562,7 +562,7 @@ class TestNC2MMD(unittest.TestCase):
             tested = tempfile.mkstemp()[1]
             md = Nc_to_mmd(file, output_file=tested)
             md.to_mmd()
-            valid = xsd_check(xml_file=tested, xsd_schema=self.reference_xsd)
+            valid = xsd_check(tested, self.reference_xsd)
             self.assertTrue(valid[0], msg='%s'%valid[1])
 
     def test_create_mmd_missing_publisher_url(self):
