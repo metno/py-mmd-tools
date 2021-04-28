@@ -11,7 +11,7 @@ parmap
 pytest 
 pytest-cov 
 python-dateutil
-#pythesint
+pythesint @ git+https://github.com/metno/py-thesaurus-interface@f43f9ec70131fcbb46f129ea566a0ca241b3ba67
 pyyaml
 requests
 shapely
