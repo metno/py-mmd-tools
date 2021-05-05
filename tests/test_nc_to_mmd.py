@@ -41,7 +41,7 @@ class TestNC2MMD(unittest.TestCase):
         self.reference_nc = str(current_dir / 'tests' / 'data' / 'reference_nc.nc')
         self.fail_nc = str(current_dir / 'tests' / 'data' / 'reference_nc_fail.nc')
         self.reference_xml = str(current_dir / 'tests' / 'data' / 'reference_nc.xml')
-        self.reference_xsd = os.path.join(os.environ['MMD_PATH'], 'xsd/mmd.xsd')
+        self.reference_xsd = os.path.join(os.environ['MMD_PATH'], 'xsd/mmd_strict.xsd')
 
     ##@patch('py_mmd_utils.nc_to_mmd.Nc_to_mmd.__init__')
     ##@patch('mmd_utils.nc_to_mmd.Nc_to_mmd.to_mmd')

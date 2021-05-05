@@ -39,13 +39,13 @@
             </xs:element>
             <xs:element name="collection" type="mmd:collection_type" maxOccurs="unbounded" minOccurs="1"></xs:element>
             <xs:element name="last_metadata_update" type="mmd:last_metadata_update_type" maxOccurs="1" minOccurs="1"></xs:element>
-            <xs:element name="temporal_extent" type="mmd:temporal_extent_type" maxOccurs="1" minOccurs="0"></xs:element>
+            <xs:element name="temporal_extent" type="mmd:temporal_extent_type" maxOccurs="unbounded" minOccurs="1"></xs:element>
             <xs:element name="iso_topic_category" type="mmd:iso_topic_category_type" maxOccurs="unbounded" minOccurs="1"></xs:element>
             <xs:element name="keywords" type="mmd:keywords_type" maxOccurs="unbounded" minOccurs="1"></xs:element>
             <xs:choice maxOccurs="unbounded">
                 <xs:element name="operational_status" type="mmd:operational_status_type" minOccurs="0" maxOccurs="1"></xs:element>
                 <xs:element name="dataset_language" type="xs:string" maxOccurs="1" minOccurs="0" default="en"></xs:element>
-                <xs:element name="geographic_extent" type="mmd:geographic_extent_type" maxOccurs="1" minOccurs="0"></xs:element>
+                <xs:element name="geographic_extent" type="mmd:geographic_extent_type" maxOccurs="1" minOccurs="1"></xs:element>
                 <xs:element name="access_constraint" type="xs:string" maxOccurs="1" minOccurs="0"></xs:element>
                 <xs:element name="use_constraint" type="mmd:use_constraint_type" maxOccurs="1" minOccurs="0"></xs:element>
                 <xs:element name="project" type="mmd:project_type" maxOccurs="unbounded" minOccurs="0"></xs:element>
@@ -55,14 +55,10 @@
                 -->
                 <xs:element name="platform" type="mmd:platform_type" maxOccurs="unbounded" minOccurs="0"></xs:element>
                 <xs:element name="related_information" type="mmd:related_information_type" maxOccurs="unbounded" minOccurs="0"></xs:element>
-                <xs:element name="personnel" type="mmd:personnel_type" maxOccurs="unbounded" minOccurs="0"></xs:element>
+                <xs:element name="personnel" type="mmd:personnel_type" maxOccurs="unbounded" minOccurs="1"></xs:element>
                 <xs:element name="dataset_citation" type="mmd:dataset_citation_type" maxOccurs="unbounded" minOccurs="0"></xs:element>
                 <xs:element name="data_access" type="mmd:data_access_type" maxOccurs="unbounded" minOccurs="0"></xs:element>
                 <xs:element name="data_center" type="mmd:data_center_type" maxOccurs="1" minOccurs="0"></xs:element>
-                <xs:element name="system_specific_product_category" type="mmd:system_specific_product_category_type"
-                            maxOccurs="unbounded"/>
-                <xs:element name="system_specific_product_relevance" type="mmd:system_specific_product_relevance_type"
-                            maxOccurs="unbounded"/>
                 <xs:element name="related_dataset" type="mmd:related_dataset_type" maxOccurs="unbounded" minOccurs="0"/>
                 <xs:element name="storage_information" type="mmd:storage_information_type" maxOccurs="1" minOccurs="0" />
             </xs:choice>
@@ -142,6 +138,11 @@
         <xs:sequence>
             <xs:element name="identifier" type="mmd:use_constraint_identifier_type" maxOccurs="1" minOccurs="0"></xs:element>
             <xs:element name="resource" type="mmd:use_constraint_resource_type" maxOccurs="1" minOccurs="0"></xs:element>
+            <xs:element name="license_text" type="xs:string" maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>This element holds the a free-text non formal license. If used identifier and resource should be left empty.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
         </xs:sequence>
     </xs:complexType>
     <xs:simpleType name="use_constraint_identifier_type">
@@ -158,12 +159,19 @@
     <xs:simpleType name="use_constraint_resource_type">
         <xs:restriction base="xs:string">
             <xs:enumeration value="http://spdx.org/licenses/CC0-1.0"></xs:enumeration>
+            <xs:enumeration value="https://spdx.org/licenses/CC0-1.0"></xs:enumeration>
             <xs:enumeration value="http://spdx.org/licenses/CC-BY-4.0"></xs:enumeration>
+            <xs:enumeration value="https://spdx.org/licenses/CC-BY-4.0"></xs:enumeration>
             <xs:enumeration value="http://spdx.org/licenses/CC-BY-SA-4.0"></xs:enumeration>
+            <xs:enumeration value="https://spdx.org/licenses/CC-BY-SA-4.0"></xs:enumeration>
             <xs:enumeration value="http://spdx.org/licenses/CC-BY-NC-4.0"></xs:enumeration>
+            <xs:enumeration value="https://spdx.org/licenses/CC-BY-NC-4.0"></xs:enumeration>
             <xs:enumeration value="http://spdx.org/licenses/CC-BY-NC-SA-4.0"></xs:enumeration>
+            <xs:enumeration value="https://spdx.org/licenses/CC-BY-NC-SA-4.0"></xs:enumeration>
             <xs:enumeration value="http://spdx.org/licenses/CC-BY-ND-4.0"></xs:enumeration>
-            <xs:enumeration value="http://spdx.org/licenses/CC-BY-NC-ND-4.0"/>
+            <xs:enumeration value="https://spdx.org/licenses/CC-BY-ND-4.0"></xs:enumeration>
+            <xs:enumeration value="http://spdx.org/licenses/CC-BY-NC-ND-4.0"></xs:enumeration>
+            <xs:enumeration value="https://spdx.org/licenses/CC-BY-NC-ND-4.0"></xs:enumeration>
         </xs:restriction>
     </xs:simpleType>
     <xs:complexType name="instrument_type">
@@ -199,6 +207,8 @@
             <xs:enumeration value="SLC"></xs:enumeration>
             <xs:enumeration value="GRD"></xs:enumeration>
             <xs:enumeration value="OCN"></xs:enumeration>
+            <xs:enumeration value="S2MSI1C"></xs:enumeration>
+            <xs:enumeration value="S2MSI2A"></xs:enumeration>
         </xs:restriction>
     </xs:simpleType>
     <xs:simpleType name="role_type">
@@ -314,8 +324,8 @@
             <xs:element name="edition" type="xs:string" maxOccurs="1" minOccurs="0"></xs:element>
             <xs:element name="volume" type="xs:string" maxOccurs="1" minOccurs="0"></xs:element>
             <xs:element name="issue" type="xs:string" maxOccurs="1" minOccurs="0"></xs:element>
-            <xs:element name="publication_place" type="xs:string" maxOccurs="1" minOccurs="0"></xs:element>
-            <xs:element name="publisher" type="xs:string" maxOccurs="1" minOccurs="0"></xs:element>
+            <xs:element name="publication_place" type="xs:string" maxOccurs="1" minOccurs="1"></xs:element>
+            <xs:element name="publisher" type="xs:string" maxOccurs="1" minOccurs="1"></xs:element>
             <xs:element name="pages" type="xs:string" maxOccurs="1" minOccurs="0"></xs:element>
             <xs:element name="isbn" type="xs:string" maxOccurs="1" minOccurs="0"></xs:element>
             <xs:element name="doi" type="xs:string" maxOccurs="1" minOccurs="0"></xs:element>
@@ -335,18 +345,6 @@
             <xs:element name="long_name" type="xs:string"></xs:element>
         </xs:sequence>
     </xs:complexType>
-    <xsd:complexType name="system_specific_product_relevance_type">
-        <xsd:sequence>
-            <xsd:element name="used_by" type="mmd:used_by_type" maxOccurs="unbounded"/>
-            <xsd:element name="relevance" type="xsd:string" maxOccurs="unbounded"/>
-        </xsd:sequence>
-    </xsd:complexType>
-    <xsd:complexType name="system_specific_product_category_type">
-        <xsd:sequence>
-            <xsd:element name="used_by" type="mmd:used_by_type" maxOccurs="unbounded"/>
-            <xsd:element name="category" type="xsd:string" maxOccurs="unbounded"/>
-        </xsd:sequence>
-    </xsd:complexType>
     <xsd:complexType name="used_by_type">
         <xsd:attribute name="for" type="xsd:string"/>
     </xsd:complexType>
@@ -357,11 +355,10 @@
             <xs:enumeration value="parent"/>
         </xs:restriction>
     </xs:simpleType>
-    <xs:attribute name="relation_type" type="mmd:related_dataset_relationship_type"/>
     <xs:complexType name="related_dataset_type">
         <xs:simpleContent>
             <xs:extension base="xs:string">
-                <xs:attribute ref="mmd:relation_type" use="required"/>
+                <xs:attribute name="relation_type" use="required" type="mmd:related_dataset_relationship_type"/>
             </xs:extension>
         </xs:simpleContent>
     </xs:complexType>
@@ -375,9 +372,9 @@
     </xs:simpleType>
     <xs:complexType name="related_information_type">
         <xs:sequence>
-            <xs:element name="type" type="mmd:related_information_types_type" maxOccurs="1" minOccurs="0"/>
+            <xs:element name="type" type="mmd:related_information_types_type" maxOccurs="1" minOccurs="1"/>
             <xs:element name="description" type="xs:string"/>
-            <xs:element name="resource" type="xs:string" maxOccurs="1" minOccurs="0"/>
+            <xs:element name="resource" type="xs:string" maxOccurs="1" minOccurs="1"/>
         </xs:sequence>
     </xs:complexType>
     <xs:simpleType name="collection_type">
@@ -396,6 +393,12 @@
             <xs:enumeration value="APPL"></xs:enumeration>
             <xs:enumeration value="YOPP"></xs:enumeration>
             <xs:enumeration value="METNCS"></xs:enumeration>
+            <xs:enumeration value="SESS2018"></xs:enumeration>
+            <xs:enumeration value="SESS2019"></xs:enumeration>
+            <xs:enumeration value="SESS2020"></xs:enumeration>
+            <xs:enumeration value="SIOSCD"></xs:enumeration>
+            <xs:enumeration value="SIOSAP"></xs:enumeration>
+            <xs:enumeration value="CVL"></xs:enumeration>
         </xs:restriction>
     </xs:simpleType>
 
@@ -404,6 +407,12 @@
             <xs:enumeration value="Project home page"></xs:enumeration>
             <xs:enumeration value="Users guide"></xs:enumeration>
             <xs:enumeration value="Dataset landing page"></xs:enumeration>
+            <xs:enumeration value="Scientific publication"></xs:enumeration>
+            <xs:enumeration value="Data paper"></xs:enumeration>
+            <xs:enumeration value="Data management plan"></xs:enumeration>
+            <xs:enumeration value="Software"></xs:enumeration>
+            <xs:enumeration value="Other documentation"></xs:enumeration>
+            <xs:enumeration value="Observation facility"></xs:enumeration>
             <xs:enumeration value="Extended metadata"></xs:enumeration>
         </xs:restriction>
     </xs:simpleType>

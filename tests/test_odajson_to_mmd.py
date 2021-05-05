@@ -35,7 +35,7 @@ class TestODA2MMD(unittest.TestCase):
         )
         self.default = env.get_template('oda_default.yml').filename
 
-        self.reference_xsd = str(current_dir / 'tests' / 'data' / 'mmd.xsd')
+        self.reference_xsd = str(current_dir / 'tests' / 'data' / 'mmd_strict.xsd')
         self.not_a_file = str(current_dir / 'tests' / 'data' / 'not_a_file.xml')
         self.json_with_invalid_elements = str(current_dir / 'tests' / 'data' / 'json_invalid_element.json')
         self.reference_oda_tag = {
