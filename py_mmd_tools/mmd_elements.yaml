@@ -147,6 +147,7 @@ use_constraint:
   resource:
     maxOccurs: '1'
     acdd_ext: license_resource
+  license_text:
 
 personnel:
   maxOccurs: unbounded
