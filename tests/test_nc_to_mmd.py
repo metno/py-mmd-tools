@@ -13,10 +13,10 @@ import datetime
 import warnings
 
 from filehash import FileHash
-from pkg_resources import resource_string
+from lxml import etree
 from netCDF4 import Dataset
+from pkg_resources import resource_string
 
-from py_mmd_tools.xml_utils import xsd_check
 from py_mmd_tools.nc_to_mmd import Nc_to_mmd, nc_attrs_from_yaml
 
 warnings.simplefilter("ignore", ResourceWarning)
@@ -534,8 +534,10 @@ class TestNC2MMD(unittest.TestCase):
         tested = tempfile.mkstemp()[1]
         md = Nc_to_mmd(self.reference_nc, output_file=tested)
         md.to_mmd()
-        valid = xsd_check(tested, self.reference_xsd)
-        self.assertTrue(valid[0])
+        xsd_obj = etree.XMLSchema(etree.parse(self.reference_xsd))
+        xml_doc = etree.ElementTree(file=tested)
+        valid = xsd_obj.validate(xml_doc)
+        self.assertTrue(valid)
 
     def test_get_acdd_metadata_sets_warning_msg(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
@@ -562,8 +564,10 @@ class TestNC2MMD(unittest.TestCase):
             tested = tempfile.mkstemp()[1]
             md = Nc_to_mmd(file, output_file=tested)
             md.to_mmd()
-            valid = xsd_check(tested, self.reference_xsd)
-            self.assertTrue(valid[0], msg='%s'%valid[1])
+            xsd_obj = etree.XMLSchema(etree.parse(self.reference_xsd))
+            xml_doc = etree.ElementTree(file=tested)
+            valid = xsd_obj.validate(xml_doc)
+            self.assertTrue(valid, msg='%s' %xsd_obj.error_log)
 
     def test_create_mmd_missing_publisher_url(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), 
