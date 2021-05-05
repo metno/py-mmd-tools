@@ -193,7 +193,7 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_personnel(mmd_yaml['personnel'], ncin)
-        self.assertEqual(value[0]['role'], 'Not available')
+        self.assertEqual(value[0]['role'], 'Investigator')
         self.assertEqual(value[0]['name'], 'Not available')
         self.assertEqual(value[0]['email'], 'Not available')
         self.assertEqual(value[0]['organisation'], 'Not available')
