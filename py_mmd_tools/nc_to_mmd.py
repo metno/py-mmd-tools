@@ -372,11 +372,11 @@ class Nc_to_mmd(object):
         if not len(names)==len(roles)==len(emails)==len(organisations):
             self.missing_attributes['errors'].append('Attributes must have same number of entries')
         clean = 0
-        if len(names)>1 and 'unknown' in names:
+        if len(names)>1 and 'Not available' in names:
             clean = 1
         while clean:
             try:
-                ind = names.index('unknown')
+                ind = names.index('Not available')
             except ValueError:
                 clean = 0
             else:
