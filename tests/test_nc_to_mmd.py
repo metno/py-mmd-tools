@@ -41,7 +41,7 @@ class TestNC2MMD(unittest.TestCase):
         self.reference_nc = str(current_dir / 'tests' / 'data' / 'reference_nc.nc')
         self.fail_nc = str(current_dir / 'tests' / 'data' / 'reference_nc_fail.nc')
         self.reference_xml = str(current_dir / 'tests' / 'data' / 'reference_nc.xml')
-        self.reference_xsd = os.path.join(os.environ['MMD_PATH'], 'xsd/mmd.xsd')
+        self.reference_xsd = os.path.join(os.environ['MMD_PATH'], 'xsd/mmd_strict.xsd')
 
     ##@patch('py_mmd_utils.nc_to_mmd.Nc_to_mmd.__init__')
     ##@patch('mmd_utils.nc_to_mmd.Nc_to_mmd.to_mmd')
@@ -193,10 +193,10 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_personnel(mmd_yaml['personnel'], ncin)
-        self.assertEqual(value[0]['role'], 'unknown')
-        self.assertEqual(value[0]['name'], 'unknown')
-        self.assertEqual(value[0]['email'], 'unknown')
-        self.assertEqual(value[0]['organisation'], 'unknown')
+        self.assertEqual(value[0]['role'], 'Investigator')
+        self.assertEqual(value[0]['name'], 'Not available')
+        self.assertEqual(value[0]['email'], 'Not available')
+        self.assertEqual(value[0]['organisation'], 'Not available')
 
     def test_missing_temporal_extent(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)

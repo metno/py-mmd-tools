@@ -9,7 +9,7 @@ import py_mmd_tools
 class TestMDDElementsInYAMLAndXSD(unittest.TestCase):
 
     def setUp(self):
-        xml_file = os.path.join(os.environ['MMD_PATH'], 'xsd/mmd.xsd')
+        xml_file = os.path.join(os.environ['MMD_PATH'], 'xsd/mmd_strict.xsd')
         with open(xml_file) as xml:
             self.mmd_xml = xmltodict.parse(xml.read())
         self.mmd_yaml = yaml.load(resource_string(py_mmd_tools.__name__, 'mmd_elements.yaml'), Loader=yaml.FullLoader)

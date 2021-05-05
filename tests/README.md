@@ -20,7 +20,7 @@ paths:
     reference_mmd: 'path/to/reference_mmd.xml'
     reference_iso: 'path/to/reference_iso.xml'
     mmd2isocsw: 'path/to/mmd-to-iso.xsl'
-    mmd_xsd: 'path/to/mmd.xsd'
+    mmd_xsd: 'path/to/mmd_strict.xsd'
     logs: './logs/'
 Consult the confuse documentation for more details. --
 

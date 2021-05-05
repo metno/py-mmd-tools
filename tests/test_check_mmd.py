@@ -18,7 +18,7 @@ class testMmdCheck(unittest.TestCase):
         #
         current_dir = pathlib.Path.cwd()
         self.reference_xml = str(current_dir / 'tests' / 'data' / 'reference_mmd.xml')
-        self.reference_xsd = str(current_dir / 'tests' / 'data' / 'mmd.xsd')
+        self.reference_xsd = str(current_dir / 'tests' / 'data' / 'mmd_strict.xsd')
         self.not_a_file = str(current_dir / 'tests' / 'data' / 'not_a_file.xml')
         self.not_a_valid_xml = str(current_dir / 'tests' / 'data' / 'not_a_valid_xml.xml')
         self.doc = ET.ElementTree(file=self.reference_xml)

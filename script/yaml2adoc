@@ -12,6 +12,7 @@ Example:
     $ python yaml2adoc -o ncattrs.adoc
 """
 
+import sys
 import argparse
 import pathlib
 from py_mmd_tools import nc_to_mmd
@@ -21,6 +22,9 @@ def main():
 
     parser.add_argument('-o', '--output_file', help="Output file.")
     args = parser.parse_args()
+
+    if not args.output_file:
+        sys.exit()
 
     adoc = nc_to_mmd.nc_attrs_from_yaml()
     with open(args.output_file, 'w') as fh:

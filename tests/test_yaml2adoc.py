@@ -13,37 +13,35 @@ import unittest
 
 #warnings.simplefilter("ignore", ResourceWarning)
 
-file = globals()['__file__'].split('/')
-file.pop(-1)
-file.pop(-1)
-file.pop(0)
-ss = '/'
-for folder in file:
-    ss = os.path.join(ss, folder)
-ss = os.path.join(ss, 'script/yaml2adoc')
-loader = importlib.machinery.SourceFileLoader('yaml2adoc', ss)
-y2a_mod = types.ModuleType(loader.name)
-
 class TestYAML2ADOC(unittest.TestCase):
+
+    def setUp(self):
+        file = globals()['__file__'].split('/')
+        file.pop(-1)
+        file.pop(-1)
+        file.pop(0)
+        ss = '/'
+        for folder in file:
+            ss = os.path.join(ss, folder)
+        self.ss = os.path.join(ss, 'script/yaml2adoc')
+        self.loader = importlib.machinery.SourceFileLoader('yaml2adoc', self.ss)
+        y2a_mod = types.ModuleType(self.loader.name)
+
 
     def test_missing_args(self):
         warnings.filterwarnings('ignore')
-        yy = loader.load_module()
-        out = sys.stdout
-        with self.assertRaises(SystemExit) as cm:
-            yy.main()
-        self.assertEqual(cm.exception.code, 2)
+        yy = self.loader.load_module()
+        with patch.object(sys, 'argv', [self.ss]):
+            with self.assertRaises(SystemExit) as cm:
+                yy.main()
+                self.assertEqual(cm.exception.code, 2)
 
     def test_create_file(self):
         tested = tempfile.mkstemp()[1]
         warnings.filterwarnings('ignore')
-        tmpargs = sys.argv
-        sys.argv = [sys.argv[0]]
-        sys.argv += ['-o', '%s' %tested]
-        yy = loader.load_module()
-        out = sys.stdout
-        yy.main()
-        sys.argv = tmpargs
+        yy = self.loader.load_module()
+        with patch.object(sys, 'argv', [self.ss, '-o', '%s' %tested]):
+            yy.main()
         with open(tested) as tt:
             first_line = tt.readline()
         self.assertEqual(first_line, '//// \n')
