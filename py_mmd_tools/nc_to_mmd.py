@@ -248,29 +248,31 @@ class Nc_to_mmd(object):
         return self.get_title_or_abstract('abstract', mmd_element, ncin)
 
     def get_title_or_abstract(self, elem_name, mmd_element, ncin):
+        # The main title or abstract is the acdd element
         acdd = mmd_element[elem_name].pop('acdd')
-        separator = mmd_element[elem_name].pop('separator')
+        # ACDD does not have information on language - mmd_element['land']['acdd_ext']
+        # provides the language of the title or abstract
         acdd_ext_lang = mmd_element['lang'].pop('acdd_ext')
-        lang_sep = mmd_element['lang'].pop('separator')
+        # Extra anguages are not supported in ACDD - acdd_ext provides a list of 
+        # other languages
+        acdd_ext = mmd_element[elem_name].pop('acdd_ext', [])
         data = []
+        contents = []
         if acdd in ncin.ncattrs():
-            contents = self.separate_repeated(True, eval('ncin.%s' %acdd), separator)
+            contents.append(eval('ncin.%s' %acdd))
         else:
             self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd)
             return data
         if acdd_ext_lang in ncin.ncattrs():
-            content_langs = self.separate_repeated(True, eval('ncin.%s' %acdd_ext_lang), lang_sep)
+            content_lang = [eval('ncin.%s' %acdd_ext_lang)]
         else:
-            content_langs = ['en']
+            content_lang = ['en']
+        for lang in acdd_ext:
+            if lang in ncin.ncattrs():
+                contents.append(eval('ncin.%s' %lang))
+                content_lang.append(lang[-2:])
         for i in range(len(contents)):
-            content_list = contents[i].split(':')
-            if len(content_list) > 1:
-                content_lang = content_list[0]
-                content_desc = content_list[1]
-            else:
-                content_lang = content_langs[i]
-                content_desc = contents[i]
-            data.append({elem_name: content_desc, 'lang': content_lang})
+            data.append({elem_name: contents[i], 'lang': content_lang[i]})
         return data
 
     def get_temporal_extents(self, mmd_element, ncin):
@@ -550,11 +552,11 @@ class Nc_to_mmd(object):
         publication_dates = []
         acdd_publication_date = mmd_element['publication_date'].pop('acdd')
         if acdd_publication_date in ncin.ncattrs():
-            publication_dates = self.separate_repeated(True, eval('ncin.%s' %acdd_publication_date))
+            publication_dates = self.separate_repeated(True, 
+                                    eval('ncin.%s' %acdd_publication_date))
         acdd_title = mmd_element['title'].pop('acdd')
         if acdd_title in ncin.ncattrs():
-            sep = mmd_element['title'].pop('separator')
-            titles = self.separate_repeated(True, eval('ncin.%s' %acdd_title), separator=sep)
+            title = eval('ncin.%s' %acdd_title)
         acdd_url = mmd_element['url'].pop('acdd')
         urls = []
         if acdd_url in ncin.ncattrs():
@@ -567,7 +569,6 @@ class Nc_to_mmd(object):
         for i in range(len(publication_dates)):
             publication_date = parse(publication_dates[i]).strftime('%Y-%m-%d')
             prefix = 'en'
-            title = [r.replace(prefix+':','') if prefix in r else r for r in titles][0]
             if len(urls)<=i:
                 url = ''
             else:
