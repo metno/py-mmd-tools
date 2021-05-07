@@ -7,16 +7,17 @@ License:
      https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
 """
 
-import json
-import yaml
 import copy
-import jinja2
-import requests
-import pathlib
 import errno
-import os
-from py_mmd_tools.xml_utils import xsd_check
+import json
+import jinja2
 import logging
+import os
+import pathlib
+import requests
+import yaml
+
+from lxml import etree
 
 logger = logging.getLogger(__name__)
 
@@ -253,7 +254,10 @@ def to_mmd(input_data, output_file, template_file, xsd_validation=False, xsd_sch
         if not pathlib.Path(xsd_schema).is_file():
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), xsd_schema)
         else:
-            if not xsd_check(output_file, xsd_schema)[0]:
+            xsd_obj = etree.XMLSchema(etree.parse(xsd_schema))
+            xml_doc = etree.ElementTree(file=output_file)
+            valid = xsd_obj.validate(xml_doc)
+            if not valid:
                 return False
 
     return True
