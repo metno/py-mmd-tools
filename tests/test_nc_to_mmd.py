@@ -117,6 +117,10 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(type(value), list)
         self.assertTrue('lang' in value[0].keys())
         self.assertTrue('title' in value[0].keys())
+        self.assertEqual(value[0]['title'],
+                         'Direct Broadcast data processed in satellite swath to L1C.')
+        self.assertEqual(value[1]['title'],
+                         'Norsk tittel')
 
     def test_title_one_language_only(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'),
@@ -601,13 +605,15 @@ class TestNC2MMD(unittest.TestCase):
 
     def test_publication_date(self):
         format = '%Y-%m-%d'
-        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), 
+                             Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
         dt = datetime.datetime.strptime(value[0]['publication_date'], format)
         self.assertEqual(dt, datetime.datetime(2020, 11, 27, 0, 0))
-        self.assertEqual(value[0]['title'], 'Direct Broadcast data processed in satellite swath to L1C.')
+        self.assertEqual(value[0]['title'],
+                         'Direct Broadcast data processed in satellite swath to L1C.')
 
     def test_checksum(self):
         tested = tempfile.mkstemp()[1]

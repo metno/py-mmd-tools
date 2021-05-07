@@ -48,11 +48,11 @@ title:
   title:
     minOccurs: '1'
     acdd: title
-    separator: ';'
+    acdd_ext:
+      - title_no
   lang:
     minOccurs: '1'
     acdd_ext: title_lang
-    separator: ','
     default: en
 
 abstract:
@@ -62,11 +62,11 @@ abstract:
   abstract:
     minOccurs: '1'
     acdd: summary
-    separator: ';'
+    acdd_ext:
+      - summary_no
   lang:
     minOccurs: '1'
     acdd_ext: summary_lang
-    separator: ','
     default: en
 
 temporal_extent:
@@ -319,7 +319,6 @@ dataset_citation:
     separator: ','
     acdd: date_created
   title:
-    separator: ';'
     acdd: title
   series:
   edition:
