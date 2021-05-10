@@ -245,6 +245,7 @@
   </mmd:platform>
     {% endfor %}
   {% endif %}
+  <mmd:spatial_representation>{{ data['spatial_representation'] }}</mmd:spatial_representation>
   {% if data['activity_type'] %}
       {% for activity_type in data['activity_type'] %}
   <mmd:activity_type>{{ activity_type }}</mmd:activity_type>

@@ -158,22 +158,20 @@ class Nc_to_mmd(object):
         repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['', '0', '1']
         separator = mmd_element.pop('separator',',')
         
-        data = []
-        if not acdd:
-            if len(mmd_element.items()) == 0:
-                if acdd_ext and acdd_ext in ncin.ncattrs():
+        data = None
+        if not acdd and not acdd_ext and default:
+            data = default
+        elif not acdd:
+            if acdd_ext and len(mmd_element.items()) == 0:
+                if acdd_ext in ncin.ncattrs():
                     data = self.separate_repeated(repetition_allowed, 
                             eval('ncin.%s' %acdd_ext), separator)
                 elif default:
                     data = default
-                    if required:
-                        self.missing_attributes['warnings'].append('Using default value %s for %s' %(str(default), mmd_element_name))
-                elif not required and not repetition_allowed:
-                    data = None
-                #        return data
-                #    else:
-                #        return None
-            else:
+                elif required:
+                    self.missing_attributes['errors'].append(
+                            '%s is a required attribute' %acdd_ext)
+            elif len(mmd_element.items())>0:
                 data = {}
                 for key, val in mmd_element.items():
                     if val:
@@ -182,15 +180,19 @@ class Nc_to_mmd(object):
             if acdd in ncin.ncattrs():
                 data = self.separate_repeated(repetition_allowed, eval('ncin.%s' %acdd), separator)
             elif required:
-                ## We may allow some missing elements (in particular for datasets from outside MET) but this 
-                ## is currently not needed. The below code is therefore commented..
+                ## We may allow some missing elements (in particular for
+                ## datasets from outside MET) but this is currently not
+                ## needed. The below code is therefore commented..
                 #if default:
                 #    data = default
-                #    self.missing_attributes['warnings'].append('Using default value %s for %s' %(str(default), acdd))
+                #    self.missing_attributes['warnings'].append(
+                #           'Using default value %s for %s' %(str(default), acdd))
                 #else:
-                data = None
                 self.missing_attributes['errors'].append('%s is a required attribute' %acdd)
 
+        if required and data==default:
+            self.missing_attributes['warnings'].append(
+                    'Using default value %s for %s' %(str(default), mmd_element_name))
         return data
 
     def get_data_centers(self, mmd_element, ncin):

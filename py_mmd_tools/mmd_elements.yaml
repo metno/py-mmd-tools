@@ -300,6 +300,11 @@ platform:
     scene_coverage:
     timeliness:
 
+spatial_representation:
+  maxOccurs: '1'
+  minOccurs: '1'
+  acdd_ext: spatial_representation
+
 activity_type:
   maxOccurs: unbounded
   minOccurs: '0'

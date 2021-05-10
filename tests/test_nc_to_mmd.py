@@ -86,7 +86,7 @@ class TestNC2MMD(unittest.TestCase):
         value = nc2mmd.get_acdd_metadata(mmd_yaml['collection'], ncin, 'collection')
         # nc files should normally not have a collection element, as this is
         # set during harvesting
-        self.assertEqual(value, [])
+        self.assertEqual(value, None)
 
     def test_collection_set(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'),
@@ -152,7 +152,6 @@ class TestNC2MMD(unittest.TestCase):
                 }])
 
     def test_data_access(self):
-        # OBS: this is not relevant before we have added data access in nc_to_mmd.py
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'),
                 Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
@@ -174,7 +173,7 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_acdd_metadata(mmd_yaml['alternate_identifier'], ncin, 'alternate_identifier')
-        self.assertEqual(value, [])
+        self.assertEqual(value, None)
 
     def test_metadata_status_is_active(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'),
@@ -538,7 +537,8 @@ class TestNC2MMD(unittest.TestCase):
         # The id attribute is a uuid
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', output_file=tested)
         nc2mmd.to_mmd()
-        self.assertEqual(nc2mmd.missing_attributes['warnings'][0], 'Using default value Active for metadata_status')
+        self.assertEqual(nc2mmd.missing_attributes['warnings'][0],
+                         'Using default value Active for metadata_status')
         self.assertEqual(nc2mmd.missing_attributes['errors'], [])
 
     def test_create_mmd_1(self):
@@ -551,11 +551,13 @@ class TestNC2MMD(unittest.TestCase):
         self.assertTrue(valid)
 
     def test_get_acdd_metadata_sets_warning_msg(self):
-        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), 
+                             Loader=yaml.FullLoader)
         md = Nc_to_mmd(self.fail_nc)
         ncin = Dataset(md.netcdf_product)
         value = md.get_acdd_metadata(mmd_yaml['metadata_status'], ncin, 'metadata_status')
-        self.assertEqual(md.missing_attributes['warnings'][0], 'Using default value Active for metadata_status')
+        self.assertEqual(md.missing_attributes['warnings'][0],
+                         'Using default value Active for metadata_status')
 
     def test_create_mmd_2(self):
         self.maxDiff = None
@@ -632,6 +634,21 @@ class TestNC2MMD(unittest.TestCase):
             tt.write('%s *%s'%(checksum, fn))
         md5hasher = FileHash('md5')
         self.assertTrue(md5hasher.verify_checksums(tested)[0].hashes_match)
+
+    def test_spatial_repr(self):
+        tested = tempfile.mkstemp()[1]
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
+        nc2mmd.to_mmd()
+        spatial_repr = nc2mmd.metadata['spatial_representation']
+        self.assertEqual(spatial_repr, 'grid')
+
+    def test_spatial_repr_fail(self):
+        tested = tempfile.mkstemp()[1]
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_spatial_repr.nc', check_only=True)
+        with self.assertRaises(AttributeError):
+            nc2mmd.to_mmd()
+        self.assertEqual(nc2mmd.missing_attributes['errors'][0],
+                'spatial_representation is a required attribute')
 
     def test_file_on_thredds(self):
         fn = 'https://thredds.met.no/thredds/dodsC/remotesensingsatellite/polar-swath/2020/12/01/metopb-avhrr-20201201155244-20201201160030.nc'
