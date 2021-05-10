@@ -406,29 +406,38 @@ class Nc_to_mmd(object):
         if acdd_vocabulary in ncin.ncattrs():
             vocabularies = self.separate_repeated(True, eval('ncin.%s' %acdd_vocabulary))
         else:
-            self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd_vocabulary)
+            self.missing_attributes['errors'].append(
+                    '%s is a required ACDD attribute' %acdd_vocabulary)
 
-        acdd_resource = mmd_element['resource'].pop('acdd_ext')
-        if acdd_resource in ncin.ncattrs():
-            resources = self.separate_repeated(True, eval('ncin.%s' %acdd_resource))
-        else:
-            resources = ['']
+        resources = []
+        resource_short_names = []
+        for vocabulary in vocabularies:
+            voc_elems = vocabulary.split(':')
+            resources.append(voc_elems[0]+':'+voc_elems[2]+':'+voc_elems[3])
+            resource_short_names.append(voc_elems[0])
 
         keywords = []
         acdd_keyword = mmd_element['keyword'].pop('acdd')
         if acdd_keyword in ncin.ncattrs():
             keywords = self.separate_repeated(True, eval('ncin.%s' %acdd_keyword))
         else:
-            self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd_keyword)
+            self.missing_attributes['errors'].append(
+                    '%s is a required ACDD attribute' %acdd_keyword)
+
+        keyword_short_names = []
+        for keyword in keywords:
+            keyword_short_name = keyword.split(':')[0]
+            keyword_short_names.append(keyword_short_name)
+            if not keyword_short_name in resource_short_names:
+                self.missing_attributes['errors'].append(
+                    '%s is must be defined in the %s ACDD attribute' 
+                    %(keyword_short_name, acdd_vocabulary))
+
         data = []
         for vocabulary in vocabularies:
             prefix = vocabulary.split(':')[0]
-            if len(vocabularies)>1:
-                resource = [r.replace(prefix+':','') for r in resources if prefix in r][0]
-                keywords_this = [k.replace(prefix+':','') for k in keywords if prefix in k]
-            else:
-                resource = resources[0]
-                keywords_this = keywords
+            resource = [r.replace(prefix+':','') for r in resources if prefix in r][0]
+            keywords_this = [k.replace(prefix+':','') for k in keywords if prefix in k]
             data.append({'resource': resource, 'keyword': keywords_this, 'vocabulary': prefix})
         return data
 

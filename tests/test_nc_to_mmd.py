@@ -355,23 +355,30 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_keywords(mmd_yaml['keywords'], ncin)
-        self.assertEqual(value[0]['vocabulary'], 'GCMD')
-        self.assertEqual(value[0]['resource'], 'https://gcmdservices.gsfc.nasa.gov/static/kms/')
-        self.assertEqual(value[0]['keyword'], ['Earth Science > Atmosphere > Atmospheric radiation'])
+        self.assertEqual(value[0]['vocabulary'], 'GCMDSK')
+        self.assertEqual(value[0]['resource'],
+                'https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/sciencekeywords')
+        self.assertEqual(value[0]['keyword'], [
+            'Earth Science > Atmosphere > Atmospheric radiation'
+        ])
         self.assertEqual(value[1]['vocabulary'], 'GEMET')
         self.assertEqual(value[1]['resource'], 'http://inspire.ec.europa.eu/theme')
         self.assertEqual(value[1]['keyword'], ['Meteorological geographical features', 
             'Atmospheric conditions', 'Oceanographic geographical features'])
 
     def test_keywords_multiple(self):
-        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), 
+                             Loader=yaml.FullLoader)
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_attrs_multiple.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_keywords(mmd_yaml['keywords'], ncin)
-        self.assertEqual(value[0]['vocabulary'], 'GCMD')
-        self.assertEqual(value[0]['resource'], 'https://gcmdservices.gsfc.nasa.gov/static/kms/')
-        self.assertEqual(value[0]['keyword'], ['Earth Science > Atmosphere > Atmospheric radiation', 
-            'EARTH SCIENCE > BIOLOGICAL CLASSIFICATION > ANIMALS/VERTEBRATES'])
+        self.assertEqual(value[0]['vocabulary'], 'GCMDSK')
+        self.assertEqual(value[0]['resource'], 
+                'https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/sciencekeywords')
+        self.assertEqual(value[0]['keyword'], [
+            'Earth Science > Atmosphere > Atmospheric radiation', 
+            'EARTH SCIENCE > BIOLOGICAL CLASSIFICATION > ANIMALS/VERTEBRATES'
+        ])
 
     def test_platforms(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
