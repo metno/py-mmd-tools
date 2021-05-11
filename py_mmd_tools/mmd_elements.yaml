@@ -185,7 +185,10 @@ personnel:
     province_or_state:
     postal_code:
     country:
-  
+  type:
+    separator: ','
+    acdd_ext: contributor_type
+
 data_center:
   maxOccurs: unbounded
   minOccurs: '0'
