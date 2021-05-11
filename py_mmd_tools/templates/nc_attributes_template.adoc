@@ -11,17 +11,13 @@ The ACDD recommendations should always be followed in order to properly document
 
 === Notes 
 
-*Keywords* describe the content of your dataset following a given vocabulary. It should be provided as a comma separated list with a short name defining the vocabulary used followed by the actual keyword, i.e., ``short_name:keyword``. Example: "GCMD:Earth Science > Atmosphere > Atmospheric radiation, Norwegian thematic categories:Weather and climate".
-
-Two elements should be provided to support the ``keywords`` element:
-* ``keywords_vocabulary`` provides information about the vocabulary defining the keywords. It should be provided as a string with a short name and a description in the format ``short_name:description``. Example: "GCMD:NASA/GCMD Earth Science Keywords, Norwegian thematic categories:Nasjonal tematisk inndeling (DOK-kategori)".
-* ``keywords_resource`` is not an ACDD element but has been added to support a linked data approach, where the vocabulary definitions are provided through a web link. It should be provided as a string with the short name used in the definition of the ``keywords_vocabulary`` followed by a link, i.e., ``short_name:url``. Example: "GCMD:https://gcmdservices.gsfc.nasa.gov/static/kms/, Norwegian thematic categories:https://register.geonorge.no/subregister/metadata-kodelister/kartverket/nasjonal-temainndeling".
+*Keywords* describe the content of your dataset following a given vocabulary. It should be provided as a comma separated list with a short name defining the vocabulary used followed by the actual keyword, i.e., ``short_name:keyword``. Example: "GCMDSK:Earth Science > Atmosphere > Atmospheric radiation, NORTHEMES:Weather and climate". In addition, ``keywords_vocabulary`` provides information about the vocabulary defining the keywords. *Please see https://adc.met.no/node/96 for detailed information about how to define the ACDD keywords*.
 
 A data *license* provides information about any restrictions on the use of the dataset. To support a linked data approach, the ``license`` element should be supported by a ``license_resource`` element, providing a link to the license definition.
 
 === List of Attributes
 
-This section provides lists of ACDD elements that are required and recommended, as well as some extra elements that are useful to support the findability of the data. The right columns of these tables provide the https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html[MET Norway Metadata Specification (MMD)] fields that map to the ACDD (and our extension to ACDD) elements. Please refer to https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html[MMD] for definitions of these elements, as well as controlled vocabularies that should be used.
+This section provides lists of ACDD elements that are required and recommended, as well as some extra elements that are needed to fully support our data management needs. The right columns of these tables provide the https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html[MET Norway Metadata Specification (MMD)] fields that map to the ACDD (and our extension to ACDD) elements. Please refer to https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html[MMD] for definitions of these elements, as well as controlled vocabularies that should be used.
 
 The following ACDD elements are required:
 [cols=",,,,"]
@@ -53,7 +49,7 @@ The following ACDD elements are recommended:
 {% endfor %}
 |=======================================================================
 
-In addition, some global attributes are useful for the discovery metadata catalog but do not exist in ACDD. Please refer to the documentation of https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html[MMD] for a description of these elements:
+Please refer to the documentation of https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html[MMD] for a description of these elements:
 [cols=",,,,"]
 |=======================================================================
 |Extra Attribute |Repetition allowed |Separator |Default |MMD equivalent
