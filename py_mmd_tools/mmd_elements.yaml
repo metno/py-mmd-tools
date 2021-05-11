@@ -137,6 +137,7 @@ operational_status:
 access_constraint:
   maxOccurs: '1'
   minOccurs: '0'
+  acdd_ext: access_constraint
 
 use_constraint:
   maxOccurs: '1'
