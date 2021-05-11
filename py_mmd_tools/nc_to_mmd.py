@@ -158,22 +158,20 @@ class Nc_to_mmd(object):
         repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['', '0', '1']
         separator = mmd_element.pop('separator',',')
         
-        data = []
-        if not acdd:
-            if len(mmd_element.items()) == 0:
-                if acdd_ext and acdd_ext in ncin.ncattrs():
+        data = None
+        if not acdd and not acdd_ext and default:
+            data = default
+        elif not acdd:
+            if acdd_ext and len(mmd_element.items()) == 0:
+                if acdd_ext in ncin.ncattrs():
                     data = self.separate_repeated(repetition_allowed, 
                             eval('ncin.%s' %acdd_ext), separator)
                 elif default:
                     data = default
-                    if required:
-                        self.missing_attributes['warnings'].append('Using default value %s for %s' %(str(default), mmd_element_name))
-                elif not required and not repetition_allowed:
-                    data = None
-                #        return data
-                #    else:
-                #        return None
-            else:
+                elif required:
+                    self.missing_attributes['errors'].append(
+                            '%s is a required attribute' %acdd_ext)
+            elif len(mmd_element.items())>0:
                 data = {}
                 for key, val in mmd_element.items():
                     if val:
@@ -182,15 +180,19 @@ class Nc_to_mmd(object):
             if acdd in ncin.ncattrs():
                 data = self.separate_repeated(repetition_allowed, eval('ncin.%s' %acdd), separator)
             elif required:
-                ## We may allow some missing elements (in particular for datasets from outside MET) but this 
-                ## is currently not needed. The below code is therefore commented..
+                ## We may allow some missing elements (in particular for
+                ## datasets from outside MET) but this is currently not
+                ## needed. The below code is therefore commented..
                 #if default:
                 #    data = default
-                #    self.missing_attributes['warnings'].append('Using default value %s for %s' %(str(default), acdd))
+                #    self.missing_attributes['warnings'].append(
+                #           'Using default value %s for %s' %(str(default), acdd))
                 #else:
-                data = None
                 self.missing_attributes['errors'].append('%s is a required attribute' %acdd)
 
+        if required and data==default:
+            self.missing_attributes['warnings'].append(
+                    'Using default value %s for %s' %(str(default), mmd_element_name))
         return data
 
     def get_data_centers(self, mmd_element, ncin):
@@ -406,29 +408,38 @@ class Nc_to_mmd(object):
         if acdd_vocabulary in ncin.ncattrs():
             vocabularies = self.separate_repeated(True, eval('ncin.%s' %acdd_vocabulary))
         else:
-            self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd_vocabulary)
+            self.missing_attributes['errors'].append(
+                    '%s is a required ACDD attribute' %acdd_vocabulary)
 
-        acdd_resource = mmd_element['resource'].pop('acdd_ext')
-        if acdd_resource in ncin.ncattrs():
-            resources = self.separate_repeated(True, eval('ncin.%s' %acdd_resource))
-        else:
-            resources = ['']
+        resources = []
+        resource_short_names = []
+        for vocabulary in vocabularies:
+            voc_elems = vocabulary.split(':')
+            resources.append(voc_elems[0]+':'+voc_elems[2]+':'+voc_elems[3])
+            resource_short_names.append(voc_elems[0])
 
         keywords = []
         acdd_keyword = mmd_element['keyword'].pop('acdd')
         if acdd_keyword in ncin.ncattrs():
             keywords = self.separate_repeated(True, eval('ncin.%s' %acdd_keyword))
         else:
-            self.missing_attributes['errors'].append('%s is a required ACDD attribute' %acdd_keyword)
+            self.missing_attributes['errors'].append(
+                    '%s is a required ACDD attribute' %acdd_keyword)
+
+        keyword_short_names = []
+        for keyword in keywords:
+            keyword_short_name = keyword.split(':')[0]
+            keyword_short_names.append(keyword_short_name)
+            if not keyword_short_name in resource_short_names:
+                self.missing_attributes['errors'].append(
+                    '%s is must be defined in the %s ACDD attribute' 
+                    %(keyword_short_name, acdd_vocabulary))
+
         data = []
         for vocabulary in vocabularies:
             prefix = vocabulary.split(':')[0]
-            if len(vocabularies)>1:
-                resource = [r.replace(prefix+':','') for r in resources if prefix in r][0]
-                keywords_this = [k.replace(prefix+':','') for k in keywords if prefix in k]
-            else:
-                resource = resources[0]
-                keywords_this = keywords
+            resource = [r.replace(prefix+':','') for r in resources if prefix in r][0]
+            keywords_this = [k.replace(prefix+':','') for k in keywords if prefix in k]
             data.append({'resource': resource, 'keyword': keywords_this, 'vocabulary': prefix})
         return data
 
