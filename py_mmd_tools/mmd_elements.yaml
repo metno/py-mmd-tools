@@ -77,10 +77,12 @@ temporal_extent:
   maxOccurs: unbounded
   minOccurs: '1'
   start_date:
+    repetition: Comma separated list
     acdd: time_coverage_start
     separator: ','
   end_date:
     separator: ','
+    repetition: Comma separated list
     acdd: time_coverage_end
 
 geographic_extent:
@@ -114,6 +116,7 @@ geographic_extent:
   polygon:
     maxOccurs: '1'
     minOccurs: '0'
+    repetition: No repetition allowed
     acdd: geospatial_bounds
 
 location:
@@ -140,6 +143,7 @@ dataset_language:
 operational_status:
   maxOccurs: '1'
   minOccurs: '0'
+  repetition: No repetition allowed
   acdd: processing_level
 
 access_constraint:
@@ -152,9 +156,11 @@ use_constraint:
   minOccurs: '0'
   identifier:
     maxOccurs: '1'
+    repetition: No repetition allowed
     acdd: license
   resource:
     maxOccurs: '1'
+    repetition: No repetition allowed
     acdd_ext: license_resource
   license_text:
 
@@ -164,18 +170,21 @@ personnel:
   role:
     default: 'Investigator'
     separator: ','
+    repetition: Comma separated list
     acdd: 
       - creator_role
       - contributor_role
   name:
     default: 'Not available'
     separator: ','
+    repetition: Comma separated list
     acdd:
       - creator_name
       - contributor_name
   email:
     default: 'Not available'
     separator: ','
+    repetition: Comma separated list
     acdd: creator_email
     acdd_ext: contributor_email
   phone:
@@ -183,6 +192,7 @@ personnel:
   organisation:
     default: 'Not available'
     separator: ','
+    repetition: Comma separated list
     acdd: creator_institution
     acdd_ext: 
       - contributor_institution
