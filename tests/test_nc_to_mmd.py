@@ -657,7 +657,7 @@ class TestNC2MMD(unittest.TestCase):
         with self.assertRaises(AttributeError):
             nc2mmd.to_mmd()
         self.assertEqual(nc2mmd.missing_attributes['errors'][0],
-                'spatial_representation is a required attribute')
+                'geospatial_lat_max is a required attribute')
 
     def test_file_on_thredds(self):
         fn = 'https://thredds.met.no/thredds/dodsC/remotesensingsatellite/polar-swath/2020/12/01/metopb-avhrr-20201201155244-20201201160030.nc'

@@ -165,6 +165,7 @@ class Nc_to_mmd(object):
         acdd_ext = mmd_element.pop('acdd_ext', '')
         default = mmd_element.pop('default', '')
         repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['', '0', '1']
+        throw_repetition = mmd_element.pop('repetition', '')
         separator = mmd_element.pop('separator',',')
         
         data = None
@@ -692,10 +693,26 @@ class Nc_to_mmd(object):
         acdd_east = mmd_element['east']['acdd']
         acdd_west = mmd_element['west']['acdd']
         data['srsName'] = mmd_element['srsName']['default']
-        data['north'] = eval('ncin.%s' %acdd_north)
-        data['south'] = eval('ncin.%s' %acdd_south)
-        data['east'] = eval('ncin.%s' %acdd_east)
-        data['west'] = eval('ncin.%s' %acdd_west)
+        if not acdd_north in ncin.ncattrs():
+            self.missing_attributes['errors'].append(
+                            '%s is a required attribute' %acdd_north)
+        else:
+            data['north'] = eval('ncin.%s' %acdd_north)
+        if not acdd_south in ncin.ncattrs():
+            self.missing_attributes['errors'].append(
+                            '%s is a required attribute' %acdd_south)
+        else:
+            data['south'] = eval('ncin.%s' %acdd_south)
+        if not acdd_east in ncin.ncattrs():
+            self.missing_attributes['errors'].append(
+                            '%s is a required attribute' %acdd_east)
+        else:
+            data['east'] = eval('ncin.%s' %acdd_east)
+        if not acdd_west in ncin.ncattrs():
+            self.missing_attributes['errors'].append(
+                            '%s is a required attribute' %acdd_west)
+        else:
+            data['west'] = eval('ncin.%s' %acdd_west)
         return data
 
     def to_mmd(self, netcdf_local_path='', *args, **kwargs):
