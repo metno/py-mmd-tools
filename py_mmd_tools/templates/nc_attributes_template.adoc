@@ -7,11 +7,24 @@
 
 In order to add netCDF-CF datasets to the discovery metadata catalog, the data producer should populate the file with certain global attributes mainly described in the Attribute Convention for Data Discovery (ACDD). For a complete description of the ACDD elements, please refer to http://wiki.esipfed.org/index.php/Attribute_Convention_for_Data_Discovery.
 
-The ACDD recommendations should always be followed in order to properly document your netCDF-CF files. However, the below tables summarize the attributes that are needed to properly populate a discovery metadata catalog which fulfills the requirements of international standards (e.g., GCMD/DIF, the WMO profile of ISO19115, etc.).
+The ACDD recommendations should always be followed in order to properly document your netCDF-CF files. However, the below tables summarize the ACDD and some additional attributes that are needed to properly populate a discovery metadata catalog which fulfills the requirements of international standards (e.g., GCMD/DIF, the WMO profile of ISO19115, etc.).
 
 ===== Notes 
 
-*Keywords* describe the content of your dataset following a given vocabulary. It should be provided as a comma separated list with a short name defining the vocabulary used followed by the actual keyword, i.e., ``short_name:keyword``. Example: "GCMDSK:Earth Science > Atmosphere > Atmospheric radiation, NORTHEMES:Weather and climate". In addition, ``keywords_vocabulary`` provides information about the vocabulary defining the keywords. *Please see https://adc.met.no/node/96 for detailed information about how to define the ACDD keywords*.
+*Keywords* describe the content of your dataset following a given vocabulary. It should be provided as a comma separated list with a short name defining the vocabulary used followed by the actual keyword, i.e., ``short_name:keyword``.
+
+[EXAMPLE]
+====
+:keywords = "GCMDSK:Earth Science > Atmosphere > Atmospheric radiation, NORTHEMES:Weather and climate" ;
+====
+
+In addition, ``keywords_vocabulary`` provides information about the vocabulary defining the keywords. 
+[EXAMPLE]
+====
+:keywords_vocabulary = "GCMDSK:GCMD Science Keywords:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/sciencekeywords, GCMDPROV:GCMD Providers:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/providers, GCMDLOC:GCMD Locations:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/locations" ;
+====
+
+*See https://adc.met.no/node/96 for more information about how to define the ACDD keywords*.
 
 A data *license* provides information about any restrictions on the use of the dataset. To support a linked data approach, the ``license`` element should be supported by a ``license_resource`` element, providing a link to the license definition.
 
