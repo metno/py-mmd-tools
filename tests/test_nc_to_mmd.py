@@ -676,5 +676,12 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd.to_mmd(netcdf_local_path=fn)
         self.assertEqual(nc2mmd.metadata['storage_information']['file_name'], 'reference_nc.nc')
 
+    def test_access_constraint(self):
+        tested = tempfile.mkstemp()[1]
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
+        nc2mmd.to_mmd()
+        spatial_repr = nc2mmd.metadata['access_constraint']
+        self.assertEqual(spatial_repr, 'Open')
+
 if __name__ == '__main__':
     unittest.main()

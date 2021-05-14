@@ -70,17 +70,6 @@
     </mmd:polygon>
     {% endif %}
   </mmd:geographic_extent>
-  {% if data['location'] %}
-    <location>
-      <location_vocabulary>{{ data['location']['vocabulary'] }}</location_vocabulary>
-      <location_category>{{ data['location']['continent'] }}</location_category>
-      <location_type>{{ data['location']['type'] }}</location_type>
-      <location_subregion1>{{ data['location']['subregion1'] }}</location_subregion1>
-      <location_subregion2>{{ data['location']['subregion2'] }}</location_subregion2>
-      <location_subregion3>{{ data['location']['subregion3'] }}</location_subregion3>
-      <detailed_location>{{ data['location']['detailed_location'] }}</detailed_location>
-    </location>
-  {% endif %}
   {% if data['dataset_language'] %}
   <mmd:dataset_language>{{ data['dataset_language'] }}</mmd:dataset_language>
   {% endif %}
@@ -88,7 +77,7 @@
   <mmd:operational_status>{{ data['operational_status'] }}</mmd:operational_status>
   {% endif %}
   {% if data['access_constraint'] %}
-  <access_constraint>{{ data['access_constraint'] }}</access_constraint>
+  <mmd:access_constraint>{{ data['access_constraint'] }}</mmd:access_constraint>
   {% endif %}
   {% if data['use_constraint'] %}
   <mmd:use_constraint>
