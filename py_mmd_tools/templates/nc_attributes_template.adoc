@@ -19,6 +19,7 @@ The ACDD recommendations should always be followed in order to properly document
 ====
 
 In addition, ``keywords_vocabulary`` provides information about the vocabulary defining the keywords. Example:
+
 [EXAMPLE]
 ====
 :keywords_vocabulary = "GCMDSK:GCMD Science Keywords:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/sciencekeywords, GCMDPROV:GCMD Providers:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/providers, GCMDLOC:GCMD Locations:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/locations" ;
@@ -30,7 +31,7 @@ A data *license* provides information about any restrictions on the use of the d
 
 [EXAMPLE]
 ====
-:license = "CC-BY-4.0" ;
+:license = "CC-BY-4.0" ; +
 :license_resource = "http://spdx.org/licenses/CC-BY-4.0" ;
 ====
 
@@ -41,14 +42,14 @@ This section provides lists of ACDD elements that are required and recommended, 
 The following ACDD elements are required:
 [cols=",,,,"]
 |=======================================================================
-|*ACDD Attribute* |*Repetition allowed* |*Separator* |*Default* |*MMD equivalent*
+|*ACDD Attribute* |*Repetition* |*Default* |*MMD equivalent*
 {% for elem in data['acdd']['required'] %}
     {% if elem['attribute'] | is_list %}
         {% for subelem in elem['attribute'] %}
-|{{ subelem }} | {{ elem['repetition_allowed'] }} | {{ elem['separator'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
+|{{ subelem }} | {{ elem['repetition_str'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
         {% endfor %}
     {% else %}
-|{{ elem['attribute'] }} | {{ elem['repetition_allowed'] }} | {{ elem['separator'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
+|{{ elem['attribute'] }} | {{ elem['repetition_str'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
 {% endif %}
 {% endfor %}
 |=======================================================================
@@ -60,19 +61,19 @@ The following ACDD elements are recommended:
 {% for elem in data['acdd']['not_required'] %}
     {% if elem[0] | is_list %}
         {% for subelem in elem[0] %}
-|{{ subelem }} | {{ elem['repetition_allowed'] }} | {{ elem['separator'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
+|{{ subelem }} | {{ elem['repetition_str'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
         {% endfor %}
     {% else %}
-|{{ elem['attribute'] }} | {{ elem['repetition_allowed'] }} | {{ elem['separator'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
+|{{ elem['attribute'] }} | {{ elem['repetition_str'] }} | {{ elem['separator'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
 {% endif %}
 {% endfor %}
 |=======================================================================
 
 Please refer to the documentation of https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html[MMD] for a description of these elements:
-[cols=",,,,"]
+[cols=",,,"]
 |=======================================================================
-|*Extra Attribute* |*Repetition allowed* |*Separator* |*Default* |*MMD equivalent*
+|*Extra Attribute* |*Default* |*MMD equivalent*
 {% for elem in data['acdd_ext'] %}
-|{{ elem['attribute'] }} | {{ elem['repetition_allowed'] }} | {{ elem['separator'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
+|{{ elem['attribute'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
 {% endfor %}
 |=======================================================================

@@ -48,6 +48,7 @@ title:
   title:
     minOccurs: '1'
     acdd: title
+    repetition: Use ACDD extension for translations
     acdd_ext:
       - title_no
   lang:

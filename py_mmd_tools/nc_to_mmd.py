@@ -50,7 +50,8 @@ def get_attr_info(key, convention, normalized):
         default = normalized[default_key]
     else:
         default = ''
-    return required, repetition_allowed, separator, default
+    repetition_str = normalized.pop('repetition','')
+    return required, repetition_allowed, repetition_str, separator, default
 
 def nc_attrs_from_yaml():
     mmd_yaml = yaml.load(resource_string(globals()['__name__'].split('.')[0], 'mmd_elements.yaml'), Loader=yaml.FullLoader)
@@ -73,12 +74,13 @@ def nc_attrs_from_yaml():
     attributes['acdd']['not_required'] = []
     for key, val in normalized.items():
         if key.endswith('acdd'):
-            required, repetition_allowed, separator, default = get_attr_info(key, 'acdd', normalized)
+            required, repetition_allowed, repetition_str, separator, default = get_attr_info(key, 'acdd', normalized)
             if required:
                 attributes['acdd']['required'].append({
                     'mmd_field': key.replace('>acdd', ''),
                     'attribute': val, 
                     'repetition_allowed': repetition_allowed,
+                    'repetition_str': repetition_str,
                     'separator': separator,
                     'default': default,
                 })
@@ -91,11 +93,12 @@ def nc_attrs_from_yaml():
                     'default': default,
                 })
         if key.endswith('acdd_ext'):
-            required, repetition_allowed, separator, default = get_attr_info(key, 'acdd_ext', normalized)
+            required, repetition_allowed, repetition_str, separator, default = get_attr_info(key, 'acdd_ext', normalized)
             attributes['acdd_ext'].append({
                     'mmd_field': key.replace('>acdd_ext', ''),
                     'attribute': val, 
                     'repetition_allowed': repetition_allowed,
+                    'repetition_str': repetition_str,
                     'separator': separator,
                     'default': default,
                 })
