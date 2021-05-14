@@ -2,7 +2,7 @@
 {{ data.message }}
 ////
 
-[[acdd_elements]]
+[[acdd-elements]]
 == Global attributes that should be added to NetCDF-CF files
 
 In order to add netCDF-CF datasets to the discovery metadata catalog, the data producer should populate the file with certain global attributes mainly described in the Attribute Convention for Data Discovery (ACDD). For a complete description of the ACDD elements, please refer to http://wiki.esipfed.org/index.php/Attribute_Convention_for_Data_Discovery.
