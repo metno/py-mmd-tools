@@ -40,16 +40,16 @@ A data *license* provides information about any restrictions on the use of the d
 This section provides lists of ACDD elements that are required and recommended, as well as some extra elements that are needed to fully support our data management needs. The right columns of these tables provide the https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html[MET Norway Metadata Specification (MMD)] fields that map to the ACDD (and our extension to ACDD) elements. Please refer to https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html[MMD] for definitions of these elements, as well as controlled vocabularies that should be used.
 
 The following ACDD elements are required:
-[cols=",,,"]
+[cols=",,"]
 |=======================================================================
-|*ACDD Attribute* |*Repetition* |*Default* |*MMD equivalent*
+|*ACDD Attribute* |*Repetition* |*MMD equivalent*
 {% for elem in data['acdd']['required'] %}
     {% if elem['attribute'] | is_list %}
         {% for subelem in elem['attribute'] %}
-|{{ subelem }} | {{ elem['repetition_str'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
+|{{ subelem }} | {{ elem['repetition_str'] }} | {{ elem['mmd_field'] }}
         {% endfor %}
     {% else %}
-|{{ elem['attribute'] }} | {{ elem['repetition_str'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
+|{{ elem['attribute'] }} | {{ elem['repetition_str'] }} | {{ elem['mmd_field'] }}
 {% endif %}
 {% endfor %}
 |=======================================================================
