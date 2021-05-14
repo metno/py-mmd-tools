@@ -3,7 +3,7 @@
 ////
 
 [[acdd-elements]]
-==== Global attributes that should be added to NetCDF-CF files
+==== Global attributes
 
 In order to add netCDF-CF datasets to the discovery metadata catalog, the data producer should populate the file with certain global attributes mainly described in the Attribute Convention for Data Discovery (ACDD). For a complete description of the ACDD elements, please refer to http://wiki.esipfed.org/index.php/Attribute_Convention_for_Data_Discovery.
 
@@ -11,22 +11,28 @@ The ACDD recommendations should always be followed in order to properly document
 
 ===== Notes 
 
-*Keywords* describe the content of your dataset following a given vocabulary. It should be provided as a comma separated list with a short name defining the vocabulary used followed by the actual keyword, i.e., ``short_name:keyword``.
+*Keywords* describe the content of your dataset following a given vocabulary. It should be provided as a comma separated list with a short name defining the vocabulary used followed by the actual keyword, i.e., ``short_name:keyword``. Example:
 
 [EXAMPLE]
 ====
 :keywords = "GCMDSK:Earth Science > Atmosphere > Atmospheric radiation, NORTHEMES:Weather and climate" ;
 ====
 
-In addition, ``keywords_vocabulary`` provides information about the vocabulary defining the keywords. 
+In addition, ``keywords_vocabulary`` provides information about the vocabulary defining the keywords. Example:
 [EXAMPLE]
 ====
 :keywords_vocabulary = "GCMDSK:GCMD Science Keywords:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/sciencekeywords, GCMDPROV:GCMD Providers:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/providers, GCMDLOC:GCMD Locations:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/locations" ;
 ====
 
-*See https://adc.met.no/node/96 for more information about how to define the ACDD keywords*.
+See https://adc.met.no/node/96 for more information about how to define the ACDD keywords.
 
-A data *license* provides information about any restrictions on the use of the dataset. To support a linked data approach, the ``license`` element should be supported by a ``license_resource`` element, providing a link to the license definition.
+A data *license* provides information about any restrictions on the use of the dataset. To support a linked data approach, the ``license`` element should be supported by a ``license_resource`` element, providing a link to the license definition. Example:
+
+[EXAMPLE]
+====
+:license = "CC-BY-4.0" ;
+:license_resource = "http://spdx.org/licenses/CC-BY-4.0" ;
+====
 
 ===== List of Attributes
 
@@ -35,7 +41,7 @@ This section provides lists of ACDD elements that are required and recommended, 
 The following ACDD elements are required:
 [cols=",,,,"]
 |=======================================================================
-|ACDD Attribute |Repetition allowed |Separator |Default |MMD equivalent
+|*ACDD Attribute* |*Repetition allowed* |*Separator* |*Default* |*MMD equivalent*
 {% for elem in data['acdd']['required'] %}
     {% if elem['attribute'] | is_list %}
         {% for subelem in elem['attribute'] %}
@@ -50,7 +56,7 @@ The following ACDD elements are required:
 The following ACDD elements are recommended:
 [cols=",,,,"]
 |=======================================================================
-|ACDD Attribute |Repetition allowed |Separator |Default |MMD equivalent
+|*ACDD Attribute* |*Repetition allowed* |*Separator* |*Default* |*MMD equivalent*
 {% for elem in data['acdd']['not_required'] %}
     {% if elem[0] | is_list %}
         {% for subelem in elem[0] %}
@@ -65,7 +71,7 @@ The following ACDD elements are recommended:
 Please refer to the documentation of https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html[MMD] for a description of these elements:
 [cols=",,,,"]
 |=======================================================================
-|Extra Attribute |Repetition allowed |Separator |Default |MMD equivalent
+|*Extra Attribute* |*Repetition allowed* |*Separator* |*Default* |*MMD equivalent*
 {% for elem in data['acdd_ext'] %}
 |{{ elem['attribute'] }} | {{ elem['repetition_allowed'] }} | {{ elem['separator'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
 {% endfor %}
