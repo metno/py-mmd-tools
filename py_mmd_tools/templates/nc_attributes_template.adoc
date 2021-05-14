@@ -57,14 +57,14 @@ The following ACDD elements are required:
 The following ACDD elements are recommended:
 [cols=",,,,"]
 |=======================================================================
-|*ACDD Attribute* |*Repetition allowed* |*Separator* |*Default* |*MMD equivalent*
+|*ACDD Attribute* |*Repetition* |*Default* |*MMD equivalent*
 {% for elem in data['acdd']['not_required'] %}
     {% if elem[0] | is_list %}
         {% for subelem in elem[0] %}
 |{{ subelem }} | {{ elem['repetition_str'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
         {% endfor %}
     {% else %}
-|{{ elem['attribute'] }} | {{ elem['repetition_str'] }} | {{ elem['separator'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
+|{{ elem['attribute'] }} | {{ elem['repetition_str'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
 {% endif %}
 {% endfor %}
 |=======================================================================
