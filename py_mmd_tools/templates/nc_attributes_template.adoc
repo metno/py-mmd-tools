@@ -70,10 +70,10 @@ The following ACDD elements are recommended:
 |=======================================================================
 
 The following elements are ACDD extensions that are needed to improve (meta)data interoperability. Please refer to the documentation of https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html[MMD] for more details:
-[cols=",,"]
+[cols=",,,"]
 |=======================================================================
-|*Extra Attribute* |*Default* |*MMD equivalent*
+|*Extra Attribute* |*Repetition* |*Default* |*MMD equivalent*
 {% for elem in data['acdd_ext'] %}
-|{{ elem['attribute'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
+|{{ elem['attribute'] }} | {{ elem['repetition_str'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
 {% endfor %}
 |=======================================================================

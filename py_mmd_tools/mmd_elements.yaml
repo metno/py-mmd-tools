@@ -25,6 +25,7 @@ last_metadata_update:
     type:
       minOccurs: '1'
       separator: ','
+      repetition: Comma separated list
       acdd_ext: date_created_type
       #- Created
       #- Minor modification
@@ -210,12 +211,15 @@ data_center:
   data_center_name:
     short_name:
       separator: ','
+      repetition: Comma separated list
       acdd: institution
     long_name: 
       separator: ','
+      repetition: Comma separated list
       acdd: institution
   data_center_url:
     separator: ','
+    repetition: Comma separated list
     acdd: publisher_url
 
 data_access:
@@ -283,9 +287,11 @@ project:
   minOccurs: '0'
   short_name:
     separator: ';'
+    repetition: Semicolon separated list
     acdd: project
   long_name:
     separator: ';'
+    repetition: Semicolon separated list
     acdd: project
 
 platform:
@@ -293,12 +299,15 @@ platform:
   minOccurs: '0'
   short_name:
     separator: ','
+    repetition: Comma separated list
     acdd: platform
   long_name:
     separator: ','
+    repetition: Comma separated list
     acdd: platform
   resource:
     separator: ','
+    repetition: Comma separated list
     acdd: platform_vocabulary
   orbit_relative:
   orbit_absolute:
@@ -306,12 +315,15 @@ platform:
   instrument:
     short_name:
       separator: ','
+      repetition: Comma separated list
       acdd: instrument
     long_name:
       separator: ','
+      repetition: Comma separated list
       acdd: instrument
     resource:
       separator: ','
+      repetition: Comma separated list
       acdd: instrument_vocabulary
     mode:
     polarisation:
@@ -330,6 +342,7 @@ activity_type:
   maxOccurs: unbounded
   minOccurs: '0'
   acdd: source
+  repetition: Semicolon separated list
   separator: ';'
 
 dataset_citation:
@@ -337,9 +350,11 @@ dataset_citation:
   minOccurs: '0'
   author:
     acdd: creator_name
+    repetition: Comma separated list
     separator: ','
   publication_date:
     separator: ','
+    repetition: Comma separated list
     acdd: date_created
   title:
     acdd: title
@@ -350,13 +365,16 @@ dataset_citation:
   publication_place:
   publisher:
     separator: ','
+    repetition: Comma separated list
     acdd: publisher_name
   pages:
   isbn:
   doi:
   url:
     separator: ','
+    repetition: Comma separated list
     acdd: metadata_link
   other:
     separator: ','
+    repetition: Comma separated list
     acdd: references
