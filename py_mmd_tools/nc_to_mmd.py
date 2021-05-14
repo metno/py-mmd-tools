@@ -29,28 +29,32 @@ from netCDF4 import Dataset
 import lxml.etree as ET
 
 def get_attr_info(key, convention, normalized):
-    max_occurs_key = key.replace(convention, '')+'maxOccurs'
+    max_occurs_key = key.replace(convention, 'maxOccurs')
     if max_occurs_key in normalized.keys():
         max_occurs = normalized[max_occurs_key]
     else:
         max_occurs = ''
     repetition_allowed = 'yes' if max_occurs not in ['0', '1'] else 'no'
-    min_occurs_key = key.replace(convention, '')+'minOccurs'
+    min_occurs_key = key.replace(convention, 'minOccurs')
     if min_occurs_key in normalized.keys():
         required = int(normalized[min_occurs_key])
     else:
         required = 0
-    separator_key = key.replace(convention, '')+'separator'
+    separator_key = key.replace(convention, 'separator')
     if separator_key in normalized.keys():
         separator = normalized[separator_key]
     else:
         separator = ''
-    default_key = key.replace(convention, '')+'default'
+    default_key = key.replace(convention, 'default')
     if default_key in normalized.keys():
         default = normalized[default_key]
     else:
         default = ''
-    repetition_str = normalized.pop('repetition','')
+    repetition_key = key.replace(convention, 'repetition')
+    if repetition_key in normalized.keys():
+        repetition_str = normalized[repetition_key]
+    else:
+        repetition_str = ''
     return required, repetition_allowed, repetition_str, separator, default
 
 def nc_attrs_from_yaml():
@@ -89,6 +93,7 @@ def nc_attrs_from_yaml():
                     'mmd_field': key.replace('>acdd', ''),
                     'attribute': val,
                     'repetition_allowed': repetition_allowed,
+                    'repetition_str': repetition_str,
                     'separator': separator,
                     'default': default,
                 })
