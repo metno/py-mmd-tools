@@ -42,6 +42,7 @@ metadata_status:
 collection:
   maxOccurs: unbounded
   minOccurs: '0'
+  repetition: Comma separated list
   acdd_ext: collection
   separator: ','
 
@@ -57,6 +58,7 @@ title:
   lang:
     minOccurs: '1'
     acdd_ext: title_lang
+    repetition: No repetition allowed
     default: en
 
 abstract:
@@ -72,6 +74,7 @@ abstract:
   lang:
     minOccurs: '1'
     acdd_ext: summary_lang
+    repetition: No repetition allowed
     default: en
 
 temporal_extent:
@@ -134,6 +137,7 @@ location:
 dataset_production_status:
   maxOccurs: '1'
   minOccurs: '1'
+  repetition: No repetition allowed
   acdd_ext: dataset_production_status
 
 dataset_language:
@@ -150,6 +154,7 @@ operational_status:
 access_constraint:
   maxOccurs: '1'
   minOccurs: '0'
+  repetition: No repetition allowed
   acdd_ext: access_constraint
 
 use_constraint:
@@ -239,10 +244,12 @@ data_access:
 related_dataset:
   maxOccurs: unbounded
   minOccurs: '0'
-  relation_type:
-    acdd_ext: related_dataset_relation_type
   id:
+    repetition: Comma separated list
     acdd_ext: related_dataset_id
+  relation_type:
+    repetition: Comma separated list
+    acdd_ext: related_dataset_relation_type
 
 storage_information:
   maxOccurs: '1'
@@ -263,6 +270,7 @@ related_information:
 iso_topic_category:
   maxOccurs: unbounded
   minOccurs: '1'
+  repetition: Comma separated list
   acdd_ext: iso_topic_category
   separator: ','
 
@@ -336,6 +344,7 @@ platform:
 spatial_representation:
   maxOccurs: '1'
   minOccurs: '1'
+  repetition: No repetition allowed
   acdd_ext: spatial_representation
 
 activity_type:
