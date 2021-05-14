@@ -2,6 +2,7 @@
 metadata_identifier:
   maxOccurs: '1'
   minOccurs: '1'
+  repetition: No repetition allowed
   acdd: id
 
 alternate_identifier:
@@ -17,6 +18,7 @@ last_metadata_update:
     datetime:
       minOccurs: '1'
       separator: ','
+      repetition: Use date_metadata_modified with comma separation
       acdd: 
         - date_created
         - date_metadata_modified
@@ -62,6 +64,7 @@ abstract:
   separator: ';'
   abstract:
     minOccurs: '1'
+    repetition: Use ACDD extension for translations
     acdd: summary
     acdd_ext:
       - summary_no
@@ -91,18 +94,22 @@ geographic_extent:
     north:
       maxOccurs: '1'
       minOccurs: '1'
+      repetition: No repetition allowed
       acdd: geospatial_lat_max
     south:
       maxOccurs: '1'
       minOccurs: '1'
+      repetition: No repetition allowed
       acdd: geospatial_lat_min
     east:
       maxOccurs: '1'
       minOccurs: '1'
+      repetition: No repetition allowed
       acdd: geospatial_lon_max
     west:
       maxOccurs: '1'
       minOccurs: '1'
+      repetition: No repetition allowed
       acdd: geospatial_lon_min
   polygon:
     maxOccurs: '1'
@@ -248,15 +255,17 @@ iso_topic_category:
 keywords:
   maxOccurs: unbounded
   minOccurs: '1'
-  vocabulary:
-    minOccurs: '1'
-    acdd: keywords_vocabulary
-    separator: ','
-  resource:
   keyword:
     minOccurs: '1'
     separator: ','
+    repetition: Comma separated list
     acdd: keywords
+  vocabulary:
+    minOccurs: '1'
+    repetition: Comma separated list
+    acdd: keywords_vocabulary
+    separator: ','
+  resource:
   separator:
 
 project:

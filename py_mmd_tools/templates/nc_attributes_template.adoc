@@ -55,7 +55,7 @@ The following ACDD elements are required:
 |=======================================================================
 
 The following ACDD elements are recommended:
-[cols=",,,,"]
+[cols=",,,"]
 |=======================================================================
 |*ACDD Attribute* |*Repetition* |*Default* |*MMD equivalent*
 {% for elem in data['acdd']['not_required'] %}
