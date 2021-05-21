@@ -2,12 +2,12 @@
 {{ data.message }}
 ////
 
-[[acdd-elements]]
-==== Global attributes
+[[data-as-netcdf-cf]]
+==== Submitting data as NetCDF/CF
 
-In order to add netCDF-CF datasets to the discovery metadata catalog, the data producer should populate the file with certain global attributes mainly described in the Attribute Convention for Data Discovery (ACDD). For a complete description of the ACDD elements, please refer to http://wiki.esipfed.org/index.php/Attribute_Convention_for_Data_Discovery.
+By documenting and formatting your data using <<netcdf,NetCDF>> following the link:https://cfconventions.org/[CF conventions] and the link:https://wiki.esipfed.org/Attribute_Convention_for_Data_Discovery_1-3[Attribute Convention for Data Discovery (ACDD)], <<mmd,MMD>> files can be automatically generated from the <<netcdf,NetCDF>> files. The <<cf,CF conventions>> is a controlled vocabulary providing a definitive description of what the data in each variable represents, and the spatial and temporal properties of the data. The <<acdd,ACDD>> vocabulary describes attributes recommended for describing a <<netcdf,NetCDF>> dataset to data discovery systems. See, e.g., link:https://unidata.github.io/netcdf4-python/[netCDF4-python docs], or link:http://xarray.pydata.org/en/stable/user-guide/io.html[xarray docs] for documentation about how to create netCDF files.
 
-The ACDD recommendations should always be followed in order to properly document your netCDF-CF files. However, the below tables summarize the ACDD and some additional attributes that are needed to properly populate a discovery metadata catalog which fulfills the requirements of international standards (e.g., GCMD/DIF, the WMO profile of ISO19115, etc.).
+The ACDD recommendations should be followed in order to properly document your netCDF-CF files. The below tables summarize required and recommended ACDD and some additional attributes that are needed to properly populate a discovery metadata catalog which fulfills the requirements of international standards (e.g., GCMD/DIF, the WMO profile of ISO19115, etc.).
 
 ===== Notes 
 
@@ -35,6 +35,7 @@ A data *license* provides information about any restrictions on the use of the d
 :license_resource = "http://spdx.org/licenses/CC-BY-4.0" ;
 ====
 
+[[acdd-elements]]
 ===== List of Attributes
 
 This section provides lists of ACDD elements that are required and recommended, as well as some extra elements that are needed to fully support our data management needs. The right columns of these tables provide the https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html[MET Norway Metadata Specification (MMD)] fields that map to the ACDD (and our extension to ACDD) elements. Please refer to https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html[MMD] for definitions of these elements, as well as controlled vocabularies that should be used. Note that the below tables are automatically generated - check https://github.com/metno/py-mmd-tools/blob/master/py_mmd_tools/mmd_elements.yaml if anything is unclear.
