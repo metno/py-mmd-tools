@@ -129,8 +129,8 @@
     {% for data_access in data['data_access'] %}
   <mmd:data_access>
     <mmd:type>{{ data_access['type'] }}</mmd:type>
-    <mmd:resource>{{ data_access['resource'] }}</mmd:resource>
     <mmd:description>{{ data_access['description'] }}</mmd:description>
+    <mmd:resource>{{ data_access['resource'] }}</mmd:resource>
         {% if data_access['wms_layers'] %}
     <mmd:wms_layers>
             {% for layer in data_access['wms_layers'] %}
