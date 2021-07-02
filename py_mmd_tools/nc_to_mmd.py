@@ -206,7 +206,7 @@ class Nc_to_mmd(object):
         return data
 
     def get_data_centers(self, mmd_element, ncin):
-        acdd_short_name = mmd_element['data_center_name']['short_name'].pop('acdd')
+        acdd_short_name = mmd_element['data_center_name']['short_name'].pop('acdd_ext')
         short_names = self.separate_repeated(True, eval('ncin.%s' %acdd_short_name))
         acdd_long_name = mmd_element['data_center_name']['long_name'].pop('acdd')
         long_names = self.separate_repeated(True, eval('ncin.%s' %acdd_long_name))
@@ -458,7 +458,7 @@ class Nc_to_mmd(object):
         projects = []
         if acdd in ncin.ncattrs():
             projects = self.separate_repeated(True, eval('ncin.%s' %acdd))
-        acdd_short = mmd_element['short_name'].pop('acdd')
+        acdd_short = mmd_element['short_name'].pop('acdd_ext')
         projects_short = []
         if acdd_short in ncin.ncattrs():
             projects_short = self.separate_repeated(True, eval('ncin.%s' %acdd_short))
@@ -490,43 +490,50 @@ class Nc_to_mmd(object):
     def get_platforms(self, mmd_element, ncin):
         """ Get dict with MMD entries for the observation platform.
 
-        NOTE: This function should be rewritten according to a solution to https://github.com/metno/py-mmd-tools/issues/72
+        NOTE: This function should be rewritten according to a solution to 
+              https://github.com/metno/py-mmd-tools/issues/107
         """
+        long_names = []
+        acdd_long_name = mmd_element['long_name'].pop('acdd')
+        if acdd_long_name in ncin.ncattrs():
+            long_names = self.separate_repeated(True, eval('ncin.%s' %acdd_long_name))
+
+        ilong_names = []
+        acdd_instrument_long_name = mmd_element['instrument']['long_name'].pop('acdd')
+        if acdd_instrument_long_name in ncin.ncattrs():
+            ilong_names = self.separate_repeated(True, 
+                                    eval('ncin.%s' %acdd_instrument_long_name))
+
         short_names = []
-        acdd_short_name = mmd_element['short_name'].pop('acdd')
+        acdd_short_name = mmd_element['short_name'].pop('acdd_ext')
         if acdd_short_name in ncin.ncattrs():
             short_names = self.separate_repeated(True, eval('ncin.%s' %acdd_short_name))
 
-        # There is only one entry for platform and instrument in ACDD - we need to use a controlled vocabulary to get the correct values
-        # That is easy if the controlled vocabulary is GCMD but in other cases we may depend on a solution to https://github.com/metno/py-mmd-tools/issues/72
+        # There is only one entry for platform and instrument in ACDD - we need 
+        # to use a controlled vocabulary to get the correct values. That is 
+        # easy if the controlled vocabulary is GCMD but in other cases we may
+        # depend on a solution to https://github.com/metno/py-mmd-tools/issues/72
         resources = []
         acdd_resource = mmd_element['resource'].pop('acdd')
         if acdd_resource in ncin.ncattrs():
             resources = self.separate_repeated(True, eval('ncin.%s' %acdd_resource))
 
         ishort_names = []
-        acdd_instrument_short_name = mmd_element['instrument']['short_name'].pop('acdd')
+        acdd_instrument_short_name = mmd_element['instrument']['short_name'].pop('acdd_ext')
         if acdd_instrument_short_name in ncin.ncattrs():
-            ishort_names = self.separate_repeated(True, eval('ncin.%s' %acdd_instrument_short_name))
+            ishort_names = self.separate_repeated(True, 
+                                    eval('ncin.%s' %acdd_instrument_short_name))
 
         iresources = []
         acdd_instrument_resource = mmd_element['instrument']['resource'].pop('acdd')
         if acdd_instrument_resource in ncin.ncattrs():
-            iresources = self.separate_repeated(True, eval('ncin.%s' %acdd_instrument_resource))
+            iresources = self.separate_repeated(True,
+                                    eval('ncin.%s' %acdd_instrument_resource))
 
         if resources and 'gcmd' in resources[0].lower():
-            data = self.get_gcmd_platforms(short_names, resources[0], ishort_names, iresources[0])
+            data = self.get_gcmd_platforms(long_names, resources[0],
+                                            ilong_names, iresources[0])
         else:
-            long_names = []
-            acdd_long_name = mmd_element['long_name'].pop('acdd')
-            if acdd_long_name in ncin.ncattrs():
-                long_names = self.separate_repeated(True, eval('ncin.%s' %acdd_long_name))
-
-            ilong_names = []
-            acdd_instrument_long_name = mmd_element['instrument']['long_name'].pop('acdd')
-            if acdd_instrument_long_name in ncin.ncattrs():
-                ilong_names = self.separate_repeated(True, eval('ncin.%s' %acdd_instrument_long_name))
-
             data = []
             for i in range(len(long_names)):
                 short_name = short_names[i]
@@ -765,7 +772,8 @@ class Nc_to_mmd(object):
                 self.metadata['temporal_extent']['end_date'] = time_coverage_end
             mmd_yaml.pop('temporal_extent')
         else:
-            self.metadata['temporal_extent'] = self.get_temporal_extents(mmd_yaml.pop('temporal_extent'), ncin)
+            self.metadata['temporal_extent'] = self.get_temporal_extents(
+                                                    mmd_yaml.pop('temporal_extent'), ncin)
         self.metadata['personnel'] = self.get_personnel(mmd_yaml.pop('personnel'), ncin)
         self.metadata['keywords'] = self.get_keywords(mmd_yaml.pop('keywords'), ncin)
         self.metadata['project'] = self.get_projects(mmd_yaml.pop('project'), ncin)

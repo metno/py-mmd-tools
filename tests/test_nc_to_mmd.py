@@ -150,15 +150,10 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(type(value), list)
         self.assertEqual(value, [{
             'data_center_name': {
-                'long_name': 'MET NORWAY',
-                'short_name': 'MET NORWAY'},
+                'long_name': 'Norwegian Meteorological Institute',
+                'short_name': 'NO/MET'},
             'data_center_url': 'met.no',
-            }, {
-                'data_center_name': {
-                    'long_name': 'NASA',
-                    'short_name': 'NASA'},
-                'data_center_url': '',
-                }])
+            }])
 
     def test_data_access(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'),
@@ -223,7 +218,8 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc')
         with self.assertRaises(AttributeError):
             nc2mmd.to_mmd(time_coverage_start='1850-01-01T00:00:00Z')
-        self.assertEqual(nc2mmd.metadata['temporal_extent']['start_date'], '1850-01-01T00:00:00Z')
+        self.assertEqual(nc2mmd.metadata['temporal_extent']['start_date'],
+                '1850-01-01T00:00:00Z')
 
     def test_missing_temporal_extent_but_start_and_end_provided_as_kwargs(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
@@ -282,9 +278,9 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[0]['email'], 'trygve@meti.no')
         self.assertEqual(value[1]['email'], 'post@met.no')
         self.assertEqual(value[2]['email'], 'morten@met.no')
-        self.assertEqual(value[0]['organisation'], 'MET NORWAY')
-        self.assertEqual(value[1]['organisation'], 'MET NORWAY')
-        self.assertEqual(value[2]['organisation'], 'MET NORWAY')
+        self.assertEqual(value[0]['organisation'], 'Norwegian Meteorological Institute')
+        self.assertEqual(value[1]['organisation'], 'Norwegian Meteorological Institute')
+        self.assertEqual(value[2]['organisation'], 'Norwegian Meteorological Institute')
         self.assertEqual(value[0]['role'], 'Investigator')
         self.assertEqual(value[1]['role'], 'Technical contact')
         self.assertEqual(value[2]['role'], 'Investigator')
@@ -306,8 +302,8 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[1]['role'], 'Technical contact')
         self.assertEqual(value[0]['email'], 'trygve@meti.no')
         self.assertEqual(value[1]['email'], 'post@met.no')
-        self.assertEqual(value[0]['organisation'], 'MET NORWAY')
-        self.assertEqual(value[1]['organisation'], 'MET NORWAY')
+        self.assertEqual(value[0]['organisation'], 'Norwegian Meteorological Institute')
+        self.assertEqual(value[1]['organisation'], 'Norwegian Meteorological Institute')
 
     def test_personnel(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
@@ -410,7 +406,7 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_projects(mmd_yaml['project'], ncin)
-        self.assertEqual(value[0]['long_name'], 'Govermental core service')
+        self.assertEqual(value[0]['long_name'], 'MET Norway core services')
 
     def test_dataset_citation_missing_attrs(self):
         mmd_yaml = yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
@@ -599,8 +595,8 @@ class TestNC2MMD(unittest.TestCase):
         value = md.get_data_centers(mmd_yaml['data_center'], ncin)
         self.assertEqual(value, [{
             'data_center_name': {
-                'short_name': 'MET NORWAY',
-                'long_name': 'MET NORWAY'},
+                'short_name': 'NO/MET',
+                'long_name': 'Norwegian Meteorological Institute'},
             'data_center_url': ''}])
 
     def test_create_mmd_missing_update_times(self):

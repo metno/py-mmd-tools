@@ -217,7 +217,7 @@ data_center:
     short_name:
       separator: ','
       repetition: Comma separated list
-      acdd: institution
+      acdd_ext: institution_short_name
     long_name: 
       separator: ','
       repetition: Comma separated list
@@ -296,7 +296,7 @@ project:
   short_name:
     separator: ';'
     repetition: Semicolon separated list
-    acdd: project
+    acdd_ext: project_short_name
   long_name:
     separator: ';'
     repetition: Semicolon separated list
@@ -308,7 +308,7 @@ platform:
   short_name:
     separator: ','
     repetition: Comma separated list
-    acdd: platform
+    acdd_ext: platform_short_name
   long_name:
     separator: ','
     repetition: Comma separated list
@@ -324,7 +324,7 @@ platform:
     short_name:
       separator: ','
       repetition: Comma separated list
-      acdd: instrument
+      acdd_ext: instrument_short_name
     long_name:
       separator: ','
       repetition: Comma separated list
