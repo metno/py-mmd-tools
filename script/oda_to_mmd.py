@@ -9,10 +9,13 @@ import pathlib
 """
 Script to run the odajson_to_mmd method
 
- License:
-     This file is part of the py-mmd-tools repository (https://github.com/metno/py-mmd-tools).
-     py-mmd-tools is licensed under GPL-3.0 (
-     https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
+License:
+
+This file is part of the py-mmd-tools repository
+<https://github.com/metno/py-mmd-tools>.
+
+py-mmd-tools is licensed under the Apache License 2.0
+<https://github.com/metno/py-mmd-tools/blob/master/LICENSE>
 
 Usage: python script/oda_to_mmd.py [-h] -o OUTPUT_DIRECTORY -l LOG_DIRECTORY -d ODA_DEFAULT_YML 
 -t ODA_TEMPLATE_XML [-f FROST_URL] [--mmd-validation [MMD_VALIDATION]] [--xsd-mmd XSD_MMD] 

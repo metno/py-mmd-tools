@@ -2,9 +2,13 @@
 """
 Script to run the xmlc onversion tools
 
- License:
-     This file is part of the py-mmd-tools repository (https://github.com/metno/py-mmd-tools),
-     licensed under Apache License 2.0 (https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
+License:
+
+This file is part of the py-mmd-tools repository
+<https://github.com/metno/py-mmd-tools>.
+
+py-mmd-tools is licensed under the Apache License 2.0
+<https://github.com/metno/py-mmd-tools/blob/master/LICENSE>
 
 usage: xmlconverter.py [-h] -i INPUT_DIR [-o OUTPUT_DIR] -t INPUT_XSLT
                        [-r RECOVER_CONVERSION] [-p PARALLEL_CONVERSION]
