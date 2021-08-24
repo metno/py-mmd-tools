@@ -1,13 +1,18 @@
 """
-Tool for parsing metadata following the Attribute Convention for Data Discovery (ACDD)
-in NetCDF files to the MET Norway Metadata format specification (MMD).
+Tool for parsing metadata following the Attribute Convention for Data
+Discovery (ACDD) in NetCDF files to the MET Norway Metadata format
+specification (MMD).
 
-Can also be used check to check whether the required MMD elements are present in input file.
+Can also be used check to check whether the required MMD elements are
+present in input file.
 
 License:
-     This file is part of the py-mmd-tools repository (https://github.com/metno/py-mmd-tools).
-     py-mmd-tools is licensed under the Apache License 2.0 (
-     https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
+
+This file is part of the py-mmd-tools repository
+<https://github.com/metno/py-mmd-tools>.
+
+py-mmd-tools is licensed under the Apache License 2.0
+<https://github.com/metno/py-mmd-tools/blob/master/LICENSE>
 """
 import os
 import warnings
@@ -26,9 +31,11 @@ from uuid import UUID, uuid4
 
 import pathlib
 from netCDF4 import Dataset
-import lxml.etree as ET
+
 
 def get_attr_info(key, convention, normalized):
+    """ToDo: Add docstring
+    """
     max_occurs_key = key.replace(convention, 'maxOccurs')
     if max_occurs_key in normalized.keys():
         max_occurs = normalized[max_occurs_key]

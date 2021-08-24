@@ -2,9 +2,12 @@
 Tool for creating metadata (MMD format) for data from ODA database.
 
 License:
-     This file is part of the py-mmd-tools repository (https://github.com/metno/py-mmd-tools).
-     py-mmd-tools is licensed under GPL-3.0 (
-     https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
+
+This file is part of the py-mmd-tools repository
+<https://github.com/metno/py-mmd-tools>.
+
+py-mmd-tools is licensed under the Apache License 2.0
+<https://github.com/metno/py-mmd-tools/blob/master/LICENSE>
 """
 
 import copy
