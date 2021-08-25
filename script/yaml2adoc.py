@@ -15,7 +15,7 @@ py-mmd-tools is licensed under the Apache License 2.0
 Usage:
     yaml2adoc.py [-h] -o OUTPUT_FILE
 
-Example: 
+Example:
     python yaml2adoc.py -o ncattrs.adoc
 """
 

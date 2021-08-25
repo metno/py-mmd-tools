@@ -32,27 +32,32 @@ def retrieve_frost_stations(url, user_id):
     return stations_list
 
 
-def process_station(station_id, station_name, outdir, default_file, mmd_template, frost_url,
-                    validate=False,
-                    mmd_schema=None):
-    """
-    Process metadata from one station:
-     - request metadata information from all available datasets from station
+def process_station(
+    station_id, station_name, outdir, default_file, mmd_template, frost_url,
+    validate=False, mmd_schema=None
+):
+    """Process metadata from one station:
+     - request metadata information from all available datasets from
+       station
      - create MMD file for each dataset
+
     Args:
         station_id (str): station identifier
         station_name (str): station name
         outdir (str): directory where created MMD files will be saved
-        default_file (str): YAML file containing the default metadata (generic metadata used for
+        default_file (str): YAML file containing the default metadata
+            (generic metadata used for
         all datasets)
         mmd_template (str): XML template file
         frost_url (str): url to query
-        validate (bool): Validate created MMD file against schema? default=False
-        mmd_schema (str): XSD file containing the schema to validate against. default=None
+        validate (bool): Validate created MMD file against schema?
+            default=False
+        mmd_schema (str): XSD file containing the schema to validate
+            against. default=None
+
     Returns:
         True if function succeeded, False otherwise
     """
-
     # Station URL
     st_url = 'https://' + frost_url + '/api/v1/getlabels/mmd?stationid=' + station_id
     logger.debug('Retrieving FROST data for station %s (id: %s).' % (station_name, station_id))
@@ -95,20 +100,23 @@ def process_station(station_id, station_name, outdir, default_file, mmd_template
 
 
 def prepare_elements(dataset_elements, default_elements):
-    """
-    Prepare a dictionary to fit MMD schema:
-     - merge dataset specific elements and default elements (default overwritten if available in
-     dataset)
+    """Prepare a dictionary to fit MMD schema:
+     - merge dataset specific elements and default elements (default
+       overwritten if available in dataset)
      - rename elements
      - modify to fit controlled vocabularies
-     - verify that elements are 'OK' (fit controlled vocabularies, required are present, ...)
+     - verify that elements are 'OK' (fit controlled vocabularies,
+       required are present, ...)
+
     Args:
-        dataset_elements (dict): dictionary containing all elements specific to one dataset
-        default_elements (dict): dictionary containing all default elements
+        dataset_elements (dict): dictionary containing all elements
+            specific to one dataset
+        default_elements (dict): dictionary containing all default
+            elements
+
     Returns:
         dictionary if function succeeded or None if it failed
    """
-
     logger.debug("Dataset metadata elements before merging: %s" % dataset_elements)
 
     # Rename elements keys to lowercase
@@ -130,24 +138,24 @@ def prepare_elements(dataset_elements, default_elements):
         if keys['Keyword_type'] == "CF name":
             dataset_elements['keywords_cf'] = keys['Keywords'][0]
         else:
-            logger.warning(
-                'This type of keyword is not available yet (%s). It will not be included in the '
-                'output MMD.' %
-                keys[
-                    'Keyword_type'])
+            logger.warning((
+                'This type of keyword is not available yet (%s). '
+                'It will not be included in the output MMD.'
+            ) % keys['Keyword_type'])
 
     # Check that dataset elements contains all the required elements
-    required_keys = ['keywords_cf', 'metadata_identifier', 'last_metadata_update',
-                     'temporal_extent']
+    required_keys = [
+        'keywords_cf', 'metadata_identifier', 'last_metadata_update', 'temporal_extent'
+    ]
     for req in required_keys:
         if req not in dataset_elements:
             logger.warning('Required parameter missing (%s), creation of MMD file aborted.' % req)
             return None
     if 'start_date' not in dataset_elements['temporal_extent']:
         logger.warning(
-            'Required parameter missing (\'temporal_extent\'][\'start_date\']), creation of MMD '
-            'file '
-            'aborted.')
+            'Required parameter missing (\'temporal_extent\'][\'start_date\']), '
+            'creation of MMD file aborted.'
+        )
         return None
 
     # Merge default and dataset specific elements
@@ -157,13 +165,17 @@ def prepare_elements(dataset_elements, default_elements):
 
     # Rename elements to follow mmd vocabulary for data production status
     choices = {'open': 'In Work', 'future': 'Planned', 'closed': 'Complete'}
-    elements_out['dataset_production_status'] = choices.get(elements_out['production_status'], None)
+    elements_out['dataset_production_status'] = choices.get(
+        elements_out['production_status'], None
+    )
     if elements_out['dataset_production_status'] is None:
-        logger.warning(
-            'The value for key %s (%s) is not a valid choice. Correct choices are: '
-            'open/future/closed. This element '
-            'is required, so the creation of MMD file is aborted.' % (
-                'production_status', elements_out['production_status']))
+        logger.warning((
+            'The value for key %s (%s) is not a valid choice. '
+            'Correct choices are: open/future/closed. '
+            'This element is required, so the creation of MMD file is aborted.'
+        ) % (
+            'production_status', elements_out['production_status']
+        ))
         return None
 
     # Remove operational status if empty
@@ -177,26 +189,28 @@ def prepare_elements(dataset_elements, default_elements):
 
     # Create dataset specific title and abstract if possible
     try:
-        elements_out['title_full'] = elements_out[
-                                         'keywords_cf'] + ' observations from weather station ' + \
-                                     elements_out['station_name'] + ' (station ID ' + elements_out[
-                                         'station_id'] + ').'
+        elements_out['title_full'] = (
+            '%s observations from weather station %s (station ID %s).'
+        ) % (
+            elements_out['keywords_cf'],
+            elements_out['station_name'],
+            elements_out['station_id'],
+        )
     except KeyError:
         elements_out['title_full'] = elements_out['title']
     try:
-        elements_out['abstract_full'] = 'Timeseries of ' + elements_out[
-            'keywords_cf'] + ' observations from the Norwegian weather station ' + elements_out[
-                                            'station_name'] + ' (station ID ' + elements_out[
-                                            'station_id'] + '). The observations have been ' \
-                                                            'through the data ' \
-                                                            'collection system of the Norwegian ' \
-                                                            'Meteorological ' \
-                                                            'institute which includes a number of ' \
-                                                            'automated and ' \
-                                                            'manual quality control routines. The ' \
-                                                            'number of available ' \
-                                                            'quality control routines is element ' \
-                                                            'dependent. '
+        elements_out['abstract_full'] = (
+            'Timeseries of %s observations from the Norwegian weather '
+            'station %s (station ID %s). The observations have been '
+            'through the data collection system of the Norwegian '
+            'Meteorological institute which includes a number of '
+            'automated and manual quality control routines. The number '
+            'of available quality control routines is element dependent.'
+        ) % (
+            elements_out['keywords_cf'],
+            elements_out['station_name'],
+            elements_out['station_id'],
+        )
     except KeyError:
         elements_out['abstract_full'] = elements_out['abstract']
 
@@ -206,17 +220,17 @@ def prepare_elements(dataset_elements, default_elements):
 
 
 def to_mmd(input_data, output_file, template_file, xsd_validation=False, xsd_schema=None):
-    """
-    Transform Json file or dictionary to MMD using a template.
+    """Transform Json file or dictionary to MMD using a template.
+
     Args:
-        input_data (str or dict): filepath to input json file or dictionary
+        input_data (str or dict): filepath to input json file or
+            dictionary
         output_file (str): filepath to output MMD file
         template_file (str): filepath to a xml template file
-        xsd_validation (bool): if true, performs validation on the created xml file - requires an
-        xsd schema
-                               default=False
-        xsd_schema (str): filepath to xsd schema file
-                          default=None
+        xsd_validation (bool): if true, performs validation on the
+            created xml file - requires an xsd schema: default=False
+        xsd_schema (str): filepath to xsd schema file default=None
+
     Returns:
         True if function succeeded, False otherwise
     """
@@ -230,16 +244,15 @@ def to_mmd(input_data, output_file, template_file, xsd_validation=False, xsd_sch
         in_doc = input_data
     else:
         raise TypeError(
-            "Unknown input data %s. Expecting a Jason file or a dictionary." % input_data)
+            "Unknown input data %s. Expecting a Jason file or a dictionary." % input_data
+        )
 
     # Rendering of input in template
     env = jinja2.Environment(
-            loader=jinja2.PackageLoader(globals()['__name__'].split('.')[0], 'templates'),
-            autoescape=jinja2.select_autoescape(['html', 'xml']),
-            trim_blocks=True, lstrip_blocks=True
-        )
-    #env = jinja2.Environment(loader=jinja2.FileSystemLoader(pathlib.Path(template_file).parent),
-    #                         trim_blocks=True, lstrip_blocks=True)
+        loader=jinja2.PackageLoader(globals()['__name__'].split('.')[0], 'templates'),
+        autoescape=jinja2.select_autoescape(['html', 'xml']),
+        trim_blocks=True, lstrip_blocks=True
+    )
     template = env.get_template(pathlib.Path(template_file).name)
     out_doc = template.render(data=in_doc)
 
@@ -267,13 +280,16 @@ def to_mmd(input_data, output_file, template_file, xsd_validation=False, xsd_sch
 
 
 def _lowercase(dictin):
-    """
-    Make all keys from a dictionary lowercase.
+    """Make all keys from a dictionary lowercase.
+
     Args:
         dictin (dict): dictionary
+
     Returns:
         modified dictionary dictin
-    Ok for nested dictionaries, but will not work for dictionaries within lists.
+
+    Ok for nested dictionaries, but will not work for dictionaries
+    within lists.
     """
     if isinstance(dictin, dict):
         return {k.lower(): _lowercase(v) for k, v in dictin.items()}
@@ -282,18 +298,18 @@ def _lowercase(dictin):
 
 
 def _merge_dicts(d1, d2):
-    """
-    Merge dictionaries d1 and d2 with values from d1 overwritten by d2 if exists in both
-    dictionaries.
-    Merging includes nested dictionaries.
-    Raises error if one key contains a dictionary in one dictionary but not in the other.
+    """Merge dictionaries d1 and d2 with values from d1 overwritten by
+    d2 if exists in both dictionaries. Merging includes nested
+    dictionaries. Raises error if one key contains a dictionary in one
+    dictionary but not in the other.
+
     Args:
         d1 (dict): default dictionary
         d2(dict): other dictionary
+
     Returns:
         True if function succeeded, False otherwise
         Dictionary d1 will now contain the merged dictionary
-
     """
     out = d1
     for k in d2:

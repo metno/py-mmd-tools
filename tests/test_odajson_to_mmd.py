@@ -328,7 +328,7 @@ class TestODA2MMD(unittest.TestCase):
         mock_response.raise_for_status.return_value = 'hei'
         mock_response.json.return_value = {'data': ['one', 'two', 'three']}
         mock_get.return_value = mock_response
-        # 
+        #
         self.assertEqual(odajson_to_mmd.retrieve_frost_stations(url, id)[0], 'one')
         self.assertEqual(odajson_to_mmd.retrieve_frost_stations(url, id)[1], 'two')
         self.assertEqual(odajson_to_mmd.retrieve_frost_stations(url, id)[2], 'three')
