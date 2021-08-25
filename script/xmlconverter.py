@@ -10,21 +10,26 @@ This file is part of the py-mmd-tools repository
 py-mmd-tools is licensed under the Apache License 2.0
 <https://github.com/metno/py-mmd-tools/blob/master/LICENSE>
 
-usage: xmlconverter.py [-h] -i INPUT_DIR [-o OUTPUT_DIR] -t INPUT_XSLT
-                       [-r RECOVER_CONVERSION] [-p PARALLEL_CONVERSION]
-example: python3 xmlconverter.py -i metadata/nbs_mmdv2/ -t mmd2iso.xsl -p True -r True -o metadata/nbs_iso
+usage:
+    xmlconverter.py [-h] -i INPUT_DIR [-o OUTPUT_DIR] -t INPUT_XSLT \
+        [-r RECOVER_CONVERSION] [-p PARALLEL_CONVERSION]
+
+Example:
+    python3 xmlconverter.py -i metadata/nbs_mmdv2/ -t mmd2iso.xsl \
+        -p True -r True -o metadata/nbs_iso
 """
-import argparse
+
 import os
+import argparse
 import pathlib
-import sys
 import parmap
+
 from lxml.etree import XMLSyntaxError
 from py_mmd_tools.xml_utils import xml_translate_and_write
 
 
-
 def str2bool(v):
+    """ToDo: Add docstring"""
     if isinstance(v, bool):
         return v
     if v.lower() in ("yes", "true", "t", "y", "1"):
@@ -33,10 +38,12 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError("Boolean value expected.")
-    
+
+
 def filelist(directory):
+    """ToDo: Add docstring"""
     xml_files = []
-    for subdir, dirs, files in os.walk(directory):
+    for subdir, _, files in os.walk(directory):
         for file in files:
             # print('File: %s' %file)
             file_path = subdir + os.sep + file
@@ -44,7 +51,9 @@ def filelist(directory):
                 xml_files.append(file_path)
     return xml_files
 
+
 def translate_and_write(xml_file, xslt, outdir="/tmp"):
+    """ToDo: Add docstring"""
     pathlib.Path(outdir).mkdir(parents=True, exist_ok=True)
     if not os.path.isfile(xslt):
         raise Exception("XSLT file is missing: %s" % xslt)
@@ -59,6 +68,7 @@ def translate_and_write(xml_file, xslt, outdir="/tmp"):
 
 
 def main(metadata, xslt, outdir, recover=False, parallel=False):
+    """ToDo: Add docstring"""
     if not recover:
         xmlfiles = filelist(metadata)
     else:
@@ -82,10 +92,13 @@ def main(metadata, xslt, outdir, recover=False, parallel=False):
 
 
 def check_record(record, tobedone):
-    """[Returns a filepath string if the file name is present in the input list]
+    """Returns a filepath string if the file name is present in the
+    input list
+
     Args:
         record ([str]): [filepath]
         tobedone ([list]): [list of filenames]
+
     Returns:
         [str]: [filepath]
     """
@@ -94,11 +107,15 @@ def check_record(record, tobedone):
 
 
 def recover_task(sourcedir, outdir, parallel=False):
-    """[Return a list of filenames which are present in the sourcedir tree but not in outdir.]
+    """Return a list of filenames which are present in the sourcedir
+    tree but not in outdir.
+
     Args:
         sourcedir ([str]): [filepath to directory]
         outdir ([str]): [filepath to directory]
-        parallel ([bool]): [True to performe the operation using multicore parallel processing]
+        parallel ([bool]): [True to performe the operation using
+            multicore parallel processing]
+
     Returns:
         [list]: [list of strings]
     """
@@ -117,6 +134,7 @@ def recover_task(sourcedir, outdir, parallel=False):
 
 
 def parse_arguments():
+    """ToDo: Add docstring"""
     parser = argparse.ArgumentParser(description="Convert xml files using XSL Tranformation")
     parser.add_argument(
         "-i", "--input-dir", help="directory with input XML", required=True
