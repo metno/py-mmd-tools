@@ -24,7 +24,11 @@ class TestMDDElementsInYAMLAndXSD(unittest.TestCase):
             self.mmd_xml = xmltodict.parse(xml.read())
         self.mmd_yaml = yaml.load(resource_string(py_mmd_tools.__name__, 'mmd_elements.yaml'), Loader=yaml.FullLoader)
 
-    def check_elements(self, elements, type_defs = {}):
+    def check_elements(self, elements, type_defs=None):
+        if type_defs is None:
+            # Never set a function default to a mutable object
+            type_defs = {}
+
         for elem in elements:
             if elem['@type'].startswith('mmd:'):
                 type_defs[elem['@type']] = [elem['@name']]
