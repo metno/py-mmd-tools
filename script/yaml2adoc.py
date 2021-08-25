@@ -7,9 +7,9 @@ License:
      This file is part of the py-mmd-tools repository (https://github.com/metno/py-mmd-tools).
      py-mmd-tools is licensed under Apache License 2.0 (https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
 
-Usage: yaml2adoc [-h] -o OUTPUT_FILE
+Usage: yaml2adoc.py [-h] -o OUTPUT_FILE
 Example: 
-    $ python yaml2adoc -o ncattrs.adoc
+    $ python yaml2adoc.py -o ncattrs.adoc
 """
 
 import sys
