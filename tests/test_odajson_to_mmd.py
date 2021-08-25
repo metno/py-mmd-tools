@@ -292,7 +292,7 @@ class TestODA2MMD(unittest.TestCase):
         )
 
     @patch('py_mmd_tools.odajson_to_mmd.to_mmd')  # avoid writing files..
-    def test_process_station_2(self):
+    def test_process_station_2(self, mock_to_mmd):
         """ToDo: Add docstring"""
         # Non existing station
         outdir = tempfile.mkdtemp()
