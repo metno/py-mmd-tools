@@ -7,9 +7,9 @@ License:
      This file is part of the py-mmd-tools repository (https://github.com/metno/py-mmd-tools).
      py-mmd-tools is licensed under Apache License 2.0 (https://github.com/metno/py-mmd-tools/blob/master/LICENSE)
 
-Usage: nc_to_mmd [-h] -i INPUT -o OUTPUT_DIR [-p netcdf_local_path]
+Usage: nc_to_mmd.py [-h] -i INPUT -o OUTPUT_DIR [-p netcdf_local_path]
 Example:
-    $ python nc_to_mmd -i ../tests/data/reference_nc.nc -o .
+    $ python nc_to_mmd.py -i ../tests/data/reference_nc.nc -o .
 """
 
 import os

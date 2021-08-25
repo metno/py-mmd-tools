@@ -9,9 +9,9 @@ License:
 
 Usage: check_nc [-h] -i INPUT
 Examples: 
-    $ python check_nc -i ../tests/data/reference_nc.nc
-    $ python check_nc -i ../tests/data/reference_nc_fail.nc
-    $ python check_nc -i https://thredds.met.no/thredds/dodsC/remotesensingsatellite/polar-swath/2020/12/17/terra-modis-1km-20201217094244-20201217094455.nc
+    $ python check_nc.py -i ../tests/data/reference_nc.nc
+    $ python check_nc.py -i ../tests/data/reference_nc_fail.nc
+    $ python check_nc.py -i https://thredds.met.no/thredds/dodsC/remotesensingsatellite/polar-swath/2020/12/17/terra-modis-1km-20201217094244-20201217094455.nc
 """
 
 import argparse

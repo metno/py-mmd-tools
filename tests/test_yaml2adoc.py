@@ -29,8 +29,8 @@ class TestYAML2ADOC(unittest.TestCase):
         ss = '/'
         for folder in file:
             ss = os.path.join(ss, folder)
-        self.ss = os.path.join(ss, 'script/yaml2adoc')
-        self.loader = importlib.machinery.SourceFileLoader('yaml2adoc', self.ss)
+        self.ss = os.path.join(ss, 'script/yaml2adoc.py')
+        self.loader = importlib.machinery.SourceFileLoader('yaml2adoc.py', self.ss)
         y2a_mod = types.ModuleType(self.loader.name)
 
 
