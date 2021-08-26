@@ -878,32 +878,18 @@ class TestNC2MMD(unittest.TestCase):
             'geospatial_lat_max is a required attribute'
         )
 
-    # TODO: check if coverage decreased. If so, consider rewriting the test to avoid online data
-    # access
-    # def test_file_on_thredds(self):
-    #     """ToDo: Add docstring"""
-    #     fn = (
-    #         'https://thredds.met.no/thredds/dodsC/remotesensingsatellite/'
-    #         'polar-swath/2020/12/01/metopb-avhrr-20201201155244-20201201160030.nc'
-    #     )
-    #     nc2mmd = Nc_to_mmd(fn, check_only=True)
-    #     try:
-    #         nc2mmd.to_mmd()
-    #     except OSError as e:
-    #         warnings.warn('%s is not available' % fn)
-    #         self.assertEqual(e.strerror, 'NetCDF: file not found')
-    #     else:
-    #         self.assertEqual(
-    #             nc2mmd.metadata['storage_information']['file_name'],
-    #             'metopb-avhrr-20201201155244-20201201160030.nc'
-    #         )
-
-    def test_file_on_faked_thredds(self):
-        """ToDo: Add docstring"""
+    @patch('py_mmd_tools.nc_to_mmd.wget.download')
+    @patch('py_mmd_tools.nc_to_mmd.os.remove')
+    def test_file_on_thredds(self, mock_remove, mock_download):
+        """Check that file is downloaded for checksum calculation and then removed"""
         fn = 'tests/data/dodsC/reference_nc.nc'
+        mock_download.return_value = fn
         nc2mmd = Nc_to_mmd(fn, check_only=True)
-        nc2mmd.to_mmd(netcdf_local_path=fn)
-        self.assertEqual(nc2mmd.metadata['storage_information']['file_name'], 'reference_nc.nc')
+        nc2mmd.to_mmd()
+        self.assertEqual(
+            nc2mmd.metadata['storage_information']['file_name'],
+            'reference_nc.nc'
+        )
 
     def test_access_constraint(self):
         """ToDo: Add docstring"""

@@ -781,7 +781,7 @@ class Nc_to_mmd(object):
             data['west'] = eval('ncin.%s' % acdd_west)
         return data
 
-    def to_mmd(self, netcdf_local_path='', *args, **kwargs):
+    def to_mmd(self, *args, **kwargs):
         """Method for parsing and mapping NetCDF attributes to MMD.
 
         Some times the data producers have missed some required elements
@@ -791,7 +791,6 @@ class Nc_to_mmd(object):
 
         Parameters
         ----------
-        netcdf_local_path   : str, optional
         time_coverage_start : str, optional
             The start date and time, in iso8601 format, for data
             collection or model coverage.
@@ -890,16 +889,13 @@ class Nc_to_mmd(object):
         rm_file_for_checksum_calculation = False
         if 'dodsC' in self.netcdf_product:
             self.metadata['data_access'] = self.get_data_access_dict(ncin, **kwargs)
-            if netcdf_local_path:
-                file_for_checksum_calculation = netcdf_local_path
-            else:
-                resource = ''
-                for access in self.metadata['data_access']:
-                    if access['type'] == 'HTTP':
-                        resource = access['resource']
-                print('Downloading NetCDF file to calculate checksum...')
-                file_for_checksum_calculation = wget.download(resource)
-                rm_file_for_checksum_calculation = True
+            resource = ''
+            for access in self.metadata['data_access']:
+                if access['type'] == 'HTTP':
+                    resource = access['resource']
+            print('Downloading NetCDF file to calculate checksum...')
+            file_for_checksum_calculation = wget.download(resource)
+            rm_file_for_checksum_calculation = True
         else:
             self.metadata['data_access'] = []
             file_for_checksum_calculation = self.netcdf_product
@@ -912,7 +908,7 @@ class Nc_to_mmd(object):
         # Set storage_information
         md5hasher = FileHash('md5', chunk_size=1048576)
         fchecksum = md5hasher.hash_file(file_for_checksum_calculation)
-        file_location = netcdf_local_path or self.netcdf_product
+        file_location = self.netcdf_product
         self.metadata['storage_information'] = {
             'file_name': os.path.basename(self.netcdf_product),
             'file_location': file_location,
