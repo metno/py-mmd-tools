@@ -32,12 +32,12 @@ def str2bool(v):
     """ToDo: Add docstring"""
     if isinstance(v, bool):
         return v
-    if v.lower() in ("yes", "true", "t", "y", "1"):
+    elif v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
-    elif v.lower() in ("no", "false", "f", "n", "0"):
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
         return False
     else:
-        raise argparse.ArgumentTypeError("Boolean value expected.")
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
 def filelist(directory):
@@ -45,18 +45,17 @@ def filelist(directory):
     xml_files = []
     for subdir, _, files in os.walk(directory):
         for file in files:
-            # print('File: %s' %file)
             file_path = subdir + os.sep + file
-            if file_path.endswith(".xml"):
+            if file_path.endswith('.xml'):
                 xml_files.append(file_path)
     return xml_files
 
 
-def translate_and_write(xml_file, xslt, outdir="/tmp"):
+def translate_and_write(xml_file, xslt, outdir='/tmp'):
     """ToDo: Add docstring"""
     pathlib.Path(outdir).mkdir(parents=True, exist_ok=True)
     if not os.path.isfile(xslt):
-        raise Exception("XSLT file is missing: %s" % xslt)
+        raise Exception('XSLT file is missing: %s' % xslt)
     outputfile = pathlib.PurePosixPath(outdir).joinpath(
         pathlib.PurePosixPath(xml_file).name
     )
@@ -73,7 +72,7 @@ def main(metadata, xslt, outdir, recover=False, parallel=False):
         xmlfiles = filelist(metadata)
     else:
         xmlfiles = recover_task(sourcedir=metadata, outdir=outdir, parallel=parallel)
-    print(f"Processing {len(xmlfiles)} files")
+    print(f'Processing {len(xmlfiles)} files')
     if parallel is True:
         print(f'parallel: {parallel}')
         parmap.map(
@@ -88,7 +87,7 @@ def main(metadata, xslt, outdir, recover=False, parallel=False):
             try:
                 translate_and_write(xml_file=i, xslt=xslt, outdir=outdir)
             except XMLSyntaxError as e:
-                print(f"failed on: {i} - {e.message}")
+                print(f'failed on: {i} - {e.message}')
 
 
 def check_record(record, tobedone):
@@ -135,31 +134,31 @@ def recover_task(sourcedir, outdir, parallel=False):
 
 def parse_arguments():
     """ToDo: Add docstring"""
-    parser = argparse.ArgumentParser(description="Convert xml files using XSL Tranformation")
+    parser = argparse.ArgumentParser(description='Convert xml files using XSL Tranformation')
     parser.add_argument(
-        "-i", "--input-dir", help="directory with input XML", required=True
+        '-i', '--input-dir', help='directory with input XML', required=True
     )
-    parser.add_argument("-o", "--output-dir", help="outpout directory with ISO")
+    parser.add_argument('-o', '--output-dir', help='outpout directory with ISO')
     parser.add_argument(
-        "-t", "--input-xslt", help="input xslt translation file", required=True
+        '-t', '--input-xslt', help='input xslt translation file', required=True
     )
     parser.add_argument(
-        "-r",
-        "--recover-conversion",
+        '-r',
+        '--recover-conversion',
         type=str2bool,
-        nargs="?",
+        nargs='?',
         const=False,
-        help="recover a previously interrupted conversion",
+        help='recover a previously interrupted conversion',
         default=False,
         required=False,
     )
     parser.add_argument(
-        "-p",
-        "--parallel-conversion",
+        '-p',
+        '--parallel-conversion',
         type=str2bool,
-        nargs="?",
+        nargs='?',
         const=False,
-        help="recover a previously interrupted conversion",
+        help='recover a previously interrupted conversion',
         default=False,
         required=False,
     )
@@ -167,7 +166,7 @@ def parse_arguments():
     return args
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     args = parse_arguments()
     main(
         metadata=args.input_dir,

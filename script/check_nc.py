@@ -20,6 +20,7 @@ Examples:
     python check_nc.py -i <url to nc file>
 """
 
+import sys
 import argparse
 import pathlib
 
@@ -48,7 +49,7 @@ if __name__ == '__main__':
         inputfiles = [args.input]
     else:
         print(f'Invalid input: {args.input}')
-        exit(1)
+        sys.exit(1)
 
     for file in inputfiles:
         md = nc_to_mmd.Nc_to_mmd(str(file), check_only=True)

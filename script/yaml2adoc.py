@@ -29,12 +29,12 @@ def main():
     """ToDo: Add docstring"""
     parser = argparse.ArgumentParser(
         description=(
-            "Create an asciidoc file based on "
-            "https://github.com/metno/py-mmd-tools/tree/master/py_mmd_tools/mmd_elements.yaml."
+            'Create an asciidoc file based on '
+            'https://github.com/metno/py-mmd-tools/tree/master/py_mmd_tools/mmd_elements.yaml.'
         )
     )
 
-    parser.add_argument('-o', '--output_file', help="Output file.")
+    parser.add_argument('-o', '--output_file', help='Output file.')
     args = parser.parse_args()
 
     if not args.output_file:
