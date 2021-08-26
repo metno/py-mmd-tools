@@ -46,8 +46,7 @@ def process_station(
         station_name (str): station name
         outdir (str): directory where created MMD files will be saved
         default_file (str): YAML file containing the default metadata
-            (generic metadata used for
-        all datasets)
+            (generic metadata used for all datasets)
         mmd_template (str): XML template file
         frost_url (str): url to query
         validate (bool): Validate created MMD file against schema?
