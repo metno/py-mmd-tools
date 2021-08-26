@@ -1,7 +1,7 @@
-![tests](https://github.com/metno/py-mmd-tools/workflows/tests/badge.svg)
-[![codecov](https://codecov.io/gh/metno/py-mmd-tools/branch/master/graph/badge.svg)](https://codecov.io/gh/metno/py-mmd-tools)
+# Py-MMD-Tools
 
-# py-mmd-tools
+[![pytest](https://github.com/metno/py-mmd-tools/actions/workflows/tests.yml/badge.svg)](https://github.com/metno/py-mmd-tools/actions/workflows/tests.yml)
+[![codecov](https://codecov.io/gh/metno/py-mmd-tools/branch/master/graph/badge.svg)](https://codecov.io/gh/metno/py-mmd-tools)
 
 Python tools for MMD.
 

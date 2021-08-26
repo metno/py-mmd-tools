@@ -1,4 +1,5 @@
-This folder conatin executable python scripts. Please import from `py_mmd_tools`, and keep this code as simple as possible. Remember unit tests.
+This folder contains executable python scripts. Please import from
+`py_mmd_tools`, and keep this code as simple as possible. Remember unit tests.
 ---
 
 # checkMMD
@@ -32,9 +33,11 @@ The following arguments are required:
 ## Usage in a python session
 
 ```python
-main(mmd_file='path_to_mmd_xml_file', 
-        outputfile='path_to_output_file, 
-        mmd2isocsw='path_to_xslt_translation_file_mmd_to_iso-csw',
-        mmd_xsd_schema='path_to_mmd_xsd_validation_schema',
-        mmd_validation='True')
+main(
+    mmd_file='path_to_mmd_xml_file', 
+    outputfile='path_to_output_file, 
+    mmd2isocsw='path_to_xslt_translation_file_mmd_to_iso-csw',
+    mmd_xsd_schema='path_to_mmd_xsd_validation_schema',
+    mmd_validation='True'
+)
 ```
