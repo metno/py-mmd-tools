@@ -1,8 +1,11 @@
-coverage
+coverage==5.1
 filehash
+ipdb
 jinja2
-lxml>=4.5
+lxml==4.5
 netCDF4>=1.5,<=1.6
+nose
+numpy
 pandas
 parmap
 pytest 

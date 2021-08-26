@@ -130,7 +130,3 @@ dmypy.json
 
 # vagrant
 .vagrant/
-
-
-# Custom
-/*.nc

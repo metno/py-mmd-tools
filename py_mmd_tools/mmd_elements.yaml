@@ -341,12 +341,6 @@ platform:
     scene_coverage:
     timeliness:
 
-quality_control:
-  maxOccurs: '1'
-  minOccurs: '0'
-  repetition: No repetition allowed
-  acdd_ext: quality_control
-
 spatial_representation:
   maxOccurs: '1'
   minOccurs: '1'
