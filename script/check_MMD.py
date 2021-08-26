@@ -83,16 +83,18 @@ if __name__ == "__main__":
     elif Path(args.input).is_dir():
         xml_list = Path(args.input).glob('*.xml')
     else:
-        logging.error(f"Invalid input argument ({args.input}) neither an existing file nor an "
-                      f"existing directory")
-        exit(1)
+        logging.error(
+            "Invalid input argument (%s) neither an existing file nor an  existing directory",
+            args.input
+        )
+        sys.exit(1)
 
     fcount = 0
     for xml_file in xml_list:
 
         fcount += 1
         if not xml_check(str(xml_file)):
-            logger.info(f'Validation not performed: file {xml_file} is not a valid XML file.')
+            logger.info('Validation not performed: file %s is not a valid XML file.', xml_file)
             continue
 
         # Read XML file
@@ -104,6 +106,6 @@ if __name__ == "__main__":
             raise Exception('Invalid xml file - please check the log..')
 
     if fcount == 0:
-        logger.info(f'No xml files found in {args.input}')
+        logger.info('No xml files found in %s', args.input)
 
     logger.info('OK - The xml file is valid')

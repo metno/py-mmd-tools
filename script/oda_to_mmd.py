@@ -36,46 +36,46 @@ def parse_arguments():
         '-o',
         dest='output_dir',
         required=True,
-        help="Output path."
+        help='Output path.'
     )
     parser.add_argument(
         '-l',
         dest='log_dir',
         required=True,
-        help="Logs path."
+        help='Logs path.'
     )
     parser.add_argument(
         '-d',
         dest='oda_default',
         required=True,
-        help="YML file containing ODA default metadata."
+        help='YML file containing ODA default metadata.'
     )
     parser.add_argument(
         '-t',
         dest='oda_mmd_template',
         required=True,
-        help="Template mmd for ODA data."
+        help='Template mmd for ODA data.'
     )
     parser.add_argument(
         '-f',
         dest='frost_url',
         required=False,
         default='frost-staging.met.no',
-        help="FROST URL."
+        help='FROST URL.'
     )
     parser.add_argument(
         '--mmd-validation',
         type=str2bool,
-        nargs="?",
+        nargs='?',
         default=False,
         required=False,
         const=True,
-        help="Validate against MMD schema? (True/False)"
+        help='Validate against MMD schema? (True/False)'
     )
     parser.add_argument(
         '--xsd-mmd',
         required=False,
-        help="XSD MMD."
+        help='XSD MMD.'
     )
     return parser.parse_args()
 
@@ -84,12 +84,12 @@ def str2bool(v):
     """ToDo: Add docstring"""
     if isinstance(v, bool):
         return v
-    if v.lower() in ("yes", "true", "t", "y", "1"):
+    elif v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
-    elif v.lower() in ("no", "false", "f", "n", "0"):
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
         return False
     else:
-        raise argparse.ArgumentTypeError("Boolean value expected.")
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
 if __name__ == '__main__':
@@ -122,7 +122,7 @@ if __name__ == '__main__':
     # staging API
     frost_id = os.getenv('FROST_ID')
     if frost_id is None:
-        logger.error("Environment variable FROST_ID not set. Exiting.")
+        logger.error('Environment variable FROST_ID not set. Exiting.')
         exit(1)
     stations_list = odajson_to_mmd.retrieve_frost_stations(
         'https://frost.met.no/sources/v0.jsonld', frost_id
@@ -130,8 +130,8 @@ if __name__ == '__main__':
 
     # Looping over available stations
     for station in stations_list:
-        if all(k in station for k in ("name", "id")):
-            logger.info("Processing station %s (id %s)" % (station['name'], station['id']))
+        if all(k in station for k in ('name', 'id')):
+            logger.info('Processing station %s (id %s)' % (station['name'], station['id']))
             odajson_to_mmd.process_station(
                 station['id'][2:],
                 station['name'],
@@ -146,5 +146,5 @@ if __name__ == '__main__':
             logger.info((
                 "Not processing this station as 'name' and/or 'id' are missing.\n"
                 "Station data: %s"
-            ) % station)
+            ), station)
             continue

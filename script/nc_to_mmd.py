@@ -18,6 +18,7 @@ Example:
 """
 
 import os
+import sys
 import argparse
 import pathlib
 
@@ -26,29 +27,29 @@ from py_mmd_tools import nc_to_mmd
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description="Create an MMD xml file from an input netCDF file."
+        description='Create an MMD xml file from an input netCDF file.'
     )
 
     # Add to parse a whole server?
     parser.add_argument(
         '-i', '--input', type=str,
-        help="Input file, folder or OPeNDAP url."
+        help='Input file, folder or OPeNDAP url.'
     )
     parser.add_argument(
         '-o', '--output_dir', type=pathlib.Path,
-        help="Output directory."
+        help='Output directory.'
     )
     parser.add_argument(
         '-p', '--netcdf_local_path', type=str, default='',
         help=(
-            "Optional local netcdf path. This can be given together with a "
-            "remote input location if the files also are available locally. "
-            "This will avoid download of the data for md5sum calculation."
+            'Optional local netcdf path. This can be given together with a '
+            'remote input location if the files also are available locally. '
+            'This will avoid download of the data for md5sum calculation.'
         )
     )
     parser.add_argument(
         '-w', '--add_wms_data_access', action='store_true',
-        help="Optional add wms in data_access."
+        help='Optional add wms in data_access.'
     )
     args = parser.parse_args()
 
@@ -63,8 +64,8 @@ if __name__ == '__main__':
         print('Will download later based on the given input.')
         netcdf_local_path = ''
 
-    # Directory containing nc files
     if pathlib.Path(args.input).is_dir():
+        # Directory containing nc files
         inputfiles = pathlib.Path(args.input).glob('*.nc')
     elif pathlib.Path(args.input).is_file():
         # Single nc file
@@ -75,7 +76,7 @@ if __name__ == '__main__':
         inputfiles = [args.input]
     else:
         print(f'Invalid input: {args.input}')
-        exit(1)
+        sys.exit(1)
 
     for file in inputfiles:
         outfile = (args.output_dir / pathlib.Path(file).stem).with_suffix('.xml')
