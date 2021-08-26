@@ -150,7 +150,8 @@ class Nc_to_mmd(object):
 
         Args:
             output_file (pathlib): Output path for mmd.
-            netcdf_product (str: nc file or OPeNDAP url): input NetCDF file.
+            netcdf_product (str): Input NetCDF file (nc file or OPeNDAP
+                url).
         """
         super(Nc_to_mmd, self).__init__()
         self.output_file = output_file
