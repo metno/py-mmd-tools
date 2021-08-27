@@ -233,7 +233,7 @@ class Nc_to_mmd(object):
         return data
 
     def get_data_centers(self, mmd_element, ncin):
-        """ToDo: Add docstring"""
+        """Look up ACDD and ACDD extensions to populate MMD elements"""
         acdd_short_name = mmd_element['data_center_name']['short_name'].pop('acdd_ext')
         short_names = self.separate_repeated(True, eval('ncin.%s' % acdd_short_name))
         acdd_long_name = mmd_element['data_center_name']['long_name'].pop('acdd')
@@ -551,8 +551,9 @@ class Nc_to_mmd(object):
         ilong_names = []
         acdd_instrument_long_name = mmd_element['instrument']['long_name'].pop('acdd')
         if acdd_instrument_long_name in ncin.ncattrs():
-            ilong_names = self.separate_repeated(True,
-                                                 eval('ncin.%s' % acdd_instrument_long_name))
+            ilong_names = self.separate_repeated(
+                True, eval('ncin.%s' % acdd_instrument_long_name)
+            )
 
         short_names = []
         acdd_short_name = mmd_element['short_name'].pop('acdd_ext')
@@ -687,7 +688,7 @@ class Nc_to_mmd(object):
         return str(uuid_obj) == uuid_to_test
 
     def get_metadata_identifier(self, mmd_element, ncin, require_uuid=True, **kwargs):
-        """ToDo: Add docstring"""
+        """Look up ACDD element and populate MMD metadata identifier"""
         acdd = mmd_element.pop('acdd')
         valid = False
         invalid_chars = ['\\', '/', ':', ' ']

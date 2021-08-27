@@ -180,7 +180,7 @@ class TestNC2MMD(unittest.TestCase):
         self.assertTrue('title' in value[0].keys())
 
     def test_data_center(self):
-        """ToDo: Add docstring"""
+        """Test get_data_centers function"""
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -351,7 +351,7 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[1]['role'], 'Technical contact')
 
     def test_personnel_multiple_creator_and_contributor(self):
-        """ToDo: Add docstring"""
+        """Test that we can have multiple people in MMD personnel field"""
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -372,7 +372,7 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[2]['role'], 'Investigator')
 
     def test_personnel_acdd_roles_not_list(self):
-        """ToDo: Add docstring"""
+        """Test that we can have multiple people in MMD personnel field"""
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -395,7 +395,7 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[1]['organisation'], 'Norwegian Meteorological Institute')
 
     def test_personnel(self):
-        """ToDo: Add docstring"""
+        """Test reading of personnel from nc file into MMD"""
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -539,7 +539,7 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[0]['instrument']['long_name'], 'Synthetic Aperture Radar')
 
     def test_projects(self):
-        """ToDo: Add docstring"""
+        """Test getting project information from nc-file"""
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -549,7 +549,7 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[0]['long_name'], 'MET Norway core services')
 
     def test_dataset_citation_missing_attrs(self):
-        """ToDo: Add docstring"""
+        """Test that missing url and other is accepted"""
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -791,7 +791,7 @@ class TestNC2MMD(unittest.TestCase):
             self.assertTrue(valid, msg='%s' % xsd_obj.error_log)
 
     def test_create_mmd_missing_publisher_url(self):
-        """ToDo: Add docstring"""
+        """Test that a missing publisher url does not cause an error"""
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
