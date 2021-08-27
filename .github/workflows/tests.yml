@@ -27,6 +27,6 @@ jobs:
         run: |
           export MMD_PATH=$HOME/mmd
           git clone https://github.com/metno/mmd $MMD_PATH
-          python -m pytest -v --cov=py_mmd_tools --timeout=120
+          python -m pytest -v --cov=py_mmd_tools --cov=script --timeout=120
       - name: Upload to Codecov
         uses: codecov/codecov-action@v1
