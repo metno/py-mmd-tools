@@ -233,8 +233,8 @@ class Nc_to_mmd(object):
         return data
 
     def get_data_centers(self, mmd_element, ncin):
-        """ToDo: Add docstring"""
-        acdd_short_name = mmd_element['data_center_name']['short_name'].pop('acdd')
+        """Look up ACDD and ACDD extensions to populate MMD elements"""
+        acdd_short_name = mmd_element['data_center_name']['short_name'].pop('acdd_ext')
         short_names = self.separate_repeated(True, eval('ncin.%s' % acdd_short_name))
         acdd_long_name = mmd_element['data_center_name']['long_name'].pop('acdd')
         long_names = self.separate_repeated(True, eval('ncin.%s' % acdd_long_name))
@@ -503,7 +503,7 @@ class Nc_to_mmd(object):
         projects = []
         if acdd in ncin.ncattrs():
             projects = self.separate_repeated(True, eval('ncin.%s' % acdd))
-        acdd_short = mmd_element['short_name'].pop('acdd')
+        acdd_short = mmd_element['short_name'].pop('acdd_ext')
         projects_short = []
         if acdd_short in ncin.ncattrs():
             projects_short = self.separate_repeated(True, eval('ncin.%s' % acdd_short))
@@ -541,25 +541,32 @@ class Nc_to_mmd(object):
         """Get dict with MMD entries for the observation platform.
 
         NOTE: This function should be rewritten according to a solution
-        to https://github.com/metno/py-mmd-tools/issues/72
+        to https://github.com/metno/py-mmd-tools/issues/107
         """
+        long_names = []
+        acdd_long_name = mmd_element['long_name'].pop('acdd')
+        if acdd_long_name in ncin.ncattrs():
+            long_names = self.separate_repeated(True, eval('ncin.%s' % acdd_long_name))
+
+        ilong_names = []
+        acdd_instrument_long_name = mmd_element['instrument']['long_name'].pop('acdd')
+        if acdd_instrument_long_name in ncin.ncattrs():
+            ilong_names = self.separate_repeated(
+                True, eval('ncin.%s' % acdd_instrument_long_name)
+            )
+
         short_names = []
-        acdd_short_name = mmd_element['short_name'].pop('acdd')
+        acdd_short_name = mmd_element['short_name'].pop('acdd_ext')
         if acdd_short_name in ncin.ncattrs():
             short_names = self.separate_repeated(True, eval('ncin.%s' % acdd_short_name))
 
-        # There is only one entry for platform and instrument in ACDD -
-        # we need to use a controlled vocabulary to get the correct
-        # values. That is easy if the controlled vocabulary is GCMD but
-        # in other cases we may depend on a solution to
-        # https://github.com/metno/py-mmd-tools/issues/72
         resources = []
         acdd_resource = mmd_element['resource'].pop('acdd')
         if acdd_resource in ncin.ncattrs():
             resources = self.separate_repeated(True, eval('ncin.%s' % acdd_resource))
 
         ishort_names = []
-        acdd_instrument_short_name = mmd_element['instrument']['short_name'].pop('acdd')
+        acdd_instrument_short_name = mmd_element['instrument']['short_name'].pop('acdd_ext')
         if acdd_instrument_short_name in ncin.ncattrs():
             ishort_names = self.separate_repeated(
                 True, eval('ncin.%s' % acdd_instrument_short_name)
@@ -571,20 +578,9 @@ class Nc_to_mmd(object):
             iresources = self.separate_repeated(True, eval('ncin.%s' % acdd_instrument_resource))
 
         if resources and 'gcmd' in resources[0].lower():
-            data = self.get_gcmd_platforms(short_names, resources[0], ishort_names, iresources[0])
+            data = self.get_gcmd_platforms(long_names, resources[0],
+                                           ilong_names, iresources[0])
         else:
-            long_names = []
-            acdd_long_name = mmd_element['long_name'].pop('acdd')
-            if acdd_long_name in ncin.ncattrs():
-                long_names = self.separate_repeated(True, eval('ncin.%s' % acdd_long_name))
-
-            ilong_names = []
-            acdd_instrument_long_name = mmd_element['instrument']['long_name'].pop('acdd')
-            if acdd_instrument_long_name in ncin.ncattrs():
-                ilong_names = self.separate_repeated(
-                    True, eval('ncin.%s' % acdd_instrument_long_name)
-                )
-
             data = []
             for i in range(len(long_names)):
                 short_name = short_names[i]
@@ -692,7 +688,7 @@ class Nc_to_mmd(object):
         return str(uuid_obj) == uuid_to_test
 
     def get_metadata_identifier(self, mmd_element, ncin, require_uuid=True, **kwargs):
-        """ToDo: Add docstring"""
+        """Look up ACDD element and populate MMD metadata identifier"""
         acdd = mmd_element.pop('acdd')
         valid = False
         invalid_chars = ['\\', '/', ':', ' ']
@@ -786,7 +782,7 @@ class Nc_to_mmd(object):
             data['west'] = eval('ncin.%s' % acdd_west)
         return data
 
-    def to_mmd(self, netcdf_local_path='', *args, **kwargs):
+    def to_mmd(self, *args, **kwargs):
         """Method for parsing and mapping NetCDF attributes to MMD.
 
         Some times the data producers have missed some required elements
@@ -796,7 +792,6 @@ class Nc_to_mmd(object):
 
         Parameters
         ----------
-        netcdf_local_path   : str, optional
         time_coverage_start : str, optional
             The start date and time, in iso8601 format, for data
             collection or model coverage.
@@ -895,16 +890,13 @@ class Nc_to_mmd(object):
         rm_file_for_checksum_calculation = False
         if 'dodsC' in self.netcdf_product:
             self.metadata['data_access'] = self.get_data_access_dict(ncin, **kwargs)
-            if netcdf_local_path:
-                file_for_checksum_calculation = netcdf_local_path
-            else:
-                resource = ''
-                for access in self.metadata['data_access']:
-                    if access['type'] == 'HTTP':
-                        resource = access['resource']
-                print('Downloading NetCDF file to calculate checksum...')
-                file_for_checksum_calculation = wget.download(resource)
-                rm_file_for_checksum_calculation = True
+            resource = ''
+            for access in self.metadata['data_access']:
+                if access['type'] == 'HTTP':
+                    resource = access['resource']
+            print('Downloading NetCDF file to calculate checksum...')
+            file_for_checksum_calculation = wget.download(resource)
+            rm_file_for_checksum_calculation = True
         else:
             self.metadata['data_access'] = []
             file_for_checksum_calculation = self.netcdf_product
@@ -917,7 +909,7 @@ class Nc_to_mmd(object):
         # Set storage_information
         md5hasher = FileHash('md5', chunk_size=1048576)
         fchecksum = md5hasher.hash_file(file_for_checksum_calculation)
-        file_location = netcdf_local_path or self.netcdf_product
+        file_location = self.netcdf_product
         self.metadata['storage_information'] = {
             'file_name': os.path.basename(self.netcdf_product),
             'file_location': file_location,

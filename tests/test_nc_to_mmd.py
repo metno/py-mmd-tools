@@ -180,7 +180,7 @@ class TestNC2MMD(unittest.TestCase):
         self.assertTrue('title' in value[0].keys())
 
     def test_data_center(self):
-        """ToDo: Add docstring"""
+        """Test get_data_centers function"""
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -190,16 +190,10 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(type(value), list)
         self.assertEqual(value, [{
             'data_center_name': {
-                'long_name': 'MET NORWAY',
-                'short_name': 'MET NORWAY'
+                'long_name': 'Norwegian Meteorological Institute',
+                'short_name': 'NO/MET'
             },
             'data_center_url': 'met.no',
-        }, {
-            'data_center_name': {
-                'long_name': 'NASA',
-                'short_name': 'NASA'
-            },
-            'data_center_url': '',
         }])
 
     def test_data_access(self):
@@ -357,7 +351,7 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[1]['role'], 'Technical contact')
 
     def test_personnel_multiple_creator_and_contributor(self):
-        """ToDo: Add docstring"""
+        """Test that we can have multiple people in MMD personnel field"""
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -370,15 +364,15 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[0]['email'], 'trygve@meti.no')
         self.assertEqual(value[1]['email'], 'post@met.no')
         self.assertEqual(value[2]['email'], 'morten@met.no')
-        self.assertEqual(value[0]['organisation'], 'MET NORWAY')
-        self.assertEqual(value[1]['organisation'], 'MET NORWAY')
-        self.assertEqual(value[2]['organisation'], 'MET NORWAY')
+        self.assertEqual(value[0]['organisation'], 'Norwegian Meteorological Institute')
+        self.assertEqual(value[1]['organisation'], 'Norwegian Meteorological Institute')
+        self.assertEqual(value[2]['organisation'], 'Norwegian Meteorological Institute')
         self.assertEqual(value[0]['role'], 'Investigator')
         self.assertEqual(value[1]['role'], 'Technical contact')
         self.assertEqual(value[2]['role'], 'Investigator')
 
     def test_personnel_acdd_roles_not_list(self):
-        """ToDo: Add docstring"""
+        """Test that we can have multiple people in MMD personnel field"""
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -397,11 +391,11 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[1]['role'], 'Technical contact')
         self.assertEqual(value[0]['email'], 'trygve@meti.no')
         self.assertEqual(value[1]['email'], 'post@met.no')
-        self.assertEqual(value[0]['organisation'], 'MET NORWAY')
-        self.assertEqual(value[1]['organisation'], 'MET NORWAY')
+        self.assertEqual(value[0]['organisation'], 'Norwegian Meteorological Institute')
+        self.assertEqual(value[1]['organisation'], 'Norwegian Meteorological Institute')
 
     def test_personnel(self):
-        """ToDo: Add docstring"""
+        """Test reading of personnel from nc file into MMD"""
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -545,17 +539,17 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[0]['instrument']['long_name'], 'Synthetic Aperture Radar')
 
     def test_projects(self):
-        """ToDo: Add docstring"""
+        """Test getting project information from nc-file"""
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_projects(mmd_yaml['project'], ncin)
-        self.assertEqual(value[0]['long_name'], 'Govermental core service')
+        self.assertEqual(value[0]['long_name'], 'MET Norway core services')
 
     def test_dataset_citation_missing_attrs(self):
-        """ToDo: Add docstring"""
+        """Test that missing url and other is accepted"""
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -797,7 +791,7 @@ class TestNC2MMD(unittest.TestCase):
             self.assertTrue(valid, msg='%s' % xsd_obj.error_log)
 
     def test_create_mmd_missing_publisher_url(self):
-        """ToDo: Add docstring"""
+        """Test that a missing publisher url does not cause an error"""
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -806,8 +800,8 @@ class TestNC2MMD(unittest.TestCase):
         value = md.get_data_centers(mmd_yaml['data_center'], ncin)
         self.assertEqual(value, [{
             'data_center_name': {
-                'short_name': 'MET NORWAY',
-                'long_name': 'MET NORWAY'
+                'short_name': 'NO/MET',
+                'long_name': 'Norwegian Meteorological Institute'
             },
             'data_center_url': ''
         }])
@@ -884,30 +878,18 @@ class TestNC2MMD(unittest.TestCase):
             'geospatial_lat_max is a required attribute'
         )
 
-    def test_file_on_thredds(self):
-        """ToDo: Add docstring"""
-        fn = (
-            'https://thredds.met.no/thredds/dodsC/remotesensingsatellite/'
-            'polar-swath/2020/12/01/metopb-avhrr-20201201155244-20201201160030.nc'
-        )
-        nc2mmd = Nc_to_mmd(fn, check_only=True)
-        try:
-            nc2mmd.to_mmd()
-        except OSError as e:
-            warnings.warn('%s is not available' % fn)
-            self.assertEqual(e.strerror, 'NetCDF: file not found')
-        else:
-            self.assertEqual(
-                nc2mmd.metadata['storage_information']['file_name'],
-                'metopb-avhrr-20201201155244-20201201160030.nc'
-            )
-
-    def test_file_on_faked_thredds(self):
-        """ToDo: Add docstring"""
+    @patch('py_mmd_tools.nc_to_mmd.wget.download')
+    @patch('py_mmd_tools.nc_to_mmd.os.remove')
+    def test_file_on_thredds(self, mock_remove, mock_download):
+        """Check that file is downloaded for checksum calculation and then removed"""
         fn = 'tests/data/dodsC/reference_nc.nc'
+        mock_download.return_value = fn
         nc2mmd = Nc_to_mmd(fn, check_only=True)
-        nc2mmd.to_mmd(netcdf_local_path=fn)
-        self.assertEqual(nc2mmd.metadata['storage_information']['file_name'], 'reference_nc.nc')
+        nc2mmd.to_mmd()
+        self.assertEqual(
+            nc2mmd.metadata['storage_information']['file_name'],
+            'reference_nc.nc'
+        )
 
     def test_access_constraint(self):
         """ToDo: Add docstring"""
