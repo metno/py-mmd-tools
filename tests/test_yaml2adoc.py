@@ -21,6 +21,7 @@ from script.yaml2adoc import main
 
 @pytest.mark.script
 def test_yaml2adoc_script():
+    """Test that an adoc file is created"""
     parser = create_parser()
     fd, tested = tempfile.mkstemp()
     parsed = parser.parse_args(['-o', tested])

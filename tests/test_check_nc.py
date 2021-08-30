@@ -19,12 +19,14 @@ from script.check_nc import create_parser
 
 @pytest.mark.script
 def test_main(parsedRefNC):
+    """Test that main function runs with reference file from fixture"""
     res = main(parsedRefNC)
     assert res is None
 
 
 @pytest.mark.script
 def test_create_parser(dataDir):
+    """Test create_parser method"""
     ref0 = os.path.join(dataDir, 'reference_nc.nc')
     parser = create_parser()
     parsed = parser.parse_args(['-i', ref0])
@@ -33,7 +35,7 @@ def test_create_parser(dataDir):
 
 @pytest.mark.script
 def test_with_folder(dataDir):
-    """Test nc2mmd.py with a folder as input"""
+    """Test check_nc.py with a folder as input"""
     parser = create_parser()
     in_dir = tempfile.mkdtemp()
     shutil.copy(os.path.join(dataDir, 'reference_nc.nc'), in_dir)
@@ -59,7 +61,7 @@ def test_invalid():
 
 @pytest.mark.script
 def test_main_thredds(dataDir, monkeypatch):
-    """Test nc2mmd.py with a fake OPeNDAP file"""
+    """Test check_nc.py with a fake OPeNDAP file"""
     parser = create_parser()
     test_in = os.path.join(dataDir, 'dodsC', 'reference_nc.nc')
     parsed = parser.parse_args([
