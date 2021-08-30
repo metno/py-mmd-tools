@@ -10,3 +10,8 @@ To run the tests locally:
 export MMD_PATH=<PATH TO MMD REPO>
 python -m pytest -vv --cov-report=term
 ```
+
+Or:
+```
+./run_tests.sh
+```
