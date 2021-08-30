@@ -75,6 +75,4 @@ def test_invalid():
     ])
     with pytest.raises(ValueError) as ve:
         main(parsed)
-        import ipdb
-        ipdb.set_trace()
         assert ve.exception.code == 2

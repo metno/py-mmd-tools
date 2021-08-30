@@ -39,20 +39,17 @@ def main(args):
     """Main method for checking netcdf file"""
 
     # args.input as str, because if pathlib.Path, it is not compatible with URLs
-    # Directory containing nc files
     if pathlib.Path(args.input).is_dir():
+        # Directory containing nc files
         inputfiles = pathlib.Path(args.input).glob('*.nc')
-
-    # Single nc file
-    elif pathlib.Path(args.input).is_file():
+    elif 'dodsC' in args.input:
+        # URL to a remote dataset available through OPeNDAP
         inputfiles = [args.input]
-
-    # URL to a remote dataset available through OPeNDAP
-    elif args.input.startswith('https://thredds.met.no/thredds/dodsC/'):
+    elif pathlib.Path(args.input).is_file():
+        # Single nc file
         inputfiles = [args.input]
     else:
-        print(f'Invalid input: {args.input}')
-        sys.exit(1)
+        raise ValueError(f'Invalid input: {args.input}')
 
     for file in inputfiles:
         md = nc_to_mmd.Nc_to_mmd(str(file), check_only=True)
