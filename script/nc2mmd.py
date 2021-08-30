@@ -11,7 +11,7 @@ py-mmd-tools is licensed under the Apache License 2.0
 <https://github.com/metno/py-mmd-tools/blob/master/LICENSE>
 
 Usage:
-    nc_to_mmd.py [-h] -i INPUT -o OUTPUT_DIR [-p netcdf_local_path]
+    nc_to_mmd.py [-h] -i INPUT -o OUTPUT_DIR
 
 Example:
     python nc_to_mmd.py -i ../tests/data/reference_nc.nc -o .
@@ -24,8 +24,8 @@ import pathlib
 
 from py_mmd_tools import nc_to_mmd
 
-
-if __name__ == '__main__':
+def create_parser():
+    """Create parser object"""
     parser = argparse.ArgumentParser(
         description='Create an MMD xml file from an input netCDF file.'
     )
@@ -40,39 +40,24 @@ if __name__ == '__main__':
         help='Output directory.'
     )
     parser.add_argument(
-        '-p', '--netcdf_local_path', type=str, default='',
-        help=(
-            'Optional local netcdf path. This can be given together with a '
-            'remote input location if the files also are available locally. '
-            'This will avoid download of the data for md5sum calculation.'
-        )
-    )
-    parser.add_argument(
         '-w', '--add_wms_data_access', action='store_true',
         help='Optional add wms in data_access.'
     )
-    args = parser.parse_args()
+
+    return parser
+
+def main(args):
 
     # args.input as str, because if pathlib.Path, it is not compatible with URLs
-
-    netcdf_local_path = args.netcdf_local_path
-    if netcdf_local_path and not os.path.isfile(netcdf_local_path):
-        print(
-            'Given netcdf local path %s is not a valid file. Can not use this.'
-            % netcdf_local_path
-        )
-        print('Will download later based on the given input.')
-        netcdf_local_path = ''
 
     if pathlib.Path(args.input).is_dir():
         # Directory containing nc files
         inputfiles = pathlib.Path(args.input).glob('*.nc')
+    elif 'dodsC' in args.input:
+        # A remote OPeNDAP url
+        inputfiles = [args.input]
     elif pathlib.Path(args.input).is_file():
         # Single nc file
-        inputfiles = [args.input]
-
-    # A remote OPeNDAP url
-    elif 'dodsC' in args.input:
         inputfiles = [args.input]
     else:
         print(f'Invalid input: {args.input}')
@@ -82,6 +67,9 @@ if __name__ == '__main__':
         outfile = (args.output_dir / pathlib.Path(file).stem).with_suffix('.xml')
         md = nc_to_mmd.Nc_to_mmd(str(file), output_file=outfile)
         md.to_mmd(
-            netcdf_local_path=netcdf_local_path,
             add_wms_data_access=args.add_wms_data_access
         )
+
+if __name__ == '__main__': # pragma: no cover
+    parser = create_parser()
+    main(parser.parse_args())
