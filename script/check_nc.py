@@ -26,14 +26,17 @@ import pathlib
 
 from py_mmd_tools import nc_to_mmd
 
-
-if __name__ == '__main__':
+def create_parser():
+    """Create argument parser"""
     parser = argparse.ArgumentParser(
         description="Check if a netCDF file contains required elements to create an MMD file."
     )
-
     parser.add_argument('-i', '--input', type=str, help="Input file, folder or OPeNDAP url.")
-    args = parser.parse_args()
+
+    return parser
+
+def main(args):
+    """Main method for checking netcdf file"""
 
     # args.input as str, because if pathlib.Path, it is not compatible with URLs
     # Directory containing nc files
@@ -53,9 +56,18 @@ if __name__ == '__main__':
 
     for file in inputfiles:
         md = nc_to_mmd.Nc_to_mmd(str(file), check_only=True)
-        ok, msg = md.to_mmd()
+        try:
+            ok, msg = md.to_mmd()
+        except AttributeError as e:
+            ok = False
+            msg = e
         if ok:
             print(f"OK - file {file} contains all necessary elements.")
         else:
             print(f"Not OK - file {file} does not contain all necessary elements.")
             print(msg)
+
+
+if __name__ == '__main__': # pragma: no cover
+    parser = create_parser()
+    main(parser.parse_args())
