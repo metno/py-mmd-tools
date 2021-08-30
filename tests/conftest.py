@@ -18,10 +18,12 @@ from script.check_nc import create_parser
 # Note: This line forces the test suite to import the dmci package in the current source tree
 sys.path.insert(1, os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
+
 @pytest.fixture(scope="session")
 def rootDir():
     """The root folder of the repository."""
     return os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
+
 
 @pytest.fixture(scope="session")
 def dataDir():
@@ -29,6 +31,7 @@ def dataDir():
     testDir = os.path.dirname(__file__)
     theDir = os.path.join(testDir, "data")
     return theDir
+
 
 @pytest.fixture(scope="session")
 def parsedRefNC(dataDir):

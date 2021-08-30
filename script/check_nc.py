@@ -20,11 +20,11 @@ Examples:
     python check_nc.py -i <url to nc file>
 """
 
-import sys
 import argparse
 import pathlib
 
 from py_mmd_tools import nc_to_mmd
+
 
 def create_parser():
     """Create argument parser"""
@@ -34,6 +34,7 @@ def create_parser():
     parser.add_argument('-i', '--input', type=str, help="Input file, folder or OPeNDAP url.")
 
     return parser
+
 
 def main(args):
     """Main method for checking netcdf file"""
@@ -65,6 +66,6 @@ def main(args):
             print(msg)
 
 
-if __name__ == '__main__': # pragma: no cover
+if __name__ == '__main__':  # pragma: no cover
     parser = create_parser()
     main(parser.parse_args())

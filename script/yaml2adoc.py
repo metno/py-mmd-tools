@@ -24,6 +24,7 @@ import argparse
 
 from py_mmd_tools import nc_to_mmd
 
+
 def create_parser():
     """Create parser object"""
     parser = argparse.ArgumentParser(
@@ -36,6 +37,7 @@ def create_parser():
 
     return parser
 
+
 def main(args):
     """ToDo: Add docstring"""
     if not args.output_file:
@@ -46,6 +48,6 @@ def main(args):
         fh.write(adoc)
 
 
-if __name__ == '__main__': # pragma: no cover
+if __name__ == '__main__':  # pragma: no cover
     parser = create_parser()
     main(parser.parse_args())

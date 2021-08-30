@@ -9,21 +9,15 @@ py-mmd-tools is licensed under the Apache License 2.0
 """
 
 import os
-import sys
 import warnings
-import types
 import tempfile
-import importlib.machinery
 import unittest
 
 import pytest
 
-from unittest.mock import patch
-
 from script.yaml2adoc import create_parser
 from script.yaml2adoc import main
 
-# warnings.simplefilter("ignore", ResourceWarning)
 
 @pytest.mark.script
 def test_yaml2adoc_script():
@@ -35,6 +29,7 @@ def test_yaml2adoc_script():
     os.close(fd)
     os.unlink(tested)
 
+
 @pytest.mark.script
 def test_missing_args():
     """Test that SystemExit is raised if no args"""
@@ -45,11 +40,11 @@ def test_missing_args():
         main(parsed)
         assert cm.exception.code == 2
 
+
 @pytest.mark.script
 def test_create_file():
     """Test that the output file is created and populated"""
     fd, tested = tempfile.mkstemp()
-    #warnings.filterwarnings('ignore')
     parser = create_parser()
     parsed = parser.parse_args(['-o', tested])
     main(parsed)
@@ -59,5 +54,6 @@ def test_create_file():
     os.close(fd)
     os.unlink(tested)
 
-if __name__ == '__main__':
+
+if __name__ == '__main__':  # pragma: no cover
     unittest.main()

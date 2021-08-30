@@ -9,7 +9,6 @@ py-mmd-tools is licensed under the Apache License 2.0
 """
 
 import os
-import argparse
 import pytest
 import shutil
 import tempfile
@@ -17,15 +16,12 @@ import tempfile
 from script.check_nc import main
 from script.check_nc import create_parser
 
-@pytest.mark.script
-def test_create_parser(dataDir, parsedRefNC):
-    ref0 = os.path.join(dataDir, 'reference_nc.nc')
-    assert parsedRefNC.input == ref0
 
 @pytest.mark.script
 def test_main(parsedRefNC):
     res = main(parsedRefNC)
-    assert res == None
+    assert res is None
+
 
 @pytest.mark.script
 def test_create_parser(dataDir):
@@ -33,6 +29,7 @@ def test_create_parser(dataDir):
     parser = create_parser()
     parsed = parser.parse_args(['-i', ref0])
     assert parsed.input == ref0
+
 
 @pytest.mark.script
 def test_with_folder(dataDir):
@@ -44,8 +41,9 @@ def test_with_folder(dataDir):
         '-i', in_dir,
     ])
     res = main(parsed)
-    assert res == None
+    assert res is None
     shutil.rmtree(in_dir)
+
 
 @pytest.mark.script
 def test_invalid():
@@ -55,8 +53,9 @@ def test_invalid():
         '-i', 'nbm.snb',
     ])
     with pytest.raises(ValueError) as ve:
-        res = main(parsed)
+        main(parsed)
         assert ve.exception.code == 2
+
 
 @pytest.mark.script
 def test_main_thredds(dataDir, monkeypatch):
@@ -70,7 +69,8 @@ def test_main_thredds(dataDir, monkeypatch):
         mp.setattr('py_mmd_tools.nc_to_mmd.wget.download', lambda *a: test_in)
         mp.setattr('py_mmd_tools.nc_to_mmd.os.remove', lambda *a: None)
         res = main(parsed)
-    assert res == None
+    assert res is None
+
 
 @pytest.mark.script
 def test_failing_ncfile(dataDir, capsys):

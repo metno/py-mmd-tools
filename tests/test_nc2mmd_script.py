@@ -16,6 +16,7 @@ import pytest
 from script.nc2mmd import create_parser
 from script.nc2mmd import main
 
+
 @pytest.mark.script
 def test_main_localfile(dataDir):
     """Test nc2mmd.py with a local file"""
@@ -29,6 +30,7 @@ def test_main_localfile(dataDir):
     main(parsed)
     assert os.path.isfile(os.path.join(out_dir, 'reference_nc.xml'))
     shutil.rmtree(out_dir)
+
 
 @pytest.mark.script
 def test_main_thredds(dataDir, monkeypatch):
@@ -48,6 +50,7 @@ def test_main_thredds(dataDir, monkeypatch):
     assert os.path.isfile(os.path.join(out_dir, 'reference_nc.xml'))
     shutil.rmtree(out_dir)
 
+
 @pytest.mark.script
 def test_with_folder(dataDir):
     """Test nc2mmd.py with a folder as input"""
@@ -63,6 +66,7 @@ def test_with_folder(dataDir):
     assert os.path.isfile(os.path.join(out_dir, 'reference_nc.xml'))
     shutil.rmtree(out_dir)
     shutil.rmtree(in_dir)
+
 
 @pytest.mark.script
 def test_invalid():

@@ -17,12 +17,11 @@ Example:
     python nc_to_mmd.py -i ../tests/data/reference_nc.nc -o .
 """
 
-import os
-import sys
 import argparse
 import pathlib
 
 from py_mmd_tools import nc_to_mmd
+
 
 def create_parser():
     """Create parser object"""
@@ -46,9 +45,9 @@ def create_parser():
 
     return parser
 
-def main(args):
 
-    # args.input as str, because if pathlib.Path, it is not compatible with URLs
+def main(args):
+    """Run tool to create MMD xml file from input netCDF-CF file(s)"""
 
     if pathlib.Path(args.input).is_dir():
         # Directory containing nc files
@@ -69,6 +68,7 @@ def main(args):
             add_wms_data_access=args.add_wms_data_access
         )
 
-if __name__ == '__main__': # pragma: no cover
+
+if __name__ == '__main__':  # pragma: no cover
     parser = create_parser()
     main(parser.parse_args())
