@@ -60,8 +60,7 @@ def main(args):
         # Single nc file
         inputfiles = [args.input]
     else:
-        print(f'Invalid input: {args.input}')
-        sys.exit(1)
+        raise ValueError(f'Invalid input: {args.input}')
 
     for file in inputfiles:
         outfile = (args.output_dir / pathlib.Path(file).stem).with_suffix('.xml')
