@@ -24,19 +24,20 @@ import argparse
 
 from py_mmd_tools import nc_to_mmd
 
-
-def main():
-    """ToDo: Add docstring"""
+def create_parser():
+    """Create parser object"""
     parser = argparse.ArgumentParser(
         description=(
             'Create an asciidoc file based on '
             'https://github.com/metno/py-mmd-tools/tree/master/py_mmd_tools/mmd_elements.yaml.'
         )
     )
-
     parser.add_argument('-o', '--output_file', help='Output file.')
-    args = parser.parse_args()
 
+    return parser
+
+def main(args):
+    """ToDo: Add docstring"""
     if not args.output_file:
         sys.exit()
 
@@ -45,5 +46,6 @@ def main():
         fh.write(adoc)
 
 
-if __name__ == '__main__':
-    main()
+if __name__ == '__main__': # pragma: no cover
+    parser = create_parser()
+    main(parser.parse_args())
