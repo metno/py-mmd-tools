@@ -7,7 +7,8 @@ Python tools for MMD.
 
 To run the tests locally:
 ```
-nosetests --with-coverage --cover-xml --cover-package=py_mmd_tools
+export MMD_PATH=<PATH TO MMD REPO>
+python -m pytest -vv --cov-report=term
 ```
 ## Development environment
 
