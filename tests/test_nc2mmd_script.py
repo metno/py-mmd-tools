@@ -13,8 +13,8 @@ import tempfile
 
 import pytest
 
-from nc2mmd import create_parser
-from nc2mmd import main
+from script.nc2mmd import create_parser
+from script.nc2mmd import main
 
 @pytest.mark.script
 def test_main_localfile(dataDir):

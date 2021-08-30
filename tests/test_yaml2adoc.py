@@ -20,8 +20,8 @@ import pytest
 
 from unittest.mock import patch
 
-from yaml2adoc import create_parser
-from yaml2adoc import main
+from script.yaml2adoc import create_parser
+from script.yaml2adoc import main
 
 # warnings.simplefilter("ignore", ResourceWarning)
 
