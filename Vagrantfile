@@ -22,11 +22,13 @@ Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/bionic64"
   config.vm.provision "shell", inline: <<-SHELL
     apt-get update
-    apt-get install -y docker.io docker-compose
+    apt-get install python3-pip -y
+    cd /vagrant
+    pip3 install -r requirements.txt
   SHELL
 
   config.vm.provision "shell", "run": "always", inline: <<-SHELL
     cd /vagrant
-    docker-compose -f docker-compose.tests.yml up --build --exit-code-from tests
+    ./run_tests.sh
   SHELL
 end
