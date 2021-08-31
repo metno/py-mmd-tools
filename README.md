@@ -7,32 +7,11 @@ Python tools for MMD.
 
 To run the tests locally:
 ```
-nosetests --with-coverage --cover-xml --cover-package=py_mmd_tools
-```
-## Development environment
-
-The following command will set up a docker development environment running on a vagrant virtual machine, and run tests:
-
-```
-vagrant up
+export MMD_PATH=<PATH TO MMD REPO>
+python -m pytest -vv --cov-report=term
 ```
 
-For repeated testing, ssh into the vm and run your code there:
-
+Or:
 ```
-vagrant ssh
-cd /vagrant
-sudo docker-compose -f docker-compose.tests.yml up --build --exit-code-from tests
+./run_tests.sh
 ```
-
-For interactive work:
-
-```
-vagrant ssh
-cd /vagrant
-sudo docker start vagrant_tests_1
-sudo docker exec -it vagrant_tests_1 bash
-ipython
-```
-
-
