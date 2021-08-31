@@ -10,30 +10,8 @@ To run the tests locally:
 export MMD_PATH=<PATH TO MMD REPO>
 python -m pytest -vv --cov-report=term
 ```
-## Development environment
 
-The following command will set up a docker development environment running on a vagrant virtual machine, and run tests:
-
+Or:
 ```
-vagrant up
+./run_tests.sh
 ```
-
-For repeated testing, ssh into the vm and run your code there:
-
-```
-vagrant ssh
-cd /vagrant
-sudo docker-compose -f docker-compose.tests.yml up --build --exit-code-from tests
-```
-
-For interactive work:
-
-```
-vagrant ssh
-cd /vagrant
-sudo docker start vagrant_tests_1
-sudo docker exec -it vagrant_tests_1 bash
-ipython
-```
-
-
