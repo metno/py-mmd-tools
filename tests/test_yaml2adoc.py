@@ -9,53 +9,47 @@ py-mmd-tools is licensed under the Apache License 2.0
 """
 
 import os
-import sys
 import warnings
-import types
 import tempfile
-import importlib.machinery
-import unittest
 
-from unittest.mock import patch
+import pytest
 
-# warnings.simplefilter("ignore", ResourceWarning)
-
-
-class TestYAML2ADOC(unittest.TestCase):
-
-    def setUp(self):
-        """ToDo: Add docstring"""
-        file = globals()['__file__'].split('/')
-        file.pop(-1)
-        file.pop(-1)
-        file.pop(0)
-        ss = '/'
-        for folder in file:
-            ss = os.path.join(ss, folder)
-        self.ss = os.path.join(ss, 'script/yaml2adoc.py')
-        self.loader = importlib.machinery.SourceFileLoader('yaml2adoc.py', self.ss)
-        types.ModuleType(self.loader.name)
-
-    def test_missing_args(self):
-        """ToDo: Add docstring"""
-        warnings.filterwarnings('ignore')
-        yy = self.loader.load_module()
-        with patch.object(sys, 'argv', [self.ss]):
-            with self.assertRaises(SystemExit) as cm:
-                yy.main()
-                self.assertEqual(cm.exception.code, 2)
-
-    def test_create_file(self):
-        """ToDo: Add docstring"""
-        tested = tempfile.mkstemp()[1]
-        warnings.filterwarnings('ignore')
-        yy = self.loader.load_module()
-        with patch.object(sys, 'argv', [self.ss, '-o', '%s' % tested]):
-            yy.main()
-        with open(tested) as tt:
-            first_line = tt.readline()
-        self.assertEqual(first_line, '//// \n')
+from script.yaml2adoc import create_parser
+from script.yaml2adoc import main
 
 
-if __name__ == '__main__':
-    unittest.main()
+@pytest.mark.script
+def test_yaml2adoc_script():
+    """Test that an adoc file is created"""
+    parser = create_parser()
+    fd, tested = tempfile.mkstemp()
+    parsed = parser.parse_args(['-o', tested])
+    main(parsed)
+    assert os.path.isfile(tested)
+    os.close(fd)
+    os.unlink(tested)
+
+
+@pytest.mark.script
+def test_missing_args():
+    """Test that SystemExit is raised if no args"""
+    warnings.filterwarnings('ignore')
+    parser = create_parser()
+    parsed = parser.parse_args([])
+    with pytest.raises(SystemExit) as cm:
+        main(parsed)
+        assert cm.exception.code == 2
+
+
+@pytest.mark.script
+def test_create_file():
+    """Test that the output file is created and populated"""
+    fd, tested = tempfile.mkstemp()
+    parser = create_parser()
+    parsed = parser.parse_args(['-o', tested])
+    main(parsed)
+    with open(tested, 'r') as tt:
+        first_line = tt.readline()
+    assert first_line == '//// \n'
+    os.close(fd)
+    os.unlink(tested)
