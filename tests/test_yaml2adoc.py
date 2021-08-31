@@ -11,7 +11,6 @@ py-mmd-tools is licensed under the Apache License 2.0
 import os
 import warnings
 import tempfile
-import unittest
 
 import pytest
 
@@ -54,7 +53,3 @@ def test_create_file():
     assert first_line == '//// \n'
     os.close(fd)
     os.unlink(tested)
-
-
-if __name__ == '__main__':  # pragma: no cover
-    unittest.main()
