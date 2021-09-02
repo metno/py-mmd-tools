@@ -692,7 +692,6 @@ class TestNC2MMD(unittest.TestCase):
         # The id attribute is not a uuid
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_id_not_uuid.nc', output_file=tested)
         nc2mmd.to_mmd(require_uuid=False)
-        ncin = Dataset(nc2mmd.netcdf_product)
         self.assertFalse(Nc_to_mmd.is_valid_uuid(nc2mmd.metadata['metadata_identifier']))
         self.assertEqual('', nc2mmd.metadata['metadata_identifier'])
 
