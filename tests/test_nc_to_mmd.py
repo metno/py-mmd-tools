@@ -630,44 +630,19 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(data[0]['id'], 'b7cb7934-77ca-4439-812e-f560df3fe7eb')
         self.assertEqual(data[0]['relation_type'], 'parent')
 
-    def test_missing_id(self):
-        """ToDo: Add docstring"""
-        mmd_yaml = yaml.load(
-            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-        )
-        # nc file is missing the id attribute
-        nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_keywords_vocab.nc')
-        ncin = Dataset(nc2mmd.netcdf_product)
-        value = nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
-        self.assertTrue(Nc_to_mmd.is_valid_uuid(value))
-
     def test_create_do_not_require_uuid(self):
-        """ToDo: Add docstring"""
+        """Test that we can create an MMD file even if a uuid is missing."""
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         # The id attribute is not a uuid
-        nc2mmd = Nc_to_mmd('tests/data/reference_nc_fail.nc')
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_id_missing.nc')
         ncin = Dataset(nc2mmd.netcdf_product)
-        id = ncin.getncattr('id')
         value = nc2mmd.get_metadata_identifier(
-            mmd_yaml['metadata_identifier'], ncin, require_uuid=False
+            mmd_yaml['metadata_identifier'], ncin
         )
         self.assertFalse(Nc_to_mmd.is_valid_uuid(value))
-        self.assertEqual(id, value)
-
-    def test_create_new_id_if_accd_id_is_invalid(self):
-        """ToDo: Add docstring"""
-        mmd_yaml = yaml.load(
-            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-        )
-        # The id attribute is not a uuid
-        nc2mmd = Nc_to_mmd('tests/data/reference_nc_fail.nc')
-        ncin = Dataset(nc2mmd.netcdf_product)
-        id = ncin.getncattr('id')
-        value = nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
-        self.assertTrue(Nc_to_mmd.is_valid_uuid(value))
-        self.assertNotEqual(id, value)
+        self.assertEqual('', value)
 
     def test_get_correct_id_from_ncfile(self):
         """ToDo: Add docstring"""
@@ -683,24 +658,36 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(id, value)
 
     def test__to_mmd__missing_id(self):
-        """ToDo: Add docstring"""
+        """Test that the correct warnings are issued for missing id
+        attribute and missing metadata status.
+        """
         tested = tempfile.mkstemp()[1]
         # nc file is missing the id attribute
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_id_missing.nc', output_file=tested)
         nc2mmd.to_mmd()
+        ncin = Dataset(nc2mmd.netcdf_product)
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        value = nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
         self.assertEqual(
-            nc2mmd.missing_attributes['warnings'][0],
-            'id ACDD attribute is missing - created metadata_identifier MMD element as uuid.'
+            nc2mmd.missing_attributes['warnings'][0], (
+                'id is a required attribute. The MMD xml file will not validate unless the MMD '
+                'metadata_identifier is added.'
+            )
         )
         self.assertEqual(
             nc2mmd.missing_attributes['warnings'][1],
             'Using default value Active for metadata_status'
         )
         self.assertEqual(nc2mmd.missing_attributes['errors'], [])
-        self.assertTrue(Nc_to_mmd.is_valid_uuid(nc2mmd.metadata['metadata_identifier']))
+        self.assertFalse(Nc_to_mmd.is_valid_uuid(nc2mmd.metadata['metadata_identifier']))
+        self.assertEqual('', value)
 
-    def test__to_mmd__create_do_not_require_uuid(self):
-        """ToDo: Add docstring"""
+    def test__to_mmd__create_do_not_require_valid_uuid(self):
+        """Test that we can create an MMD file even if the netcdf id
+        attribute is not a valid uuid.
+        """
         tested = tempfile.mkstemp()[1]
         # The id attribute is not a uuid
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_id_not_uuid.nc', output_file=tested)
@@ -708,27 +695,28 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(nc2mmd.netcdf_product)
         id = ncin.getncattr('id')
         self.assertFalse(Nc_to_mmd.is_valid_uuid(nc2mmd.metadata['metadata_identifier']))
-        self.assertEqual(id, nc2mmd.metadata['metadata_identifier'])
+        self.assertEqual('', nc2mmd.metadata['metadata_identifier'])
 
-    def test__to_mmd__create_new_id_if_accd_id_is_invalid(self):
-        """ToDo: Add docstring"""
+    def test__to_mmd__warn_if_accd_id_is_invalid(self):
+        """Test that metadata_identifier is set to an empty string, and
+        that a warning is issued if the ACDD id is not a valid uuid.
+        """
         tested = tempfile.mkstemp()[1]
         # The id attribute is not a uuid
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_id_not_uuid.nc', output_file=tested)
         nc2mmd.to_mmd()
         self.assertEqual(
-            nc2mmd.missing_attributes['warnings'][0],
-            'id ACDD attribute is not unique - created metadata_identifier MMD element as uuid.'
-        )
-        self.assertEqual(
-            nc2mmd.missing_attributes['warnings'][1],
-            'Using default value Active for metadata_status'
+            nc2mmd.missing_attributes['warnings'][0], (
+                'id ACDD attribute is not valid.The MMD xml file will not validate unless '
+                'the MMD metadata_identifier is replaced.'
+            )
         )
         self.assertEqual(nc2mmd.missing_attributes['errors'], [])
-        self.assertTrue(Nc_to_mmd.is_valid_uuid(nc2mmd.metadata['metadata_identifier']))
+        self.assertFalse(Nc_to_mmd.is_valid_uuid(nc2mmd.metadata['metadata_identifier']))
         ncin = Dataset(nc2mmd.netcdf_product)
         id = ncin.getncattr('id')
         self.assertNotEqual(id, nc2mmd.metadata['metadata_identifier'])
+        self.assertEqual('', nc2mmd.metadata['metadata_identifier'])
 
     def test__to_mmd__get_correct_id_from_ncfile(self):
         """ToDo: Add docstring"""
