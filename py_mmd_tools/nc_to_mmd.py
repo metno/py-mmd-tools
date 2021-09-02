@@ -27,7 +27,7 @@ from filehash import FileHash
 from pkg_resources import resource_string
 from dateutil.parser import parse
 from dateutil.parser._parser import ParserError
-from uuid import UUID, uuid4
+from uuid import UUID
 
 import pathlib
 from netCDF4 import Dataset
@@ -700,7 +700,7 @@ class Nc_to_mmd(object):
                 # DMCI xml check handle it
                 ncid = ''
                 self.missing_attributes['warnings'].append((
-                    '%s ACDD attribute is not valid.' 
+                    '%s ACDD attribute is not valid.'
                     'The MMD xml file will not validate unless '
                     'the MMD metadata_identifier is replaced.'
                 ) % acdd)
