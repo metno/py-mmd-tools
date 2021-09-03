@@ -15,3 +15,20 @@ Or:
 ```
 ./run_tests.sh
 ```
+
+## Syntax testing
+
+Install flake8:
+```
+pip install flake8
+```
+
+Syntax error check:
+```
+flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+```
+
+Code style check:
+```
+flake8 . --count --max-line-length=99 --ignore E221,E226,E228,E241 --show-source --statistics
+```
