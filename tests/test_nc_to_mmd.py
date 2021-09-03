@@ -696,10 +696,6 @@ class TestNC2MMD(unittest.TestCase):
                 'metadata_identifier is added.'
             )
         )
-        self.assertEqual(
-            nc2mmd.missing_attributes['warnings'][1],
-            'Using default value Active for metadata_status'
-        )
         self.assertEqual(nc2mmd.missing_attributes['errors'], [])
         self.assertFalse(Nc_to_mmd.is_valid_uuid(nc2mmd.metadata['metadata_identifier']))
         self.assertEqual('', value)
@@ -737,16 +733,17 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual('', nc2mmd.metadata['metadata_identifier'])
 
     def test__to_mmd__get_correct_id_from_ncfile(self):
-        """ToDo: Add docstring"""
+        """Test that the id attribute in the netcdf file is valid, and
+        used in the MMD xml file.
+        """
         tested = tempfile.mkstemp()[1]
         # The id attribute is a uuid
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', output_file=tested)
         nc2mmd.to_mmd()
-        self.assertEqual(
-            nc2mmd.missing_attributes['warnings'][0],
-            'Using default value Active for metadata_status'
-        )
+        ncin = Dataset(nc2mmd.netcdf_product)
+        id = ncin.getncattr('id')
         self.assertEqual(nc2mmd.missing_attributes['errors'], [])
+        self.assertEqual(id, nc2mmd.metadata['metadata_identifier'])
 
     def test_create_mmd_1(self):
         """ToDo: Add docstring"""
@@ -763,12 +760,14 @@ class TestNC2MMD(unittest.TestCase):
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
-        md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_product)
-        md.get_acdd_metadata(mmd_yaml['metadata_status'], ncin, 'metadata_status')
+        md = Nc_to_mmd('tests/data/reference_nc_id_missing.nc', check_only=True)
+        md.to_mmd()
         self.assertEqual(
             md.missing_attributes['warnings'][0],
-            'Using default value Active for metadata_status'
+            (
+                'id is a required attribute. The MMD xml file will not validate unless '
+                'the MMD metadata_identifier is added.'
+            )
         )
 
     def test_create_mmd_2(self):
