@@ -153,6 +153,8 @@ class Nc_to_mmd(object):
             netcdf_product (str): Input NetCDF file (nc file or OPeNDAP
                 url).
         """
+        if output_file is None and check_only is False:
+            raise ValueError('output_filename must be provided if check_only is False')
         super(Nc_to_mmd, self).__init__()
         self.output_file = output_file
         self.netcdf_product = netcdf_product
@@ -928,10 +930,10 @@ class Nc_to_mmd(object):
         if rm_file_for_checksum_calculation:
             os.remove(file_for_checksum_calculation)
 
-        if len(self.missing_attributes['errors']) > 0:
-            raise AttributeError("\n\t"+"\n\t".join(self.missing_attributes['errors']))
         if len(self.missing_attributes['warnings']) > 0:
             warnings.warn("\n\t"+"\n\t".join(self.missing_attributes['warnings']))
+        if len(self.missing_attributes['errors']) > 0:
+            raise AttributeError("\n\t"+"\n\t".join(self.missing_attributes['errors']))
 
         # Finally, check that the conventions attribute contains CF and ACCD
         assert 'CF' in ncin.getncattr('Conventions') and 'ACDD' in ncin.getncattr('Conventions')
