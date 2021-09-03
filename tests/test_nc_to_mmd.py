@@ -560,9 +560,13 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[0]['other'], '')
 
     def test_check_only(self):
-        """ToDo: Add docstring"""
+        """Run netCDF attributes to MMD translation with check_only
+        flag. Also make sure that the warning about using default
+        value 'Active' for the MMD metadata_status field is disabled.
+        """
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
         req_ok, msg = nc2mmd.to_mmd()
+        self.assertFalse(nc2mmd.missing_attributes['warnings'])
         self.assertTrue(req_ok)
         self.assertEqual(msg, '')
 

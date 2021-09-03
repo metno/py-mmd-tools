@@ -226,7 +226,7 @@ class Nc_to_mmd(object):
                 # else:
                 self.missing_attributes['errors'].append('%s is a required attribute' % acdd)
 
-        if required and data == default:
+        if mmd_element_name != 'metadata_status' and required and data == default:
             self.missing_attributes['warnings'].append(
                 'Using default value %s for %s' % (str(default), mmd_element_name)
             )
