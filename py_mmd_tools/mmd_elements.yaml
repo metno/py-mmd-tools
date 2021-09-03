@@ -84,10 +84,14 @@ temporal_extent:
     repetition: Comma separated list
     acdd: time_coverage_start
     separator: ','
+    maxOccurs: unbounded
+    minOccurs: '1'
   end_date:
     separator: ','
     repetition: Comma separated list
     acdd: time_coverage_end
+    maxOccurs: unbounded
+    minOccurs: '0'
 
 geographic_extent:
   maxOccurs: '1'

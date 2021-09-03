@@ -34,7 +34,35 @@ from netCDF4 import Dataset
 
 
 def get_attr_info(key, convention, normalized):
-    """ToDo: Add docstring"""
+    """Get information about the MMD fields.
+
+    Input
+    =====
+    key: str
+        MMD element to check
+    convention: str
+        e.g., acdd or acdd_ext
+    normalized: dict
+        a normalized version of the mmd_elements dict (keys are, e.g.,
+        'personnel>organisation>acdd' or
+        'personnel>organisation>separator')
+
+    Returns
+    =======
+    required: int
+        if it is required
+    repetition: str ('yes' or 'no')
+        if repetition is allowed
+    repetition_str: str
+        a longer string representation for use in the DMH (basically
+        a comment)
+    separator: str
+        sign for separating elements that can be repeated (e.g., ','
+        or ';')
+    default:
+        a default value elements that are required but missing in the
+        netcdf file
+    """
     max_occurs_key = key.replace(convention, 'maxOccurs')
     if max_occurs_key in normalized.keys():
         max_occurs = normalized[max_occurs_key]
