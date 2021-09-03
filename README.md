@@ -8,7 +8,7 @@ Python tools for MMD.
 To run the tests locally:
 ```
 export MMD_PATH=<PATH TO MMD REPO>
-python -m pytest -vv --cov-report=term
+python -m pytest -v --cov=py_mmd_tools --cov=script --cov-report=term --cov-report=xml
 ```
 
 Or:
