@@ -27,7 +27,7 @@ from filehash import FileHash
 from pkg_resources import resource_string
 from dateutil.parser import parse
 from dateutil.parser._parser import ParserError
-from uuid import UUID, uuid4
+from uuid import UUID
 
 import pathlib
 from netCDF4 import Dataset
@@ -687,7 +687,7 @@ class Nc_to_mmd(object):
             return False
         return str(uuid_obj) == uuid_to_test
 
-    def get_metadata_identifier(self, mmd_element, ncin, require_uuid=True, **kwargs):
+    def get_metadata_identifier(self, mmd_element, ncin, **kwargs):
         """Look up ACDD element and populate MMD metadata identifier"""
         acdd = mmd_element.pop('acdd')
         valid = False
@@ -695,17 +695,21 @@ class Nc_to_mmd(object):
         if acdd in ncin.ncattrs():
             ncid = eval('ncin.%s' % acdd)
             valid = Nc_to_mmd.is_valid_uuid(ncid) * (not any(xx in ncid for xx in invalid_chars))
-            if require_uuid and not valid:
-                ncid = str(uuid4())
+            if not valid:
+                # Set the id to an empty string in order to make the
+                # DMCI xml check handle it
+                ncid = ''
                 self.missing_attributes['warnings'].append((
-                    '%s ACDD attribute is not unique - '
-                    'created metadata_identifier MMD element as uuid.'
+                    '%s ACDD attribute is not valid.'
+                    'The MMD xml file will not validate unless '
+                    'the MMD metadata_identifier is replaced.'
                 ) % acdd)
         else:
-            ncid = str(uuid4())
+            ncid = ''
             self.missing_attributes['warnings'].append((
-                '%s ACDD attribute is missing - '
-                'created metadata_identifier MMD element as uuid.'
+                '%s is a required attribute. '
+                'The MMD xml file will not validate '
+                'unless the MMD metadata_identifier is added.'
             ) % acdd)
         return ncid
 
@@ -721,6 +725,7 @@ class Nc_to_mmd(object):
         ids = []
         if acdd_ext_id in ncin.ncattrs():
             ids = self.separate_repeated(True, eval('ncin.%s' % acdd_ext_id))
+        # TODO: use if-test and raise exception instead:
         assert len(relation_types) == len(ids)
         data = []
         for i in range(len(ids)):
@@ -741,7 +746,7 @@ class Nc_to_mmd(object):
         lon = pp.exterior.coords.xy[1]
         pos = []
         for i in range(len(lat)):
-            pos.append('%.2f %.2f'%(lat[i], lon[i]))
+            pos.append('%.4f %.4f'%(lat[i], lon[i]))
         data = {
             'srsName': ncin.geospatial_bounds_crs,
             'pos': pos
