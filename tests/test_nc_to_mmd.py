@@ -64,7 +64,7 @@ class TestNC2MMD(unittest.TestCase):
         but output_file is None. Test that this is the case.
         """
         with self.assertRaises(ValueError):
-            nn = Nc_to_mmd('tests/data/reference_nc.nc', output_file=None, check_only=False)
+            Nc_to_mmd('tests/data/reference_nc.nc', output_file=None, check_only=False)
 
     def test_date_created_type__not_present(self):
         """ToDo: Add docstring"""
@@ -756,18 +756,23 @@ class TestNC2MMD(unittest.TestCase):
         self.assertTrue(valid)
 
     def test_get_acdd_metadata_sets_warning_msg(self):
-        """ToDo: Add docstring"""
+        """Check that a warning is issued by the get_acdd_metadata
+        function if a default value is used for a required element.
+        """
+        md = Nc_to_mmd('tests/data/reference_nc_id_missing.nc', check_only=True)
+        ncin = Dataset(md.netcdf_product)
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
-        md = Nc_to_mmd('tests/data/reference_nc_id_missing.nc', check_only=True)
-        md.to_mmd()
+        lang = mmd_yaml['dataset_language']
+        # Warnings are only issued when the field is required.
+        # Currently, this is not the case for any of the fields
+        # used in this function, so we force it:
+        lang['minOccurs'] = '1'
+        md.get_acdd_metadata(lang, ncin, 'dataset_language')
         self.assertEqual(
             md.missing_attributes['warnings'][0],
-            (
-                'id is a required attribute. The MMD xml file will not validate unless '
-                'the MMD metadata_identifier is added.'
-            )
+            'Using default value en for dataset_language'
         )
 
     def test_create_mmd_2(self):
