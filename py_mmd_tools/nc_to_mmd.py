@@ -741,7 +741,7 @@ class Nc_to_mmd(object):
         lon = pp.exterior.coords.xy[1]
         pos = []
         for i in range(len(lat)):
-            pos.append('%.2f %.2f'%(lat[i], lon[i]))
+            pos.append('%.4f %.4f'%(lat[i], lon[i]))
         data = {
             'srsName': ncin.geospatial_bounds_crs,
             'pos': pos

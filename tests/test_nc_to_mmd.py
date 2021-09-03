@@ -83,7 +83,7 @@ class TestNC2MMD(unittest.TestCase):
             mmd_yaml['geographic_extent']['polygon'], ncin
         )
         self.assertEqual(value['srsName'], 'EPSG:4326')
-        self.assertEqual(value['pos'][0], '69.00 3.79')
+        self.assertEqual(value['pos'][0], '69.0000 3.7900')
 
     def test_missing_geographic_extent(self):
         """ToDo: Add docstring"""
