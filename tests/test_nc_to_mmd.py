@@ -16,13 +16,15 @@ import datetime
 import warnings
 import unittest
 
+import pandas as pd
+
 from unittest.mock import patch
 from filehash import FileHash
 from lxml import etree
 from netCDF4 import Dataset
 from pkg_resources import resource_string
 
-from py_mmd_tools.nc_to_mmd import Nc_to_mmd, nc_attrs_from_yaml
+from py_mmd_tools.nc_to_mmd import Nc_to_mmd, nc_attrs_from_yaml, get_attr_info
 
 warnings.simplefilter("ignore", ResourceWarning)
 
@@ -33,6 +35,25 @@ class TestNCAttrsFromYaml(unittest.TestCase):
         """ToDo: Add docstring"""
         adoc = nc_attrs_from_yaml()
         self.assertEqual(type(adoc), str)
+
+    def test_get_attr_info__time_coverage(self):
+        """Check that time_coverage_start and time_coverage_end are
+        required.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        # Flatten dict
+        df = pd.json_normalize(mmd_yaml, sep='>')
+        normalized = df.to_dict(orient='records')[0]
+        sd_required, repetition_allowed, repetition_str, separator, default = get_attr_info(
+            'temporal_extent>start_date>acdd', 'acdd', normalized
+        )
+        ed_required, repetition_allowed, repetition_str, separator, default = get_attr_info(
+            'temporal_extent>end_date>acdd', 'acdd', normalized
+        )
+        self.assertTrue(sd_required)
+        self.assertFalse(ed_required)
 
 
 class TestNC2MMD(unittest.TestCase):
