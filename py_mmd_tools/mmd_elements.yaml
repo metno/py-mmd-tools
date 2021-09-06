@@ -8,6 +8,7 @@ metadata_identifier:
 alternate_identifier:
   maxOccurs: unbounded
   minOccurs: '0'
+  acdd_ext: alternate_identifier
 
 last_metadata_update:
   maxOccurs: '1'

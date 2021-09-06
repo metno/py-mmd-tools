@@ -244,8 +244,10 @@ class TestNC2MMD(unittest.TestCase):
         )
         self.assertEqual(value, 'In Work')
 
-    def test_alternate_identifier(self):
-        """ToDo: Add docstring"""
+    def test_alternate_identifier_missing(self):
+        """Test that MMD alternate_identifier is not added when it does
+        not exist in nc-file.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -255,6 +257,20 @@ class TestNC2MMD(unittest.TestCase):
             mmd_yaml['alternate_identifier'], ncin, 'alternate_identifier'
         )
         self.assertEqual(value, None)
+
+    def test_alternate_identifier(self):
+        """Test that MMD alternate_identifier is not equal to the one
+        provided in the nc-file.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_with_altID.nc', check_only=True)
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_acdd_metadata(
+            mmd_yaml['alternate_identifier'], ncin, 'alternate_identifier'
+        )
+        self.assertEqual(value[0], 'dummy_id_no1')
 
     def test_metadata_status_is_active(self):
         """ToDo: Add docstring"""
