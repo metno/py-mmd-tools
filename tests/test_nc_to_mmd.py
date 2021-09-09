@@ -88,7 +88,11 @@ class TestNC2MMD(unittest.TestCase):
             Nc_to_mmd('tests/data/reference_nc.nc', output_file=None, check_only=False)
 
     def test_date_created_type__not_present(self):
-        """ToDo: Add docstring"""
+        """Test that the line with 'if default' in get_acdd_metadata is
+        covered. Note that we would normally use the function 
+        get_acdd_metadata to get date_created and date_created_type but
+        then the line in get_acdd_metadata will not be covered..
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -99,6 +103,27 @@ class TestNC2MMD(unittest.TestCase):
             ncin, 'date_created_type'
         )
         self.assertEqual(value, 'Created')
+
+    def test_get_acdd_metadata_uses_default_date_created_type(self):
+        """Test that the get_acdd_metadata function uses default
+        date_created_type."""
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_metadata_updates(mmd_yaml['last_metadata_update'], ncin)
+        self.assertEqual(value['update'][0]['type'], 'Created')
+
+    def test_date_created_type__not_present(self):
+        """ToDo: Add docstring"""
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_metadata_updates(mmd_yaml['last_metadata_update'], ncin)
+        self.assertEqual(value['update'][0]['type'], 'Created')
 
     def test_geographic_extent_polygon(self):
         """ToDo: Add docstring"""
