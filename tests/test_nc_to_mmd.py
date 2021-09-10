@@ -89,7 +89,7 @@ class TestNC2MMD(unittest.TestCase):
 
     def test_date_created_type__not_present(self):
         """Test that the line with 'if default' in get_acdd_metadata is
-        covered. Note that we would normally use the function 
+        covered. Note that we would normally use the function
         get_acdd_metadata to get date_created and date_created_type but
         then the line in get_acdd_metadata will not be covered..
         """
