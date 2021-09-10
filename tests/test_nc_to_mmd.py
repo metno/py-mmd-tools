@@ -115,16 +115,6 @@ class TestNC2MMD(unittest.TestCase):
         value = nc2mmd.get_metadata_updates(mmd_yaml['last_metadata_update'], ncin)
         self.assertEqual(value['update'][0]['type'], 'Created')
 
-    def test_date_created_type__not_present(self):
-        """ToDo: Add docstring"""
-        mmd_yaml = yaml.load(
-            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-        )
-        nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
-        ncin = Dataset(nc2mmd.netcdf_product)
-        value = nc2mmd.get_metadata_updates(mmd_yaml['last_metadata_update'], ncin)
-        self.assertEqual(value['update'][0]['type'], 'Created')
-
     def test_geographic_extent_polygon(self):
         """ToDo: Add docstring"""
         mmd_yaml = yaml.load(
@@ -879,7 +869,9 @@ class TestNC2MMD(unittest.TestCase):
         }])
 
     def test_create_mmd_missing_update_times(self):
-        """ToDo: Add docstring"""
+        """Test that an error is reported if date_created attribute is
+        missing from the netcdf file.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -888,7 +880,37 @@ class TestNC2MMD(unittest.TestCase):
         md.get_metadata_updates(mmd_yaml['last_metadata_update'], ncin)
         self.assertEqual(
             md.missing_attributes['errors'][0],
-            'ACDD attribute date_created or date_metadata_modified is required'
+            'ACDD attribute date_created is required'
+        )
+
+    def test_get_metadata_updates_wrong_input_dict(self):
+        """Test that an error is raised if there is inconsistency
+        between the fields in mmd_elements.yaml and the hardcoded
+        fields in the get_metadata_updates function.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        in_dict = mmd_yaml['last_metadata_update']
+        in_dict['update']['datetime']['acdd'] = [
+            'new_name_for_date_created',
+            'date_metadata_modified'
+        ]
+        md = Nc_to_mmd(self.reference_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product)
+        with self.assertRaises(AttributeError) as context1:
+            md.get_metadata_updates(in_dict, ncin)
+        self.assertTrue(
+            'ACDD attribute inconsistency in mmd_elements.yaml' in str(context1.exception)
+        )
+        in_dict['update']['datetime']['acdd'] = [
+            'date_created',
+            'new_name_for_date_metadata_modified'
+        ]
+        with self.assertRaises(AttributeError) as context2:
+            md.get_metadata_updates(in_dict, ncin)
+        self.assertTrue(
+            'ACDD attribute inconsistency in mmd_elements.yaml' in str(context2.exception)
         )
 
     def test_create_mmd_missing_abstract(self):
