@@ -719,29 +719,42 @@ class Nc_to_mmd(object):
 
     def get_metadata_identifier(self, mmd_element, ncin, **kwargs):
         """Look up ACDD element and populate MMD metadata identifier"""
+        # Some constants:
+        VALID_NAMING_AUTHORITIES = ['no.met'] # add others when needed..
+        ID = 'id'
+        NAMING_AUTH = 'naming_authority'
+        INVALID_CHARS = ['\\', '/', ':', ' ']
+
         acdd = mmd_element.pop('acdd')
         valid = False
-        invalid_chars = ['\\', '/', ':', ' ']
-        if acdd in ncin.ncattrs():
-            ncid = eval('ncin.%s' % acdd)
-            valid = Nc_to_mmd.is_valid_uuid(ncid) * (not any(xx in ncid for xx in invalid_chars))
+        ncid = ''
+        naming_authority = ''
+        # id and naming_authority are required, and both should be in
+        # the acdd list
+        if len(acdd) != 2 or ID not in acdd or NAMING_AUTH not in acdd:
+            raise AttributeError(
+                'ACDD attribute inconsistency in mmd_elements.yaml. Expected %s and %s but ' \
+                'received %s.'
+                % (ID, NAMING_AUTH, str(acdd))
+            )
+        if ID not in ncin.ncattrs():
+            self.missing_attributes['errors'].append('%s is a required attribute.' % ID)
+        if NAMING_AUTH not in ncin.ncattrs():
+            self.missing_attributes['errors'].append('%s is a required attribute.' % NAMING_AUTH)
+        if ID in ncin.ncattrs():
+            ncid = eval('ncin.%s' % ID)
+            valid = Nc_to_mmd.is_valid_uuid(ncid) * (not any(xx in ncid for xx in INVALID_CHARS))
             if not valid:
-                # Set the id to an empty string in order to make the
-                # DMCI xml check handle it
                 ncid = ''
-                self.missing_attributes['warnings'].append((
-                    '%s ACDD attribute is not valid.'
-                    'The MMD xml file will not validate unless '
-                    'the MMD metadata_identifier is replaced.'
-                ) % acdd)
-        else:
-            ncid = ''
-            self.missing_attributes['warnings'].append((
-                '%s is a required attribute. '
-                'The MMD xml file will not validate '
-                'unless the MMD metadata_identifier is added.'
-            ) % acdd)
-        return ncid
+                self.missing_attributes['errors'].append('%s ACDD attribute is not valid.' % ID)
+        if NAMING_AUTH in ncin.ncattrs():
+            naming_authority = eval('ncin.%s' % NAMING_AUTH)
+            if not naming_authority in VALID_NAMING_AUTHORITIES:
+                naming_authority = ''
+                self.missing_attributes['errors'].append(
+                    '%s ACDD attribute is not valid.' % NAMING_AUTH
+                )
+        return naming_authority + ':' + ncid
 
     def get_related_dataset(self, mmd_element, ncin):
         """ToDo: Add docstring"""

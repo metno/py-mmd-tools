@@ -2,8 +2,10 @@
 metadata_identifier:
   maxOccurs: '1'
   minOccurs: '1'
-  repetition: No repetition allowed
-  acdd: id
+  repetition: No repetition allowed. Both id and naming_authority are required.
+  acdd: 
+    - id
+    - naming_authority
 
 alternate_identifier:
   maxOccurs: unbounded

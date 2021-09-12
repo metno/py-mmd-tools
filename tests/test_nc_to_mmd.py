@@ -687,8 +687,11 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(data[0]['id'], 'b7cb7934-77ca-4439-812e-f560df3fe7eb')
         self.assertEqual(data[0]['relation_type'], 'parent')
 
-    def test_create_do_not_require_uuid(self):
-        """Test that we can create an MMD file even if a uuid is missing."""
+    def test_create_requires_naming_authority(self):
+        """Test that we cannot create an MMD file if naming_authority
+        is missing, and that the uuid validation fails for an id which
+        is not an uuid.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -696,10 +699,20 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_fail.nc', check_only=True)
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_metadata_identifier(
-            mmd_yaml['metadata_identifier'], ncin
+             mmd_yaml['metadata_identifier'], ncin
         )
         self.assertFalse(Nc_to_mmd.is_valid_uuid(value))
-        self.assertEqual('', value)
+        self.assertEqual(':', value)
+        with self.assertRaises(AttributeError) as context:
+            nc2mmd.to_mmd()
+        """
+        Note: there will be two 'naming_authority is a required
+        attribute' messages, since get_metadata_identifier is called
+        twice (first directly in this test, then from the to_mmd
+        function.
+        """
+        self.assertTrue('naming_authority is a required attribute' in str(context.exception))
+        self.assertTrue('id ACDD attribute is not valid.' in str(context.exception))
 
     def test_get_correct_id_from_ncfile(self):
         """ToDo: Add docstring"""
