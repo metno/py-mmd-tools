@@ -297,21 +297,56 @@ class Nc_to_mmd(object):
         return data
 
     def get_metadata_updates(self, mmd_element, ncin):
-        """ToDo: Add docstring"""
+        """Get time of metadata creation, last metadata update and
+        update type.
+
+        OBS: the challenge with this function is that it must translate
+        two acdd/accd_ext fields for each update.datetime and
+        update.type. This is handled by hardcoding the values. The
+        acdd and acdd_ext translation variables in any case needed for
+        use in the data management handbook, so therefore we have a
+        check here to make sure that the hardcoded values in this
+        function agree with the ones in the yaml file.
+        """
         acdd_time = mmd_element['update']['datetime'].pop('acdd', '')
-        times = []
-        for field_name in acdd_time:
-            if field_name in ncin.ncattrs():
-                times = self.separate_repeated(True, eval('ncin.%s' % field_name))
-                break
-        if not times:
+        acdd_type = mmd_element['update']['type'].pop('acdd_ext', '')
+
+        DATE_CREATED = 'date_created'
+        # Check that DATE_CREATED attribute is present
+        if DATE_CREATED not in ncin.ncattrs():
             self.missing_attributes['errors'].append(
-                'ACDD attribute %s or %s is required' % (acdd_time[0], acdd_time[1])
+                'ACDD attribute %s is required' % DATE_CREATED
             )
             return
 
-        mmd_element['update']['type'].pop('acdd', '')
-        types = [mmd_element['update']['type'].pop('default', '') for i in range(len(times))]
+        times = []
+        types = []
+        received_time = ''
+        for tt in acdd_time:
+            received_time += '%s, ' % tt
+        received_type = ''
+        for ty in acdd_type:
+            received_type += '%s, ' % ty
+
+        if DATE_CREATED not in acdd_time:
+            raise AttributeError(
+                'ACDD attribute inconsistency in mmd_elements.yaml. Expected %s but received %s.'
+                % (DATE_CREATED, received_time)
+            )
+
+        if 'date_metadata_modified' not in acdd_time:
+            raise AttributeError(
+                'ACDD attribute inconsistency in mmd_elements.yaml. Expected %s but received %s.'
+                % ('date_metadata_modified', received_type)
+            )
+        for field_name in acdd_time:
+            if field_name in ncin.ncattrs() and field_name == DATE_CREATED:
+                times.append(ncin.date_created)
+                types.append(mmd_element['update']['type'].pop('default', 'Created'))
+            else:
+                times.extend(self.separate_repeated(True, eval('ncin.%s' % field_name)))
+                types.extend(self.separate_repeated(True, ncin.date_metadata_modified_type))
+
         data = {}
         data['update'] = []
         for i in range(len(times)):

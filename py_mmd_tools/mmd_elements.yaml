@@ -29,7 +29,9 @@ last_metadata_update:
       minOccurs: '1'
       separator: ','
       repetition: Comma separated list
-      acdd_ext: date_created_type
+      acdd_ext:
+        - date_created_type
+        - date_metadata_modified_type
       #- Created
       #- Minor modification
       #- Major modification
