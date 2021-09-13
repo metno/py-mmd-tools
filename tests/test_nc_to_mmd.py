@@ -700,30 +700,30 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
         ncin = Dataset(nc2mmd.netcdf_product)
         with self.assertRaises(AttributeError) as e:
-            value = nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
+            nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
         self.assertEqual(
-            "ACDD attribute inconsistency in mmd_elements.yaml. Expected id and " \
-                "naming_authority but received ['id'].",
+            "ACDD attribute inconsistency in mmd_elements.yaml. Expected id and "
+            "naming_authority but received ['id'].",
             str(e.exception)
         )
         # Inconsistency of ACCD id in mmd_elements.yaml (='jkhakjh')
         # and the hardcoded one (='id')
         mmd_yaml['metadata_identifier']['acdd'] = ['jkhakjh', 'naming_authority']
         with self.assertRaises(AttributeError) as e:
-            value = nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
+            nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
         self.assertEqual(
-            "ACDD attribute inconsistency in mmd_elements.yaml. Expected id and " \
-                "naming_authority but received ['jkhakjh', 'naming_authority'].",
+            "ACDD attribute inconsistency in mmd_elements.yaml. Expected id and "
+            "naming_authority but received ['jkhakjh', 'naming_authority'].",
             str(e.exception)
         )
         # Inconsistency of ACCD naming_authority in mmd_elements.yaml
         # (='jklhkha') and the hardcoded one (='naming_authority')
         mmd_yaml['metadata_identifier']['acdd'] = ['id', 'jklhkha']
         with self.assertRaises(AttributeError) as e:
-            value = nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
+            nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
         self.assertEqual(
-            "ACDD attribute inconsistency in mmd_elements.yaml. Expected id and " \
-                "naming_authority but received ['id', 'jklhkha'].",
+            "ACDD attribute inconsistency in mmd_elements.yaml. Expected id and "
+            "naming_authority but received ['id', 'jklhkha'].",
             str(e.exception)
         )
         # Change the valid naming authorities to force an error
@@ -731,7 +731,6 @@ class TestNC2MMD(unittest.TestCase):
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
-        value = nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
         self.assertEqual(
             nc2mmd.missing_attributes['errors'][0],
             'naming_authority ACDD attribute is not valid.'
@@ -750,7 +749,6 @@ class TestNC2MMD(unittest.TestCase):
             'Using default value test for alternate_identifier'
         )
 
-
     def test_create_requires_naming_authority(self):
         """Test that we cannot create an MMD file if naming_authority
         is missing, and that the uuid validation fails for an id which
@@ -762,9 +760,7 @@ class TestNC2MMD(unittest.TestCase):
         # The id attribute is not a uuid
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_fail.nc', check_only=True)
         ncin = Dataset(nc2mmd.netcdf_product)
-        value = nc2mmd.get_metadata_identifier(
-             mmd_yaml['metadata_identifier'], ncin
-        )
+        value = nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
         self.assertFalse(Nc_to_mmd.is_valid_uuid(value))
         self.assertEqual(':', value)
         with self.assertRaises(AttributeError) as context:
@@ -778,19 +774,17 @@ class TestNC2MMD(unittest.TestCase):
         self.assertTrue('naming_authority is a required attribute' in str(context.exception))
         self.assertTrue('id ACDD attribute is not valid.' in str(context.exception))
 
-
     def test_get_correct_id_from_ncfile(self):
-        """ToDo: Add docstring"""
+        """ToDo: Add docstring
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         # The id attribute is a uuid
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
         ncin = Dataset(nc2mmd.netcdf_product)
-        id = ncin.getncattr('id')
         value = nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
         self.assertEqual(value, 'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb')
-
 
     def test__to_mmd__missing_id(self):
         """Test that an AttributeError is raised for missing id
@@ -799,7 +793,7 @@ class TestNC2MMD(unittest.TestCase):
         tested = tempfile.mkstemp()[1]
         # nc file is missing the id attribute
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_id_missing.nc', output_file=tested)
-        with self.assertRaises(AttributeError) as e:
+        with self.assertRaises(AttributeError):
             nc2mmd.to_mmd()
         ncin = Dataset(nc2mmd.netcdf_product)
         mmd_yaml = yaml.load(
@@ -823,7 +817,7 @@ class TestNC2MMD(unittest.TestCase):
         tested = tempfile.mkstemp()[1]
         # The id attribute is not a uuid
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_id_not_uuid.nc', output_file=tested)
-        with self.assertRaises(AttributeError) as e:
+        with self.assertRaises(AttributeError):
             nc2mmd.to_mmd()
         self.assertFalse(Nc_to_mmd.is_valid_uuid(nc2mmd.metadata['metadata_identifier']))
         self.assertEqual(':', nc2mmd.metadata['metadata_identifier'])
@@ -835,7 +829,7 @@ class TestNC2MMD(unittest.TestCase):
         tested = tempfile.mkstemp()[1]
         # The id attribute is not a uuid
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_id_not_uuid.nc', output_file=tested)
-        with self.assertRaises(AttributeError) as e:
+        with self.assertRaises(AttributeError):
             nc2mmd.to_mmd()
         self.assertEqual(
             nc2mmd.missing_attributes['errors'][0], (

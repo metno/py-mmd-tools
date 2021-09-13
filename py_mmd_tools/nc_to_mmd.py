@@ -172,7 +172,7 @@ def nc_attrs_from_yaml():
 class Nc_to_mmd(object):
 
     # Some constants:
-    VALID_NAMING_AUTHORITIES = ['no.met'] # add others when needed..
+    VALID_NAMING_AUTHORITIES = ['no.met']   # add others when needed..
     ACDD_ID = 'id'
     ACDD_NAMING_AUTH = 'naming_authority'
     ACDD_ID_INVALID_CHARS = ['\\', '/', ':', ' ']
@@ -733,7 +733,7 @@ class Nc_to_mmd(object):
         # the acdd list
         if len(acdd) != 2 or self.ACDD_ID not in acdd or self.ACDD_NAMING_AUTH not in acdd:
             raise AttributeError(
-                'ACDD attribute inconsistency in mmd_elements.yaml. Expected %s and %s but ' \
+                'ACDD attribute inconsistency in mmd_elements.yaml. Expected %s and %s but '
                 'received %s.'
                 % (self.ACDD_ID, self.ACDD_NAMING_AUTH, str(acdd))
             )
@@ -755,7 +755,7 @@ class Nc_to_mmd(object):
                 )
         if self.ACDD_NAMING_AUTH in ncin.ncattrs():
             naming_authority = eval('ncin.%s' % self.ACDD_NAMING_AUTH)
-            if not naming_authority in self.VALID_NAMING_AUTHORITIES:
+            if naming_authority not in self.VALID_NAMING_AUTHORITIES:
                 naming_authority = ''
                 self.missing_attributes['errors'].append(
                     '%s ACDD attribute is not valid.' % self.ACDD_NAMING_AUTH
