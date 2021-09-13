@@ -746,6 +746,7 @@ class TestNC2MMD(unittest.TestCase):
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
+        nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
         self.assertEqual(
             nc2mmd.missing_attributes['errors'][0],
             'naming_authority ACDD attribute is not valid.'
