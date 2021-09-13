@@ -702,87 +702,167 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(data[0]['id'], 'b7cb7934-77ca-4439-812e-f560df3fe7eb')
         self.assertEqual(data[0]['relation_type'], 'parent')
 
-    def test_create_do_not_require_uuid(self):
-        """Test that we can create an MMD file even if a uuid is missing."""
+    def test_get_metadata_identifier(self):
+        """Test that an AttributeError is raised if there are
+        inconsistencies between the hardcoded acdd values, and the ones
+        from mmd_elements.yaml.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        # Only one value in the list
+        mmd_yaml['metadata_identifier']['acdd'] = ['id']
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
+        ncin = Dataset(nc2mmd.netcdf_product)
+        with self.assertRaises(AttributeError) as e:
+            nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
+        self.assertEqual(
+            "ACDD attribute inconsistency in mmd_elements.yaml. Expected id and "
+            "naming_authority but received ['id'].",
+            str(e.exception)
+        )
+        # Inconsistency of ACCD id in mmd_elements.yaml (='jkhakjh')
+        # and the hardcoded one (='id')
+        mmd_yaml['metadata_identifier']['acdd'] = ['jkhakjh', 'naming_authority']
+        with self.assertRaises(AttributeError) as e:
+            nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
+        self.assertEqual(
+            "ACDD attribute inconsistency in mmd_elements.yaml. Expected id and "
+            "naming_authority but received ['jkhakjh', 'naming_authority'].",
+            str(e.exception)
+        )
+        # Inconsistency of ACCD naming_authority in mmd_elements.yaml
+        # (='jklhkha') and the hardcoded one (='naming_authority')
+        mmd_yaml['metadata_identifier']['acdd'] = ['id', 'jklhkha']
+        with self.assertRaises(AttributeError) as e:
+            nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
+        self.assertEqual(
+            "ACDD attribute inconsistency in mmd_elements.yaml. Expected id and "
+            "naming_authority but received ['id', 'jklhkha'].",
+            str(e.exception)
+        )
+        # Change the valid naming authorities to force an error
+        nc2mmd.VALID_NAMING_AUTHORITIES = ['jada.no']
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
+        self.assertEqual(
+            nc2mmd.missing_attributes['errors'][0],
+            'naming_authority ACDD attribute is not valid.'
+        )
+
+    def test_to_mmd_warning_not_empty(self):
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        mmd_yaml['alternate_identifier']['minOccurs'] = '1'
+        mmd_yaml['alternate_identifier']['default'] = 'test'
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
+        nc2mmd.to_mmd(mmd_yaml=mmd_yaml)
+        self.assertEqual(
+            nc2mmd.missing_attributes['warnings'][0],
+            'Using default value test for alternate_identifier'
+        )
+
+    def test_create_requires_naming_authority(self):
+        """Test that we cannot create an MMD file if naming_authority
+        is missing, and that the uuid validation fails for an id which
+        is not an uuid.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         # The id attribute is not a uuid
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_fail.nc', check_only=True)
         ncin = Dataset(nc2mmd.netcdf_product)
-        value = nc2mmd.get_metadata_identifier(
-            mmd_yaml['metadata_identifier'], ncin
-        )
+        value = nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
         self.assertFalse(Nc_to_mmd.is_valid_uuid(value))
-        self.assertEqual('', value)
+        self.assertEqual(':', value)
+        with self.assertRaises(AttributeError) as context:
+            nc2mmd.to_mmd()
+        """
+        Note: there will be two 'naming_authority is a required
+        attribute' messages, since get_metadata_identifier is called
+        twice (first directly in this test, then from the to_mmd
+        function.
+        """
+        self.assertTrue('naming_authority is a required attribute' in str(context.exception))
+        self.assertTrue('id ACDD attribute is not valid.' in str(context.exception))
 
     def test_get_correct_id_from_ncfile(self):
-        """ToDo: Add docstring"""
+        """ToDo: Add docstring
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         # The id attribute is a uuid
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
         ncin = Dataset(nc2mmd.netcdf_product)
-        id = ncin.getncattr('id')
         value = nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
-        self.assertTrue(Nc_to_mmd.is_valid_uuid(value))
-        self.assertEqual(id, value)
+        self.assertEqual(value, 'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb')
 
     def test__to_mmd__missing_id(self):
-        """Test that the correct warnings are issued for missing id
-        attribute and missing metadata status.
+        """Test that an AttributeError is raised for missing id
+        attribute.
         """
         tested = tempfile.mkstemp()[1]
         # nc file is missing the id attribute
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_id_missing.nc', output_file=tested)
-        nc2mmd.to_mmd()
+        with self.assertRaises(AttributeError):
+            nc2mmd.to_mmd()
         ncin = Dataset(nc2mmd.netcdf_product)
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         value = nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
         self.assertEqual(
-            nc2mmd.missing_attributes['warnings'][0], (
-                'id is a required attribute. The MMD xml file will not validate unless the MMD '
-                'metadata_identifier is added.'
-            )
+            nc2mmd.missing_attributes['errors'][0], 'id is a required attribute.'
         )
-        self.assertEqual(nc2mmd.missing_attributes['errors'], [])
+        self.assertEqual(
+            nc2mmd.missing_attributes['errors'][1], 'naming_authority is a required attribute.'
+        )
+        self.assertEqual(nc2mmd.missing_attributes['warnings'], [])
         self.assertFalse(Nc_to_mmd.is_valid_uuid(nc2mmd.metadata['metadata_identifier']))
-        self.assertEqual('', value)
+        self.assertEqual(':', value)
 
-    def test__to_mmd__create_do_not_require_valid_uuid(self):
-        """Test that we can create an MMD file even if the netcdf id
+    def test__to_mmd__invalid_uuid(self):
+        """Test that we cannot create an MMD file if the netcdf id
         attribute is not a valid uuid.
         """
         tested = tempfile.mkstemp()[1]
         # The id attribute is not a uuid
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_id_not_uuid.nc', output_file=tested)
-        nc2mmd.to_mmd(require_uuid=False)
+        with self.assertRaises(AttributeError):
+            nc2mmd.to_mmd()
         self.assertFalse(Nc_to_mmd.is_valid_uuid(nc2mmd.metadata['metadata_identifier']))
-        self.assertEqual('', nc2mmd.metadata['metadata_identifier'])
+        self.assertEqual(':', nc2mmd.metadata['metadata_identifier'])
 
-    def test__to_mmd__warn_if_accd_id_is_invalid(self):
+    def test__to_mmd__error_if_accd_id_is_invalid(self):
         """Test that metadata_identifier is set to an empty string, and
-        that a warning is issued if the ACDD id is not a valid uuid.
+        that an exception is raised if the ACDD id is not a valid uuid.
         """
         tested = tempfile.mkstemp()[1]
         # The id attribute is not a uuid
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_id_not_uuid.nc', output_file=tested)
-        nc2mmd.to_mmd()
+        with self.assertRaises(AttributeError):
+            nc2mmd.to_mmd()
         self.assertEqual(
-            nc2mmd.missing_attributes['warnings'][0], (
-                'id ACDD attribute is not valid.The MMD xml file will not validate unless '
-                'the MMD metadata_identifier is replaced.'
+            nc2mmd.missing_attributes['errors'][0], (
+                'naming_authority is a required attribute.'
             )
         )
-        self.assertEqual(nc2mmd.missing_attributes['errors'], [])
+        self.assertEqual(
+            nc2mmd.missing_attributes['errors'][1], (
+                'id ACDD attribute is not valid.'
+            )
+        )
+        self.assertEqual(nc2mmd.missing_attributes['warnings'], [])
         self.assertFalse(Nc_to_mmd.is_valid_uuid(nc2mmd.metadata['metadata_identifier']))
         ncin = Dataset(nc2mmd.netcdf_product)
         id = ncin.getncattr('id')
         self.assertNotEqual(id, nc2mmd.metadata['metadata_identifier'])
-        self.assertEqual('', nc2mmd.metadata['metadata_identifier'])
+        self.assertEqual(':', nc2mmd.metadata['metadata_identifier'])
 
     def test__to_mmd__get_correct_id_from_ncfile(self):
         """Test that the id attribute in the netcdf file is valid, and
@@ -795,7 +875,7 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(nc2mmd.netcdf_product)
         id = ncin.getncattr('id')
         self.assertEqual(nc2mmd.missing_attributes['errors'], [])
-        self.assertEqual(id, nc2mmd.metadata['metadata_identifier'])
+        self.assertTrue(id in nc2mmd.metadata['metadata_identifier'])
 
     def test_create_mmd_1(self):
         """ToDo: Add docstring"""
@@ -839,8 +919,6 @@ class TestNC2MMD(unittest.TestCase):
         """ToDo: Add docstring"""
         valid_files = [
             os.path.join(pathlib.Path.cwd(), 'tests/data/reference_nc.nc'),
-            os.path.join(pathlib.Path.cwd(), 'tests/data/reference_nc_id_missing.nc'),
-            os.path.join(pathlib.Path.cwd(), 'tests/data/reference_nc_id_not_uuid.nc'),
             os.path.join(pathlib.Path.cwd(), 'tests/data/reference_nc_attrs_multiple.nc'),
         ]
         for file in valid_files:
