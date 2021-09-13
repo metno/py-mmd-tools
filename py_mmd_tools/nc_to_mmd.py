@@ -171,6 +171,12 @@ def nc_attrs_from_yaml():
 
 class Nc_to_mmd(object):
 
+    # Some constants:
+    VALID_NAMING_AUTHORITIES = ['no.met'] # add others when needed..
+    ACDD_ID = 'id'
+    ACDD_NAMING_AUTH = 'naming_authority'
+    ACDD_ID_INVALID_CHARS = ['\\', '/', ':', ' ']
+
     def __init__(self, netcdf_product, output_file=None, check_only=False):
         """Class for creating an MMD XML file based on the discovery
         metadata provided in the global attributes of NetCDF files that
@@ -719,40 +725,40 @@ class Nc_to_mmd(object):
 
     def get_metadata_identifier(self, mmd_element, ncin, **kwargs):
         """Look up ACDD element and populate MMD metadata identifier"""
-        # Some constants:
-        VALID_NAMING_AUTHORITIES = ['no.met'] # add others when needed..
-        ID = 'id'
-        NAMING_AUTH = 'naming_authority'
-        INVALID_CHARS = ['\\', '/', ':', ' ']
-
         acdd = mmd_element.pop('acdd')
         valid = False
         ncid = ''
         naming_authority = ''
         # id and naming_authority are required, and both should be in
         # the acdd list
-        if len(acdd) != 2 or ID not in acdd or NAMING_AUTH not in acdd:
+        if len(acdd) != 2 or self.ACDD_ID not in acdd or self.ACDD_NAMING_AUTH not in acdd:
             raise AttributeError(
                 'ACDD attribute inconsistency in mmd_elements.yaml. Expected %s and %s but ' \
                 'received %s.'
-                % (ID, NAMING_AUTH, str(acdd))
+                % (self.ACDD_ID, self.ACDD_NAMING_AUTH, str(acdd))
             )
-        if ID not in ncin.ncattrs():
-            self.missing_attributes['errors'].append('%s is a required attribute.' % ID)
-        if NAMING_AUTH not in ncin.ncattrs():
-            self.missing_attributes['errors'].append('%s is a required attribute.' % NAMING_AUTH)
-        if ID in ncin.ncattrs():
-            ncid = eval('ncin.%s' % ID)
-            valid = Nc_to_mmd.is_valid_uuid(ncid) * (not any(xx in ncid for xx in INVALID_CHARS))
+        if self.ACDD_ID not in ncin.ncattrs():
+            self.missing_attributes['errors'].append('%s is a required attribute.' % self.ACDD_ID)
+        if self.ACDD_NAMING_AUTH not in ncin.ncattrs():
+            self.missing_attributes['errors'].append(
+                '%s is a required attribute.' % self.ACDD_NAMING_AUTH
+            )
+        if self.ACDD_ID in ncin.ncattrs():
+            ncid = eval('ncin.%s' % self.ACDD_ID)
+            valid = Nc_to_mmd.is_valid_uuid(ncid) * (
+                not any(xx in ncid for xx in self.ACDD_ID_INVALID_CHARS)
+            )
             if not valid:
                 ncid = ''
-                self.missing_attributes['errors'].append('%s ACDD attribute is not valid.' % ID)
-        if NAMING_AUTH in ncin.ncattrs():
-            naming_authority = eval('ncin.%s' % NAMING_AUTH)
-            if not naming_authority in VALID_NAMING_AUTHORITIES:
+                self.missing_attributes['errors'].append(
+                    '%s ACDD attribute is not valid.' % self.ACDD_ID
+                )
+        if self.ACDD_NAMING_AUTH in ncin.ncattrs():
+            naming_authority = eval('ncin.%s' % self.ACDD_NAMING_AUTH)
+            if not naming_authority in self.VALID_NAMING_AUTHORITIES:
                 naming_authority = ''
                 self.missing_attributes['errors'].append(
-                    '%s ACDD attribute is not valid.' % NAMING_AUTH
+                    '%s ACDD attribute is not valid.' % self.ACDD_NAMING_AUTH
                 )
         return naming_authority + ':' + ncid
 
@@ -830,7 +836,7 @@ class Nc_to_mmd(object):
             data['west'] = eval('ncin.%s' % acdd_west)
         return data
 
-    def to_mmd(self, *args, **kwargs):
+    def to_mmd(self, mmd_yaml=None, *args, **kwargs):
         """Method for parsing and mapping NetCDF attributes to MMD.
 
         Some times the data producers have missed some required elements
@@ -875,10 +881,11 @@ class Nc_to_mmd(object):
 
         # Get list of MMD elements
         self.metadata = {}
-        mmd_yaml = yaml.load(
-            resource_string(self.__module__.split('.')[0], 'mmd_elements.yaml'),
-            Loader=yaml.FullLoader
-        )
+        if mmd_yaml is None:
+            mmd_yaml = yaml.load(
+                resource_string(self.__module__.split('.')[0], 'mmd_elements.yaml'),
+                Loader=yaml.FullLoader
+            )
 
         # handle tricky exceptions first
         self.metadata['metadata_identifier'] = self.get_metadata_identifier(
