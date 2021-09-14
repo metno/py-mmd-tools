@@ -222,7 +222,7 @@ class Nc_to_mmd(object):
         acdd = mmd_element.pop('acdd', '')
         acdd_ext = mmd_element.pop('acdd_ext', '')
         default = mmd_element.pop('default', '')
-        repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['', '0', '1']
+        repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['0', '1']
         mmd_element.pop('repetition', '')
         separator = mmd_element.pop('separator', ',')
 
@@ -805,7 +805,7 @@ class Nc_to_mmd(object):
             relation_types = self.separate_repeated(
                 True, eval('ncin.%s' % acdd_ext_relation_type)
             )
-        acdd_ext_id = mmd_element['id']['acdd_ext']
+        acdd_ext_id = mmd_element['related_dataset']['acdd_ext']
         ids = []
         if acdd_ext_id in ncin.ncattrs():
             ids = self.separate_repeated(True, eval('ncin.%s' % acdd_ext_id))

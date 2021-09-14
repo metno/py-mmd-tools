@@ -10,9 +10,13 @@ metadata_identifier:
 alternate_identifier:
   maxOccurs: unbounded
   minOccurs: '0'
-  id:
+  alternate_identifier:
+    repetition: Comma separated list
+    separator: ','
     acdd_ext: alternate_identifier
   type:
+    repetition: Comma separated list
+    separator: ','
     acdd_ext: alternate_identifier_type
 
 last_metadata_update:
@@ -256,7 +260,7 @@ data_access:
 related_dataset:
   maxOccurs: unbounded
   minOccurs: '0'
-  id:
+  related_dataset:
     repetition: Comma separated list
     acdd_ext: related_dataset_id
   relation_type:
