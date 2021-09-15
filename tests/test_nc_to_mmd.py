@@ -916,9 +916,11 @@ class TestNC2MMD(unittest.TestCase):
         xml_doc = etree.ElementTree(file=tested)
         import ipdb
         ipdb.set_trace()
-        # check content of the xml_doc - are the fields correctly formatted..?
         valid = xsd_obj.validate(xml_doc)
         self.assertTrue(valid)
+        # check content of the xml_doc
+        self.assertEqual(xml_doc.xpath("//alternate_identifier[@type='']")[0], "lkj")
+        self.assertEqual(xml_doc.xpath("//alternate_identifier[@type='']")[1], "lkj")
 
     def test_get_acdd_metadata_sets_warning_msg(self):
         """Check that a warning is issued by the get_acdd_metadata
