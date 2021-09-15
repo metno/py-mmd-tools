@@ -1,8 +1,9 @@
 <mmd:mmd xmlns:mmd="http://www.met.no/schema/mmd" xmlns:gml="http://www.opengis.net/gml">
   <mmd:metadata_identifier>{{ data['metadata_identifier'] }}</mmd:metadata_identifier>
-  {% if data['alternate_identifier'] %}
-    {% for alt in data['alternate_identifier'] %}
-  <mmd:alternate_identifier type="{{ alt['Identifier_type'] }}">{{ alt['Identifier'] }}</mmd:alternate_identifier>
+  {% if data['alternate_identifier']['alternate_identifier'] %}
+    {% for ai in data['alternate_identifier']['alternate_identifier'] %}
+      {% set type=data['alternate_identifier']['type'][loop.index-1] %}
+  <mmd:alternate_identifier type="{{ type }}">{{ ai }}</mmd:alternate_identifier>
     {% endfor %}
   {% endif %}
   {% for title in data['title'] %}

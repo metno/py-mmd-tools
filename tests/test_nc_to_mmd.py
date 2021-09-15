@@ -80,14 +80,6 @@ class TestNC2MMD(unittest.TestCase):
     #     self.assertTrue(mock_init.called)
     #     self.assertTrue(mock_to_mmd.called)
 
-    def test_xml_output(self):
-        """Test MMD creation from a valid netcdf file, and validation
-        with the mmd_strict.xsd - make sure that fields in the xml file
-        are as expected.
-        """
-        pass
-        
-
     def test_init_raises_error(self):
         """Nc_to_mmd.__init__ should raise error if check_only=False,
         but output_file is None. Test that this is the case.
@@ -906,21 +898,33 @@ class TestNC2MMD(unittest.TestCase):
         self.assertTrue(id in nc2mmd.metadata['metadata_identifier'])
 
     def test_create_mmd_1(self):
-        """Test MMD creation from a valid netcdf file, and validation
-        with the mmd_strict.xsd
+        """Test MMD creation from a valid netcdf file, validation
+        with the mmd_strict.xsd, and that some fields are as expected.
+        Please add new fields to test as needed..
         """
         tested = tempfile.mkstemp()[1]
-        md = Nc_to_mmd(self.reference_nc, output_file=tested)
+        #md = Nc_to_mmd(self.reference_nc, output_file=tested)
+        md = Nc_to_mmd('tests/data/reference_nc_with_altID_multiple.nc', output_file=tested)
         md.to_mmd()
         xsd_obj = etree.XMLSchema(etree.parse(self.reference_xsd))
         xml_doc = etree.ElementTree(file=tested)
-        import ipdb
-        ipdb.set_trace()
         valid = xsd_obj.validate(xml_doc)
         self.assertTrue(valid)
-        # check content of the xml_doc
-        self.assertEqual(xml_doc.xpath("//alternate_identifier[@type='']")[0], "lkj")
-        self.assertEqual(xml_doc.xpath("//alternate_identifier[@type='']")[1], "lkj")
+        """ Check content of the xml_doc 
+        """
+        # alternate_identifier
+        self.assertEqual(
+            xml_doc.getroot().find(
+                "{http://www.met.no/schema/mmd}alternate_identifier[@type='dummy_type']"
+            ).text,
+            "dummy_id_no1"
+        )
+        self.assertEqual(
+            xml_doc.getroot().find(
+                "{http://www.met.no/schema/mmd}alternate_identifier[@type='other_type']"
+            ).text,
+            "dummy_id_no2"
+        )
 
     def test_get_acdd_metadata_sets_warning_msg(self):
         """Check that a warning is issued by the get_acdd_metadata
