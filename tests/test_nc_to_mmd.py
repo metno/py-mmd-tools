@@ -903,15 +903,14 @@ class TestNC2MMD(unittest.TestCase):
         Please add new fields to test as needed..
         """
         tested = tempfile.mkstemp()[1]
-        #md = Nc_to_mmd(self.reference_nc, output_file=tested)
+        # md = Nc_to_mmd(self.reference_nc, output_file=tested)
         md = Nc_to_mmd('tests/data/reference_nc_with_altID_multiple.nc', output_file=tested)
         md.to_mmd()
         xsd_obj = etree.XMLSchema(etree.parse(self.reference_xsd))
         xml_doc = etree.ElementTree(file=tested)
         valid = xsd_obj.validate(xml_doc)
         self.assertTrue(valid)
-        """ Check content of the xml_doc 
-        """
+        """ Check content of the xml_doc """
         # alternate_identifier
         self.assertEqual(
             xml_doc.getroot().find(
