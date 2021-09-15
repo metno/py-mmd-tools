@@ -271,10 +271,11 @@ class TestNC2MMD(unittest.TestCase):
         value = nc2mmd.get_acdd_metadata(
             mmd_yaml['alternate_identifier'], ncin, 'alternate_identifier'
         )
-        self.assertEqual(value, None)
+        self.assertEqual(value['alternate_identifier'], None)
+        self.assertEqual(value['type'], None)
 
     def test_alternate_identifier(self):
-        """Test that MMD alternate_identifier is not equal to the one
+        """Test that MMD alternate_identifier is equal to the one
         provided in the nc-file.
         """
         mmd_yaml = yaml.load(
@@ -285,7 +286,24 @@ class TestNC2MMD(unittest.TestCase):
         value = nc2mmd.get_acdd_metadata(
             mmd_yaml['alternate_identifier'], ncin, 'alternate_identifier'
         )
-        self.assertEqual(value[0], 'dummy_id_no1')
+        self.assertEqual(value['alternate_identifier'][0], 'dummy_id_no1')
+        self.assertEqual(value['type'][0], 'dummy_type')
+
+    def test_alternate_identifier_multiple(self):
+        """Test that MMD alternate_identifier is equal to the ones
+        provided in the nc-file.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_with_altID_multiple.nc', check_only=True)
+        ncin = Dataset(nc2mmd.netcdf_product)
+        value = nc2mmd.get_acdd_metadata(
+            mmd_yaml['alternate_identifier'], ncin, 'alternate_identifier'
+        )
+        self.assertEqual(value['alternate_identifier'][0], 'dummy_id_no1')
+        self.assertEqual(value['type'][0], 'dummy_type')
+        self.assertEqual(value['type'][1], 'other_type')
 
     def test_metadata_status_is_active(self):
         """ToDo: Add docstring"""
@@ -756,13 +774,15 @@ class TestNC2MMD(unittest.TestCase):
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
-        mmd_yaml['alternate_identifier']['minOccurs'] = '1'
-        mmd_yaml['alternate_identifier']['default'] = 'test'
+        mmd_yaml['dummy_field'] = {}
+        mmd_yaml['dummy_field']['minOccurs'] = '1'
+        mmd_yaml['dummy_field']['default'] = 'test'
+        mmd_yaml['dummy_field']['acdd_ext'] = 'dummy_field'
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
         nc2mmd.to_mmd(mmd_yaml=mmd_yaml)
         self.assertEqual(
             nc2mmd.missing_attributes['warnings'][0],
-            'Using default value test for alternate_identifier'
+            'Using default value test for dummy_field'
         )
 
     def test_create_requires_naming_authority(self):
@@ -878,14 +898,32 @@ class TestNC2MMD(unittest.TestCase):
         self.assertTrue(id in nc2mmd.metadata['metadata_identifier'])
 
     def test_create_mmd_1(self):
-        """ToDo: Add docstring"""
+        """Test MMD creation from a valid netcdf file, validation
+        with the mmd_strict.xsd, and that some fields are as expected.
+        Please add new fields to test as needed..
+        """
         tested = tempfile.mkstemp()[1]
-        md = Nc_to_mmd(self.reference_nc, output_file=tested)
+        # md = Nc_to_mmd(self.reference_nc, output_file=tested)
+        md = Nc_to_mmd('tests/data/reference_nc_with_altID_multiple.nc', output_file=tested)
         md.to_mmd()
         xsd_obj = etree.XMLSchema(etree.parse(self.reference_xsd))
         xml_doc = etree.ElementTree(file=tested)
         valid = xsd_obj.validate(xml_doc)
         self.assertTrue(valid)
+        """ Check content of the xml_doc """
+        # alternate_identifier
+        self.assertEqual(
+            xml_doc.getroot().find(
+                "{http://www.met.no/schema/mmd}alternate_identifier[@type='dummy_type']"
+            ).text,
+            "dummy_id_no1"
+        )
+        self.assertEqual(
+            xml_doc.getroot().find(
+                "{http://www.met.no/schema/mmd}alternate_identifier[@type='other_type']"
+            ).text,
+            "dummy_id_no2"
+        )
 
     def test_get_acdd_metadata_sets_warning_msg(self):
         """Check that a warning is issued by the get_acdd_metadata
@@ -916,6 +954,9 @@ class TestNC2MMD(unittest.TestCase):
             md.to_mmd()
 
     def test_all_valid_nc_files_passing(self):
+        """Test MMD creation from the valid netcdf files, and validation
+        with the mmd_strict.xsd
+        """
         """ToDo: Add docstring"""
         valid_files = [
             os.path.join(pathlib.Path.cwd(), 'tests/data/reference_nc.nc'),
