@@ -20,7 +20,6 @@ import yaml
 import jinja2
 import wget
 import pandas as pd
-import pythesint as pti
 import shapely.wkt
 
 from filehash import FileHash
@@ -28,6 +27,8 @@ from pkg_resources import resource_string
 from dateutil.parser import parse
 from dateutil.parser._parser import ParserError
 from uuid import UUID
+
+from metvocab.mmdgroup import MMDGroup
 
 import pathlib
 from netCDF4 import Dataset
@@ -197,6 +198,16 @@ class Nc_to_mmd(object):
             'errors': [],
             'warnings': []
         }
+
+        platform_group = MMDGroup("mmd", "https://vocab.met.no/mmd/Platform")
+        platform_group.init_vocab()
+        if platform_group.is_initialised:
+            self.platform_group = platform_group
+
+        instrument_group = MMDGroup("mmd", "https://vocab.met.no/mmd/Instrument")
+        instrument_group.init_vocab()
+        if instrument_group.is_initialised:
+            self.instrument_group = instrument_group
 
     def separate_repeated(self, repetition_allowed, acdd_attr, separator=','):
         """ToDo: Add docstring"""
@@ -586,30 +597,9 @@ class Nc_to_mmd(object):
             })
         return data
 
-    def get_gcmd_platforms(self, platforms, platform_resource, instruments, instrument_resource):
-        """ToDo: Add docstring"""
-        data = []
-        for i in range(len(platforms)):
-            pp_dict = pti.get_gcmd_platform(
-                [elem.strip() for elem in platforms[i].split('>')][-1]
-            )
-            ii_dict = pti.get_gcmd_instrument(
-                [elem.strip() for elem in instruments[i].split('>')][-1]
-            )
-            data.append({
-                'short_name': pp_dict['Short_Name'],
-                'long_name': pp_dict['Long_Name'],
-                'resource': platform_resource,
-                'instrument': {
-                    'short_name': ii_dict['Short_Name'],
-                    'long_name': ii_dict['Long_Name'],
-                    'resource': instrument_resource,
-                }
-            })
-        return data
-
     def get_platforms(self, mmd_element, ncin):
-        """Get dict with MMD entries for the observation platform.
+        """Get dicts with MMD entries for the observation platform and
+        its instruments.
 
         NOTE: This function should be rewritten according to a solution
         to https://github.com/metno/py-mmd-tools/issues/107
@@ -631,11 +621,6 @@ class Nc_to_mmd(object):
         if acdd_short_name in ncin.ncattrs():
             short_names = self.separate_repeated(True, eval('ncin.%s' % acdd_short_name))
 
-        resources = []
-        acdd_resource = mmd_element['resource'].pop('acdd')
-        if acdd_resource in ncin.ncattrs():
-            resources = self.separate_repeated(True, eval('ncin.%s' % acdd_resource))
-
         ishort_names = []
         acdd_instrument_short_name = mmd_element['instrument']['short_name'].pop('acdd_ext')
         if acdd_instrument_short_name in ncin.ncattrs():
@@ -643,45 +628,90 @@ class Nc_to_mmd(object):
                 True, eval('ncin.%s' % acdd_instrument_short_name)
             )
 
+        resources = []
+        acdd_resource = mmd_element['resource'].pop('acdd')
+        if acdd_resource in ncin.ncattrs():
+            resources = self.separate_repeated(True, eval('ncin.%s' % acdd_resource))
+
         iresources = []
         acdd_instrument_resource = mmd_element['instrument']['resource'].pop('acdd')
         if acdd_instrument_resource in ncin.ncattrs():
             iresources = self.separate_repeated(True, eval('ncin.%s' % acdd_instrument_resource))
 
-        if resources and 'gcmd' in resources[0].lower():
-            data = self.get_gcmd_platforms(long_names, resources[0],
-                                           ilong_names, iresources[0])
-        else:
-            data = []
-            for i in range(len(long_names)):
+        data = []
+        for i in range(len(long_names)):
+            long_name = long_names[i]
+            long_name = long_name.split(">")[-1].strip()
+
+            if len(ilong_names) <= i:
+                ilong_name = ''
+            else:
+                ilong_name = ilong_names[i]
+                ilong_name = ilong_name.split(">")[-1].strip()
+
+            # Searches with '' is safe
+            platform_data = self.platform_group.search(long_name)
+            instrument_data = self.instrument_group.search(ilong_name)
+
+            if len(short_names) <= i:
+                short_name = ''
+            else:
                 short_name = short_names[i]
-                long_name = long_names[i]
-                if len(resources) <= i:
-                    resource = ''
-                else:
-                    resource = resources[i]
-                if len(ishort_names) <= i:
-                    ishort_name = ''
-                else:
-                    ishort_name = ishort_names[i]
-                if len(ilong_names) <= i:
-                    ilong_name = ''
-                else:
-                    ilong_name = ilong_names[i]
-                if len(iresources) <= i:
-                    iresource = ''
-                else:
-                    iresource = iresources[i]
-                data.append({
-                    'short_name': short_name,
-                    'long_name': long_name,
-                    'resource': resource,
-                    'instrument': {
-                        'short_name': ishort_name,
-                        'long_name': ilong_name,
-                        'resource': iresource,
-                    }
-                })
+
+            if len(ishort_names) <= i:
+                ishort_name = ''
+            else:
+                ishort_name = ishort_names[i]
+
+            if instrument_data == {} and ishort_name != '':
+                instrument_data = self.instrument_group.search(ishort_name)
+
+            if len(resources) <= i:
+                resource = ''
+            else:
+                resource = resources[i]
+
+            if len(iresources) <= i:
+                iresource = ''
+            else:
+                iresource = iresources[i]
+
+            data_dict = {
+                'long_name': long_name,
+                'short_name': platform_data.get("Short_Name", ""),
+                'resource': platform_data.get("Resource", ""),
+            }
+
+            if short_name != '':
+                data_dict["short_name"] = short_name
+            if resource != '':
+                data_dict["resource"] = resource
+
+            instrument_dict = {
+                'long_name': instrument_data.get("Long_Name", ""),
+                'short_name': instrument_data.get("Short_Name", ""),
+                'resource': instrument_data.get("Resource", "")
+            }
+
+            if ilong_name != '':
+                instrument_dict["long_name"] = ilong_name
+            if ishort_name != '':
+                instrument_dict["short_name"] = ishort_name
+            if iresource != '':
+                instrument_dict["resource"] = iresource
+
+            data_dict['instrument'] = instrument_dict
+
+            data.append({
+                'short_name': short_name,
+                'long_name': long_name,
+                'resource': resource,
+                'instrument': {
+                    'short_name': ishort_name,
+                    'long_name': ilong_name,
+                    'resource': iresource,
+                }
+            })
         return data
 
     def get_dataset_citations(self, mmd_element, ncin):
