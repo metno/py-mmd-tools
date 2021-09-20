@@ -8,7 +8,7 @@ parmap
 pytest 
 pytest-cov 
 python-dateutil
-pythesint @ git+https://github.com/metno/py-thesaurus-interface@f43f9ec70131fcbb46f129ea566a0ca241b3ba67
+metvocab @ git+https://github.com/metno/met-vocab-tools@v1.0.1
 pyyaml
 requests
 shapely

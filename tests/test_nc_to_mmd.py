@@ -87,6 +87,14 @@ class TestNC2MMD(unittest.TestCase):
         with self.assertRaises(ValueError):
             Nc_to_mmd('tests/data/reference_nc.nc', output_file=None, check_only=False)
 
+    @patch('metvocab.mmdgroup.MMDGroup.init_vocab')
+    def test_init_raises_error_on_mmd_group(self, mock_init_vocab):
+        """Nc_to_mmd.__init__ should raise error if mmdgroups are not
+        initialised.
+        """
+        with self.assertRaises(ValueError):
+            Nc_to_mmd('tests/data/reference_nc.nc', output_file=None, check_only=True)
+
     def test_date_created_type__not_present(self):
         """Test that the line with 'if default' in get_acdd_metadata is
         covered. Note that we would normally use the function
@@ -522,7 +530,8 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_keywords_vocab.nc', check_only=True)
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_platforms(mmd_yaml['platform'], ncin)
-        self.assertEqual(value[0]['resource'], '')
+        resource_link = 'https://www.wmo-sat.info/oscar/satellites/view/snpp'
+        self.assertEqual(value[0]['resource'], resource_link)
 
     def test_keywords_missing(self):
         """ToDo: Add docstring"""
@@ -622,7 +631,7 @@ class TestNC2MMD(unittest.TestCase):
         value = nc2mmd.get_platforms(mmd_yaml['platform'], ncin)
         self.assertEqual(value[0]['short_name'], 'Sentinel-1B')
         self.assertEqual(value[0]['long_name'], 'Sentinel-1B')
-        self.assertEqual(value[0]['instrument']['long_name'], 'Synthetic Aperture Radar')
+        self.assertEqual(value[0]['instrument']['long_name'], 'Synthetic Aperture Radar (C-band)')
 
     def test_projects(self):
         """Test getting project information from nc-file"""
