@@ -23,6 +23,7 @@ import pandas as pd
 import shapely.wkt
 
 from filehash import FileHash
+from itertools import zip_longest
 from pkg_resources import resource_string
 from dateutil.parser import parse
 from dateutil.parser._parser import ParserError
@@ -421,12 +422,12 @@ class Nc_to_mmd(object):
 
         if start_dates:
             try:
-                _ = parse(start_dates[0])
+                parse(start_dates[0])
             except ParserError:
                 start_dates = self.separate_repeated(True, start_dates[0], separator)
         if end_dates:
             try:
-                _ = parse(end_dates[0])
+                parse(end_dates[0])
             except ParserError:
                 end_dates = self.separate_repeated(True, end_dates[0], separator)
 
@@ -640,40 +641,15 @@ class Nc_to_mmd(object):
             iresources = self.separate_repeated(True, getattr(ncin, acdd_instrument_resource))
 
         data = []
-        for i in range(len(long_names)):
-            long_name = long_names[i]
+        for long_name, ilong_name, short_name, ishort_name, resource, iresource in zip_longest(
+            long_names, ilong_names, short_names, ishort_names, resources, iresources, fillvalue=''
+        ):
             long_name = long_name.split('>')[-1].strip()
-
-            if len(ilong_names) <= i:
-                ilong_name = ''
-            else:
-                ilong_name = ilong_names[i]
-                ilong_name = ilong_name.split('>')[-1].strip()
+            ilong_name = ilong_name.split('>')[-1].strip()
 
             # Searches with '' is safe
             platform_data = self.platform_group.search(long_name)
-
             instrument_data = self.instrument_group.search(ilong_name)
-
-            if len(short_names) <= i:
-                short_name = ''
-            else:
-                short_name = short_names[i]
-
-            if len(ishort_names) <= i:
-                ishort_name = ''
-            else:
-                ishort_name = ishort_names[i]
-
-            if len(resources) <= i:
-                resource = ''
-            else:
-                resource = resources[i]
-
-            if len(iresources) <= i:
-                iresource = ''
-            else:
-                iresource = iresources[i]
 
             data_dict = {
                 'long_name': long_name,
@@ -702,6 +678,7 @@ class Nc_to_mmd(object):
             data_dict['instrument'] = instrument_dict
 
             data.append(data_dict)
+
         return data
 
     def get_dataset_citations(self, mmd_element, ncin):
@@ -995,7 +972,7 @@ class Nc_to_mmd(object):
             self.metadata['geographic_extent']['polygon'] = polygon
         mmd_yaml.pop('geographic_extent')
         # Data access should not be read from the netCDF-CF file
-        _ = mmd_yaml.pop('data_access')
+        mmd_yaml.pop('data_access')
         # Add OPeNDAP data_access if "netcdf_product" is OPeNDAP url
         rm_file_for_checksum_calculation = False
         if 'dodsC' in self.netcdf_product:
