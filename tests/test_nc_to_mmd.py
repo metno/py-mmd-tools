@@ -622,7 +622,7 @@ class TestNC2MMD(unittest.TestCase):
         value = nc2mmd.get_platforms(mmd_yaml['platform'], ncin)
         self.assertEqual(value[0]['short_name'], 'Sentinel-1B')
         self.assertEqual(value[0]['long_name'], 'Sentinel-1B')
-        self.assertEqual(value[0]['instrument']['long_name'], 'Synthetic Aperture Radar')
+        self.assertEqual(value[0]['instrument']['long_name'], 'Synthetic Aperture Radar (C-band)')
 
     def test_projects(self):
         """Test getting project information from nc-file"""

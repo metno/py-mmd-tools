@@ -651,6 +651,7 @@ class Nc_to_mmd(object):
 
             # Searches with '' is safe
             platform_data = self.platform_group.search(long_name)
+
             instrument_data = self.instrument_group.search(ilong_name)
 
             if len(short_names) <= i:
@@ -662,9 +663,6 @@ class Nc_to_mmd(object):
                 ishort_name = ''
             else:
                 ishort_name = ishort_names[i]
-
-            if instrument_data == {} and ishort_name != '':
-                instrument_data = self.instrument_group.search(ishort_name)
 
             if len(resources) <= i:
                 resource = ''
@@ -702,16 +700,7 @@ class Nc_to_mmd(object):
 
             data_dict['instrument'] = instrument_dict
 
-            data.append({
-                'short_name': short_name,
-                'long_name': long_name,
-                'resource': resource,
-                'instrument': {
-                    'short_name': ishort_name,
-                    'long_name': ilong_name,
-                    'resource': iresource,
-                }
-            })
+            data.append(data_dict)
         return data
 
     def get_dataset_citations(self, mmd_element, ncin):
