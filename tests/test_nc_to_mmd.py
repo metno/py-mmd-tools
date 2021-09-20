@@ -87,6 +87,14 @@ class TestNC2MMD(unittest.TestCase):
         with self.assertRaises(ValueError):
             Nc_to_mmd('tests/data/reference_nc.nc', output_file=None, check_only=False)
 
+    @patch('metvocab.mmdgroup.MMDGroup.init_vocab')
+    def test_init_raises_error_on_mmd_group(self, mock_init_vocab):
+        """Nc_to_mmd.__init__ should raise error if mmdgroups are not
+        initialised.
+        """
+        with self.assertRaises(ValueError):
+            Nc_to_mmd('tests/data/reference_nc.nc', output_file=None, check_only=True)
+
     def test_date_created_type__not_present(self):
         """Test that the line with 'if default' in get_acdd_metadata is
         covered. Note that we would normally use the function
