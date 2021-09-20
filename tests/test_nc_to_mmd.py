@@ -522,7 +522,8 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_keywords_vocab.nc', check_only=True)
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_platforms(mmd_yaml['platform'], ncin)
-        self.assertEqual(value[0]['resource'], '')
+        resource_link = 'https://www.wmo-sat.info/oscar/satellites/view/snpp'
+        self.assertEqual(value[0]['resource'], resource_link)
 
     def test_keywords_missing(self):
         """ToDo: Add docstring"""
