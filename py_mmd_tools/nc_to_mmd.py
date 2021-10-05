@@ -618,18 +618,6 @@ class Nc_to_mmd(object):
                 True, getattr(ncin, acdd_instrument_long_name)
             )
 
-        short_names = []
-        acdd_short_name = mmd_element['short_name'].pop('acdd_ext')
-        if acdd_short_name in ncin.ncattrs():
-            short_names = self.separate_repeated(True, getattr(ncin, acdd_short_name))
-
-        ishort_names = []
-        acdd_instrument_short_name = mmd_element['instrument']['short_name'].pop('acdd_ext')
-        if acdd_instrument_short_name in ncin.ncattrs():
-            ishort_names = self.separate_repeated(
-                True, getattr(ncin, acdd_instrument_short_name)
-            )
-
         resources = []
         acdd_resource = mmd_element['resource'].pop('acdd')
         if acdd_resource in ncin.ncattrs():
@@ -641,8 +629,8 @@ class Nc_to_mmd(object):
             iresources = self.separate_repeated(True, getattr(ncin, acdd_instrument_resource))
 
         data = []
-        for long_name, ilong_name, short_name, ishort_name, resource, iresource in zip_longest(
-            long_names, ilong_names, short_names, ishort_names, resources, iresources, fillvalue=''
+        for long_name, ilong_name, resource, iresource in zip_longest(
+            long_names, ilong_names, resources, iresources, fillvalue=''
         ):
             long_name = long_name.split('>')[-1].strip()
             ilong_name = ilong_name.split('>')[-1].strip()
@@ -657,8 +645,6 @@ class Nc_to_mmd(object):
                 'resource': platform_data.get('Resource', ''),
             }
 
-            if short_name != '':
-                data_dict['short_name'] = short_name
             if resource != '':
                 data_dict['resource'] = resource
 
@@ -670,8 +656,6 @@ class Nc_to_mmd(object):
 
             if ilong_name != '':
                 instrument_dict['long_name'] = ilong_name
-            if ishort_name != '':
-                instrument_dict['short_name'] = ishort_name
             if iresource != '':
                 instrument_dict['resource'] = iresource
 
