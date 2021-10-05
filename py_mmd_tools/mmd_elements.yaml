@@ -324,7 +324,6 @@ platform:
   short_name:
     separator: ','
     repetition: Comma separated list
-    acdd_ext: platform_short_name
   long_name:
     separator: ','
     repetition: Comma separated list
@@ -340,7 +339,6 @@ platform:
     short_name:
       separator: ','
       repetition: Comma separated list
-      acdd_ext: instrument_short_name
     long_name:
       separator: ','
       repetition: Comma separated list
