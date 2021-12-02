@@ -60,7 +60,8 @@ class Mmd_to_nc(object):
             # ACDD - Recommended attributes
 
             # Not in mmd:
-            # Comment / acknowledgement / History / standard_name_vocabulary / publisher_email / publisher_url
+            # Comment / acknowledgement / History / standard_name_vocabulary / publisher_email /
+            # publisher_url
 
             id = tree.find('mmd:metadata_identifier', namespaces=ns).text
             if ':' in id:
@@ -80,10 +81,12 @@ class Mmd_to_nc(object):
                 acdd['processing_level'] = tree.find('mmd:operational_status', namespaces=ns).text
 
             if tree.find('mmd:use_constraint', namespaces=ns) is not None:
-                acdd['license'] = tree.find('mmd:use_constraint/mmd:identifier', namespaces=ns).text
+                acdd['license'] = tree.find('mmd:use_constraint/mmd:identifier',
+                                            namespaces=ns).text
 
             if tree.find('mmd:dataset_citation/mmd:publication_date', namespaces=ns) is not None:
-                acdd['date_created'] = tree.find('mmd:dataset_citation/mmd:publication_date', namespaces=ns).text
+                acdd['date_created'] = tree.find('mmd:dataset_citation/mmd:publication_date',
+                                                 namespaces=ns).text
 
             personnel = tree.findall('mmd:personnel', namespaces=ns)
             list_name = []
@@ -97,8 +100,11 @@ class Mmd_to_nc(object):
             acdd['creator_email'] = ','.join(list_email)
             acdd['creator_institution'] = ','.join(list_institution)
 
-            if tree.find('mmd:data_center/mmd:data_center_name/mmd:long_name', namespaces=ns) is not None:
-                acdd['institution'] = tree.find('mmd:data_center/mmd:data_center_name/mmd:long_name', namespaces=ns).text
+            if tree.find('mmd:data_center/mmd:data_center_name/mmd:long_name',
+                         namespaces=ns) is not None:
+                acdd['institution'] = tree.find(
+                    'mmd:data_center/mmd:data_center_name/mmd:long_name',
+                    namespaces=ns).text
 
             if len(tree.findall('mmd:project', namespaces=ns)) > 0:
                 project_list = []
@@ -107,7 +113,8 @@ class Mmd_to_nc(object):
                 acdd['project'] = ','.join(project_list)
 
             if tree.find('mmd:dataset_citation/mmd:author', namespaces=ns) is not None:
-                acdd['publisher_name'] = tree.find('mmd:dataset_citation/mmd:author', namespaces=ns).text
+                acdd['publisher_name'] = tree.find('mmd:dataset_citation/mmd:author',
+                                                   namespaces=ns).text
 
             rectangle = tree.find('mmd:geographic_extent/mmd:rectangle', namespaces=ns)
             acdd['geospatial_lat_max'] = rectangle.find('mmd:north', namespaces=ns).text
@@ -116,9 +123,11 @@ class Mmd_to_nc(object):
             acdd['geospatial_lon_min'] = rectangle.find('mmd:west', namespaces=ns).text
 
             temporal_extent = tree.find('mmd:temporal_extent', namespaces=ns)
-            acdd['time_coverage_start'] = temporal_extent.find('mmd:start_date', namespaces=ns).text
+            acdd['time_coverage_start'] = temporal_extent.find('mmd:start_date',
+                                                               namespaces=ns).text
             if temporal_extent.find('mmd:end_date', namespaces=ns) is not None:
-                acdd['time_coverage_end'] = temporal_extent.find('mmd:end_date', namespaces=ns).text
+                acdd['time_coverage_end'] = temporal_extent.find('mmd:end_date',
+                                                                 namespaces=ns).text
 
             # Add all global metadata to netcdf at once
             f.setncatts(acdd)
