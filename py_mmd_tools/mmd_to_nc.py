@@ -82,7 +82,8 @@ class Mmd_to_nc(object):
             if tree.find('mmd:use_constraint', namespaces=ns) is not None:
                 acdd['license'] = tree.find('mmd:use_constraint/mmd:identifier', namespaces=ns).text
 
-            acdd['date_created'] = tree.find('mmd:dataset_citation/mmd:publication_date', namespaces=ns).text
+            if tree.find('mmd:dataset_citation/mmd:publication_date', namespaces=ns) is not None:
+                acdd['date_created'] = tree.find('mmd:dataset_citation/mmd:publication_date', namespaces=ns).text
 
             personnel = tree.findall('mmd:personnel', namespaces=ns)
             list_name = []
@@ -106,7 +107,7 @@ class Mmd_to_nc(object):
                 acdd['project'] = ','.join(project_list)
 
             if tree.find('mmd:dataset_citation/mmd:author', namespaces=ns) is not None:
-                acdd['publisher_name'] = tree.find('mmd:dataset_citation/mmd:author', namespaces=ns)
+                acdd['publisher_name'] = tree.find('mmd:dataset_citation/mmd:author', namespaces=ns).text
 
             rectangle = tree.find('mmd:geographic_extent/mmd:rectangle', namespaces=ns)
             acdd['geospatial_lat_max'] = rectangle.find('mmd:north', namespaces=ns).text
