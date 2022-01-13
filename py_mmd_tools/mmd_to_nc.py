@@ -11,9 +11,11 @@ py-mmd-tools is licensed under the Apache License 2.0
 <https://github.com/metno/py-mmd-tools/blob/master/LICENSE>
 """
 
+import yaml
 import netCDF4 as nc
 import lxml.etree as ET
 
+from pkg_resources import resource_string
 
 class Mmd_to_nc(object):
 
@@ -34,7 +36,34 @@ class Mmd_to_nc(object):
         Update a netcdf file global attributes.
         """
 
+        # Get MMD definition (NOTE: the filename should be read from a config file)
+        xsd_file = os.path.join(os.environ['MMD_PATH'], 'xsd/mmd_strict.xsd')
+        with open(xsd_file) as xsd:
+            mmd_xsd = xmltodict.parse(xsd.read())
+
+        # Get translation file between MMD and ACDD
+        mmd_yaml = yaml.load(
+            resource_string(
+                globals()['__name__'].split('.')[0], 'mmd_elements.yaml'
+            ), Loader=yaml.FullLoader
+        )
+
+        see test_mmd_yaml_vs_xsd.py for some examples that could help
+
         tree = ET.parse(self.mmd)
+
+        # Get xml root
+        root = tree.getroot()
+
+        # Get mmd_type elements
+        ll = [
+            x for x in self.mmd_xml['xs:schema']['xs:complexType']
+            if x['@name'] == 'mmd_type'
+        ][0]
+
+        # Loop the MMD elements
+        for element in root.iter():
+            print("%s - %s" % (element.tag, element.text))
 
         # Open netcdf file for reading and appending
         with nc.Dataset(self.nc, 'a') as f:
@@ -45,6 +74,8 @@ class Mmd_to_nc(object):
 
             # ACDD - Highly recommended attributes
 
+            import ipdb
+            ipdb.set_trace()
             acdd['title'] = tree.find('mmd:title[@xml:lang="en"]', namespaces=ns).text
             acdd['summary'] = tree.find('mmd:abstract[@xml:lang="en"]', namespaces=ns).text
             acdd['Conventions'] = ','.join(['ACDD-1.3', f.Conventions])
