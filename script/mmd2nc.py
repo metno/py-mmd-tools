@@ -36,6 +36,10 @@ def create_parser():
         '-n', '--nc', type=pathlib.Path,
         help='Netcdf file to update.'
     )
+    parser.add_argument(
+        '-x', '--xsd', type=pathlib.Path,
+        help='XSD file.'
+    )
 
     return parser
 
@@ -53,7 +57,12 @@ def main(args):
     else:
         raise ValueError(f'Invalid NetCDF file input: {args.nc}')
 
-    md = mmd_to_nc.Mmd_to_nc(mmdfile, ncfile)
+    if pathlib.Path(args.xsd).is_file():
+        xsdfile = args.xsd
+    else:
+        raise ValueError(f'Invalid XSD file input: {args.xsd}')
+
+    md = mmd_to_nc.Mmd_to_nc(mmdfile, ncfile, xsdfile)
     md.update_nc()
 
 

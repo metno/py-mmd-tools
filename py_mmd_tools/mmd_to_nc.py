@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Tool for parsing an XML metadata file, following the MET Norway Metadata specification (MMD),
  and updating an NetCDF file, following the Attribute Convention for Data Discovery (ACDD).
@@ -14,12 +15,15 @@ py-mmd-tools is licensed under the Apache License 2.0
 import yaml
 import netCDF4 as nc
 import lxml.etree as ET
-
+import os
+import xmltodict
+import py_mmd_tools
 from pkg_resources import resource_string
+
 
 class Mmd_to_nc(object):
 
-    def __init__(self, mmd_product, nc_file):
+    def __init__(self, mmd_product, nc_file, xsd):
         """Class for updating a NetCDF file that is compliant with the CF-conventions and ACDD
         from an MMD XML file.
         Args:
@@ -27,138 +31,235 @@ class Mmd_to_nc(object):
             nc_file (pathlib): Nc file to update.
         """
         super(Mmd_to_nc, self).__init__()
+
+        # NC file
         self.nc = nc_file
-        self.mmd = mmd_product
+
+        # MMD file content
+        tree = ET.parse(mmd_product)
+        root = tree.getroot()
+        self.tree = tree
+        self.namespaces = root.nsmap
+
+        # Get translation file between MMD and ACDD
+        self.mmd_yaml = yaml.load(
+            resource_string(py_mmd_tools.__name__, 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+
+        ### Read XSD to get namespaces
+        ### Get MMD definition (NOTE: the filename should be read from a config file)
+        ##with open(xsd) as xsd:
+        ##    mmd_xsd = xmltodict.parse(xsd.read())
+        ##self.namespaces = mmd_xsd
+
         return
+
+    @staticmethod
+    def get_acdd(t):
+        """
+        Get acdd or acdd_ext value from a dictionary.
+        """
+        if 'acdd' in t:
+            out = t['acdd']
+        elif 'acdd_ext' in t:
+            out = t['acdd_ext']
+        else:
+            out = None
+        try:
+            sep = t['separator']
+        except KeyError:
+            sep = None
+        return out, sep
+
+    @staticmethod
+    def process_elem(elem, elem_info, tag):
+        out = {}
+        sep = None
+        if not elem_info[tag] is None:
+            acdd_name, sep = Mmd_to_nc.get_acdd(elem_info[tag])
+            if acdd_name is not None:
+                if isinstance(acdd_name, list):
+                    if tag == 'metadata_identifier':
+                        out['id'] = elem.text.split(':')[1]
+                        out['naming_authority'] = elem.text.split(':')[0]
+                    else:
+                        ### Default = take the first possible name?
+                        ##acdd_name = acdd_name[0]
+                        ##out[acdd_name] = elem.text
+                        print('Special case not implemented')
+                        print(f'{elem.tag} - {elem.text}')
+                else:
+                    out[acdd_name] = elem.text
+        return out, sep
+
+    @staticmethod
+    def update_acdd(dict1, dict2, sep=None):
+        # First time = 'initialize' the dictionary
+        if len(dict1) == 0:
+            return dict2
+        # If dict2 is empty, no update
+        elif dict2 is None:
+            return dict1
+        # Main case
+        else:
+            # Check if key already present in dict1
+            for key in dict2:
+                if key in dict1:
+                    # If so, it must be a list, so we append it
+                    try:
+                        dict1[key] = sep[key].join([dict1[key], dict2[key]])
+                    except TypeError:
+                        dict1[key] = sep.join([dict1[key], dict2[key]])
+                else:
+                    dict1[key] = dict2[key]
+        return dict1
+
+    def get_last_metadata_update(self, element):
+        """
+        todo: Hard coded, but I see no way around that
+        """
+        # todo: not sure why date_created in acdd is linked to last_metadata_update
+        # see  https://wiki.esipfed.org/Attribute_Convention_for_Data_Discovery_1-3
+        # The date on which this version of the data was created. (Modification of values implies a
+        # new version, hence this would be assigned the date of the most recent values modification.)
+        # Metadata changes are not considered when assigning the date_created. The ISO 8601:2004
+        # extended date format is recommended, as described in the Attribute Content Guidance section.
+        out = {
+            'date_metadata_modified': element.find('mmd:update/mmd:datetime', namespaces=self.namespaces).text,
+            'date_metadata_modified_type': element.find('mmd:update/mmd:type', namespaces=self.namespaces).text
+        }
+
+        sep = {
+            'date_metadata_modified': self.mmd_yaml['last_metadata_update']['update']['datetime']['separator'],
+            'date_metadata_modified_type': self.mmd_yaml['last_metadata_update']['update']['type']['separator']
+        }
+
+        return out, sep
+
+    def get_personnel(self, element):
+        """
+        todo: Hard coded, but I see no way around that
+        """
+
+        out = {}
+        sep = {}
+        for mmd_field in ['role', 'name', 'email', 'organisation']:
+            nc_field = 'contributor_' + mmd_field
+            out[nc_field] = element.find(f'mmd:{mmd_field}', namespaces=self.namespaces).text
+            sep[nc_field] = self.mmd_yaml['personnel'][mmd_field]['separator']
+        return out, sep
+
+    def get_keyword(self, element):
+        """
+        todo: Hard coded, but I see no way around that
+        """
+
+        # todo: add Vocabulary in mmd?
+        prefix = element.attrib['vocabulary']
+        out = {
+            'keywords': ':'.join([prefix, element.find('mmd:keyword', namespaces=self.namespaces).text]),
+            'keywords_vocabulary': ':'.join([prefix, element.find('mmd:resource', namespaces=self.namespaces).text])
+        }
+
+        sep = {
+            'keywords': self.mmd_yaml['keywords']['keyword']['separator'],
+            'keywords_vocabulary': self.mmd_yaml['keywords']['vocabulary']['separator']
+        }
+
+        return out, sep
+
+    def get_title_abstract(self, element, tag):
+        """
+        todo: Hard coded, but I see no way around that
+        """
+
+        # title and abstract
+        # todo: deal with namespace
+        acdd_name, sep = self.get_acdd(self.mmd_yaml[tag][tag])
+        if element.attrib['{http://www.w3.org/XML/1998/namespace}lang'] == 'no':
+            acdd_name = acdd_name + '_no'
+            lang = None
+        elif element.attrib['{http://www.w3.org/XML/1998/namespace}lang'] == 'en':
+            lang = 'en'
+        else:
+            print('Case not implemented')
+        out = {acdd_name: element.text}
+        if lang is not None:
+            out[acdd_name + '_lang'] = lang
+        return out
 
     def update_nc(self):
         """
         Update a netcdf file global attributes.
         """
 
-        # Get MMD definition (NOTE: the filename should be read from a config file)
-        xsd_file = os.path.join(os.environ['MMD_PATH'], 'xsd/mmd_strict.xsd')
-        with open(xsd_file) as xsd:
-            mmd_xsd = xmltodict.parse(xsd.read())
+        acdd = {}
 
-        # Get translation file between MMD and ACDD
-        mmd_yaml = yaml.load(
-            resource_string(
-                globals()['__name__'].split('.')[0], 'mmd_elements.yaml'
-            ), Loader=yaml.FullLoader
-        )
+        # Loop on expected MMD elements
+        # ie from mmd_elements.yaml = kind-off mapping between acdd and mmd
+        for mmd_element in self.mmd_yaml:
 
-        see test_mmd_yaml_vs_xsd.py for some examples that could help
+            elements = self.tree.findall('mmd:' + mmd_element, self.namespaces)
 
-        tree = ET.parse(self.mmd)
+            if len(elements) == 0:
+                print(f'{mmd_element} not found in input MMD file')
+                continue
 
-        # Get xml root
-        root = tree.getroot()
+            # Loop on  MMD elements found
+            for elem in elements:
 
-        # Get mmd_type elements
-        ll = [
-            x for x in self.mmd_xml['xs:schema']['xs:complexType']
-            if x['@name'] == 'mmd_type'
-        ][0]
+                tag = ET.QName(elem).localname
 
-        # Loop the MMD elements
-        for element in root.iter():
-            print("%s - %s" % (element.tag, element.text))
+                if mmd_element in ['title', 'abstract']:
+                    match = self.get_title_abstract(elem, tag)
+                    acdd = self.update_acdd(acdd, match)
+
+                elif mmd_element == 'keywords':
+                    match, sep = self.get_keyword(elem)
+                    acdd = self.update_acdd(acdd, match, sep)
+
+                elif mmd_element == 'last_metadata_update':
+                    match, sep = self.get_last_metadata_update(elem)
+                    acdd = self.update_acdd(acdd, match, sep)
+
+                elif mmd_element == 'personnel':
+                    match, sep = self.get_personnel(elem)
+                    acdd = self.update_acdd(acdd, match, sep)
+
+                # dataset_citation = repeat of mmd fields already processed elsewehere
+                elif mmd_element == 'dataset_citation':
+                    continue
+
+                # No subselements
+                elif len(list(elem)) == 0:
+                    match, sep = self.process_elem(elem, self.mmd_yaml, tag)
+                    acdd = self.update_acdd(acdd, match, sep)
+
+                # Subselements processed independently
+                else:
+
+                    for subelem in list(elem):
+
+                        subtag = ET.QName(subelem).localname
+
+                        if len(list(subelem)) > 0:
+                            for subsubelem in list(subelem):
+                                subsubtag = ET.QName(subsubelem).localname
+                                if len(list(subsubelem)) > 0:
+                                    print('Case not implemented')
+                                    print(f"tag {tag} / subtag {tag} / subsubtag {subsubtag}")
+                                    continue
+                                else:
+                                    match, sep = self.process_elem(subsubelem, self.mmd_yaml[tag][subtag], subsubtag)
+                                    acdd = self.update_acdd(acdd, match, sep)
+                        else:
+                            match, sep = self.process_elem(subelem, self.mmd_yaml[tag], subtag)
+                            acdd = self.update_acdd(acdd, match, sep)
+
+        print(acdd)
 
         # Open netcdf file for reading and appending
         with nc.Dataset(self.nc, 'a') as f:
-
-            acdd = {}
-            ns = {'xml': 'http://www.w3.org/XML/1998/namespace',
-                  'mmd': 'http://www.met.no/schema/mmd'}
-
-            # ACDD - Highly recommended attributes
-
-            import ipdb
-            ipdb.set_trace()
-            acdd['title'] = tree.find('mmd:title[@xml:lang="en"]', namespaces=ns).text
-            acdd['summary'] = tree.find('mmd:abstract[@xml:lang="en"]', namespaces=ns).text
-            acdd['Conventions'] = ','.join(['ACDD-1.3', f.Conventions])
-            keywords = tree.findall('mmd:keywords', namespaces=ns)
-            list_keywords = []
-            list_vocabularies = []
-            for k in keywords:
-                list_keywords.append(k.find('mmd:keyword', namespaces=ns).text)
-                list_vocabularies.append(k.get('vocabulary'))
-            acdd['keywords'] = ','.join(list_keywords)
-            acdd['keywords_vocabulary'] = ','.join(list_vocabularies)
-
-            # ACDD - Recommended attributes
-
-            # Not in mmd:
-            # Comment / acknowledgement / History / standard_name_vocabulary / publisher_email /
-            # publisher_url
-
-            id = tree.find('mmd:metadata_identifier', namespaces=ns).text
-            if ':' in id:
-                acdd['id'] = id.split(':')[1]
-                acdd['naming_authority'] = id.split(':')[0]
-            else:
-                acdd['id'] = id
-
-            if tree.find('mmd:activity_type', namespaces=ns) is not None:
-                activities = tree.findall('mmd:activity_type', namespaces=ns)
-                sources = []
-                for a in activities:
-                    sources.append(a.text)
-                acdd['source'] = ','.join(sources)
-
-            if tree.find('mmd:operational_status', namespaces=ns) is not None:
-                acdd['processing_level'] = tree.find('mmd:operational_status', namespaces=ns).text
-
-            if tree.find('mmd:use_constraint', namespaces=ns) is not None:
-                acdd['license'] = tree.find('mmd:use_constraint/mmd:identifier',
-                                            namespaces=ns).text
-
-            if tree.find('mmd:dataset_citation/mmd:publication_date', namespaces=ns) is not None:
-                acdd['date_created'] = tree.find('mmd:dataset_citation/mmd:publication_date',
-                                                 namespaces=ns).text
-
-            personnel = tree.findall('mmd:personnel', namespaces=ns)
-            list_name = []
-            list_email = []
-            list_institution = []
-            for p in personnel:
-                list_name.append(p.find('mmd:name', namespaces=ns).text)
-                list_email.append(p.find('mmd:email', namespaces=ns).text)
-                list_institution.append(p.find('mmd:organisation', namespaces=ns).text)
-            acdd['creator_name'] = ','.join(list_name)
-            acdd['creator_email'] = ','.join(list_email)
-            acdd['creator_institution'] = ','.join(list_institution)
-
-            if tree.find('mmd:data_center/mmd:data_center_name/mmd:long_name',
-                         namespaces=ns) is not None:
-                acdd['institution'] = tree.find(
-                    'mmd:data_center/mmd:data_center_name/mmd:long_name',
-                    namespaces=ns).text
-
-            if len(tree.findall('mmd:project', namespaces=ns)) > 0:
-                project_list = []
-                for p in tree.findall('mmd:project', namespaces=ns):
-                    project_list.append(p.find('mmd:long_name', namespaces=ns).text)
-                acdd['project'] = ','.join(project_list)
-
-            if tree.find('mmd:dataset_citation/mmd:author', namespaces=ns) is not None:
-                acdd['publisher_name'] = tree.find('mmd:dataset_citation/mmd:author',
-                                                   namespaces=ns).text
-
-            rectangle = tree.find('mmd:geographic_extent/mmd:rectangle', namespaces=ns)
-            acdd['geospatial_lat_max'] = rectangle.find('mmd:north', namespaces=ns).text
-            acdd['geospatial_lat_min'] = rectangle.find('mmd:south', namespaces=ns).text
-            acdd['geospatial_lon_max'] = rectangle.find('mmd:east', namespaces=ns).text
-            acdd['geospatial_lon_min'] = rectangle.find('mmd:west', namespaces=ns).text
-
-            temporal_extent = tree.find('mmd:temporal_extent', namespaces=ns)
-            acdd['time_coverage_start'] = temporal_extent.find('mmd:start_date',
-                                                               namespaces=ns).text
-            if temporal_extent.find('mmd:end_date', namespaces=ns) is not None:
-                acdd['time_coverage_end'] = temporal_extent.find('mmd:end_date',
-                                                                 namespaces=ns).text
 
             # Add all global metadata to netcdf at once
             f.setncatts(acdd)
