@@ -23,7 +23,7 @@ from pkg_resources import resource_string
 
 class Mmd_to_nc(object):
 
-    def __init__(self, mmd_product, nc_file, xsd):
+    def __init__(self, mmd_product, nc_file):
         """Class for updating a NetCDF file that is compliant with the CF-conventions and ACDD
         from an MMD XML file.
         Args:
@@ -35,23 +35,15 @@ class Mmd_to_nc(object):
         # NC file
         self.nc = nc_file
 
-        # MMD file content
+        # MMD file content / namespaces
         tree = ET.parse(mmd_product)
-        root = tree.getroot()
         self.tree = tree
-        self.namespaces = root.nsmap
+        self.namespaces = tree.getroot().nsmap
 
         # Get translation file between MMD and ACDD
         self.mmd_yaml = yaml.load(
             resource_string(py_mmd_tools.__name__, 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
-
-        ### Read XSD to get namespaces
-        ### Get MMD definition (NOTE: the filename should be read from a config file)
-        ##with open(xsd) as xsd:
-        ##    mmd_xsd = xmltodict.parse(xsd.read())
-        ##self.namespaces = mmd_xsd
-
         return
 
     @staticmethod
@@ -173,19 +165,18 @@ class Mmd_to_nc(object):
         todo: Hard coded, but I see no way around that
         """
 
-        # title and abstract
-        # todo: deal with namespace
+        out = {}
         acdd_name, sep = self.get_acdd(self.mmd_yaml[tag][tag])
-        if element.attrib['{http://www.w3.org/XML/1998/namespace}lang'] == 'no':
-            acdd_name = acdd_name + '_no'
-            lang = None
-        elif element.attrib['{http://www.w3.org/XML/1998/namespace}lang'] == 'en':
-            lang = 'en'
-        else:
-            print('Case not implemented')
-        out = {acdd_name: element.text}
-        if lang is not None:
-            out[acdd_name + '_lang'] = lang
+        # Check element language
+        for att in element.attrib:
+            if element.attrib[att] == 'no':
+                acdd_name = acdd_name + '_no'
+            elif element.attrib[att] == 'en':
+                out[acdd_name + '_lang'] = 'en'
+            else:
+                print(f'Case not implemented for language {element.attrib[att]}')
+                return None
+        out[acdd_name] = element.text
         return out
 
     def update_nc(self):
@@ -226,7 +217,7 @@ class Mmd_to_nc(object):
                     match, sep = self.get_personnel(elem)
                     acdd = self.update_acdd(acdd, match, sep)
 
-                # dataset_citation = repeat of mmd fields already processed elsewehere
+                # dataset_citation = repeat of mmd fields already processed elsewhere
                 elif mmd_element == 'dataset_citation':
                     continue
 
@@ -255,8 +246,6 @@ class Mmd_to_nc(object):
                         else:
                             match, sep = self.process_elem(subelem, self.mmd_yaml[tag], subtag)
                             acdd = self.update_acdd(acdd, match, sep)
-
-        print(acdd)
 
         # Open netcdf file for reading and appending
         with nc.Dataset(self.nc, 'a') as f:
