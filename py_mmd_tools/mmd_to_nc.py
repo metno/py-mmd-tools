@@ -15,8 +15,6 @@ py-mmd-tools is licensed under the Apache License 2.0
 import yaml
 import netCDF4 as nc
 import lxml.etree as ET
-import os
-import xmltodict
 import py_mmd_tools
 from pkg_resources import resource_string
 
@@ -75,9 +73,9 @@ class Mmd_to_nc(object):
                         out['id'] = elem.text.split(':')[1]
                         out['naming_authority'] = elem.text.split(':')[0]
                     else:
-                        ### Default = take the first possible name?
-                        ##acdd_name = acdd_name[0]
-                        ##out[acdd_name] = elem.text
+                        # Default = take the first possible name?
+                        # acdd_name = acdd_name[0]
+                        # out[acdd_name] = elem.text
                         print('Special case not implemented')
                         print(f'{elem.tag} - {elem.text}')
                 else:
@@ -108,29 +106,25 @@ class Mmd_to_nc(object):
 
     def get_last_metadata_update(self, element):
         """
-        todo: Hard coded, but I see no way around that
         """
-        # todo: not sure why date_created in acdd is linked to last_metadata_update
-        # see  https://wiki.esipfed.org/Attribute_Convention_for_Data_Discovery_1-3
-        # The date on which this version of the data was created. (Modification of values implies a
-        # new version, hence this would be assigned the date of the most recent values modification.)
-        # Metadata changes are not considered when assigning the date_created. The ISO 8601:2004
-        # extended date format is recommended, as described in the Attribute Content Guidance section.
         out = {
-            'date_metadata_modified': element.find('mmd:update/mmd:datetime', namespaces=self.namespaces).text,
-            'date_metadata_modified_type': element.find('mmd:update/mmd:type', namespaces=self.namespaces).text
+            'date_metadata_modified': element.find('mmd:update/mmd:datetime',
+                                                   namespaces=self.namespaces).text,
+            'date_metadata_modified_type': element.find('mmd:update/mmd:type',
+                                                        namespaces=self.namespaces).text
         }
 
         sep = {
-            'date_metadata_modified': self.mmd_yaml['last_metadata_update']['update']['datetime']['separator'],
-            'date_metadata_modified_type': self.mmd_yaml['last_metadata_update']['update']['type']['separator']
+            'date_metadata_modified': self.mmd_yaml['last_metadata_update']['update']['datetime']
+            ['separator'],
+            'date_metadata_modified_type': self.mmd_yaml['last_metadata_update']['update']['type']
+            ['separator']
         }
 
         return out, sep
 
     def get_personnel(self, element):
         """
-        todo: Hard coded, but I see no way around that
         """
 
         out = {}
@@ -143,14 +137,14 @@ class Mmd_to_nc(object):
 
     def get_keyword(self, element):
         """
-        todo: Hard coded, but I see no way around that
         """
 
-        # todo: add Vocabulary in mmd?
         prefix = element.attrib['vocabulary']
         out = {
-            'keywords': ':'.join([prefix, element.find('mmd:keyword', namespaces=self.namespaces).text]),
-            'keywords_vocabulary': ':'.join([prefix, element.find('mmd:resource', namespaces=self.namespaces).text])
+            'keywords': ':'.join([prefix, element.find('mmd:keyword',
+                                                       namespaces=self.namespaces).text]),
+            'keywords_vocabulary': ':'.join([prefix, element.find(
+                'mmd:resource', namespaces=self.namespaces).text])
         }
 
         sep = {
@@ -162,7 +156,6 @@ class Mmd_to_nc(object):
 
     def get_title_abstract(self, element, tag):
         """
-        todo: Hard coded, but I see no way around that
         """
 
         out = {}
@@ -241,7 +234,9 @@ class Mmd_to_nc(object):
                                     print(f"tag {tag} / subtag {tag} / subsubtag {subsubtag}")
                                     continue
                                 else:
-                                    match, sep = self.process_elem(subsubelem, self.mmd_yaml[tag][subtag], subsubtag)
+                                    match, sep = self.process_elem(subsubelem,
+                                                                   self.mmd_yaml[tag][subtag],
+                                                                   subsubtag)
                                     acdd = self.update_acdd(acdd, match, sep)
                         else:
                             match, sep = self.process_elem(subelem, self.mmd_yaml[tag], subtag)
