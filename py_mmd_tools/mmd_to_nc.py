@@ -244,6 +244,9 @@ class Mmd_to_nc(object):
                             match, sep = self.process_elem(subelem, self.mmd_yaml[tag], subtag)
                             acdd = self.update_acdd(acdd, match, sep)
 
+        # Conventions
+        acdd['Conventions'] = 'CF-1.7, ACDD-1.3'
+
         # Open netcdf file for reading and appending
         with nc.Dataset(self.nc, 'a') as f:
 
