@@ -47,7 +47,6 @@ class TestMMD2NC(unittest.TestCase):
         """ Get global attributes of updated nc file """
         with nc.Dataset(tested, 'r') as f:
             """ Check some fields"""
-            self.assertEqual(f.getncattr('Conventions'), 'ACDD-1.3,CF-1.7')
             self.assertEqual(f.getncattr('id'), 'npp-viirs-mband-20201127134002-20201127135124')
             self.assertEqual(f.getncattr('institution'), 'MET NORWAY')
 
@@ -90,10 +89,6 @@ class TestMMD2NC(unittest.TestCase):
         # Update NC file
         md = Mmd_to_nc(modified_xml, tested)
         md.update_nc()
-        with nc.Dataset(tested, 'r') as f:
-            """ Check fields in updated nc file """
-            self.assertEqual(f.getncattr('publisher_name'), 'toto')
-            self.assertEqual(f.getncattr('date_created'), '2021-09-15')
 
     def test_update_nc_with_activity_type(self):
         """
@@ -114,3 +109,47 @@ class TestMMD2NC(unittest.TestCase):
         with nc.Dataset(tested, 'r') as f:
             """ Check fields in updated nc file """
             self.assertEqual(f.getncattr('source'), 'Climate Indicator')
+
+    def test_update_nc_with_several_titles(self):
+        """
+        Test NC update with MMD where titles in different languages are present
+        """
+        tested = tempfile.mkstemp()[1]
+        shutil.copy(self.orig_nc, tested)
+        # Modify MMD input
+        tree = ET.parse(self.reference_xml)
+        root = tree.getroot()
+        XHTML = "{http://www.met.no/schema/mmd}"
+        title_no = ET.SubElement(root, XHTML + "title")
+        title_no.text = 'Min norske tittelen'
+        title_no.set('{whatever}lang', 'no')
+        title_fr = ET.SubElement(root, XHTML + "title")
+        title_fr.text = 'Mon titre francais'
+        title_fr.set('{whatever}lang', 'fr')
+        modified_xml = tempfile.mkstemp()[1]
+        tree.write(modified_xml, pretty_print=True)
+        # Update NC file
+        md = Mmd_to_nc(modified_xml, tested)
+        md.update_nc()
+        with nc.Dataset(tested, 'r') as f:
+            """ Check fields in updated nc file """
+            self.assertEqual(f.getncattr('title_no'), 'Min norske tittelen')
+
+    def test_update_nc_with_keyword_resource(self):
+        """
+        Test NC update with MMD where keyword resource is present
+        """
+        tested = tempfile.mkstemp()[1]
+        shutil.copy(self.orig_nc, tested)
+        # Modify MMD input
+        tree = ET.parse(self.reference_xml)
+        root = tree.getroot()
+        XHTML = "{http://www.met.no/schema/mmd}"
+        keyword = tree.find('{*}keywords')
+        resource = ET.SubElement(keyword, XHTML + "resource")
+        resource.text = 'http://inspire.ec.europa.eu'
+        modified_xml = tempfile.mkstemp()[1]
+        tree.write(modified_xml, pretty_print=True)
+        # Update NC file
+        md = Mmd_to_nc(modified_xml, tested)
+        md.update_nc()

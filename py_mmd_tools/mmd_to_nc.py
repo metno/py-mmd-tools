@@ -68,18 +68,7 @@ class Mmd_to_nc(object):
         if not elem_info[tag] is None:
             acdd_name, sep = Mmd_to_nc.get_acdd(elem_info[tag])
             if acdd_name is not None:
-                if isinstance(acdd_name, list):
-                    if tag == 'metadata_identifier':
-                        out['id'] = elem.text.split(':')[1]
-                        out['naming_authority'] = elem.text.split(':')[0]
-                    else:
-                        # Default = take the first possible name?
-                        # acdd_name = acdd_name[0]
-                        # out[acdd_name] = elem.text
-                        print('Special case not implemented')
-                        print(f'{elem.tag} - {elem.text}')
-                else:
-                    out[acdd_name] = elem.text
+                out[acdd_name] = elem.text
         return out, sep
 
     @staticmethod
@@ -139,18 +128,18 @@ class Mmd_to_nc(object):
         """
         """
 
+        out = {}
+        sep = {}
         prefix = element.attrib['vocabulary']
-        out = {
-            'keywords': ':'.join([prefix, element.find('mmd:keyword',
-                                                       namespaces=self.namespaces).text]),
-            'keywords_vocabulary': ':'.join([prefix, element.find(
+        out['keywords'] = ':'.join([prefix, element.find('mmd:keyword',
+                                                       namespaces=self.namespaces).text])
+        sep['keywords'] = self.mmd_yaml['keywords']['keyword']['separator']
+        try:
+            out['keywords_vocabulary'] = ':'.join([prefix, element.find(
                 'mmd:resource', namespaces=self.namespaces).text])
-        }
-
-        sep = {
-            'keywords': self.mmd_yaml['keywords']['keyword']['separator'],
-            'keywords_vocabulary': self.mmd_yaml['keywords']['vocabulary']['separator']
-        }
+            sep['keywords_vocabulary'] = self.mmd_yaml['keywords']['vocabulary']['separator']
+        except AttributeError:
+            print('No resource for keyword')
 
         return out, sep
 
@@ -170,6 +159,20 @@ class Mmd_to_nc(object):
                 print(f'Case not implemented for language {element.attrib[att]}')
                 return None
         out[acdd_name] = element.text
+        return out
+
+    def get_metadata_identifier(self, element):
+        """
+        """
+
+        out = {}
+        value = element.text
+        try:
+            out['id'] = value.split(':')[1]
+            out['naming_authority'] = value.split(':')[0]
+        except IndexError:
+            out['id'] = value
+
         return out
 
     def update_nc(self):
@@ -206,6 +209,10 @@ class Mmd_to_nc(object):
                     match, sep = self.get_last_metadata_update(elem)
                     acdd = self.update_acdd(acdd, match, sep)
 
+                elif mmd_element == 'metadata_identifier':
+                    match = self.get_metadata_identifier(elem)
+                    acdd = self.update_acdd(acdd, match)
+
                 elif mmd_element == 'personnel':
                     match, sep = self.get_personnel(elem)
                     acdd = self.update_acdd(acdd, match, sep)
@@ -229,15 +236,10 @@ class Mmd_to_nc(object):
                         if len(list(subelem)) > 0:
                             for subsubelem in list(subelem):
                                 subsubtag = ET.QName(subsubelem).localname
-                                if len(list(subsubelem)) > 0:
-                                    print('Case not implemented')
-                                    print(f"tag {tag} / subtag {tag} / subsubtag {subsubtag}")
-                                    continue
-                                else:
-                                    match, sep = self.process_elem(subsubelem,
-                                                                   self.mmd_yaml[tag][subtag],
-                                                                   subsubtag)
-                                    acdd = self.update_acdd(acdd, match, sep)
+                                match, sep = self.process_elem(subsubelem,
+                                                               self.mmd_yaml[tag][subtag],
+                                                               subsubtag)
+                                acdd = self.update_acdd(acdd, match, sep)
                         else:
                             match, sep = self.process_elem(subelem, self.mmd_yaml[tag], subtag)
                             acdd = self.update_acdd(acdd, match, sep)
