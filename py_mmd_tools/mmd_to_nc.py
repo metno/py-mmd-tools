@@ -132,7 +132,7 @@ class Mmd_to_nc(object):
         sep = {}
         prefix = element.attrib['vocabulary']
         out['keywords'] = ':'.join([prefix, element.find('mmd:keyword',
-                                                       namespaces=self.namespaces).text])
+                                                         namespaces=self.namespaces).text])
         sep['keywords'] = self.mmd_yaml['keywords']['keyword']['separator']
         try:
             out['keywords_vocabulary'] = ':'.join([prefix, element.find(

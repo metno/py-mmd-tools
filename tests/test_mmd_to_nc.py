@@ -143,7 +143,6 @@ class TestMMD2NC(unittest.TestCase):
         shutil.copy(self.orig_nc, tested)
         # Modify MMD input
         tree = ET.parse(self.reference_xml)
-        root = tree.getroot()
         XHTML = "{http://www.met.no/schema/mmd}"
         keyword = tree.find('{*}keywords')
         resource = ET.SubElement(keyword, XHTML + "resource")
