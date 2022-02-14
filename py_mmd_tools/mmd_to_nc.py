@@ -118,7 +118,7 @@ class Mmd_to_nc(object):
 
         out = {}
         sep = {}
-        if element.find(f'mmd:role', namespaces=self.namespaces).text == 'Technical contact':
+        if element.find('mmd:role', namespaces=self.namespaces).text == 'Technical contact':
             prefix = 'creator'
         else:
             prefix = 'contributor'
