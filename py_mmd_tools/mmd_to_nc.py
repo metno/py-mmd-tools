@@ -118,8 +118,13 @@ class Mmd_to_nc(object):
 
         out = {}
         sep = {}
+        if element.find(f'mmd:role', namespaces=self.namespaces).text == 'Technical contact':
+            prefix = 'creator'
+        else:
+            prefix = 'contributor'
+
         for mmd_field in ['role', 'name', 'email', 'organisation']:
-            nc_field = 'contributor_' + mmd_field
+            nc_field = '_'.join([prefix, mmd_field])
             out[nc_field] = element.find(f'mmd:{mmd_field}', namespaces=self.namespaces).text
             sep[nc_field] = self.mmd_yaml['personnel'][mmd_field]['separator']
         return out, sep
