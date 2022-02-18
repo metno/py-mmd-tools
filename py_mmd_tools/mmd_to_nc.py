@@ -155,7 +155,7 @@ ACDD = 'ACDD-1.3'
 
         return out, sep
 
-    def get_title_abstract(self, element, tag):
+    def get_title_and_abstract(self, element, tag):
         """
         """
 
