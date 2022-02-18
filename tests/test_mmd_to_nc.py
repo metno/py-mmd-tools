@@ -121,7 +121,7 @@ class TestMMD2NC(unittest.TestCase):
         root = tree.getroot()
         XHTML = "{http://www.met.no/schema/mmd}"
         title_no = ET.SubElement(root, XHTML + "title")
-        title_no.text = 'Min norske tittelen'
+        title_no.text = 'Min norske tittel'
         title_no.set('{whatever}lang', 'no')
         title_fr = ET.SubElement(root, XHTML + "title")
         title_fr.text = 'Mon titre francais'
