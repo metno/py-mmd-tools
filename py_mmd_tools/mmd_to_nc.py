@@ -86,7 +86,6 @@ ACDD = 'ACDD-1.3'
         if len(dict1) == 0:
             self.acdd_metadata = dict2
         # If dict2 is empty, no update
-        elif dict2 is None:
             return dict1
         # Main case
         else:
