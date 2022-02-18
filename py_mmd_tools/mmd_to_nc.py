@@ -58,7 +58,6 @@ ACDD = 'ACDD-1.3'
         """
         if 'acdd' in t:
             out = t['acdd']
-        elif 'acdd_ext' in t:
         else:
             out = None
         try:
