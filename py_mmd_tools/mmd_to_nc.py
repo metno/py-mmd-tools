@@ -47,7 +47,14 @@ ACDD = 'ACDD-1.3'
     @staticmethod
     def get_acdd(t):
         """
-        Get acdd or acdd_ext value from a dictionary.
+        Get acdd or acdd_ext value from an MMD name.
+        
+        Input
+        ====
+        mmd_field: dict
+            MMD element to translate into ACDD 
+        ind : int (default 0)
+            Index of list element to use if the value of an ACDD attribute is a list
         """
         if 'acdd' in t:
             out = t['acdd']
