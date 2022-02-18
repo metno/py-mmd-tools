@@ -90,7 +90,7 @@ ACDD = 'ACDD-1.3'
         else:
             # Check if key already present in dict1
             for key in dict2:
-                if key in dict1:
+                if key in self.acdd_metadata:
                     # If so, it must be a list, so we append it
                     if type(sep) is list:
                         dict1[key] = sep[key].join([dict1[key], dict2[key]])
