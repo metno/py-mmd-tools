@@ -57,7 +57,10 @@ ACDD = 'ACDD-1.3'
             Index of list element to use if the value of an ACDD attribute is a list
         """
         if 'acdd' in t:
-            out = t['acdd']
+            if type(t['acdd']) is list:
+                out = t['acdd'][ind] # always take the first - this  must be tested to ensure that we get what we want
+            else:
+                out = t['acdd']
         else:
             out = None
         try:
