@@ -178,10 +178,6 @@ ACDD = 'ACDD-1.3'
 
         out = {}
         value = element.text
-        try:
-            out['id'] = value.split(':')[1]
-            out['naming_authority'] = value.split(':')[0]
-        except IndexError:
             out['id'] = value
 
         return out
