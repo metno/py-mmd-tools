@@ -20,8 +20,10 @@ from pkg_resources import resource_string
 
 
 class Mmd_to_nc(object):
-# ACDD version
-ACDD = 'ACDD-1.3'
+
+    # ACDD version
+    ACDD = 'ACDD-1.3'
+
     def __init__(self, mmd_product, nc_file):
         """Class for updating a NetCDF file that is compliant with the CF-conventions and ACDD
         from an MMD XML file.
@@ -57,15 +59,15 @@ ACDD = 'ACDD-1.3'
         ind : int (default 0)
             Index of list element to use if the value of an ACDD attribute is a list
         """
-        if 'acdd' in t:
-            if type(t['acdd']) is list:
-                out = t['acdd'][ind] # always take the first - this  must be tested to ensure that we get what we want
+        if 'acdd' in mmd_field:
+            if type(mmd_field['acdd']) is list:
+                out = mmd_field['acdd'][ind] # always take the first - this  must be tested to ensure that we get what we want
             else:
-                out = t['acdd']
+                out = mmd_field['acdd']
         else:
             out = None
         try:
-            sep = t['separator']
+            sep = mmd_field['separator']
         except KeyError:
             sep = None
         return out, sep
@@ -80,19 +82,17 @@ ACDD = 'ACDD-1.3'
                 out[acdd_name] = elem.text
         return out, sep
 
-    @staticmethod
-    def update_acdd(dict1, dict2, sep=None):
+    def update_acdd(self, dict2, sep=None):
         # First time = 'initialize' the dictionary
-        if len(dict1) == 0:
+        if self.acdd_metadata is None:
             self.acdd_metadata = dict2
-        # If dict2 is empty, no update
         # Main case
         else:
             # Check if key already present in dict1
             for key in dict2:
                 if key in self.acdd_metadata:
                     # If so, it must be a list, so we append it
-                    if type(sep) is list:
+                    if type(sep) is dict:
                         self.acdd_metadata[key] = sep[key].join([self.acdd_metadata[key], dict2[key]])
                     else:
                         self.acdd_metadata[key] = sep.join([self.acdd_metadata[key], dict2[key]])
@@ -172,16 +172,6 @@ ACDD = 'ACDD-1.3'
         out[acdd_name] = element.text
         return out
 
-    def get_metadata_identifier(self, element):
-        """
-        """
-
-        out = {}
-        value = element.text
-            out['id'] = value
-
-        return out
-
     def update_nc(self):
         """
         Update a netcdf file global attributes.
@@ -205,24 +195,20 @@ ACDD = 'ACDD-1.3'
                 tag = ET.QName(elem).localname
 
                 if mmd_element in ['title', 'abstract']:
-                    match = self.get_title_abstract(elem, tag)
-                    acdd = self.update_acdd(acdd, match)
+                    match = self.get_title_and_abstract(elem, tag)
+                    self.update_acdd(match)
 
                 elif mmd_element == 'keywords':
                     match, sep = self.get_keyword(elem)
-                    acdd = self.update_acdd(acdd, match, sep)
+                    self.update_acdd(match, sep)
 
                 elif mmd_element == 'last_metadata_update':
                     match, sep = self.get_last_metadata_update(elem)
-                    acdd = self.update_acdd(acdd, match, sep)
-
-                elif mmd_element == 'metadata_identifier':
-                    match = self.get_metadata_identifier(elem)
-                    acdd = self.update_acdd(acdd, match)
+                    self.update_acdd(match, sep)
 
                 elif mmd_element == 'personnel':
                     match, sep = self.get_personnel(elem)
-                    acdd = self.update_acdd(acdd, match, sep)
+                    self.update_acdd(match, sep)
 
                 # dataset_citation = repeat of mmd fields already processed elsewhere
                 elif mmd_element == 'dataset_citation':
@@ -231,7 +217,7 @@ ACDD = 'ACDD-1.3'
                 # No subselements
                 elif len(list(elem)) == 0:
                     match, sep = self.process_elem(elem, self.mmd_yaml, tag)
-                    acdd = self.update_acdd(acdd, match, sep)
+                    self.update_acdd(match, sep)
 
                 # Subselements processed independently
                 else:
@@ -246,21 +232,21 @@ ACDD = 'ACDD-1.3'
                                 match, sep = self.process_elem(subsubelem,
                                                                self.mmd_yaml[tag][subtag],
                                                                subsubtag)
-                                acdd = self.update_acdd(acdd, match, sep)
+                                self.update_acdd(match, sep)
                         else:
                             match, sep = self.process_elem(subelem, self.mmd_yaml[tag], subtag)
-                            acdd = self.update_acdd(acdd, match, sep)
-
-        # Conventions
-        acdd['Conventions'] = nc.Conventions + ', ' + self.ACDD
+                            self.update_acdd(match, sep)
 
         # Open netcdf file for reading and appending
         with nc.Dataset(self.nc, 'a') as f:
 
+            # Conventions
+            self.acdd_metadata['Conventions'] = f.Conventions + ', ' + self.ACDD
+
             # Add all global metadata to netcdf at once
             for key in self.acdd_metadata.keys():
-                if key in f.attributes and key != 'Conventions': #optionally add more attrs
+                if key in f.ncattrs() and key != 'Conventions': #optionally add more attrs
                     raise Exception("%s is already a global attribute" % key)
-            f.setncatts(acdd)
+            f.setncatts(self.acdd_metadata)
 
         return
