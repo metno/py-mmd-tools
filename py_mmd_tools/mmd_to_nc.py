@@ -95,7 +95,7 @@ ACDD = 'ACDD-1.3'
                     try:
                         dict1[key] = sep[key].join([dict1[key], dict2[key]])
                     except TypeError:
-                        dict1[key] = sep.join([dict1[key], dict2[key]])
+                        self.acdd_metadata[key] = sep.join([self.acdd_metadata[key], dict2[key]])
                 else:
                     dict1[key] = dict2[key]
         return dict1
