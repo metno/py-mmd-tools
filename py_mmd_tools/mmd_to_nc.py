@@ -45,7 +45,7 @@ ACDD = 'ACDD-1.3'
         return
 
     @staticmethod
-    def get_acdd(t):
+    def get_acdd(mmd_field, ind=0):
         """
         Get acdd or acdd_ext value from an MMD name.
         
