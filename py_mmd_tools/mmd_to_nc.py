@@ -20,7 +20,8 @@ from pkg_resources import resource_string
 
 
 class Mmd_to_nc(object):
-
+# ACDD version
+ACDD = 'ACDD-1.3'
     def __init__(self, mmd_product, nc_file):
         """Class for updating a NetCDF file that is compliant with the CF-conventions and ACDD
         from an MMD XML file.
@@ -28,7 +29,6 @@ class Mmd_to_nc(object):
             mmd_product (str): Input MMD xml file.
             nc_file (pathlib): Nc file to update.
         """
-        super(Mmd_to_nc, self).__init__()
 
         # NC file
         self.nc = nc_file
@@ -45,14 +45,22 @@ class Mmd_to_nc(object):
         return
 
     @staticmethod
-    def get_acdd(t):
+    def get_acdd(mmd_field, ind=0):
         """
-        Get acdd or acdd_ext value from a dictionary.
+        Get acdd or acdd_ext value from an MMD name.
+        
+        Input
+        ====
+        mmd_field: dict
+            MMD element to translate into ACDD 
+        ind : int (default 0)
+            Index of list element to use if the value of an ACDD attribute is a list
         """
         if 'acdd' in t:
-            out = t['acdd']
-        elif 'acdd_ext' in t:
-            out = t['acdd_ext']
+            if type(t['acdd']) is list:
+                out = t['acdd'][ind] # always take the first - this  must be tested to ensure that we get what we want
+            else:
+                out = t['acdd']
         else:
             out = None
         try:
@@ -88,9 +96,9 @@ class Mmd_to_nc(object):
                     try:
                         dict1[key] = sep[key].join([dict1[key], dict2[key]])
                     except TypeError:
-                        dict1[key] = sep.join([dict1[key], dict2[key]])
+                        self.acdd_metadata[key] = sep.join([self.acdd_metadata[key], dict2[key]])
                 else:
-                    dict1[key] = dict2[key]
+                    self.acdd_metadata[key] = dict2[key]
         return dict1
 
     def get_last_metadata_update(self, element):
@@ -148,7 +156,7 @@ class Mmd_to_nc(object):
 
         return out, sep
 
-    def get_title_abstract(self, element, tag):
+    def get_title_and_abstract(self, element, tag):
         """
         """
 
@@ -172,10 +180,6 @@ class Mmd_to_nc(object):
 
         out = {}
         value = element.text
-        try:
-            out['id'] = value.split(':')[1]
-            out['naming_authority'] = value.split(':')[0]
-        except IndexError:
             out['id'] = value
 
         return out
@@ -250,12 +254,15 @@ class Mmd_to_nc(object):
                             acdd = self.update_acdd(acdd, match, sep)
 
         # Conventions
-        acdd['Conventions'] = 'CF-1.7, ACDD-1.3'
+        acdd['Conventions'] = nc.Conventions + ', ' + self.ACDD
 
         # Open netcdf file for reading and appending
         with nc.Dataset(self.nc, 'a') as f:
 
             # Add all global metadata to netcdf at once
+            for key in self.acdd_metadata.keys():
+                if key in f.attributes and key != 'Conventions': #optionally add more attrs
+                    raise Exception("%s is already a global attribute" % key)
             f.setncatts(acdd)
 
         return
