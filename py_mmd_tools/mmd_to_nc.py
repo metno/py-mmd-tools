@@ -20,7 +20,8 @@ from pkg_resources import resource_string
 
 
 class Mmd_to_nc(object):
-
+# ACDD version
+ACDD = 'ACDD-1.3'
     def __init__(self, mmd_product, nc_file):
         """Class for updating a NetCDF file that is compliant with the CF-conventions and ACDD
         from an MMD XML file.
