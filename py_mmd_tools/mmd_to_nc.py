@@ -29,7 +29,6 @@ ACDD = 'ACDD-1.3'
             mmd_product (str): Input MMD xml file.
             nc_file (pathlib): Nc file to update.
         """
-        super(Mmd_to_nc, self).__init__()
 
         # NC file
         self.nc = nc_file
