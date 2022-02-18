@@ -93,7 +93,7 @@ ACDD = 'ACDD-1.3'
                 if key in self.acdd_metadata:
                     # If so, it must be a list, so we append it
                     if type(sep) is list:
-                        dict1[key] = sep[key].join([dict1[key], dict2[key]])
+                        self.acdd_metadata[key] = sep[key].join([self.acdd_metadata[key], dict2[key]])
                     else:
                         self.acdd_metadata[key] = sep.join([self.acdd_metadata[key], dict2[key]])
                 else:
