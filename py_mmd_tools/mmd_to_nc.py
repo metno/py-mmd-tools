@@ -92,7 +92,7 @@ ACDD = 'ACDD-1.3'
             for key in dict2:
                 if key in dict1:
                     # If so, it must be a list, so we append it
-                    try:
+                    if type(sep) is list:
                         dict1[key] = sep[key].join([dict1[key], dict2[key]])
                     except TypeError:
                         self.acdd_metadata[key] = sep.join([self.acdd_metadata[key], dict2[key]])
