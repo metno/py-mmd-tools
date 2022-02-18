@@ -50,14 +50,14 @@ class Mmd_to_nc(object):
     @staticmethod
     def get_acdd(mmd_field, ind=0):
         """
-        Get acdd or acdd_ext value from an MMD name.
+        Get corresponding ACDD element name from an MMD name.
 
         Input
         ====
         mmd_field: dict
             MMD element to translate into ACDD
         ind : int (default 0)
-            Index of list element to use if the value of an ACDD attribute is a list
+            Index of list element to use if the type of an ACDD attribute is a list
         """
         if 'acdd' in mmd_field:
             if type(mmd_field['acdd']) is list:
@@ -121,22 +121,57 @@ class Mmd_to_nc(object):
 
         return out, sep
 
-    def get_personnel(self, element):
+    def process_personnel(self, element):
         """
+        Special case for MMD element "personnel",
+        as its child elements are related one to another, so have to be processed simultaneously.
+
+        Input
+        ====
+        element: 'personnel' XML element from MMD. Example:
+            <mmd:personnel>
+              <mmd:role>Principal Investigator</mmd:role>
+              <mmd:name>Pepe</mmd:name>
+              <mmd:email>pepe@met.no</mmd:email>
+            </mmd:personnel>
+
         """
 
         out = {}
         sep = {}
-        if element.find('mmd:role', namespaces=self.namespaces).text == 'Principal Investigator':
+
+        # Personnel child elements from MMD can be translated to creator or contributor in ACDD
+        # For example, personnel/role in MMD can be translated to either creator_role or
+        # contributor_role in ACDD
+        # Only some MMD personnel child elements have an ACDD translation in mmd_elements.yaml,
+        # and they are not the same for creator and contributor type,
+        # and some are optional while others are required,
+        # so build appropriate lists of fields to translate
+        if element.find('mmd:role', namespaces=self.namespaces).text == 'Technical contact':
             prefix = 'creator'
+            acdd_translation_and_mmd_required_fields = ['role', 'name', 'email']
+            acdd_translation_and_mmd_optional_fields = ['organisation']
         else:
             prefix = 'contributor'
+            acdd_translation_and_mmd_required_fields = ['role', 'name']
+            acdd_translation_and_mmd_optional_fields = []
 
-        for mmd_field in ['role', 'name', 'email', 'organisation']:
+        # Process the mandatory fields
+        for mmd_field in acdd_translation_and_mmd_required_fields:
             nc_field = '_'.join([prefix, mmd_field])
             out[nc_field] = element.find(f'mmd:{mmd_field}', namespaces=self.namespaces).text
             sep[nc_field] = self.mmd_yaml['personnel'][mmd_field]['separator']
-        return out, sep
+
+        # Process the optional field, so first check if they are defined in the MMD file
+        for mmd_field in acdd_translation_and_mmd_optional_fields:
+            field = element.find(f'mmd:{mmd_field}', namespaces=self.namespaces)
+            if field is not None:
+                nc_field = '_'.join([prefix, mmd_field])
+                out[nc_field] = field.text
+                sep[nc_field] = self.mmd_yaml['personnel'][mmd_field]['separator']
+
+        # Update the dictionary containing the ACDD elements
+        self.update_acdd(out, sep)
 
     def get_keyword(self, element):
         """
@@ -241,9 +276,9 @@ class Mmd_to_nc(object):
                     match, sep = self.get_last_metadata_update(elem)
                     self.update_acdd(match, sep)
 
+                # Special case for MMD element 'personnel' and its child elements
                 elif mmd_element == 'personnel':
-                    match, sep = self.get_personnel(elem)
-                    self.update_acdd(match, sep)
+                    self.process_personnel(elem)
 
                 # No subselements
                 elif len(list(elem)) == 0:

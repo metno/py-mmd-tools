@@ -135,6 +135,58 @@ class TestMMD2NC(unittest.TestCase):
         # Expected output: Norwegian title not added to ACDD attributes
         self.assertEqual(md.acdd_metadata['title'], 'my title')
 
+    def test_personnel_1(self):
+        """
+        Test processing of personnel MMD element with the role Principal Investigator
+        """
+        # Initialize
+        md = Mmd_to_nc(self.reference_xml, self.orig_nc)
+        # Create personnel element
+        MMD = "{%s}" % self.namespaces['mmd']
+        main = ET.Element(MMD+'mmd', nsmap=self.namespaces)
+        personnel = ET.SubElement(main, MMD+'personnel')
+        # Children that should be translated to ACDD
+        ET.SubElement(personnel, MMD+'role').text = 'Principal Investigator'
+        ET.SubElement(personnel, MMD+'name').text = 'Pepito'
+        # Children that should not be translated to ACDD
+        ET.SubElement(personnel, MMD+'organisation').text = 'METNO'
+        ET.SubElement(personnel, MMD+'phone').text = '41022512'
+        ET.SubElement(personnel, MMD+'email').text = 'pepito@met.no'
+        # Run and test
+        md.process_personnel(personnel)
+        self.assertRaises(KeyError, lambda: md.acdd_metadata['phone'])
+        self.assertRaises(KeyError, lambda: md.acdd_metadata['contributor_email'])
+        self.assertRaises(KeyError, lambda: md.acdd_metadata['creator_name'])
+        self.assertRaises(KeyError, lambda: md.acdd_metadata['contributor_organisation'])
+        self.assertEqual(md.acdd_metadata['contributor_name'], 'Pepito')
+        self.assertEqual(md.acdd_metadata['contributor_role'], 'Principal Investigator')
+
+    def test_personnel_2(self):
+        """
+        Test processing of personnel MMD element with the role Technical contact
+        """
+        # Initialize
+        md = Mmd_to_nc(self.reference_xml, self.orig_nc)
+        # Create personnel element
+        MMD = "{%s}" % self.namespaces['mmd']
+        main = ET.Element(MMD+'mmd', nsmap=self.namespaces)
+        personnel = ET.SubElement(main, MMD+'personnel')
+        # Children that should be translated to ACDD
+        ET.SubElement(personnel, MMD+'role').text = 'Technical contact'
+        ET.SubElement(personnel, MMD+'name').text = 'Pepito'
+        ET.SubElement(personnel, MMD+'organisation').text = 'METNO'
+        ET.SubElement(personnel, MMD+'email').text = 'pepito@met.no'
+        # Child that should not be translated to ACDD
+        ET.SubElement(personnel, MMD+'phone').text = '41022512'
+        # Run and test
+        md.process_personnel(personnel)
+        self.assertRaises(KeyError, lambda: md.acdd_metadata['phone'])
+        self.assertRaises(KeyError, lambda: md.acdd_metadata['contributor_name'])
+        self.assertEqual(md.acdd_metadata['creator_name'], 'Pepito')
+        self.assertEqual(md.acdd_metadata['creator_role'], 'Technical contact')
+        self.assertEqual(md.acdd_metadata['creator_organisation'], 'METNO')
+        self.assertEqual(md.acdd_metadata['creator_email'], 'pepito@met.no')
+
     def test_dataset_citation(self):
         """
         Test processing of dataset_citation MMD element
