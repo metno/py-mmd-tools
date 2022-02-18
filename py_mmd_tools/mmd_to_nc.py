@@ -42,6 +42,7 @@ ACDD = 'ACDD-1.3'
         self.mmd_yaml = yaml.load(
             resource_string(py_mmd_tools.__name__, 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
+        self.acdd_metadata = None
         return
 
     @staticmethod
@@ -83,23 +84,20 @@ ACDD = 'ACDD-1.3'
     def update_acdd(dict1, dict2, sep=None):
         # First time = 'initialize' the dictionary
         if len(dict1) == 0:
-            return dict2
+            self.acdd_metadata = dict2
         # If dict2 is empty, no update
-        elif dict2 is None:
-            return dict1
         # Main case
         else:
             # Check if key already present in dict1
             for key in dict2:
-                if key in dict1:
+                if key in self.acdd_metadata:
                     # If so, it must be a list, so we append it
-                    try:
-                        dict1[key] = sep[key].join([dict1[key], dict2[key]])
-                    except TypeError:
+                    if type(sep) is list:
+                        self.acdd_metadata[key] = sep[key].join([self.acdd_metadata[key], dict2[key]])
+                    else:
                         self.acdd_metadata[key] = sep.join([self.acdd_metadata[key], dict2[key]])
                 else:
                     self.acdd_metadata[key] = dict2[key]
-        return dict1
 
     def get_last_metadata_update(self, element):
         """
