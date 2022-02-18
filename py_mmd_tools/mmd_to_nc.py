@@ -42,6 +42,7 @@ ACDD = 'ACDD-1.3'
         self.mmd_yaml = yaml.load(
             resource_string(py_mmd_tools.__name__, 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
+        self.acdd_metadata = None
         return
 
     @staticmethod
