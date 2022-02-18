@@ -125,7 +125,7 @@ class Mmd_to_nc(object):
 
         out = {}
         sep = {}
-        if element.find('mmd:role', namespaces=self.namespaces).text == 'Technical contact':
+        if element.find('mmd:role', namespaces=self.namespaces).text == 'Principal Investigator':
             prefix = 'creator'
         else:
             prefix = 'contributor'
@@ -155,6 +155,28 @@ class Mmd_to_nc(object):
 
         return out, sep
 
+    def process_citation(self, element):
+        """
+        Special case for MMD element "dataset_citation",
+        as only some of its child elements need to be translated to acdd.
+        Only translate fields that have not already been translated to acdd before
+        - creator_name -> already translated from personnel / PI (required in mmd)
+        - date_created -> in acdd relates to the data, not the metadata, so already in nc file
+        - title -> already translated from title (required in mmd)
+        - publisher_name -> needs to be translated here
+        - metadata_link -> needs to be translated here
+        - references -> attribute is defined in the CF conventions, so already in nc file
+        """
+
+        out = {}
+
+        for child in ['publisher', 'url', 'other']:
+            found = element.find(f'mmd:{child}', namespaces=self.namespaces)
+            if found is not None:
+                out[self.mmd_yaml['dataset_citation'][child]['acdd']] = found.text
+
+        return out
+
     def get_title_and_abstract(self, element, tag):
         """
         """
@@ -169,8 +191,6 @@ class Mmd_to_nc(object):
         """
         Update a netcdf file global attributes.
         """
-
-        acdd = {}
 
         # Loop on expected MMD elements
         # ie from mmd_elements.yaml = kind-off mapping between acdd and mmd
@@ -210,20 +230,11 @@ class Mmd_to_nc(object):
                     if match is not None:
                         self.update_acdd(match, sep)
 
-                # dataset_citation = repeat of mmd fields already processed elsewhere
-                # -----
-                # Only pickup fields that have not already been translated to acdd before
-                # is mmd ordered?
-                # - creator_name -> if there is an entry with role = technical contact in mmd, it's already done,
-                # otherwise, needs to be translated
-                # - date_created -> in acdd relates to the data, not the metadata, so already in nc file
-                # - title is compulsory in mmd -> so must have been already translated
-                # - publisher_name -> needs to be translated here
-                # - metadata_link -> needs to be translated here
-                # - references -> attribute is defined in the CF conventions, so already in nc file
-
+                # Special case for MMD element "dataset_citation"
                 elif mmd_element == 'dataset_citation':
-                    continue
+                    match = self.process_citation(elem)
+                    if match is not None:
+                        self.update_acdd(match, sep)
 
                 # Subselements processed independently
                 else:
