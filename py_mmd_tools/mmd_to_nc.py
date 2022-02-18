@@ -263,6 +263,9 @@ ACDD = 'ACDD-1.3'
         with nc.Dataset(self.nc, 'a') as f:
 
             # Add all global metadata to netcdf at once
+            for key in self.acdd_metadata.keys():
+                if key in f.attributes and key != 'Conventions': #optionally add more attrs
+                    raise Exception("%s is already a global attribute" % key)
             f.setncatts(acdd)
 
         return
