@@ -257,7 +257,7 @@ ACDD = 'ACDD-1.3'
                             acdd = self.update_acdd(acdd, match, sep)
 
         # Conventions
-        acdd['Conventions'] = 'CF-1.7, ACDD-1.3'
+        acdd['Conventions'] = nc.Conventions + ', ' + self.ACDD
 
         # Open netcdf file for reading and appending
         with nc.Dataset(self.nc, 'a') as f:
