@@ -100,7 +100,6 @@ ACDD = 'ACDD-1.3'
                         self.acdd_metadata[key] = sep.join([self.acdd_metadata[key], dict2[key]])
                 else:
                     self.acdd_metadata[key] = dict2[key]
-        return dict1
 
     def get_last_metadata_update(self, element):
         """
