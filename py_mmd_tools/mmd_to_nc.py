@@ -158,19 +158,11 @@ class Mmd_to_nc(object):
         """
         """
 
-        out = {}
         acdd_name, sep = self.get_acdd(self.mmd_yaml[tag][tag])
-        # Check element language
+        # Keep only title and abstract with attribute 'en' (english language)
         for att in element.attrib:
-            if element.attrib[att] == 'no':
-                acdd_name = acdd_name + '_no'
-            elif element.attrib[att] == 'en':
-                out[acdd_name + '_lang'] = 'en'
-            else:
-                print(f'Case not implemented for language {element.attrib[att]}')
-                return None
-        out[acdd_name] = element.text
-        return out
+            if element.attrib[att] == 'en':
+                return {acdd_name: element.text}
 
     def update_nc(self):
         """
@@ -196,7 +188,8 @@ class Mmd_to_nc(object):
 
                 if mmd_element in ['title', 'abstract']:
                     match = self.get_title_and_abstract(elem, tag)
-                    self.update_acdd(match)
+                    if match is not None:
+                        self.update_acdd(match)
 
                 elif mmd_element == 'keywords':
                     match, sep = self.get_keyword(elem)
