@@ -20,7 +20,6 @@ from pkg_resources import resource_string
 
 
 class Mmd_to_nc(object):
-
     # ACDD version
     ACDD = 'ACDD-1.3'
 
@@ -61,7 +60,8 @@ class Mmd_to_nc(object):
         """
         if 'acdd' in mmd_field:
             if type(mmd_field['acdd']) is list:
-                out = mmd_field['acdd'][ind] # always take the first - this  must be tested to ensure that we get what we want
+                out = mmd_field['acdd'][
+                    ind]  # always take the first - this  must be tested to ensure that we get what we want
             else:
                 out = mmd_field['acdd']
         else:
@@ -74,12 +74,12 @@ class Mmd_to_nc(object):
 
     @staticmethod
     def process_elem(elem, elem_info, tag):
-        out = {}
+        out = None
         sep = None
         if not elem_info[tag] is None:
             acdd_name, sep = Mmd_to_nc.get_acdd(elem_info[tag])
             if acdd_name is not None:
-                out[acdd_name] = elem.text
+                out = {acdd_name: elem.text}
         return out, sep
 
     def update_acdd(self, dict2, sep=None):
@@ -93,7 +93,8 @@ class Mmd_to_nc(object):
                 if key in self.acdd_metadata:
                     # If so, it must be a list, so we append it
                     if type(sep) is dict:
-                        self.acdd_metadata[key] = sep[key].join([self.acdd_metadata[key], dict2[key]])
+                        self.acdd_metadata[key] = sep[key].join(
+                            [self.acdd_metadata[key], dict2[key]])
                     else:
                         self.acdd_metadata[key] = sep.join([self.acdd_metadata[key], dict2[key]])
                 else:
@@ -203,14 +204,26 @@ class Mmd_to_nc(object):
                     match, sep = self.get_personnel(elem)
                     self.update_acdd(match, sep)
 
-                # dataset_citation = repeat of mmd fields already processed elsewhere
-                elif mmd_element == 'dataset_citation':
-                    continue
-
                 # No subselements
                 elif len(list(elem)) == 0:
                     match, sep = self.process_elem(elem, self.mmd_yaml, tag)
-                    self.update_acdd(match, sep)
+                    if match is not None:
+                        self.update_acdd(match, sep)
+
+                # dataset_citation = repeat of mmd fields already processed elsewhere
+                # -----
+                # Only pickup fields that have not already been translated to acdd before
+                # is mmd ordered?
+                # - creator_name -> if there is an entry with role = technical contact in mmd, it's already done,
+                # otherwise, needs to be translated
+                # - date_created -> in acdd relates to the data, not the metadata, so already in nc file
+                # - title is compulsory in mmd -> so must have been already translated
+                # - publisher_name -> needs to be translated here
+                # - metadata_link -> needs to be translated here
+                # - references -> attribute is defined in the CF conventions, so already in nc file
+
+                elif mmd_element == 'dataset_citation':
+                    continue
 
                 # Subselements processed independently
                 else:
@@ -225,10 +238,12 @@ class Mmd_to_nc(object):
                                 match, sep = self.process_elem(subsubelem,
                                                                self.mmd_yaml[tag][subtag],
                                                                subsubtag)
-                                self.update_acdd(match, sep)
+                                if match is not None:
+                                    self.update_acdd(match, sep)
                         else:
                             match, sep = self.process_elem(subelem, self.mmd_yaml[tag], subtag)
-                            self.update_acdd(match, sep)
+                            if match is not None:
+                                self.update_acdd(match, sep)
 
         # Open netcdf file for reading and appending
         with nc.Dataset(self.nc, 'a') as f:
@@ -238,7 +253,7 @@ class Mmd_to_nc(object):
 
             # Add all global metadata to netcdf at once
             for key in self.acdd_metadata.keys():
-                if key in f.ncattrs() and key != 'Conventions': #optionally add more attrs
+                if key in f.ncattrs() and key != 'Conventions':  # optionally add more attrs
                     raise Exception("%s is already a global attribute" % key)
             f.setncatts(self.acdd_metadata)
 
