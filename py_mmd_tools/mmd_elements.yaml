@@ -30,15 +30,15 @@ last_metadata_update:
       separator: ','
       repetition: Use date_metadata_modified with comma separation
       acdd: 
-        - date_created
         - date_metadata_modified
+        - date_created
     type:
       minOccurs: '1'
       separator: ','
       repetition: Comma separated list
       acdd_ext:
-        - date_created_type
         - date_metadata_modified_type
+        - date_created_type
       #- Created
       #- Minor modification
       #- Major modification
