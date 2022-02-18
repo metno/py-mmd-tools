@@ -34,6 +34,9 @@ class TestMMD2NC(unittest.TestCase):
         current_dir = pathlib.Path.cwd()
         self.orig_nc = str(current_dir / 'tests' / 'data' / 'nc_to_update.nc')
         self.reference_xml = str(current_dir / 'tests' / 'data' / 'reference_nc.xml')
+        tree = ET.parse(self.reference_xml)
+        self.tree = tree
+        self.namespaces = tree.getroot().nsmap
 
     def test_update_nc_1(self):
         """
@@ -106,3 +109,26 @@ class TestMMD2NC(unittest.TestCase):
         # Update NC file
         md = Mmd_to_nc(modified_xml, tested)
         md.update_nc()
+
+    def test_dataset_citation(self):
+        """
+        Test processing of dataset_citation MMD element
+        """
+        # Initialize
+        md = Mmd_to_nc(self.reference_xml, self.orig_nc)
+        # Create dataset_citation element
+        MMD = "{%s}" % self.namespaces['mmd']
+        main = ET.Element(MMD+'mmd', nsmap=self.namespaces)
+        citation = ET.SubElement(main, MMD+'citation')
+        # Childs that should be ignored
+        ET.SubElement(citation, MMD+'author').text = 'Toto'
+        ET.SubElement(citation, MMD+'title').text = 'my title'
+        # Childs that should be translated to ACDD
+        ET.SubElement(citation, MMD+'url').text = 'http://metadata.eu'
+        ET.SubElement(citation, MMD+'other').text = 'Processed using my tool.'
+        # Run and test
+        md.process_citation(citation)
+        self.assertRaises(KeyError, lambda: md.acdd_metadata['title'])
+        self.assertRaises(KeyError, lambda: md.acdd_metadata['creator_name'])
+        self.assertEqual(md.acdd_metadata['metadata_link'], 'http://metadata.eu')
+        self.assertEqual(md.acdd_metadata['references'], 'Processed using my tool.')

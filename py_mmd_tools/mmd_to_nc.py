@@ -159,23 +159,30 @@ class Mmd_to_nc(object):
         """
         Special case for MMD element "dataset_citation",
         as only some of its child elements need to be translated to acdd.
-        Only translate fields that have not already been translated to acdd before
+        Only translate fields that have not already been translated to acdd before.
+        List of ACDD elements that have a translation from child elements of dataset_citation
+        element (in mmd_elements.yaml):
         - creator_name -> already translated from personnel / PI (required in mmd)
         - date_created -> in acdd relates to the data, not the metadata, so already in nc file
         - title -> already translated from title (required in mmd)
-        - publisher_name -> needs to be translated here
-        - metadata_link -> needs to be translated here
-        - references -> attribute is defined in the CF conventions, so already in nc file
+        - publisher_name -> needs to be translated here (from publisher child element)
+        - metadata_link -> needs to be translated here (from url child element)
+        - references -> needs to be translated here (from other child element)
+
+        Input
+        ====
+        element: 'dataset_citaton' XML element from MMD. Example:
+            <mmd:dataset_citation>
+                <mmd:author>Jane Doe</mmd:author>
+                <mmd:publication_date>2022-02-18T13:09:44.201246+00:00</mmd:publication_date>
+                <mmd:title>My dataset</mmd:title>
+                <mmd:publisher>John Doe</mmd:publisher>
+            </mmd:dataset_citation>
         """
-
-        out = {}
-
         for child in ['publisher', 'url', 'other']:
             found = element.find(f'mmd:{child}', namespaces=self.namespaces)
             if found is not None:
-                out[self.mmd_yaml['dataset_citation'][child]['acdd']] = found.text
-
-        return out
+                self.update_acdd({self.mmd_yaml['dataset_citation'][child]['acdd']: found.text})
 
     def get_title_and_abstract(self, element, tag):
         """
@@ -232,9 +239,7 @@ class Mmd_to_nc(object):
 
                 # Special case for MMD element "dataset_citation"
                 elif mmd_element == 'dataset_citation':
-                    match = self.process_citation(elem)
-                    if match is not None:
-                        self.update_acdd(match, sep)
+                    self.process_citation(elem)
 
                 # Subselements processed independently
                 else:
