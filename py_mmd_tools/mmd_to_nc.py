@@ -96,7 +96,7 @@ ACDD = 'ACDD-1.3'
                     except TypeError:
                         self.acdd_metadata[key] = sep.join([self.acdd_metadata[key], dict2[key]])
                 else:
-                    dict1[key] = dict2[key]
+                    self.acdd_metadata[key] = dict2[key]
         return dict1
 
     def get_last_metadata_update(self, element):
