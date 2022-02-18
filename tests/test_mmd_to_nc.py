@@ -50,27 +50,6 @@ class TestMMD2NC(unittest.TestCase):
             self.assertEqual(f.getncattr('id'), 'npp-viirs-mband-20201127134002-20201127135124')
             self.assertEqual(f.getncattr('institution'), 'MET NORWAY')
 
-    def test_update_nc_with_id_and_authority(self):
-        """
-        Test NC update with MMD where id is in the form naming_authority:id
-        """
-        tested = tempfile.mkstemp()[1]
-        shutil.copy(self.orig_nc, tested)
-        # Modify MMD input
-        tree = ET.parse(self.reference_xml)
-        id = tree.find('{*}metadata_identifier')
-        id.text = 'no.met:456'
-        modified_xml = tempfile.mkstemp()[1]
-        tree.write(modified_xml, pretty_print=True)
-        # Update NC file
-        md = Mmd_to_nc(modified_xml, tested)
-        md.update_nc()
-        """ Get global attributes of updated nc file """
-        with nc.Dataset(tested, 'r') as f:
-            """ Check some fields"""
-            self.assertEqual(f.getncattr('id'), '456')
-            self.assertEqual(f.getncattr('naming_authority'), 'no.met')
-
     def test_update_nc_with_dataset_citation(self):
         """
         Test NC update with MMD where dataset_citation is present
@@ -109,31 +88,6 @@ class TestMMD2NC(unittest.TestCase):
         with nc.Dataset(tested, 'r') as f:
             """ Check fields in updated nc file """
             self.assertEqual(f.getncattr('source'), 'Climate Indicator')
-
-    def test_update_nc_with_several_titles(self):
-        """
-        Test NC update with MMD where titles in different languages are present
-        """
-        tested = tempfile.mkstemp()[1]
-        shutil.copy(self.orig_nc, tested)
-        # Modify MMD input
-        tree = ET.parse(self.reference_xml)
-        root = tree.getroot()
-        XHTML = "{http://www.met.no/schema/mmd}"
-        title_no = ET.SubElement(root, XHTML + "title")
-        title_no.text = 'Min norske tittel'
-        title_no.set('{whatever}lang', 'no')
-        title_fr = ET.SubElement(root, XHTML + "title")
-        title_fr.text = 'Mon titre francais'
-        title_fr.set('{whatever}lang', 'fr')
-        modified_xml = tempfile.mkstemp()[1]
-        tree.write(modified_xml, pretty_print=True)
-        # Update NC file
-        md = Mmd_to_nc(modified_xml, tested)
-        md.update_nc()
-        with nc.Dataset(tested, 'r') as f:
-            """ Check fields in updated nc file """
-            self.assertEqual(f.getncattr('title_no'), 'Min norske tittelen')
 
     def test_update_nc_with_keyword_resource(self):
         """
