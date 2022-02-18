@@ -38,6 +38,7 @@ class Mmd_to_nc(object):
         tree = ET.parse(mmd_product)
         self.tree = tree
         self.namespaces = tree.getroot().nsmap
+        self.namespaces.update({'xml': 'http://www.w3.org/XML/1998/namespace'})
 
         # Get translation file between MMD and ACDD
         self.mmd_yaml = yaml.load(
@@ -184,15 +185,28 @@ class Mmd_to_nc(object):
             if found is not None:
                 self.update_acdd({self.mmd_yaml['dataset_citation'][child]['acdd']: found.text})
 
-    def get_title_and_abstract(self, element, tag):
+    def process_title_and_abstract(self, element):
         """
+        Special case for MMD elements "title" and "abstract". Both elements have repetitions
+        allowed in MMD, with different language each time. For ACDD, only the English language
+        title and abstracts are extracted.
+
+        Input
+        ====
+        element: 'title' or 'abstract' XML element from MMD. Example:
+          <mmd:title xml:lang="en">This is my dataset.</mmd:title>
         """
 
+        # Local name of element ('title' or 'abstract'),
+        # ie MMD element name without namespace
+        tag = ET.QName(element).localname
+
+        # Get ACDD name corresponding to MMD element name
         acdd_name, sep = self.get_acdd(self.mmd_yaml[tag][tag])
+        
         # Keep only title and abstract with attribute 'en' (english language)
-        for att in element.attrib:
-            if element.attrib[att] == 'en':
-                return {acdd_name: element.text}
+        if element.attrib["{%s}" % self.namespaces['xml'] + 'lang'] == 'en':
+            self.update_acdd({acdd_name: element.text})
 
     def update_nc(self):
         """
@@ -214,10 +228,9 @@ class Mmd_to_nc(object):
 
                 tag = ET.QName(elem).localname
 
+                # Special case for MMD elements "title" and "abstract"
                 if mmd_element in ['title', 'abstract']:
-                    match = self.get_title_and_abstract(elem, tag)
-                    if match is not None:
-                        self.update_acdd(match)
+                    self.process_title_and_abstract(elem)
 
                 elif mmd_element == 'keywords':
                     match, sep = self.get_keyword(elem)

@@ -37,6 +37,7 @@ class TestMMD2NC(unittest.TestCase):
         tree = ET.parse(self.reference_xml)
         self.tree = tree
         self.namespaces = tree.getroot().nsmap
+        self.namespaces.update({'xml': 'http://www.w3.org/XML/1998/namespace'})
 
     def test_update_nc_1(self):
         """
@@ -110,6 +111,30 @@ class TestMMD2NC(unittest.TestCase):
         md = Mmd_to_nc(modified_xml, tested)
         md.update_nc()
 
+    def test_title_abstract(self):
+        """
+        Test processing of title and abstract MMD elements with different languages.
+        Only the English language ones should be translated to ACDD.
+        """
+        # Initialize
+        md = Mmd_to_nc(self.reference_xml, self.orig_nc)
+        XML = "{%s}" % self.namespaces['xml']
+        MMD = "{%s}" % self.namespaces['mmd']
+        # Create title element
+        main = ET.Element(MMD+'mmd', nsmap=self.namespaces)
+        title = ET.SubElement(main, MMD+'title')
+        title.text = 'my title'
+        # - Test 1: English language title
+        title.set(XML+"lang", "en")
+        md.process_title_and_abstract(title)
+        # Expected output: English title added to ACDD attributes
+        self.assertEqual(md.acdd_metadata['title'], 'my title')
+        # - Test 2: Norwegian language title
+        title.set(XML+"lang", "no")
+        md.process_title_and_abstract(title)
+        # Expected output: Norwegian title not added to ACDD attributes
+        self.assertEqual(md.acdd_metadata['title'], 'my title')
+
     def test_dataset_citation(self):
         """
         Test processing of dataset_citation MMD element
@@ -120,10 +145,10 @@ class TestMMD2NC(unittest.TestCase):
         MMD = "{%s}" % self.namespaces['mmd']
         main = ET.Element(MMD+'mmd', nsmap=self.namespaces)
         citation = ET.SubElement(main, MMD+'citation')
-        # Childs that should be ignored
+        # Children that should be ignored
         ET.SubElement(citation, MMD+'author').text = 'Toto'
         ET.SubElement(citation, MMD+'title').text = 'my title'
-        # Childs that should be translated to ACDD
+        # Children that should be translated to ACDD
         ET.SubElement(citation, MMD+'url').text = 'http://metadata.eu'
         ET.SubElement(citation, MMD+'other').text = 'Processed using my tool.'
         # Run and test
