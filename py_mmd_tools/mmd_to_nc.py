@@ -51,18 +51,19 @@ class Mmd_to_nc(object):
     def get_acdd(mmd_field, ind=0):
         """
         Get acdd or acdd_ext value from an MMD name.
-        
+
         Input
         ====
         mmd_field: dict
-            MMD element to translate into ACDD 
+            MMD element to translate into ACDD
         ind : int (default 0)
             Index of list element to use if the value of an ACDD attribute is a list
         """
         if 'acdd' in mmd_field:
             if type(mmd_field['acdd']) is list:
                 out = mmd_field['acdd'][
-                    ind]  # always take the first - this  must be tested to ensure that we get what we want
+                    ind]  # always take the first - this  must be tested to ensure that we get
+                # what we want
             else:
                 out = mmd_field['acdd']
         else:
@@ -203,7 +204,7 @@ class Mmd_to_nc(object):
 
         # Get ACDD name corresponding to MMD element name
         acdd_name, sep = self.get_acdd(self.mmd_yaml[tag][tag])
-        
+
         # Keep only title and abstract with attribute 'en' (english language)
         if element.attrib["{%s}" % self.namespaces['xml'] + 'lang'] == 'en':
             self.update_acdd({acdd_name: element.text})
