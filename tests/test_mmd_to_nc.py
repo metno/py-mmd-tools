@@ -279,3 +279,46 @@ class TestMMD2NC(unittest.TestCase):
         self.assertEqual(md.acdd_metadata['keywords_vocabulary'],
                          'CFSTDN:https://cfconventions.org/standard-names.html,'
                          'GEMET:http://inspire.ec.europa.eu/theme')
+
+    def test_update_acdd_1(self):
+        """
+        Test updating of acdd dictionary - initialization
+        """
+        # Initialize
+        md = Mmd_to_nc(self.reference_xml, self.orig_nc)
+        # Run and test with empty acdd_metadata
+        dict1 = {'id': '12345'}
+        md.update_acdd(dict1)
+        self.assertEqual(md.acdd_metadata['id'], '12345')
+
+    def test_update_acdd_2(self):
+        """
+        Test updating of acdd dictionary - simple dictionary
+        """
+        # Initialize
+        md = Mmd_to_nc(self.reference_xml, self.orig_nc)
+        # Run and test with simple new dictionary acdd_metadata
+        dict1 = {'id': '12345'}
+        md.update_acdd(dict1)
+        dict2 = {'author': 'me'}
+        md.update_acdd(dict2)
+        self.assertEqual(md.acdd_metadata['id'], '12345')
+        self.assertEqual(md.acdd_metadata['author'], 'me')
+
+    def test_update_acdd_3(self):
+        """
+        Test updating of acdd dictionary - append an existing key
+        """
+        # Initialize
+        md = Mmd_to_nc(self.reference_xml, self.orig_nc)
+        # Add simple new dictionary acdd_metadata
+        dict1 = {'id': '12345'}
+        md.update_acdd(dict1)
+        # Add new dictionary with key already in acdd_metadata
+        dict2 = {'id': '54321'}
+        sep = {'id': ';'}
+        md.update_acdd(dict2, sep)
+        # Both values should be appended using separator
+        self.assertEqual(md.acdd_metadata['id'], '12345;54321')
+        # Add new dictionary with key already in acdd_metadata - but no separator given
+        self.assertRaises(TypeError, lambda: md.update_acdd(dict2))
