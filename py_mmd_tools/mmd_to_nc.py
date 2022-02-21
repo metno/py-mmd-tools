@@ -102,24 +102,32 @@ class Mmd_to_nc(object):
                 else:
                     self.acdd_metadata[key] = dict2[key]
 
-    def get_last_metadata_update(self, element):
+    def process_last_metadata_update(self, element):
         """
+        Special case for MMD element "last_metadata_update".
+        This element has two ACDD translations: date_created and date_metadata_modified. As the
+        appropriate translation in this case is 'date_metadata_modified' only, it has do be done
+        via a special case.
+
+        Note: It might be possible to not use a special case for this element if the order of acdd
+        translations in mmd_elements.yaml was changed.
+
+        Input
+        ====
+        element: 'last_metadata_update' XML element from MMD. Example:
+            <mmd:last_metadata_update>
+                <mmd:update>
+                    <mmd:datetime>2022-02-18T13:09:44.299926+00:00</mmd:datetime>
+                    <mmd:type>Created</mmd:type>
+                </mmd:update>
+            </mmd:last_metadata_update>
+
         """
-        out = {
-            'date_metadata_modified': element.find('mmd:update/mmd:datetime',
-                                                   namespaces=self.namespaces).text,
-            'date_metadata_modified_type': element.find('mmd:update/mmd:type',
-                                                        namespaces=self.namespaces).text
-        }
 
-        sep = {
-            'date_metadata_modified': self.mmd_yaml['last_metadata_update']['update']['datetime']
-            ['separator'],
-            'date_metadata_modified_type': self.mmd_yaml['last_metadata_update']['update']['type']
-            ['separator']
-        }
-
-        return out, sep
+        self.update_acdd({'date_metadata_modified': element.find('mmd:update/mmd:datetime',
+                                                                 namespaces=self.namespaces).text},
+                         {'date_metadata_modified': self.mmd_yaml['last_metadata_update']['update']
+                         ['datetime']['separator']})
 
     def process_personnel(self, element):
         """
@@ -272,9 +280,9 @@ class Mmd_to_nc(object):
                     match, sep = self.get_keyword(elem)
                     self.update_acdd(match, sep)
 
+                # Special case for MMD element "last_metadata_update"
                 elif mmd_element == 'last_metadata_update':
-                    match, sep = self.get_last_metadata_update(elem)
-                    self.update_acdd(match, sep)
+                    self.process_last_metadata_update(elem)
 
                 # Special case for MMD element 'personnel' and its child elements
                 elif mmd_element == 'personnel':

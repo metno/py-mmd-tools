@@ -209,3 +209,24 @@ class TestMMD2NC(unittest.TestCase):
         self.assertRaises(KeyError, lambda: md.acdd_metadata['creator_name'])
         self.assertEqual(md.acdd_metadata['metadata_link'], 'http://metadata.eu')
         self.assertEqual(md.acdd_metadata['references'], 'Processed using my tool.')
+
+    def test_last_metadata_update(self):
+        """
+        Test processing of last_metadata_update MMD element
+        """
+        # Initialize
+        md = Mmd_to_nc(self.reference_xml, self.orig_nc)
+        # Create last_metadata_update element
+        MMD = "{%s}" % self.namespaces['mmd']
+        main = ET.Element(MMD+'mmd', nsmap=self.namespaces)
+        last_metadata_update = ET.SubElement(main, MMD+'last_metadata_update')
+        update = ET.SubElement(last_metadata_update, MMD+'update')
+        # Date should be translated to ACDD
+        ET.SubElement(update, MMD+'datetime').text = '2022-02-18T13:09:44.299926+00:00'
+        # Type should not be translated to ACDD
+        ET.SubElement(update, MMD+'type').text = 'Created'
+        # Run and test
+        md.process_last_metadata_update(last_metadata_update)
+        self.assertRaises(KeyError, lambda: md.acdd_metadata['date_metadata_modified_type'])
+        self.assertEqual(md.acdd_metadata['date_metadata_modified'],
+                         '2022-02-18T13:09:44.299926+00:00')
