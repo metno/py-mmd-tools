@@ -28,22 +28,21 @@ class Mmd_to_nc(object):
         from an MMD XML file.
         Args:
             mmd_product (str): Input MMD xml file.
-            nc_file (pathlib): Nc file to update.
+            nc_file (str): Nc file to update.
         """
 
         # NC file
         self.nc = nc_file
-
-        # MMD file content / namespaces
+        # MMD file content and namespaces
         tree = ET.parse(mmd_product)
         self.tree = tree
         self.namespaces = tree.getroot().nsmap
         self.namespaces.update({'xml': 'http://www.w3.org/XML/1998/namespace'})
-
-        # Get translation file between MMD and ACDD
+        # Translation file between MMD and ACDD
         self.mmd_yaml = yaml.load(
             resource_string(py_mmd_tools.__name__, 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
+        # Dictionary that will contain all ACDD attributes
         self.acdd_metadata = None
         return
 
@@ -68,39 +67,71 @@ class Mmd_to_nc(object):
                 out = mmd_field['acdd']
         else:
             out = None
-        try:
+
+        # Check if there is separator defined for this field
+        if 'separator' in mmd_field:
             sep = mmd_field['separator']
-        except KeyError:
+        else:
             sep = None
         return out, sep
 
-    @staticmethod
-    def process_elem(elem, elem_info, tag):
-        out = None
-        sep = None
-        if not elem_info[tag] is None:
-            acdd_name, sep = Mmd_to_nc.get_acdd(elem_info[tag])
-            if acdd_name is not None:
-                out = {acdd_name: elem.text}
-        return out, sep
+    def process_element(self, xml_element, translations):
+        """
+        Translate an MMD element to ACDD and append it to the global ACDD dictionary.
 
-    def update_acdd(self, dict2, sep=None):
-        # First time = 'initialize' the dictionary
+        Input
+        ====
+        xml_element: XML element
+        translations: dict
+            Contains the MMD to ACDD translations
+        """
+
+        # Name of the XML element without namespace
+        tag = ET.QName(xml_element).localname
+
+        # Check that this element is listed in translations
+        # It can be the case for MMD child elements
+        if not translations[tag] is None:
+            acdd_name, sep = Mmd_to_nc.get_acdd(translations[tag])
+
+            # Some MMD elements that are listed in mmd_yaml do not have an ACDD
+            # translation, so must check that an ACDD translation has been found
+            if acdd_name is not None:
+                self.update_acdd({acdd_name: xml_element.text}, {acdd_name: sep})
+
+    def update_acdd(self, new_dict, sep=None):
+        """
+        Update the ACDD dictionary, ie dictionary that holds all the ACDD translations.
+        Append the information from new_dict to the ACDD dictionary.
+
+        Input
+        ====
+
+        new_dict: dictionary containing a new ACDD translation
+        sep: dictionary containing the separator character. Optional. Default is None. If sep is
+            defined, it must contain the same keys as new_dict.
+
+        """
+        # If self.acdd_metadata is empty, fill it with new_dict
         if self.acdd_metadata is None:
-            self.acdd_metadata = dict2
+            self.acdd_metadata = new_dict
+
         # Main case
         else:
-            # Check if key already present in dict1
-            for key in dict2:
+
+            # Loop on new_dict keys
+            for key in new_dict:
+
+                # If a key is already present in acdd_metadata,
+                # then the content of new_dict[key] must be appended to the already existing
+                # content of self.acdd_metadata[key], using the separator from the sep dictionary
                 if key in self.acdd_metadata:
-                    # If so, it must be a list, so we append it
-                    if type(sep) is dict:
-                        self.acdd_metadata[key] = sep[key].join(
-                            [self.acdd_metadata[key], dict2[key]])
-                    else:
-                        self.acdd_metadata[key] = sep.join([self.acdd_metadata[key], dict2[key]])
+                    self.acdd_metadata[key] = sep[key].join([self.acdd_metadata[key],
+                                                             new_dict[key]])
+
+                # Otherwise, add a new key to acdd_metadata
                 else:
-                    self.acdd_metadata[key] = dict2[key]
+                    self.acdd_metadata[key] = new_dict[key]
 
     def process_last_metadata_update(self, element):
         """
@@ -282,66 +313,72 @@ class Mmd_to_nc(object):
         Update a netcdf file global attributes.
         """
 
-        # Loop on expected MMD elements
-        # ie from mmd_elements.yaml = kind-off mapping between acdd and mmd
+        # Loop on elements from mmd_yaml
         for mmd_element in self.mmd_yaml:
 
+            # Find corresponding XML element in MMD
             elements = self.tree.findall('mmd:' + mmd_element, self.namespaces)
 
+            # Not all elements on mmd_yaml are required MMD elements,
+            # So, if element is not found on MMD, continue
             if len(elements) == 0:
                 print(f'{mmd_element} not found in input MMD file')
                 continue
 
-            # Loop on  MMD elements found
-            for elem in elements:
-
-                tag = ET.QName(elem).localname
+            # Some MMD elements have repetition allowed,
+            # so loop on  MMD elements found
+            for element in elements:
 
                 # Special case for MMD elements "title" and "abstract"
                 if mmd_element in ['title', 'abstract']:
-                    self.process_title_and_abstract(elem)
+                    self.process_title_and_abstract(element)
 
                 # Special case for keywords element
                 elif mmd_element == 'keywords':
-                    self.process_keywords(elem)
+                    self.process_keywords(element)
 
                 # Special case for MMD element "last_metadata_update"
                 elif mmd_element == 'last_metadata_update':
-                    self.process_last_metadata_update(elem)
+                    self.process_last_metadata_update(element)
 
                 # Special case for MMD element 'personnel' and its child elements
                 elif mmd_element == 'personnel':
-                    self.process_personnel(elem)
+                    self.process_personnel(element)
 
-                # No subselements
-                elif len(list(elem)) == 0:
-                    match, sep = self.process_elem(elem, self.mmd_yaml, tag)
-                    if match is not None:
-                        self.update_acdd(match, sep)
+                # If XML element found has no child elements, process it directly
+                elif len(list(element)) == 0:
+                    self.process_element(element, self.mmd_yaml)
 
                 # Special case for MMD element "dataset_citation"
+                # Processed last as its translation depends on other MMD elements processed
+                # previously
                 elif mmd_element == 'dataset_citation':
-                    self.process_citation(elem)
+                    self.process_citation(element)
 
-                # Subselements processed independently
+                # Last case: the XML element has child elements
                 else:
 
-                    for subelem in list(elem):
+                    # Name of the parent element without namespace
+                    parent_name = ET.QName(element).localname
+                    # Extract of mmd_yaml for this element and its children
+                    mmd_yaml_extract = self.mmd_yaml[parent_name]
 
-                        subtag = ET.QName(subelem).localname
+                    # Loop on child elements
+                    for child_element in list(element):
 
-                        if len(list(subelem)) > 0:
-                            for subsubelem in list(subelem):
-                                subsubtag = ET.QName(subsubelem).localname
-                                match, sep = self.process_elem(subsubelem,
-                                                               self.mmd_yaml[tag][subtag],
-                                                               subsubtag)
-                                if match is not None:
-                                    self.update_acdd(match, sep)
+                        # If child element has children elements also
+                        if len(list(child_element)) > 0:
+
+                            # Extract of mmd_yaml_extract for this child element and its children
+                            child_name = ET.QName(child_element).localname
+                            mmd_yaml_extract_extract = mmd_yaml_extract[child_name]
+
+                            for grandchild_element in list(child_element):
+                                self.process_element(grandchild_element, mmd_yaml_extract_extract)
+
+                        # If child element has no children elements
                         else:
-                            match, sep = self.process_elem(subelem, self.mmd_yaml[tag], subtag)
-                            if match is not None:
-                                self.update_acdd(match, sep)
+                            self.process_element(child_element, mmd_yaml_extract)
 
         # Open netcdf file for reading and appending
         with nc.Dataset(self.nc, 'a') as f:
