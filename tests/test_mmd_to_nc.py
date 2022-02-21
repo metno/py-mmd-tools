@@ -230,3 +230,52 @@ class TestMMD2NC(unittest.TestCase):
         self.assertRaises(KeyError, lambda: md.acdd_metadata['date_metadata_modified_type'])
         self.assertEqual(md.acdd_metadata['date_metadata_modified'],
                          '2022-02-18T13:09:44.299926+00:00')
+
+    def test_keywords_1(self):
+        """
+        Test processing of keywords MMD element
+        """
+        # Initialize
+        md = Mmd_to_nc(self.reference_xml, self.orig_nc)
+        # Create keywords element
+        MMD = "{%s}" % self.namespaces['mmd']
+        main = ET.Element(MMD+'mmd', nsmap=self.namespaces)
+        keywords = ET.SubElement(main, MMD+'keywords')
+        keywords.set("vocabulary", "CFSTDN")
+        ET.SubElement(keywords, MMD+'keyword').text = 'precipitation_amount'
+        ET.SubElement(keywords, MMD+'resource').text = \
+            'https://cfconventions.org/standard-names.html'
+        # Run and test
+        md.process_keywords(keywords)
+        self.assertEqual(md.acdd_metadata['keywords'], 'CFSTDN:precipitation_amount')
+        self.assertEqual(md.acdd_metadata['keywords_vocabulary'],
+                         'CFSTDN:https://cfconventions.org/standard-names.html')
+
+    def test_keywords_2(self):
+        """
+        Test processing of several keywords MMD element
+        """
+        # Initialize
+        md = Mmd_to_nc(self.reference_xml, self.orig_nc)
+        # Create keywords element 1
+        MMD = "{%s}" % self.namespaces['mmd']
+        main = ET.Element(MMD+'mmd', nsmap=self.namespaces)
+        keywords = ET.SubElement(main, MMD+'keywords')
+        keywords.set("vocabulary", "CFSTDN")
+        ET.SubElement(keywords, MMD+'keyword').text = 'precipitation_amount'
+        ET.SubElement(keywords, MMD+'resource').text = \
+            'https://cfconventions.org/standard-names.html'
+        # Run on element 1
+        md.process_keywords(keywords)
+        # Create keywords element 2
+        keywords = ET.SubElement(main, MMD+'keywords')
+        keywords.set("vocabulary", "GEMET")
+        ET.SubElement(keywords, MMD+'keyword').text = 'Atmospheric conditions'
+        ET.SubElement(keywords, MMD+'resource').text = 'http://inspire.ec.europa.eu/theme'
+        # Run on element 2 and test
+        md.process_keywords(keywords)
+        self.assertEqual(md.acdd_metadata['keywords'], 'CFSTDN:precipitation_amount,'
+                                                       'GEMET:Atmospheric conditions')
+        self.assertEqual(md.acdd_metadata['keywords_vocabulary'],
+                         'CFSTDN:https://cfconventions.org/standard-names.html,'
+                         'GEMET:http://inspire.ec.europa.eu/theme')

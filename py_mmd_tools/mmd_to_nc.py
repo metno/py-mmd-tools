@@ -181,24 +181,49 @@ class Mmd_to_nc(object):
         # Update the dictionary containing the ACDD elements
         self.update_acdd(out, sep)
 
-    def get_keyword(self, element):
+    def process_keywords(self, element):
         """
+        Special case for MMD element "keywords",
+        as its child elements are related one to another, so have to be processed simultaneously.
+
+        Input
+        ====
+        element: 'keywords' XML element from MMD. Example:
+            <mmd:keywords vocabulary="NORTHEMES">
+              <mmd:keyword>Weather and climate</mmd:keyword>
+              <mmd:resource>https://register.geonorge.no/subregister/metadata-kodelister/kartverket/nasjonal-temainndeling</mmd:resource>
+              <mmd:separator></mmd:separator>
+            </mmd:keywords>
+
+        Corresponding example of ACDD translation:
+            keywords = "NORTHEMES:Weather and climate"
+            keywords_vocabulary = "NORTHEMES:https://register.geonorge.no/subregister
+                                        /metadata-kodelister/kartverket/nasjonal-temainndeling"
         """
 
         out = {}
         sep = {}
+
+        # Get vocabulary attribute from MMD element
+        # It will be used as a prefix for ACDD translations
         prefix = element.attrib['vocabulary']
+
+        # ACDD keywords element
+        # Syntax: "prefix:keyword"
         out['keywords'] = ':'.join([prefix, element.find('mmd:keyword',
                                                          namespaces=self.namespaces).text])
         sep['keywords'] = self.mmd_yaml['keywords']['keyword']['separator']
-        try:
-            out['keywords_vocabulary'] = ':'.join([prefix, element.find(
-                'mmd:resource', namespaces=self.namespaces).text])
-            sep['keywords_vocabulary'] = self.mmd_yaml['keywords']['vocabulary']['separator']
-        except AttributeError:
-            print('No resource for keyword')
 
-        return out, sep
+        # ACDD keywords_vocabulary element
+        # Syntax: "prefix:uri"
+        # URI is only optional in MMD, so check if it is defined before translation
+        found = element.find('mmd:resource', namespaces=self.namespaces)
+        if found is not None:
+            out['keywords_vocabulary'] = ':'.join([prefix, found.text])
+            sep['keywords_vocabulary'] = self.mmd_yaml['keywords']['vocabulary']['separator']
+
+        # Update ACDD dictionary
+        self.update_acdd(out, sep)
 
     def process_citation(self, element):
         """
@@ -276,9 +301,9 @@ class Mmd_to_nc(object):
                 if mmd_element in ['title', 'abstract']:
                     self.process_title_and_abstract(elem)
 
+                # Special case for keywords element
                 elif mmd_element == 'keywords':
-                    match, sep = self.get_keyword(elem)
-                    self.update_acdd(match, sep)
+                    self.process_keywords(elem)
 
                 # Special case for MMD element "last_metadata_update"
                 elif mmd_element == 'last_metadata_update':
