@@ -383,13 +383,17 @@ class Mmd_to_nc(object):
         # Open netcdf file for reading and appending
         with nc.Dataset(self.nc, 'a') as f:
 
-            # Conventions
+            # Append global attribute Conventions
             self.acdd_metadata['Conventions'] = f.Conventions + ', ' + self.ACDD
 
-            # Add all global metadata to netcdf at once
-            for key in self.acdd_metadata.keys():
-                if key in f.ncattrs() and key != 'Conventions':  # optionally add more attrs
+            # Check that there is no conflict between ACDD global attributes created from MMD
+            # and global attributes already set in netcdf file. Only new global attributes are
+            # allowed, except for Conventions.
+            for key in self.acdd_metadata:
+                if key in f.ncattrs() and key != 'Conventions':
                     raise Exception("%s is already a global attribute" % key)
+
+            # Add all global metadata to netcdf at once
             f.setncatts(self.acdd_metadata)
 
         return

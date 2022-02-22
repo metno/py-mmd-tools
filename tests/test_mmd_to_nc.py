@@ -54,6 +54,22 @@ class TestMMD2NC(unittest.TestCase):
             self.assertEqual(f.getncattr('id'), 'npp-viirs-mband-20201127134002-20201127135124')
             self.assertEqual(f.getncattr('institution'), 'MET NORWAY')
 
+    def test_update_nc_2(self):
+        """
+        Test NC update from a valid MMD file and a valid NC file.
+        Check that error is raised if an attribute is defined in both MMD and NC.
+        """
+        # Initialize
+        md = Mmd_to_nc(self.reference_xml, self.orig_nc)
+        tested = tempfile.mkstemp()[1]
+        shutil.copy(self.orig_nc, tested)
+        md = Mmd_to_nc(self.reference_xml, tested)
+        # Add id attribute to nc file
+        with nc.Dataset(tested, 'a') as f:
+            f.id = 'my other id'
+        # Check that error is raised
+        self.assertRaises(Exception, lambda: md.update_nc())
+
     def test_update_nc_with_dataset_citation(self):
         """
         Test NC update with MMD where dataset_citation is present
