@@ -60,9 +60,7 @@ class Mmd_to_nc(object):
         """
         if 'acdd' in mmd_field:
             if type(mmd_field['acdd']) is list:
-                out = mmd_field['acdd'][
-                    ind]  # always take the first - this  must be tested to ensure that we get
-                # what we want
+                out = mmd_field['acdd'][ind]
             else:
                 out = mmd_field['acdd']
         else:

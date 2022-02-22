@@ -281,3 +281,38 @@ class TestMMD2NC(unittest.TestCase):
         self.assertEqual(md.acdd_metadata['id'], '12345;54321')
         # Add new dictionary with key already in acdd_metadata - but no separator given
         self.assertRaises(TypeError, lambda: md.update_acdd(dict2))
+
+    def test_get_acdd(self):
+        """
+        Test function get_acdd, ie get an acdd translation.
+        """
+        # Initialize
+        md = Mmd_to_nc(self.reference_xml, self.orig_nc)
+        # Translation dictionary
+        translation = {
+            # Simple direct translation
+            'metadata_identifier': {'acdd': 'id'},
+            # MMD element with no ACDD translation
+            'mmd_element_with_no_acdd_translation': {'acdd_ext': 'whatever'},
+            # MMD element with several ACDD translations
+            'mmd_element_with_list': {'acdd': ['translation_1', 'translation_2']},
+            # MMD element with repetition allowed
+            'mmd_element_with_repetition_allowed': {'acdd': 'whatever', 'separator': ';'}
+        }
+        # Test translation
+        # Simple direct translation
+        acdd, sep = md.get_acdd(translation['metadata_identifier'])
+        self.assertEqual(acdd, 'id')
+        self.assertIsNone(sep)
+        # MMD element with no ACDD translation
+        acdd, sep = md.get_acdd(translation['mmd_element_with_no_acdd_translation'])
+        self.assertIsNone(acdd)
+        self.assertIsNone(sep)
+        # MMD element with several ACDD translations
+        acdd, sep = md.get_acdd(translation['mmd_element_with_list'])
+        self.assertEqual(acdd, 'translation_1')
+        self.assertIsNone(sep)
+        # MMD element with repetition allowed
+        acdd, sep = md.get_acdd(translation['mmd_element_with_repetition_allowed'])
+        self.assertEqual(acdd, 'whatever')
+        self.assertEqual(sep, ';')
