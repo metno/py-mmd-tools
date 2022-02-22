@@ -70,64 +70,7 @@ class TestMMD2NC(unittest.TestCase):
         # Check that error is raised
         self.assertRaises(Exception, lambda: md.update_nc())
 
-    def test_update_nc_with_dataset_citation(self):
-        """
-        Test NC update with MMD where dataset_citation is present
-        """
-        tested = tempfile.mkstemp()[1]
-        shutil.copy(self.orig_nc, tested)
-        # Modify MMD input
-        tree = ET.parse(self.reference_xml)
-        root = tree.getroot()
-        XHTML = "{http://www.met.no/schema/mmd}"
-        citation = ET.SubElement(root, XHTML + "dataset_citation")
-        ET.SubElement(citation, XHTML + "publication_date").text = '2021-09-15'
-        ET.SubElement(citation, XHTML + "author").text = 'toto'
-        modified_xml = tempfile.mkstemp()[1]
-        tree.write(modified_xml, pretty_print=True)
-        # Update NC file
-        md = Mmd_to_nc(modified_xml, tested)
-        md.update_nc()
-
-    def test_update_nc_with_activity_type(self):
-        """
-        Test NC update with MMD where dataset_citation is present
-        """
-        tested = tempfile.mkstemp()[1]
-        shutil.copy(self.orig_nc, tested)
-        # Modify MMD input
-        tree = ET.parse(self.reference_xml)
-        root = tree.getroot()
-        XHTML = "{http://www.met.no/schema/mmd}"
-        ET.SubElement(root, XHTML + "activity_type").text = 'Climate Indicator'
-        modified_xml = tempfile.mkstemp()[1]
-        tree.write(modified_xml, pretty_print=True)
-        # Update NC file
-        md = Mmd_to_nc(modified_xml, tested)
-        md.update_nc()
-        with nc.Dataset(tested, 'r') as f:
-            """ Check fields in updated nc file """
-            self.assertEqual(f.getncattr('source'), 'Climate Indicator')
-
-    def test_update_nc_with_keyword_resource(self):
-        """
-        Test NC update with MMD where keyword resource is present
-        """
-        tested = tempfile.mkstemp()[1]
-        shutil.copy(self.orig_nc, tested)
-        # Modify MMD input
-        tree = ET.parse(self.reference_xml)
-        XHTML = "{http://www.met.no/schema/mmd}"
-        keyword = tree.find('{*}keywords')
-        resource = ET.SubElement(keyword, XHTML + "resource")
-        resource.text = 'http://inspire.ec.europa.eu'
-        modified_xml = tempfile.mkstemp()[1]
-        tree.write(modified_xml, pretty_print=True)
-        # Update NC file
-        md = Mmd_to_nc(modified_xml, tested)
-        md.update_nc()
-
-    def test_title_abstract(self):
+    def test_process_title_and_abstract(self):
         """
         Test processing of title and abstract MMD elements with different languages.
         Only the English language ones should be translated to ACDD.
@@ -151,7 +94,7 @@ class TestMMD2NC(unittest.TestCase):
         # Expected output: Norwegian title not added to ACDD attributes
         self.assertEqual(md.acdd_metadata['title'], 'my title')
 
-    def test_personnel_1(self):
+    def test_process_personnel_1(self):
         """
         Test processing of personnel MMD element with the role Principal Investigator
         """
@@ -177,7 +120,7 @@ class TestMMD2NC(unittest.TestCase):
         self.assertEqual(md.acdd_metadata['contributor_name'], 'Pepito')
         self.assertEqual(md.acdd_metadata['contributor_role'], 'Principal Investigator')
 
-    def test_personnel_2(self):
+    def test_process_personnel_2(self):
         """
         Test processing of personnel MMD element with the role Technical contact
         """
@@ -203,7 +146,7 @@ class TestMMD2NC(unittest.TestCase):
         self.assertEqual(md.acdd_metadata['creator_organisation'], 'METNO')
         self.assertEqual(md.acdd_metadata['creator_email'], 'pepito@met.no')
 
-    def test_dataset_citation(self):
+    def test_process_citation(self):
         """
         Test processing of dataset_citation MMD element
         """
@@ -226,7 +169,7 @@ class TestMMD2NC(unittest.TestCase):
         self.assertEqual(md.acdd_metadata['metadata_link'], 'http://metadata.eu')
         self.assertEqual(md.acdd_metadata['references'], 'Processed using my tool.')
 
-    def test_last_metadata_update(self):
+    def test_process_last_metadata_update(self):
         """
         Test processing of last_metadata_update MMD element
         """
@@ -247,7 +190,7 @@ class TestMMD2NC(unittest.TestCase):
         self.assertEqual(md.acdd_metadata['date_metadata_modified'],
                          '2022-02-18T13:09:44.299926+00:00')
 
-    def test_keywords_1(self):
+    def test_process_keywords_1(self):
         """
         Test processing of keywords MMD element
         """
@@ -267,7 +210,7 @@ class TestMMD2NC(unittest.TestCase):
         self.assertEqual(md.acdd_metadata['keywords_vocabulary'],
                          'CFSTDN:https://cfconventions.org/standard-names.html')
 
-    def test_keywords_2(self):
+    def test_process_keywords_2(self):
         """
         Test processing of several keywords MMD element
         """
