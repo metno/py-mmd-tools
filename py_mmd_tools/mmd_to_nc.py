@@ -58,19 +58,23 @@ class Mmd_to_nc(object):
         ind : int (default 0)
             Index of list element to use if the type of an ACDD attribute is a list
         """
+
+        out = None
+        sep = None
+
+        # Check that there is an ACDD translation available
         if 'acdd' in mmd_field:
+
+            # If translation found is a list, take only one element
             if type(mmd_field['acdd']) is list:
                 out = mmd_field['acdd'][ind]
             else:
                 out = mmd_field['acdd']
-        else:
-            out = None
 
-        # Check if there is separator defined for this field
-        if 'separator' in mmd_field:
-            sep = mmd_field['separator']
-        else:
-            sep = None
+            # Check if there is separator defined for this field
+            if 'separator' in mmd_field:
+                sep = mmd_field['separator']
+
         return out, sep
 
     def process_element(self, xml_element, translations):
@@ -87,14 +91,18 @@ class Mmd_to_nc(object):
         # Name of the XML element without namespace
         tag = ET.QName(xml_element).localname
 
-        # Check that this element is listed in translations
-        # It can be the case for MMD child elements
-        if not translations[tag] is None:
+        # Check if name exists in translation dictionary,
+        # and that if it exists, it contains information
+        if tag in translations and not translations[tag] is None:
+
+            # Corresponding ACDD element name
             acdd_name, sep = Mmd_to_nc.get_acdd(translations[tag])
 
             # Some MMD elements that are listed in mmd_yaml do not have an ACDD
             # translation, so must check that an ACDD translation has been found
             if acdd_name is not None:
+
+                # Update the dictionary containing the ACDD elements
                 self.update_acdd({acdd_name: xml_element.text}, {acdd_name: sep})
 
     def update_acdd(self, new_dict, sep=None):

@@ -326,3 +326,39 @@ class TestMMD2NC(unittest.TestCase):
         acdd, sep = md.get_acdd(translation['mmd_element_with_repetition_allowed'])
         self.assertEqual(acdd, 'whatever')
         self.assertEqual(sep, ';')
+
+    def test_process_element_1(self):
+        """
+         Test function process_element, ie, for an XML element of an MMD file, get ACDD translation
+         Simple direct translation.
+        """
+        # Initialize
+        md = Mmd_to_nc(self.reference_xml, self.orig_nc)
+        # Simple direct translation
+        element_to_translate = md.tree.find('mmd:operational_status', md.namespaces)
+        md.process_element(element_to_translate, md.mmd_yaml)
+        self.assertEqual(md.acdd_metadata['processing_level'], 'Operational')
+
+    def test_process_element_2(self):
+        """
+         Test function process_element, ie, for an XML element of an MMD file, get ACDD translation
+         Testing:
+            - MMD element not listed in the translation dictionary
+            - MMD element listed but with no information
+            - MMD element listed, with information, but without ACDD translation
+        """
+        # Initialize
+        md = Mmd_to_nc(self.reference_xml, self.orig_nc)
+        # MMD element not listed in the translation dictionary
+        element_to_translate = md.tree.find('mmd:personnel/mmd:country', md.namespaces)
+        md.process_element(element_to_translate, md.mmd_yaml)
+        self.assertIsNone(md.acdd_metadata)
+        # MMD element listed in the translation dictionary, but with no translation information
+        element_to_translate = md.tree.find('mmd:last_metadata_update/mmd:update/mmd:note',
+                                            md.namespaces)
+        md.process_element(element_to_translate, md.mmd_yaml)
+        self.assertIsNone(md.acdd_metadata)
+        # MMD element with no ACDD translation
+        element_to_translate = md.tree.find('mmd:metadata_status', md.namespaces)
+        md.process_element(element_to_translate, md.mmd_yaml)
+        self.assertIsNone(md.acdd_metadata)
