@@ -46,7 +46,17 @@ class TestMMD2NC(unittest.TestCase):
         """
         tested = tempfile.mkstemp()[1]
         shutil.copy(self.orig_nc, tested)
-        md = Mmd_to_nc(self.reference_xml, tested)
+        # Add dataset_citation to MMD input for full test
+        tree = ET.parse(self.reference_xml)
+        root = tree.getroot()
+        XHTML = "{http://www.met.no/schema/mmd}"
+        citation = ET.SubElement(root, XHTML + "dataset_citation")
+        ET.SubElement(citation, XHTML + "publication_date").text = '2021-09-15'
+        ET.SubElement(citation, XHTML + "author").text = 'toto'
+        modified_xml = tempfile.mkstemp()[1]
+        tree.write(modified_xml, pretty_print=True)
+        # Update NC file
+        md = Mmd_to_nc(modified_xml, tested)
         md.update_nc()
         """ Get global attributes of updated nc file """
         with nc.Dataset(tested, 'r') as f:
