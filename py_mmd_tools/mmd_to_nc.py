@@ -168,8 +168,8 @@ class Mmd_to_nc(object):
 
     def process_personnel(self, element):
         """
-        Special case for MMD element "personnel". Since its child elements are related one to another,
-        they must to be processed simultaneously.
+        Special case for MMD element "personnel". Since its child elements are related one to
+        another, they must to be processed simultaneously.
 
         Input
         ====
