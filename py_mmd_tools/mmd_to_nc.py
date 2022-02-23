@@ -220,8 +220,8 @@ class Mmd_to_nc(object):
 
     def process_keywords(self, element):
         """
-        Special case for MMD element "keywords",
-        as its child elements are related one to another, so have to be processed simultaneously.
+        Special case for MMD element "keywords". Since its child elements are related to one
+        another, they must be processed simultaneously.
 
         Input
         ====
