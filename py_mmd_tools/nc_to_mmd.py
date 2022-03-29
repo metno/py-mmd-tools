@@ -284,11 +284,19 @@ class Nc_to_mmd(object):
     def get_data_centers(self, mmd_element, ncin):
         """Look up ACDD and ACDD extensions to populate MMD elements"""
         acdd_short_name = mmd_element['data_center_name']['short_name'].pop('acdd_ext')
-        short_names = self.separate_repeated(True, getattr(ncin, acdd_short_name))
-        acdd_long_name = mmd_element['data_center_name']['long_name'].pop('acdd')
-        long_names = self.separate_repeated(True, getattr(ncin, acdd_long_name))
-        acdd_url = mmd_element['data_center_url'].pop('acdd')
+        short_names = []
+        try:
+            short_names = self.separate_repeated(True, getattr(ncin, acdd_short_name))
+        except AttributeError:
+            self.missing_attributes['errors'].append('%s is a required attribute' % acdd_short_name)
 
+        acdd_long_name = mmd_element['data_center_name']['long_name'].pop('acdd')
+        try:
+            long_names = self.separate_repeated(True, getattr(ncin, acdd_long_name))
+        except AttributeError:
+            self.missing_attributes['errors'].append('%s is a required attribute' % acdd_long_name)
+
+        acdd_url = mmd_element['data_center_url'].pop('acdd')
         try:
             urls = self.separate_repeated(True, getattr(ncin, acdd_url))
         except AttributeError:
