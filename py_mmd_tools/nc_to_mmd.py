@@ -288,13 +288,15 @@ class Nc_to_mmd(object):
         try:
             short_names = self.separate_repeated(True, getattr(ncin, acdd_short_name))
         except AttributeError:
-            self.missing_attributes['errors'].append('%s is a required attribute' % acdd_short_name)
+            self.missing_attributes['errors'].append('%s is a required attribute'
+                                                     % acdd_short_name)
 
         acdd_long_name = mmd_element['data_center_name']['long_name'].pop('acdd')
         try:
             long_names = self.separate_repeated(True, getattr(ncin, acdd_long_name))
         except AttributeError:
-            self.missing_attributes['errors'].append('%s is a required attribute' % acdd_long_name)
+            self.missing_attributes['errors'].append('%s is a required attribute'
+                                                     % acdd_long_name)
 
         acdd_url = mmd_element['data_center_url'].pop('acdd')
         try:

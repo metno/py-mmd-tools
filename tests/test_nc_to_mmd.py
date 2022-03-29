@@ -149,13 +149,10 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(
             nc2mmd.missing_attributes['errors'][0], 'geospatial_lat_max is a required attribute'
         )
+        self.assertEqual(nc2mmd.missing_attributes['errors'][4],
+                         'institution_short_name is a required attribute')
         self.assertEqual(
-            nc2mmd.missing_attributes['errors'][4],
-                'institution_short_name is a required attribute'
-        )
-        self.assertEqual(
-            nc2mmd.missing_attributes['errors'][5],
-                'institution is a required attribute'
+            nc2mmd.missing_attributes['errors'][5], 'institution is a required attribute'
         )
 
     def test_missing_geographic_extent_but_provided_as_kwarg(self):
