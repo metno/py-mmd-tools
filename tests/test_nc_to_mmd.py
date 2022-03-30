@@ -136,7 +136,7 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value['srsName'], 'EPSG:4326')
         self.assertEqual(value['pos'][0], '69.0000 3.7900')
 
-    def test_missing_geographic_extent(self):
+    def test_missing_nc_attrs(self):
         """ToDo: Add docstring"""
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
@@ -145,9 +145,14 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_acdd_metadata(mmd_yaml['geographic_extent'], ncin, 'geographic_extent')
         self.assertEqual(value['rectangle']['north'], None)
+        value = nc2mmd.get_data_centers(mmd_yaml['data_center'], ncin)
         self.assertEqual(
-            nc2mmd.missing_attributes['errors'][0],
-            'geospatial_lat_max is a required attribute'
+            nc2mmd.missing_attributes['errors'][0], 'geospatial_lat_max is a required attribute'
+        )
+        self.assertEqual(nc2mmd.missing_attributes['errors'][4],
+                         'institution_short_name is a required attribute')
+        self.assertEqual(
+            nc2mmd.missing_attributes['errors'][5], 'institution is a required attribute'
         )
 
     def test_missing_geographic_extent_but_provided_as_kwarg(self):
