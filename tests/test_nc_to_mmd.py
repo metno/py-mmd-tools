@@ -919,7 +919,7 @@ class TestNC2MMD(unittest.TestCase):
         tested = tempfile.mkstemp()[1]
         # md = Nc_to_mmd(self.reference_nc, output_file=tested)
         md = Nc_to_mmd('tests/data/reference_nc_with_altID_multiple.nc', output_file=tested)
-        md.to_mmd()
+        md.to_mmd(checksum_calculation=True)
         xsd_obj = etree.XMLSchema(etree.parse(self.reference_xsd))
         xml_doc = etree.ElementTree(file=tested)
         valid = xsd_obj.validate(xml_doc)
@@ -979,7 +979,7 @@ class TestNC2MMD(unittest.TestCase):
         for file in valid_files:
             tested = tempfile.mkstemp()[1]
             md = Nc_to_mmd(file, output_file=tested)
-            md.to_mmd()
+            md.to_mmd(checksum_calculation=True)
             xsd_obj = etree.XMLSchema(etree.parse(self.reference_xsd))
             xml_doc = etree.ElementTree(file=tested)
             valid = xsd_obj.validate(xml_doc)
@@ -1079,12 +1079,21 @@ class TestNC2MMD(unittest.TestCase):
         tested = tempfile.mkstemp()[1]
         fn = 'tests/data/reference_nc.nc'
         nc2mmd = Nc_to_mmd(fn, check_only=True)
-        nc2mmd.to_mmd()
+        nc2mmd.to_mmd(checksum_calculation=True)
         checksum = nc2mmd.metadata['storage_information']['checksum']
         with open(tested, 'w') as tt:
             tt.write('%s *%s'%(checksum, fn))
         md5hasher = FileHash('md5')
         self.assertTrue(md5hasher.verify_checksums(tested)[0].hashes_match)
+
+    def test_checksum_off(self):
+        """ToDo: Add docstring"""
+        fn = 'tests/data/reference_nc.nc'
+        nc2mmd = Nc_to_mmd(fn, check_only=True)
+        nc2mmd.to_mmd(checksum_calculation=False)
+        with self.assertRaises(KeyError):
+            nc2mmd.metadata['storage_information']['checksum']
+            nc2mmd.metadata['storage_information']['checksum_type']
 
     def test_spatial_repr(self):
         """ToDo: Add docstring"""
