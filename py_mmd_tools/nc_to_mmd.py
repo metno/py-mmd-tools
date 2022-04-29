@@ -862,7 +862,7 @@ class Nc_to_mmd(object):
             data['west'] = getattr(ncin, acdd_west)
         return data
 
-    def to_mmd(self, mmd_yaml=None, *args, **kwargs):
+    def to_mmd(self, mmd_yaml=None, checksum_calculation=False, *args, **kwargs):
         """Method for parsing and mapping NetCDF attributes to MMD.
 
         Some times the data producers have missed some required elements
@@ -988,21 +988,34 @@ class Nc_to_mmd(object):
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
 
         # Set storage_information
-        md5hasher = FileHash('md5', chunk_size=1048576)
-        fchecksum = md5hasher.hash_file(file_for_checksum_calculation)
-        file_location = self.netcdf_product
-        self.metadata['storage_information'] = {
-            'file_name': os.path.basename(self.netcdf_product),
-            'file_location': file_location,
-            'file_format': 'NetCDF-CF',
-            'file_size': '%.2f'%file_size,
-            'file_size_unit': 'MB',
-            'checksum': fchecksum,
-            'checksum_type': '%ssum'%md5hasher.hash_algorithm,
-        }
 
-        if rm_file_for_checksum_calculation:
-            os.remove(file_for_checksum_calculation)
+        file_location = self.netcdf_product
+
+        if checksum_calculation:
+            md5hasher = FileHash('md5', chunk_size=1048576)
+            fchecksum = md5hasher.hash_file(file_for_checksum_calculation)
+
+            self.metadata['storage_information'] = {
+                'file_name': os.path.basename(self.netcdf_product),
+                'file_location': file_location,
+                'file_format': 'NetCDF-CF',
+                'file_size': '%.2f'%file_size,
+                'file_size_unit': 'MB',
+                'checksum': fchecksum,
+                'checksum_type': '%ssum'%md5hasher.hash_algorithm,
+            }
+
+            if rm_file_for_checksum_calculation:
+                os.remove(file_for_checksum_calculation)
+
+        else:
+            self.metadata['storage_information'] = {
+                'file_name': os.path.basename(self.netcdf_product),
+                'file_location': file_location,
+                'file_format': 'NetCDF-CF',
+                'file_size': '%.2f'%file_size,
+                'file_size_unit': 'MB',
+            }
 
         if len(self.missing_attributes['warnings']) > 0:
             warnings.warn('\n\t'+'\n\t'.join(self.missing_attributes['warnings']))
