@@ -362,13 +362,20 @@ class Nc_to_mmd(object):
                 'ACDD attribute inconsistency in mmd_elements.yaml. Expected %s but received %s.'
                 % ('date_metadata_modified', received_type)
             )
+
         for field_name in acdd_time:
-            if field_name in ncin.ncattrs() and field_name == DATE_CREATED:
+            # Already checked if part of ncin
+            if field_name == DATE_CREATED:
                 times.append(ncin.date_created)
                 types.append(mmd_element['update']['type'].pop('default', 'Created'))
             else:
-                times.extend(self.separate_repeated(True, getattr(ncin, field_name)))
-                types.extend(self.separate_repeated(True, ncin.date_metadata_modified_type))
+                if field_name in ncin.ncattrs():
+                    times.extend(self.separate_repeated(True, getattr(ncin, field_name)))
+                    types.extend(self.separate_repeated(True, ncin.date_metadata_modified_type))
+                else:
+                    self.missing_attributes['warnings'].append(
+                        '%s is an optional attribute not added' % field_name
+                    )
 
         data = {}
         data['update'] = []
