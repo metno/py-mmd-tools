@@ -15,14 +15,14 @@ The ACDD recommendations should be followed in order to properly document your n
 
 [EXAMPLE]
 ====
-:keywords = "GCMDSK:Earth Science > Atmosphere > Atmospheric radiation, NORTHEMES:Weather and climate" ;
+:keywords = "GCMDSK:Earth Science > Atmosphere > Atmospheric radiation, GEMET:Meteorological geographical features, GEMET:Atmospheric conditions, NORTHEMES:Weather and climate" ;
 ====
 
 In addition, ``keywords_vocabulary`` provides information about the vocabulary defining the keywords. Example:
 
 [EXAMPLE]
 ====
-:keywords_vocabulary = "GCMDSK:GCMD Science Keywords:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/sciencekeywords, GCMDPROV:GCMD Providers:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/providers, GCMDLOC:GCMD Locations:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/locations" ;
+:keywords_vocabulary = "GCMDSK:GCMD Science Keywords:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/sciencekeywords, GCMDPROV:GCMD Providers:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/providers, GCMDLOC:GCMD Locations:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/locations, GEMET:INSPIRE Themes:http://inspire.ec.europa.eu/theme, NORTHEMES:GeoNorge Themes:https://register.geonorge.no/metadata-kodelister/nasjonal-temainndeling" ;
 ====
 
 See https://adc.met.no/node/96 for more information about how to define the ACDD keywords.
