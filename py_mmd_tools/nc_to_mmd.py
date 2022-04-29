@@ -1005,9 +1005,6 @@ class Nc_to_mmd(object):
                 'checksum_type': '%ssum'%md5hasher.hash_algorithm,
             }
 
-            if rm_file_for_checksum_calculation:
-                os.remove(file_for_checksum_calculation)
-
         else:
             self.metadata['storage_information'] = {
                 'file_name': os.path.basename(self.netcdf_product),
@@ -1016,6 +1013,9 @@ class Nc_to_mmd(object):
                 'file_size': '%.2f'%file_size,
                 'file_size_unit': 'MB',
             }
+
+        if rm_file_for_checksum_calculation:
+                os.remove(file_for_checksum_calculation)
 
         if len(self.missing_attributes['warnings']) > 0:
             warnings.warn('\n\t'+'\n\t'.join(self.missing_attributes['warnings']))
