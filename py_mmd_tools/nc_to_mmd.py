@@ -1015,7 +1015,7 @@ class Nc_to_mmd(object):
             }
 
         if rm_file_for_checksum_calculation:
-                os.remove(file_for_checksum_calculation)
+            os.remove(file_for_checksum_calculation)
 
         if len(self.missing_attributes['warnings']) > 0:
             warnings.warn('\n\t'+'\n\t'.join(self.missing_attributes['warnings']))
