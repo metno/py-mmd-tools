@@ -991,28 +991,20 @@ class Nc_to_mmd(object):
 
         file_location = self.netcdf_product
 
+        self.metadata['storage_information'] = {
+            'file_name': os.path.basename(self.netcdf_product),
+            'file_location': file_location,
+            'file_format': 'NetCDF-CF',
+            'file_size': '%.2f'%file_size,
+            'file_size_unit': 'MB',
+        }
+
         if checksum_calculation:
-            md5hasher = FileHash('md5', chunk_size=1048576)
-            fchecksum = md5hasher.hash_file(file_for_checksum_calculation)
+            hasher = FileHash('md5', chunk_size=1048576)
+            fchecksum = hasher.hash_file(file_for_checksum_calculation)
 
-            self.metadata['storage_information'] = {
-                'file_name': os.path.basename(self.netcdf_product),
-                'file_location': file_location,
-                'file_format': 'NetCDF-CF',
-                'file_size': '%.2f'%file_size,
-                'file_size_unit': 'MB',
-                'checksum': fchecksum,
-                'checksum_type': '%ssum'%md5hasher.hash_algorithm,
-            }
-
-        else:
-            self.metadata['storage_information'] = {
-                'file_name': os.path.basename(self.netcdf_product),
-                'file_location': file_location,
-                'file_format': 'NetCDF-CF',
-                'file_size': '%.2f'%file_size,
-                'file_size_unit': 'MB',
-            }
+            self.metadata['storage_information']['checksum'] = fchecksum
+            self.metadata['storage_information']['checksum_type'] = '%ssum' % hasher.hash_algorithm
 
         if rm_file_for_checksum_calculation:
             os.remove(file_for_checksum_calculation)
