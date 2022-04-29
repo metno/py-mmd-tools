@@ -1016,6 +1016,12 @@ class TestNC2MMD(unittest.TestCase):
             'ACDD attribute date_created is required'
         )
 
+    def test_ACDD_attr_date_metadata_modified_not_required(self):
+        """Ansure that only date_created is required, and that
+        date_metadata_modified is optional.
+        """
+        self.assertTrue(False)
+
     def test_get_metadata_updates_wrong_input_dict(self):
         """Test that an error is raised if there is inconsistency
         between the fields in mmd_elements.yaml and the hardcoded
@@ -1026,7 +1032,7 @@ class TestNC2MMD(unittest.TestCase):
         )
         in_dict = mmd_yaml['last_metadata_update']
         in_dict['update']['datetime']['acdd'] = [
-            'new_name_for_date_created',
+            'new_name_for_date_created', # this will cause an error
             'date_metadata_modified'
         ]
         md = Nc_to_mmd(self.reference_nc, check_only=True)
@@ -1038,7 +1044,7 @@ class TestNC2MMD(unittest.TestCase):
         )
         in_dict['update']['datetime']['acdd'] = [
             'date_created',
-            'new_name_for_date_metadata_modified'
+            'new_name_for_date_metadata_modified' # this will cause an error
         ]
         with self.assertRaises(AttributeError) as context2:
             md.get_metadata_updates(in_dict, ncin)
