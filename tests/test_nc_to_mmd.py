@@ -1017,10 +1017,21 @@ class TestNC2MMD(unittest.TestCase):
         )
 
     def test_ACDD_attr_date_metadata_modified_not_required(self):
-        """Ansure that only date_created is required, and that
+        """Ensure that only date_created is required, and that
         date_metadata_modified is optional.
         """
-        self.assertTrue(False)
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        # To overwrite date_created, wihtout saving it to file we use diskless
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.date_created = "2020-01-01T00:00:00Z"
+        md.get_metadata_updates(mmd_yaml['last_metadata_update'], ncin)
+        self.assertIn(
+            'date_metadata_modified is an optional attribute not added',
+            md.missing_attributes['warnings']
+        )
 
     def test_get_metadata_updates_wrong_input_dict(self):
         """Test that an error is raised if there is inconsistency
@@ -1032,7 +1043,7 @@ class TestNC2MMD(unittest.TestCase):
         )
         in_dict = mmd_yaml['last_metadata_update']
         in_dict['update']['datetime']['acdd'] = [
-            'new_name_for_date_created', # this will cause an error
+            'new_name_for_date_created',  # this will cause an error
             'date_metadata_modified'
         ]
         md = Nc_to_mmd(self.reference_nc, check_only=True)
@@ -1044,7 +1055,7 @@ class TestNC2MMD(unittest.TestCase):
         )
         in_dict['update']['datetime']['acdd'] = [
             'date_created',
-            'new_name_for_date_metadata_modified' # this will cause an error
+            'new_name_for_date_metadata_modified'  # this will cause an error
         ]
         with self.assertRaises(AttributeError) as context2:
             md.get_metadata_updates(in_dict, ncin)
