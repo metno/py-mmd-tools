@@ -170,17 +170,20 @@ class TestNC2MMD(unittest.TestCase):
             })
         self.assertEqual(nc2mmd.metadata['geographic_extent']['rectangle']['north'], 90)
 
+    def test_collection_is_not_list(self):
+        """Test that an error is raised if the collection input
+        parameter is not of type list.
+        """
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc', check_only=True)
+        with self.assertRaises(ValueError) as e:
+            nc2mmd.to_mmd(collection='ADC')
+        self.assertEqual(str(e.exception), 'collection must be of type list')
+
     def test_collection_not_set(self):
         """ToDo: Add docstring"""
-        mmd_yaml = yaml.load(
-            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-        )
-        nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc', check_only=True)
-        ncin = Dataset(nc2mmd.netcdf_product)
-        value = nc2mmd.get_acdd_metadata(mmd_yaml['collection'], ncin, 'collection')
-        # nc files should normally not have a collection element, as this is
-        # set during harvesting
-        self.assertEqual(value, None)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_collection.nc', check_only=True)
+        req_ok, msg = nc2mmd.to_mmd()
+        self.assertTrue(req_ok)
 
     def test_collection_set(self):
         """ToDo: Add docstring"""
@@ -373,7 +376,8 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc', check_only=True)
         with self.assertRaises(AttributeError):
             nc2mmd.to_mmd(time_coverage_start='1850-01-01T00:00:00Z')
-        self.assertEqual(nc2mmd.metadata['temporal_extent']['start_date'], '1850-01-01T00:00:00Z')
+        self.assertEqual(nc2mmd.metadata['temporal_extent']['start_date'],
+                         '1850-01-01T00:00:00Z')
 
     def test_missing_temporal_extent_but_start_and_end_provided_as_kwargs(self):
         """ToDo: Add docstring"""
@@ -384,7 +388,8 @@ class TestNC2MMD(unittest.TestCase):
                 time_coverage_start='1850-01-01T00:00:00Z',
                 time_coverage_end='1950-01-01T00:00:00Z'
             )
-        self.assertEqual(nc2mmd.metadata['temporal_extent']['start_date'], '1850-01-01T00:00:00Z')
+        self.assertEqual(nc2mmd.metadata['temporal_extent']['start_date'],
+                         '1850-01-01T00:00:00Z')
         self.assertEqual(nc2mmd.metadata['temporal_extent']['end_date'], '1950-01-01T00:00:00Z')
 
     def test_temporal_extent_two_startdates(self):
