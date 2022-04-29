@@ -1094,6 +1094,12 @@ class TestNC2MMD(unittest.TestCase):
         with self.assertRaises(KeyError):
             nc2mmd.metadata['storage_information']['checksum']
             nc2mmd.metadata['storage_information']['checksum_type']
+        # Check if default is False
+        nc2mmd = Nc_to_mmd(fn, check_only=True)
+        nc2mmd.to_mmd()
+        with self.assertRaises(KeyError):
+            nc2mmd.metadata['storage_information']['checksum']
+            nc2mmd.metadata['storage_information']['checksum_type']
 
     def test_spatial_repr(self):
         """ToDo: Add docstring"""
