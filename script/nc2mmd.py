@@ -42,6 +42,10 @@ def create_parser():
         '-w', '--add_wms_data_access', action='store_true',
         help='Optional add wms in data_access.'
     )
+    parser.add_argument(
+        '-c', '--checksum_calculation',  action='store_true',
+        help="Toggle wether to calculate the checksum of the file"
+    )
 
     return parser
 
@@ -58,6 +62,7 @@ def main(args):
     elif pathlib.Path(args.input).is_file():
         # Single nc file
         inputfiles = [args.input]
+
     else:
         raise ValueError(f'Invalid input: {args.input}')
 
@@ -65,7 +70,8 @@ def main(args):
         outfile = (args.output_dir / pathlib.Path(file).stem).with_suffix('.xml')
         md = nc_to_mmd.Nc_to_mmd(str(file), output_file=outfile)
         md.to_mmd(
-            add_wms_data_access=args.add_wms_data_access
+            add_wms_data_access=args.add_wms_data_access,
+            checksum_calculation=args.checksum_calculation
         )
 
 
