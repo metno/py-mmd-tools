@@ -35,7 +35,6 @@ from metvocab.mmdgroup import MMDGroup
 import pathlib
 from netCDF4 import Dataset
 
-from dateutil.parser._parser import ParserError
 from shapely.errors import WKTReadingError
 
 logging.basicConfig(level=logging.INFO)
