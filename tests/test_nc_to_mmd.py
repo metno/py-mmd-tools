@@ -599,7 +599,6 @@ class TestNC2MMD(unittest.TestCase):
             'keywords_vocabulary must be formatted as <short_name>:<long_name>:<url>'
         )
 
-
     def test_keywords_vocabulary_missing(self):
         """ToDo: Add docstring"""
         mmd_yaml = yaml.load(

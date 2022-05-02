@@ -584,9 +584,8 @@ class Nc_to_mmd(object):
                 # note that the url contains a ":"
                 ok_formatting = False
                 self.missing_attributes['errors'].append(
-                        '%s must be formatted as <short_name>:<long_name>:<url>'
-                        % acdd_vocabulary
-                    )
+                    '%s must be formatted as <short_name>:<long_name>:<url>'
+                    % acdd_vocabulary)
             else:
                 resources.append(voc_elems[0]+':'+voc_elems[2]+':'+voc_elems[3])
                 resource_short_names.append(voc_elems[0])
