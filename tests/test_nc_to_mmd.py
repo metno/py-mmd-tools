@@ -1026,12 +1026,13 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(self.fail_nc, check_only=True)
         # To overwrite date_created, wihtout saving it to file we use diskless
         ncin = Dataset(md.netcdf_product, "w", diskless=True)
-        ncin.date_created = "2020-01-01T00:00:00Z"
-        md.get_metadata_updates(mmd_yaml['last_metadata_update'], ncin)
+        ncin.date_created = '2020-01-01T00:00:00Z'
+        data = md.get_metadata_updates(mmd_yaml['last_metadata_update'], ncin)
         self.assertIn(
-            'date_metadata_modified is an optional attribute not added',
-            md.missing_attributes['warnings']
+            {'datetime':  ncin.date_created, 'type': 'Created'},
+            data['update']
         )
+        assert (len(data['update']) == 1)
 
     def test_get_metadata_updates_wrong_input_dict(self):
         """Test that an error is raised if there is inconsistency
