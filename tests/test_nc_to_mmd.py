@@ -133,14 +133,13 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(self.fail_nc, check_only=True)
         ncin = Dataset(md.netcdf_product, "w", diskless=True)
         ncin.geospatial_bounds = ""
-        polygon = md.get_geographic_extent_polygon(
+        md.get_geographic_extent_polygon(
             mmd_yaml['geographic_extent']['polygon'], ncin
         )
         self.assertEqual(
-            md.missing_attributes["errors"][0], 
+            md.missing_attributes["errors"][0],
             "geospatial_bounds must be formatted as a WKT string"
         )
-
 
     def test_geographic_extent_polygon(self):
         """ToDo: Add docstring"""
@@ -1053,7 +1052,7 @@ class TestNC2MMD(unittest.TestCase):
         # To overwrite date_created, wihtout saving it to file we use diskless
         ncin = Dataset(md.netcdf_product, "w", diskless=True)
         ncin.date_created = ''
-        data = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
+        md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
         self.assertEqual(
             md.missing_attributes['errors'][0],
             'ACDD attribute date_created must contain a date'
@@ -1071,7 +1070,7 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(md.netcdf_product, "w", diskless=True)
         ncin.date_created = '2019-01-01T00:00:00Z'
         ncin.date_metadata_modified = '2020-01-01T00:00:00Z'
-        data = md.get_metadata_updates(mmd_yaml['last_metadata_update'], ncin)
+        md.get_metadata_updates(mmd_yaml['last_metadata_update'], ncin)
         self.assertEqual(
             md.missing_attributes['warnings'][0],
             "Using default value 'Minor modification' for date_metadata_modified_type"
