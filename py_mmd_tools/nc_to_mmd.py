@@ -18,6 +18,7 @@ import os
 import warnings
 import yaml
 import jinja2
+import logging
 import wget
 import pandas as pd
 import shapely.wkt
@@ -36,6 +37,8 @@ from netCDF4 import Dataset
 
 from dateutil.parser._parser import ParserError
 from shapely.errors import WKTReadingError
+
+logging.basicConfig(level=logging.INFO)
 
 
 def get_attr_info(key, convention, normalized):
@@ -893,7 +896,8 @@ class Nc_to_mmd(object):
             data['west'] = getattr(ncin, acdd_west)
         return data
 
-    def to_mmd(self, mmd_yaml=None, checksum_calculation=False, *args, **kwargs):
+    def to_mmd(self, collection=None, checksum_calculation=False, mmd_yaml=None,
+               *args, **kwargs):
         """Method for parsing and mapping NetCDF attributes to MMD.
 
         Some times the data producers have missed some required elements
@@ -903,6 +907,12 @@ class Nc_to_mmd(object):
 
         Parameters
         ----------
+        collection : list, default ['ADC', 'METNCS']
+            Specify the MMD collection for which you are harvesting to.
+        checksum_calculation : bool, default False
+            True if the file checksum should be calculated.
+        mmd_yaml : str, optional
+            The yaml file to use for translation from ACDD to MMS.
         time_coverage_start : str, optional
             The start date and time, in iso8601 format, for data
             collection or model coverage.
@@ -925,6 +935,9 @@ class Nc_to_mmd(object):
 
         This list can be extended but requires some new code...
         """
+        if collection is not None and type(collection) is not list:
+            raise ValueError('collection must be of type list')
+
         # kwargs that were not added in the function def:
         time_coverage_start = kwargs.pop('time_coverage_start', '')
         time_coverage_end = kwargs.pop('time_coverage_end', '')
@@ -943,6 +956,18 @@ class Nc_to_mmd(object):
                 resource_string(self.__module__.split('.')[0], 'mmd_elements.yaml'),
                 Loader=yaml.FullLoader
             )
+
+        mmd_docs = 'https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/' \
+                   'doc/mmd-specification.html#collection-keywords'
+        default_collections = ['ADC', 'METNCS']
+        self.metadata['collection'] = self.get_acdd_metadata(mmd_yaml.pop('collection'),
+                                                             ncin, 'collection')
+        if self.metadata['collection'] is None and collection is None:
+            logging.warning('Using default values [%s, %s] for the MMD collection field. '
+                            'Please, specify other collection(s) if this is wrong. Valid '
+                            'collections are provided in the MMD documentation (%s)'
+                            % (default_collections[0], default_collections[1], mmd_docs))
+            self.metadata['collection'] = default_collections
 
         # handle tricky exceptions first
         self.metadata['metadata_identifier'] = self.get_metadata_identifier(
@@ -1006,7 +1031,7 @@ class Nc_to_mmd(object):
             for access in self.metadata['data_access']:
                 if access['type'] == 'HTTP':
                     resource = access['resource']
-            print('Downloading NetCDF file to calculate checksum...')
+            logging.info('Downloading NetCDF file to calculate checksum...')
             file_for_checksum_calculation = wget.download(resource)
             rm_file_for_checksum_calculation = True
         else:
