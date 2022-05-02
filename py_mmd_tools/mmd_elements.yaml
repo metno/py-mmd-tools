@@ -154,6 +154,7 @@ dataset_production_status:
   maxOccurs: '1'
   minOccurs: '1'
   repetition: No repetition allowed
+  default: Complete
   acdd_ext: dataset_production_status
 
 dataset_language:
