@@ -372,10 +372,6 @@ class Nc_to_mmd(object):
                 if field_name in ncin.ncattrs():
                     times.extend(self.separate_repeated(True, getattr(ncin, field_name)))
                     types.extend(self.separate_repeated(True, ncin.date_metadata_modified_type))
-                else:
-                    self.missing_attributes['warnings'].append(
-                        '%s is an optional attribute not added' % field_name
-                    )
 
         data = {}
         data['update'] = []
