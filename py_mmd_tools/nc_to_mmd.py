@@ -566,27 +566,36 @@ class Nc_to_mmd(object):
 
     def get_keywords(self, mmd_element, ncin):
         """ToDo: Add docstring"""
+        ok_formatting = True
         acdd_vocabulary = mmd_element['vocabulary'].pop('acdd')
         vocabularies = []
         if acdd_vocabulary in ncin.ncattrs():
             vocabularies = self.separate_repeated(True, getattr(ncin, acdd_vocabulary))
         else:
+            ok_formatting = False
             self.missing_attributes['errors'].append(
                 '%s is a required ACDD attribute' % acdd_vocabulary
             )
-
         resources = []
         resource_short_names = []
         for vocabulary in vocabularies:
             voc_elems = vocabulary.split(':')
-            resources.append(voc_elems[0]+':'+voc_elems[2]+':'+voc_elems[3])
-            resource_short_names.append(voc_elems[0])
+            if len(voc_elems) != 4:
+                # note that the url contains a ":"
+                ok_formatting = False
+                self.missing_attributes['errors'].append(
+                    '%s must be formatted as <short_name>:<long_name>:<url>'
+                    % acdd_vocabulary)
+            else:
+                resources.append(voc_elems[0]+':'+voc_elems[2]+':'+voc_elems[3])
+                resource_short_names.append(voc_elems[0])
 
         keywords = []
         acdd_keyword = mmd_element['keyword'].pop('acdd')
         if acdd_keyword in ncin.ncattrs():
             keywords = self.separate_repeated(True, getattr(ncin, acdd_keyword))
         else:
+            ok_formatting = False
             self.missing_attributes['errors'].append(
                 '%s is a required ACDD attribute' % acdd_keyword
             )
@@ -596,17 +605,23 @@ class Nc_to_mmd(object):
             keyword_short_name = keyword.split(':')[0]
             keyword_short_names.append(keyword_short_name)
             if keyword_short_name not in resource_short_names:
+                ok_formatting = False
                 self.missing_attributes['errors'].append(
                     '%s must be defined in the %s ACDD attribute'
                     % (keyword_short_name, acdd_vocabulary)
                 )
 
         data = []
-        for vocabulary in vocabularies:
-            prefix = vocabulary.split(':')[0]
-            resource = [r.replace(prefix+':', '') for r in resources if prefix in r][0]
-            keywords_this = [k.replace(prefix+':', '') for k in keywords if prefix in k]
-            data.append({'resource': resource, 'keyword': keywords_this, 'vocabulary': prefix})
+        if ok_formatting:
+            for vocabulary in vocabularies:
+                prefix = vocabulary.split(':')[0]
+                resource = [r.replace(prefix+':', '') for r in resources if prefix in r][0]
+                keywords_this = [k.replace(prefix+':', '') for k in keywords if prefix in k]
+                data.append({
+                    'resource': resource,
+                    'keyword': keywords_this,
+                    'vocabulary': prefix
+                })
         return data
 
     def get_projects(self, mmd_element, ncin):

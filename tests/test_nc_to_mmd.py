@@ -578,6 +578,27 @@ class TestNC2MMD(unittest.TestCase):
             'keywords is a required ACDD attribute'
         )
 
+    def test__keywords_vocabulary__correctly_formatted(self):
+        """Check that error massages are added if the
+        keywords_vocabulary attribute is not formatted
+        as short_name:long_name:url
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.keywords = "GCMDSK:Earth Science > Atmosphere > Atmospheric radiation, " \
+                        "GEMET:Meteorological geographical features, " \
+                        "GEMET:Atmospheric conditions, " \
+                        "NORTHEMES:Weather and climate"
+        ncin.keywords_vocabulary = ""
+        md.get_keywords(mmd_yaml['keywords'], ncin)
+        self.assertEqual(
+            md.missing_attributes['errors'][0],
+            'keywords_vocabulary must be formatted as <short_name>:<long_name>:<url>'
+        )
+
     def test_keywords_vocabulary_missing(self):
         """ToDo: Add docstring"""
         mmd_yaml = yaml.load(
