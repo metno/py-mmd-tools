@@ -35,6 +35,8 @@ from metvocab.mmdgroup import MMDGroup
 import pathlib
 from netCDF4 import Dataset
 
+from shapely.errors import WKTReadingError
+
 logging.basicConfig(level=logging.INFO)
 
 
@@ -365,13 +367,26 @@ class Nc_to_mmd(object):
                 'ACDD attribute inconsistency in mmd_elements.yaml. Expected %s but received %s.'
                 % ('date_metadata_modified', received_type)
             )
+
         for field_name in acdd_time:
-            if field_name in ncin.ncattrs() and field_name == DATE_CREATED:
+            # Already checked if part of ncin
+            if field_name == DATE_CREATED:
                 times.append(ncin.date_created)
                 types.append(mmd_element['update']['type'].pop('default', 'Created'))
             else:
-                times.extend(self.separate_repeated(True, getattr(ncin, field_name)))
-                types.extend(self.separate_repeated(True, ncin.date_metadata_modified_type))
+                if field_name in ncin.ncattrs():
+                    times.extend(self.separate_repeated(True, getattr(ncin, field_name)))
+                    mtypename = 'date_metadata_modified_type'
+                    if mtypename in ncin.ncattrs():
+                        modified_type = ncin.date_metadata_modified_type
+                    else:
+                        # set this to avoid a lot of failing datasets
+                        # - this should be a minor issue..
+                        modified_type = 'Minor modification'
+                        self.missing_attributes['warnings'].append(
+                            "Using default value '%s' for %s" % (modified_type, mtypename)
+                        )
+                    types.extend(self.separate_repeated(True, modified_type))
 
         data = {}
         data['update'] = []
@@ -582,7 +597,7 @@ class Nc_to_mmd(object):
             keyword_short_names.append(keyword_short_name)
             if keyword_short_name not in resource_short_names:
                 self.missing_attributes['errors'].append(
-                    '%s is must be defined in the %s ACDD attribute'
+                    '%s must be defined in the %s ACDD attribute'
                     % (keyword_short_name, acdd_vocabulary)
                 )
 
@@ -695,6 +710,7 @@ class Nc_to_mmd(object):
             publication_dates = self.separate_repeated(
                 True, getattr(ncin, acdd_publication_date)
             )
+
         acdd_title = mmd_element['title'].pop('acdd')
         if acdd_title in ncin.ncattrs():
             title = getattr(ncin, acdd_title)
@@ -708,22 +724,29 @@ class Nc_to_mmd(object):
             others = self.separate_repeated(True, getattr(ncin, acdd_other))
         data = []
         for i in range(len(publication_dates)):
-            publication_date = parse(publication_dates[i]).strftime('%Y-%m-%d')
-            if len(urls) <= i:
-                url = ''
+            try:
+                publication_date = parse(publication_dates[i]).strftime('%Y-%m-%d')
+            except ParserError:
+                # in case the dates are not actual dates
+                self.missing_attributes['errors'].append(
+                    'ACDD attribute %s must contain a date' % acdd_publication_date
+                )
             else:
-                url = urls[i]
-            if len(others) <= i:
-                other = ''
-            else:
-                other = others[i]
-            data.append({
-                'author': authors,
-                'publication_date': publication_date,
-                'title': title,
-                'url': url,
-                'other': other,
-            })
+                if len(urls) <= i:
+                    url = ''
+                else:
+                    url = urls[i]
+                if len(others) <= i:
+                    other = ''
+                else:
+                    other = others[i]
+                data.append({
+                    'author': authors,
+                    'publication_date': publication_date,
+                    'title': title,
+                    'url': url,
+                    'other': other,
+                })
         return data
 
     @staticmethod
@@ -815,20 +838,27 @@ class Nc_to_mmd(object):
 
     def get_geographic_extent_polygon(self, mmd_element, ncin):
         """ToDo: Add docstring"""
+        data = None
         acdd = mmd_element['acdd']
         if acdd not in ncin.ncattrs():
             return None
         wkt = eval('ncin.%s'%acdd)
-        pp = shapely.wkt.loads(wkt)
-        lat = pp.exterior.coords.xy[0]
-        lon = pp.exterior.coords.xy[1]
-        pos = []
-        for i in range(len(lat)):
-            pos.append('%.4f %.4f'%(lat[i], lon[i]))
-        data = {
-            'srsName': ncin.geospatial_bounds_crs,
-            'pos': pos
-        }
+        try:
+            pp = shapely.wkt.loads(wkt)
+        except WKTReadingError:
+            self.missing_attributes['errors'].append(
+                '%s must be formatted as a WKT string' % acdd
+            )
+        else:
+            lat = pp.exterior.coords.xy[0]
+            lon = pp.exterior.coords.xy[1]
+            pos = []
+            for i in range(len(lat)):
+                pos.append('%.4f %.4f'%(lat[i], lon[i]))
+            data = {
+                'srsName': ncin.geospatial_bounds_crs,
+                'pos': pos
+            }
         return data
 
     def get_geographic_extent_rectangle(self, mmd_element, ncin):

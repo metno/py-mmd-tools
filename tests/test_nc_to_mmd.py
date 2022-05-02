@@ -123,6 +123,24 @@ class TestNC2MMD(unittest.TestCase):
         value = nc2mmd.get_metadata_updates(mmd_yaml['last_metadata_update'], ncin)
         self.assertEqual(value['update'][0]['type'], 'Created')
 
+    def test_polygon_is_not_wkt(self):
+        """The geospatial_bounds nc attribute may not be a proper wkt string.
+        Test that this case is properly handled.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.geospatial_bounds = ""
+        md.get_geographic_extent_polygon(
+            mmd_yaml['geographic_extent']['polygon'], ncin
+        )
+        self.assertEqual(
+            md.missing_attributes["errors"][0],
+            "geospatial_bounds must be formatted as a WKT string"
+        )
+
     def test_geographic_extent_polygon(self):
         """ToDo: Add docstring"""
         mmd_yaml = yaml.load(
@@ -1021,6 +1039,61 @@ class TestNC2MMD(unittest.TestCase):
             'ACDD attribute date_created is required'
         )
 
+    def test_publication_date__is_a_list_of_dates(self):
+        """The publication data can be a list of dates but is set to
+        date_created. In most cases it is the only one item, but we
+        need to check that what we get from the netcdf file is an
+        actual list, and that the items are actual datestrings.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        # To overwrite date_created, wihtout saving it to file we use diskless
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.date_created = ''
+        md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
+        self.assertEqual(
+            md.missing_attributes['errors'][0],
+            'ACDD attribute date_created must contain a date'
+        )
+
+    def test_ACDD_attr__date_metadata_modified_type___missing(self):
+        """Test that the correct error is raised when date_created
+        is missing from the nc-file.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        # To overwrite date_created, wihtout saving it to file we use diskless
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.date_created = '2019-01-01T00:00:00Z'
+        ncin.date_metadata_modified = '2020-01-01T00:00:00Z'
+        md.get_metadata_updates(mmd_yaml['last_metadata_update'], ncin)
+        self.assertEqual(
+            md.missing_attributes['warnings'][0],
+            "Using default value 'Minor modification' for date_metadata_modified_type"
+        )
+
+    def test_ACDD_attr_date_metadata_modified_not_required(self):
+        """Ensure that only date_created is required, and that
+        date_metadata_modified is optional.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        # To overwrite date_created, wihtout saving it to file we use diskless
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.date_created = '2020-01-01T00:00:00Z'
+        data = md.get_metadata_updates(mmd_yaml['last_metadata_update'], ncin)
+        self.assertIn(
+            {'datetime':  ncin.date_created, 'type': 'Created'},
+            data['update']
+        )
+        assert (len(data['update']) == 1)
+
     def test_get_metadata_updates_wrong_input_dict(self):
         """Test that an error is raised if there is inconsistency
         between the fields in mmd_elements.yaml and the hardcoded
@@ -1031,7 +1104,7 @@ class TestNC2MMD(unittest.TestCase):
         )
         in_dict = mmd_yaml['last_metadata_update']
         in_dict['update']['datetime']['acdd'] = [
-            'new_name_for_date_created',
+            'new_name_for_date_created',  # this will cause an error
             'date_metadata_modified'
         ]
         md = Nc_to_mmd(self.reference_nc, check_only=True)
@@ -1043,7 +1116,7 @@ class TestNC2MMD(unittest.TestCase):
         )
         in_dict['update']['datetime']['acdd'] = [
             'date_created',
-            'new_name_for_date_metadata_modified'
+            'new_name_for_date_metadata_modified'  # this will cause an error
         ]
         with self.assertRaises(AttributeError) as context2:
             md.get_metadata_updates(in_dict, ncin)

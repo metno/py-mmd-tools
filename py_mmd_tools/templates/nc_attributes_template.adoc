@@ -22,7 +22,7 @@ In addition, ``keywords_vocabulary`` provides information about the vocabulary d
 
 [EXAMPLE]
 ====
-:keywords_vocabulary = "GCMDSK:GCMD Science Keywords:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/sciencekeywords, GCMDPROV:GCMD Providers:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/providers, GCMDLOC:GCMD Locations:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/locations, GEMET:INSPIRE Themes:http://inspire.ec.europa.eu/theme, NORTHEMES:GeoNorge Themes:https://register.geonorge.no/metadata-kodelister/nasjonal-temainndeling" ;
+:keywords_vocabulary = "GCMDSK:GCMD Science Keywords:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/sciencekeywords, GEMET:INSPIRE Themes:http://inspire.ec.europa.eu/theme, NORTHEMES:GeoNorge Themes:https://register.geonorge.no/metadata-kodelister/nasjonal-temainndeling" ;
 ====
 
 See https://adc.met.no/node/96 for more information about how to define the ACDD keywords.
@@ -39,6 +39,8 @@ A data *license* provides information about any restrictions on the use of the d
 ===== List of Attributes
 
 This section provides lists of ACDD elements that are required and recommended, as well as some extra elements that are needed to fully support our data management needs. The right columns of these tables provide the https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html[MET Norway Metadata Specification (MMD)] fields that map to the ACDD (and our extension to ACDD) elements. Please refer to https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html[MMD] for definitions of these elements, as well as controlled vocabularies that should be used. Note that the below tables are automatically generated - check https://github.com/metno/py-mmd-tools/blob/master/py_mmd_tools/mmd_elements.yaml if anything is unclear.
+
+In order to check your netCDF-CF files, and to create MMD xml files, you can use the nc2mmd.py script in the https://github.com/metno/py-mmd-tools[py-mmd-tools] Python package.
 
 The following ACDD elements are required:
 [cols=",,"]
