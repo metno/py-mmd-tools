@@ -64,7 +64,6 @@ def get_attr_info(key, convention, normalized):
     return required, repetition_allowed, repetition_str, separator, default
 
 
-
 def nc_attrs_from_yaml():
     """ToDo: Add docstring"""
     mmd_yaml = yaml.load(
@@ -140,6 +139,3 @@ def nc_attrs_from_yaml():
     out_doc = template.render(data=attributes)
 
     return out_doc
-
-
-

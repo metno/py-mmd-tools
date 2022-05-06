@@ -20,7 +20,6 @@ import yaml
 import jinja2
 import logging
 import wget
-import pandas as pd
 import shapely.wkt
 
 from filehash import FileHash
