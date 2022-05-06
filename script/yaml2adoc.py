@@ -22,7 +22,7 @@ Example:
 import sys
 import argparse
 
-from py_mmd_tools import nc_to_mmd
+from py_mmd_tools import yaml_to_adoc
 
 
 def create_parser():
@@ -43,7 +43,7 @@ def main(args):
     if not args.output_file:
         sys.exit()
 
-    adoc = nc_to_mmd.nc_attrs_from_yaml()
+    adoc = yaml_to_adoc.nc_attrs_from_yaml()
     with open(args.output_file, 'w') as fh:
         fh.write(adoc)
 
