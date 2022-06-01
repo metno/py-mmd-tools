@@ -24,7 +24,8 @@ from lxml import etree
 from netCDF4 import Dataset
 from pkg_resources import resource_string
 
-from py_mmd_tools.nc_to_mmd import Nc_to_mmd, nc_attrs_from_yaml, get_attr_info
+from py_mmd_tools.nc_to_mmd import Nc_to_mmd
+from py_mmd_tools.yaml_to_adoc import nc_attrs_from_yaml, get_attr_info
 
 warnings.simplefilter("ignore", ResourceWarning)
 
