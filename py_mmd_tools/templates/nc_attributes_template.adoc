@@ -11,18 +11,20 @@ The ACDD recommendations should be followed in order to properly document your n
 
 ===== Notes 
 
-*Keywords* describe the content of your dataset following a given vocabulary. It should be provided as a comma separated list with a short name defining the vocabulary used followed by the actual keyword, i.e., ``short_name:keyword``. Example:
-
-[EXAMPLE]
-====
-:keywords = "GCMDSK:Earth Science > Atmosphere > Atmospheric radiation, GEMET:Meteorological geographical features, GEMET:Atmospheric conditions, NORTHEMES:Weather and climate" ;
-====
-
-In addition, ``keywords_vocabulary`` provides information about the vocabulary defining the keywords. Example:
+*Keywords* describe the content of your dataset following a given vocabulary. You may use any vocabularies to define your keywords, but a link to the keyword definitions should be provided in the ``keywords_vocabulary`` attribute. This attribute provides information about the vocabulary defining the keywords used in the ``keywords`` attribute. Example:
 
 [EXAMPLE]
 ====
 :keywords_vocabulary = "GCMDSK:GCMD Science Keywords:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/sciencekeywords, GEMET:INSPIRE Themes:http://inspire.ec.europa.eu/theme, NORTHEMES:GeoNorge Themes:https://register.geonorge.no/metadata-kodelister/nasjonal-temainndeling" ;
+====
+
+Note that the *GCMDSK*, *GEMET* and *NORTHEMES* vocabularies are required for indexing in https://adc.met.no/[S-ENDA] and https://www.geonorge.no/en/[Geonorge]. You may use the links (https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/sciencekeywords[GCMDSK], http://inspire.ec.europa.eu/theme[GEMET], https://register.geonorge.no/metadata-kodelister/nasjonal-temainndeling[NORTHEMES]) to select appropriate keywords.
+
+The keywords should be provided by the ``keywords`` attribute as a comma separated list with a short name defining the vocabulary used, followed by the actual keyword, i.e., ``short_name:keyword``. Example:
+
+[EXAMPLE]
+====
+:keywords = "GCMDSK:Earth Science > Atmosphere > Atmospheric radiation, GEMET:Meteorological geographical features, GEMET:Atmospheric conditions, NORTHEMES:Weather and climate" ;
 ====
 
 See https://adc.met.no/node/96 for more information about how to define the ACDD keywords.
