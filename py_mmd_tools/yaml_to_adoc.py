@@ -25,15 +25,14 @@ def get_attr_info(key, convention, normalized):
         if it is required
     repetition: str ('yes' or 'no')
         if repetition is allowed
-    repetition_str: str
-        a longer string representation for use in the DMH (basically
-        a comment)
+    comment: str
+        a longer string representation for use in the DMH
     separator: str
         sign for separating elements that can be repeated (e.g., ','
         or ';')
     default:
-        a default value elements that are required but missing in the
-        netcdf file
+        a default value for elements that are required but missing in
+        the netcdf file
     """
     max_occurs_key = key.replace(convention, 'maxOccurs')
     if max_occurs_key in normalized.keys():
@@ -56,12 +55,12 @@ def get_attr_info(key, convention, normalized):
         default = normalized[default_key]
     else:
         default = ''
-    repetition_key = key.replace(convention, 'repetition')
-    if repetition_key in normalized.keys():
-        repetition_str = normalized[repetition_key]
+    comment_key = key.replace(convention, 'comment')
+    if comment_key in normalized.keys():
+        comment = normalized[comment_key]
     else:
-        repetition_str = ''
-    return required, repetition_allowed, repetition_str, separator, default
+        comment = ''
+    return required, repetition_allowed, comment, separator, default
 
 
 def nc_attrs_from_yaml():
@@ -91,7 +90,7 @@ def nc_attrs_from_yaml():
     attributes['acdd']['not_required'] = []
     for key, val in normalized.items():
         if key.endswith('acdd'):
-            required, repetition_allowed, repetition_str, separator, default = get_attr_info(
+            required, repetition_allowed, comment, separator, default = get_attr_info(
                 key, 'acdd', normalized
             )
             if required:
@@ -99,7 +98,7 @@ def nc_attrs_from_yaml():
                     'mmd_field': key.replace('>acdd', ''),
                     'attribute': val,
                     'repetition_allowed': repetition_allowed,
-                    'repetition_str': repetition_str,
+                    'comment': comment,
                     'separator': separator,
                     'default': default,
                 })
@@ -108,19 +107,19 @@ def nc_attrs_from_yaml():
                     'mmd_field': key.replace('>acdd', ''),
                     'attribute': val,
                     'repetition_allowed': repetition_allowed,
-                    'repetition_str': repetition_str,
+                    'comment': comment,
                     'separator': separator,
                     'default': default,
                 })
         if key.endswith('acdd_ext'):
-            required, repetition_allowed, repetition_str, separator, default = get_attr_info(
+            required, repetition_allowed, comment, separator, default = get_attr_info(
                 key, 'acdd_ext', normalized
             )
             attributes['acdd_ext'].append({
                 'mmd_field': key.replace('>acdd_ext', ''),
                 'attribute': val,
                 'repetition_allowed': repetition_allowed,
-                'repetition_str': repetition_str,
+                'comment': comment,
                 'separator': separator,
                 'default': default,
             })
