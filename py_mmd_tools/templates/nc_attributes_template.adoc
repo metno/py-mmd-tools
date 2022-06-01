@@ -49,10 +49,10 @@ The following ACDD elements are required:
 {% for elem in data['acdd']['required'] %}
     {% if elem['attribute'] | is_list %}
         {% for subelem in elem['attribute'] %}
-|{{ subelem }} | {{ elem['repetition_str'] }} | {{ elem['mmd_field'] }}
+|{{ subelem }} | {{ elem['comment'] }} | {{ elem['mmd_field'] }}
         {% endfor %}
     {% else %}
-|{{ elem['attribute'] }} | {{ elem['repetition_str'] }} | {{ elem['mmd_field'] }}
+|{{ elem['attribute'] }} | {{ elem['comment'] }} | {{ elem['mmd_field'] }}
 {% endif %}
 {% endfor %}
 |=======================================================================
@@ -64,10 +64,10 @@ The following ACDD elements are (highly) recommended:
 {% for elem in data['acdd']['not_required'] %}
     {% if elem[0] | is_list %}
         {% for subelem in elem[0] %}
-|{{ subelem }} | {{ elem['repetition_str'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
+|{{ subelem }} | {{ elem['comment'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
         {% endfor %}
     {% else %}
-|{{ elem['attribute'] }} | {{ elem['repetition_str'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
+|{{ elem['attribute'] }} | {{ elem['comment'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
 {% endif %}
 {% endfor %}
 |=======================================================================
@@ -77,6 +77,6 @@ The following elements are ACDD extensions that are needed to improve (meta)data
 |=======================================================================
 |*Necessary non-ACDD Attribute* |*Comment* |*Default* |*MMD equivalent*
 {% for elem in data['acdd_ext'] %}
-|{{ elem['attribute'] }} | {{ elem['repetition_str'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
+|{{ elem['attribute'] }} | {{ elem['comment'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
 {% endfor %}
 |=======================================================================
