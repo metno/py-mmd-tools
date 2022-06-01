@@ -101,8 +101,11 @@ class Mmd_to_nc(object):
             # Some MMD elements that are listed in mmd_yaml do not have an ACDD
             # translation, so must check that an ACDD translation has been found
             if acdd_name is not None:
-
                 # Update the dictionary containing the ACDD elements
+                if type(acdd_name) is dict:
+                    # there are separate comments for the attributes
+                    # which are not needes
+                    acdd_name = list(acdd_name.keys())
                 self.update_acdd({acdd_name: xml_element.text}, {acdd_name: sep})
 
     def update_acdd(self, new_dict, sep=None):
@@ -353,6 +356,9 @@ class Mmd_to_nc(object):
 
                 # If XML element found has no child elements, process it directly
                 elif len(list(element)) == 0:
+                    if 'metadata_identifier' in mmd_element:
+                        import ipdb
+                        ipdb.set_trace()
                     self.process_element(element, self.mmd_yaml)
 
                 # Special case for MMD element "dataset_citation"
