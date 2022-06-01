@@ -66,8 +66,8 @@ def get_attr_info(key, convention, normalized):
         sign for separating elements that can be repeated (e.g., ','
         or ';')
     default:
-        a default value elements that are required but missing in the
-        netcdf file
+        a default value for elements that are required but missing in
+        the netcdf file
     """
     max_occurs_key = key.replace(convention, 'maxOccurs')
     if max_occurs_key in normalized.keys():
