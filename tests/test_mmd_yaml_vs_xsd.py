@@ -35,6 +35,11 @@ class TestMDDElementsInYAMLAndXSD(unittest.TestCase):
             type_defs = {}
 
         for elem in elements:
+            # Make an exception for the collection field - this
+            # should be set to ADC and METNCS, and modified by
+            # MET (FoU-FD) if necessary
+            if elem['@name'].lower() == 'collection':
+                continue
             if elem['@type'].startswith('mmd:'):
                 type_defs[elem['@type']] = [elem['@name']]
             self.assertIn(elem['@name'], self.mmd_yaml.keys())

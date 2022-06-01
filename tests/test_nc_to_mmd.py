@@ -190,30 +190,28 @@ class TestNC2MMD(unittest.TestCase):
 
     def test_collection_is_not_list(self):
         """Test that an error is raised if the collection input
-        parameter is not of type list.
+        parameter is wrong type.
         """
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc', check_only=True)
         with self.assertRaises(ValueError) as e:
-            nc2mmd.to_mmd(collection='ADC')
-        self.assertEqual(str(e.exception), 'collection must be of type list')
+            nc2mmd.to_mmd(collection=2)
+        self.assertEqual(str(e.exception), 'collection must be of type str or list')
 
     def test_collection_not_set(self):
         """ToDo: Add docstring"""
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_collection.nc', check_only=True)
         req_ok, msg = nc2mmd.to_mmd()
         self.assertTrue(req_ok)
+        self.assertEqual(nc2mmd.metadata['collection'], ['ADC', 'METNCS'])
 
     def test_collection_set(self):
         """ToDo: Add docstring"""
-        mmd_yaml = yaml.load(
-            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-        )
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
-        ncin = Dataset(nc2mmd.netcdf_product)
-        value = nc2mmd.get_acdd_metadata(mmd_yaml['collection'], ncin, 'collection')
+        status, msg = nc2mmd.to_mmd(collection='ADC')
         # nc files should normally not have a collection element, as this is
         # set during harvesting
-        self.assertEqual(value, ['METNCS', 'SIOS', 'ADC'])
+        self.assertTrue(status)
+        self.assertEqual(nc2mmd.metadata['collection'], ['ADC'])
 
     def test_abstract(self):
         """ToDo: Add docstring"""

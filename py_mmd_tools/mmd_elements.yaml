@@ -2,7 +2,7 @@
 metadata_identifier:
   maxOccurs: '1'
   minOccurs: '1'
-  repetition: No repetition allowed. Both id and naming_authority are required.
+  comment: No repetition allowed. Both id and naming_authority are required.
   acdd: 
     - id
     - naming_authority
@@ -11,11 +11,11 @@ alternate_identifier:
   maxOccurs: unbounded
   minOccurs: '0'
   alternate_identifier:
-    repetition: Comma separated list
+    comment: Comma separated list
     separator: ','
     acdd_ext: alternate_identifier
   type:
-    repetition: Comma separated list
+    comment: Comma separated list
     separator: ','
     acdd_ext: alternate_identifier_type
 
@@ -28,14 +28,14 @@ last_metadata_update:
     datetime:
       minOccurs: '1'
       separator: ','
-      repetition: Use date_metadata_modified with comma separation
+      comment: Use date_metadata_modified with comma separation
       acdd: 
         - date_metadata_modified
         - date_created
     type:
       minOccurs: '1'
       separator: ','
-      repetition: Comma separated list
+      comment: Comma separated list
       acdd_ext:
         - date_metadata_modified_type
         - date_created_type
@@ -50,27 +50,19 @@ metadata_status:
   minOccurs: '1'
   default: Active
 
-# this is set during harvesting and should not normally be needed in the nc files
-collection:
-  maxOccurs: unbounded
-  minOccurs: '0'
-  repetition: Comma separated list
-  acdd_ext: collection
-  separator: ','
-
 title:
   maxOccurs: 'unbounded'
   minOccurs: '1'
   title:
     minOccurs: '1'
     acdd: title
-    repetition: Use ACDD extension for translations
+    comment: Use ACDD extension for translations
     acdd_ext:
       - title_no
   lang:
     minOccurs: '1'
     acdd_ext: title_lang
-    repetition: No repetition allowed
+    comment: No repetition allowed
     default: en
 
 abstract:
@@ -79,28 +71,28 @@ abstract:
   separator: ';'
   abstract:
     minOccurs: '1'
-    repetition: Use ACDD extension for translations
+    comment: Use ACDD extension for translations
     acdd: summary
     acdd_ext:
       - summary_no
   lang:
     minOccurs: '1'
     acdd_ext: summary_lang
-    repetition: No repetition allowed
+    comment: No repetition allowed
     default: en
 
 temporal_extent:
   maxOccurs: unbounded
   minOccurs: '1'
   start_date:
-    repetition: Comma separated list
+    comment: Comma separated list
     acdd: time_coverage_start
     separator: ','
     maxOccurs: unbounded
     minOccurs: '1'
   end_date:
     separator: ','
-    repetition: Comma separated list
+    comment: Comma separated list
     acdd: time_coverage_end
     maxOccurs: unbounded
     minOccurs: '0'
@@ -116,27 +108,27 @@ geographic_extent:
     north:
       maxOccurs: '1'
       minOccurs: '1'
-      repetition: No repetition allowed
+      comment: No repetition allowed
       acdd: geospatial_lat_max
     south:
       maxOccurs: '1'
       minOccurs: '1'
-      repetition: No repetition allowed
+      comment: No repetition allowed
       acdd: geospatial_lat_min
     east:
       maxOccurs: '1'
       minOccurs: '1'
-      repetition: No repetition allowed
+      comment: No repetition allowed
       acdd: geospatial_lon_max
     west:
       maxOccurs: '1'
       minOccurs: '1'
-      repetition: No repetition allowed
+      comment: No repetition allowed
       acdd: geospatial_lon_min
   polygon:
     maxOccurs: '1'
     minOccurs: '0'
-    repetition: No repetition allowed
+    comment: No repetition allowed
     acdd: geospatial_bounds
 
 location:
@@ -153,7 +145,7 @@ location:
 dataset_production_status:
   maxOccurs: '1'
   minOccurs: '1'
-  repetition: No repetition allowed
+  comment: No repetition allowed
   default: Complete
   acdd_ext: dataset_production_status
 
@@ -165,13 +157,13 @@ dataset_language:
 operational_status:
   maxOccurs: '1'
   minOccurs: '0'
-  repetition: No repetition allowed
+  comment: No repetition allowed
   acdd: processing_level
 
 access_constraint:
   maxOccurs: '1'
   minOccurs: '0'
-  repetition: No repetition allowed
+  comment: No repetition allowed
   acdd_ext: access_constraint
 
 use_constraint:
@@ -179,11 +171,11 @@ use_constraint:
   minOccurs: '0'
   identifier:
     maxOccurs: '1'
-    repetition: No repetition allowed
+    comment: No repetition allowed
     acdd: license
   resource:
     maxOccurs: '1'
-    repetition: No repetition allowed
+    comment: No repetition allowed
     acdd_ext: license_resource
   license_text:
 
@@ -193,21 +185,21 @@ personnel:
   role:
     default: 'Investigator'
     separator: ','
-    repetition: Comma separated list
+    comment: Comma separated list
     acdd: 
       - creator_role
       - contributor_role
   name:
     default: 'Not available'
     separator: ','
-    repetition: Comma separated list
+    comment: Comma separated list
     acdd:
       - creator_name
       - contributor_name
   email:
     default: 'Not available'
     separator: ','
-    repetition: Comma separated list
+    comment: Comma separated list
     acdd: creator_email
     acdd_ext: contributor_email
   phone:
@@ -215,7 +207,7 @@ personnel:
   organisation:
     default: 'Not available'
     separator: ','
-    repetition: Comma separated list
+    comment: Comma separated list
     acdd: creator_institution
     acdd_ext: 
       - contributor_institution
@@ -233,15 +225,15 @@ data_center:
   data_center_name:
     short_name:
       separator: ','
-      repetition: Comma separated list
+      comment: Comma separated list
       acdd_ext: institution_short_name
     long_name: 
       separator: ','
-      repetition: Comma separated list
+      comment: Comma separated list
       acdd: institution
   data_center_url:
     separator: ','
-    repetition: Comma separated list
+    comment: Comma separated list
     acdd: publisher_url
 
 data_access:
@@ -262,10 +254,10 @@ related_dataset:
   maxOccurs: unbounded
   minOccurs: '0'
   related_dataset:
-    repetition: Comma separated list
+    comment: Comma separated list
     acdd_ext: related_dataset_id
   relation_type:
-    repetition: Comma separated list
+    comment: Comma separated list
     acdd_ext: related_dataset_relation_type
 
 storage_information:
@@ -287,7 +279,7 @@ related_information:
 iso_topic_category:
   maxOccurs: unbounded
   minOccurs: '1'
-  repetition: Comma separated list
+  comment: Comma separated list
   acdd_ext: iso_topic_category
   separator: ','
 
@@ -297,11 +289,11 @@ keywords:
   keyword:
     minOccurs: '1'
     separator: ','
-    repetition: Comma separated list
+    comment: Comma separated list
     acdd: keywords
   vocabulary:
     minOccurs: '1'
-    repetition: Comma separated list
+    comment: Comma separated list
     acdd: keywords_vocabulary
     separator: ','
   resource:
@@ -312,11 +304,11 @@ project:
   minOccurs: '0'
   short_name:
     separator: ';'
-    repetition: Semicolon separated list
+    comment: Semicolon separated list
     acdd_ext: project_short_name
   long_name:
     separator: ';'
-    repetition: Semicolon separated list
+    comment: Semicolon separated list
     acdd: project
 
 platform:
@@ -324,14 +316,14 @@ platform:
   minOccurs: '0'
   short_name:
     separator: ','
-    repetition: Comma separated list
+    comment: Comma separated list
   long_name:
     separator: ','
-    repetition: Comma separated list
+    comment: Comma separated list
     acdd: platform
   resource:
     separator: ','
-    repetition: Comma separated list
+    comment: Comma separated list
     acdd: platform_vocabulary
   orbit_relative:
   orbit_absolute:
@@ -339,14 +331,14 @@ platform:
   instrument:
     short_name:
       separator: ','
-      repetition: Comma separated list
+      comment: Comma separated list
     long_name:
       separator: ','
-      repetition: Comma separated list
+      comment: Comma separated list
       acdd: instrument
     resource:
       separator: ','
-      repetition: Comma separated list
+      comment: Comma separated list
       acdd: instrument_vocabulary
     mode:
     polarisation:
@@ -359,20 +351,20 @@ platform:
 quality_control:
   maxOccurs: '1'
   minOccurs: '0'
-  repetition: No repetition allowed
+  comment: No repetition allowed
   acdd_ext: quality_control
 
 spatial_representation:
   maxOccurs: '1'
   minOccurs: '1'
-  repetition: No repetition allowed
+  comment: No repetition allowed
   acdd_ext: spatial_representation
 
 activity_type:
   maxOccurs: unbounded
   minOccurs: '0'
   acdd: source
-  repetition: Semicolon separated list
+  comment: Semicolon separated list
   separator: ';'
 
 dataset_citation:
@@ -380,11 +372,11 @@ dataset_citation:
   minOccurs: '0'
   author:
     acdd: creator_name
-    repetition: Comma separated list
+    comment: Comma separated list
     separator: ','
   publication_date:
     separator: ','
-    repetition: Comma separated list
+    comment: Comma separated list
     acdd: date_created
   title:
     acdd: title
@@ -395,16 +387,16 @@ dataset_citation:
   publication_place:
   publisher:
     separator: ','
-    repetition: Comma separated list
+    comment: Comma separated list
     acdd: publisher_name
   pages:
   isbn:
   doi:
   url:
     separator: ','
-    repetition: Comma separated list
+    comment: Comma separated list
     acdd: metadata_link
   other:
     separator: ','
-    repetition: Comma separated list
+    comment: Comma separated list
     acdd: references

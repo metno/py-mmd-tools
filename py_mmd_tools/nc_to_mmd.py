@@ -60,9 +60,8 @@ def get_attr_info(key, convention, normalized):
         if it is required
     repetition: str ('yes' or 'no')
         if repetition is allowed
-    repetition_str: str
-        a longer string representation for use in the DMH (basically
-        a comment)
+    comment: str
+        a longer string representation for use in the DMH
     separator: str
         sign for separating elements that can be repeated (e.g., ','
         or ';')
@@ -91,12 +90,12 @@ def get_attr_info(key, convention, normalized):
         default = normalized[default_key]
     else:
         default = ''
-    repetition_key = key.replace(convention, 'repetition')
-    if repetition_key in normalized.keys():
-        repetition_str = normalized[repetition_key]
+    comment_key = key.replace(convention, 'comment')
+    if comment_key in normalized.keys():
+        comment = normalized[comment_key]
     else:
-        repetition_str = ''
-    return required, repetition_allowed, repetition_str, separator, default
+        comment = ''
+    return required, repetition_allowed, comment, separator, default
 
 
 def nc_attrs_from_yaml():
@@ -126,7 +125,7 @@ def nc_attrs_from_yaml():
     attributes['acdd']['not_required'] = []
     for key, val in normalized.items():
         if key.endswith('acdd'):
-            required, repetition_allowed, repetition_str, separator, default = get_attr_info(
+            required, repetition_allowed, comment, separator, default = get_attr_info(
                 key, 'acdd', normalized
             )
             if required:
@@ -134,7 +133,7 @@ def nc_attrs_from_yaml():
                     'mmd_field': key.replace('>acdd', ''),
                     'attribute': val,
                     'repetition_allowed': repetition_allowed,
-                    'repetition_str': repetition_str,
+                    'comment': comment,
                     'separator': separator,
                     'default': default,
                 })
@@ -143,19 +142,19 @@ def nc_attrs_from_yaml():
                     'mmd_field': key.replace('>acdd', ''),
                     'attribute': val,
                     'repetition_allowed': repetition_allowed,
-                    'repetition_str': repetition_str,
+                    'comment': comment,
                     'separator': separator,
                     'default': default,
                 })
         if key.endswith('acdd_ext'):
-            required, repetition_allowed, repetition_str, separator, default = get_attr_info(
+            required, repetition_allowed, comment, separator, default = get_attr_info(
                 key, 'acdd_ext', normalized
             )
             attributes['acdd_ext'].append({
                 'mmd_field': key.replace('>acdd_ext', ''),
                 'attribute': val,
                 'repetition_allowed': repetition_allowed,
-                'repetition_str': repetition_str,
+                'comment': comment,
                 'separator': separator,
                 'default': default,
             })
@@ -237,11 +236,12 @@ class Nc_to_mmd(object):
         # TODO: clean up and refactor to get rid of all the ifs...?
 
         required = mmd_element.pop('minOccurs', '') == '1'
+
         acdd = mmd_element.pop('acdd', '')
         acdd_ext = mmd_element.pop('acdd_ext', '')
         default = mmd_element.pop('default', '')
         repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['0', '1']
-        mmd_element.pop('repetition', '')
+        mmd_element.pop('comment', '')
         separator = mmd_element.pop('separator', ',')
 
         data = None
@@ -921,7 +921,7 @@ class Nc_to_mmd(object):
 
         Parameters
         ----------
-        collection : list, default ['ADC', 'METNCS']
+        collection : list or str, default ['ADC', 'METNCS']
             Specify the MMD collection for which you are harvesting to.
         checksum_calculation : bool, default False
             True if the file checksum should be calculated.
@@ -949,8 +949,8 @@ class Nc_to_mmd(object):
 
         This list can be extended but requires some new code...
         """
-        if collection is not None and type(collection) is not list:
-            raise ValueError('collection must be of type list')
+        if collection is not None and type(collection) not in [list, str]:
+            raise ValueError('collection must be of type str or list')
 
         # kwargs that were not added in the function def:
         time_coverage_start = kwargs.pop('time_coverage_start', '')
@@ -974,14 +974,14 @@ class Nc_to_mmd(object):
         mmd_docs = 'https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/' \
                    'doc/mmd-specification.html#collection-keywords'
         default_collections = ['ADC', 'METNCS']
-        self.metadata['collection'] = self.get_acdd_metadata(mmd_yaml.pop('collection'),
-                                                             ncin, 'collection')
-        if self.metadata['collection'] is None and collection is None:
+        if collection is None:
             logging.warning('Using default values [%s, %s] for the MMD collection field. '
                             'Please, specify other collection(s) if this is wrong. Valid '
                             'collections are provided in the MMD documentation (%s)'
                             % (default_collections[0], default_collections[1], mmd_docs))
             self.metadata['collection'] = default_collections
+        else:
+            self.metadata['collection'] = [collection]
 
         # handle tricky exceptions first
         self.metadata['metadata_identifier'] = self.get_metadata_identifier(

@@ -45,7 +45,7 @@ In order to check your netCDF-CF files, and to create MMD xml files, you can use
 The following ACDD elements are required:
 [cols=",,"]
 |=======================================================================
-|*ACDD Attribute* |*Repetition* |*MMD equivalent*
+|*ACDD Attribute* |*Comment* |*MMD equivalent*
 {% for elem in data['acdd']['required'] %}
     {% if elem['attribute'] | is_list %}
         {% for subelem in elem['attribute'] %}
@@ -60,7 +60,7 @@ The following ACDD elements are required:
 The following ACDD elements are (highly) recommended:
 [cols=",,,"]
 |=======================================================================
-|*ACDD Attribute* |*Repetition* |*Default* |*MMD equivalent*
+|*ACDD Attribute* |*Comment* |*Default* |*MMD equivalent*
 {% for elem in data['acdd']['not_required'] %}
     {% if elem[0] | is_list %}
         {% for subelem in elem[0] %}
@@ -75,7 +75,7 @@ The following ACDD elements are (highly) recommended:
 The following elements are ACDD extensions that are needed to improve (meta)data interoperability. Please refer to the documentation of https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html[MMD] for more details:
 [cols=",,,"]
 |=======================================================================
-|*Necessary non-ACDD Attribute* |*Repetition* |*Default* |*MMD equivalent*
+|*Necessary non-ACDD Attribute* |*Comment* |*Default* |*MMD equivalent*
 {% for elem in data['acdd_ext'] %}
 |{{ elem['attribute'] }} | {{ elem['repetition_str'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
 {% endfor %}
