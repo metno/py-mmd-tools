@@ -36,8 +36,6 @@ from netCDF4 import Dataset
 
 from shapely.errors import WKTReadingError
 
-logging.basicConfig(level=logging.INFO)
-
 
 class Nc_to_mmd(object):
 
