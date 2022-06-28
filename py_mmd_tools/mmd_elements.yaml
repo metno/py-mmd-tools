@@ -2,10 +2,11 @@
 metadata_identifier:
   maxOccurs: '1'
   minOccurs: '1'
-  comment: No repetition allowed. Both id and naming_authority are required.
   acdd: 
-    - id
-    - naming_authority
+    id:
+      comment: Required, and should be UUID. No repetition allowed.
+    naming_authority:
+      comment: Required. We recommend using reverse-DNS naming. No repetition allowed.
 
 alternate_identifier:
   maxOccurs: unbounded

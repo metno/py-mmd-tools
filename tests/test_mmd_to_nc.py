@@ -301,7 +301,17 @@ class TestMMD2NC(unittest.TestCase):
         # Translation dictionary
         translation = {
             # Simple direct translation
-            'metadata_identifier': {'acdd': 'id'},
+            'metadata_identifier': {
+                'acdd': {
+                    'id': {
+                        'comment': 'Required, and should be UUID. No repetition allowed.'
+                    },
+                    'naming_authority': {
+                        'comment': 'Required. We recommend using reverse-DNS naming. No ' \
+                                'repetition allowed.'
+                    }
+                }
+            },
             # MMD element with no ACDD translation
             'mmd_element_with_no_acdd_translation': {'acdd_ext': 'whatever'},
             # MMD element with several ACDD translations

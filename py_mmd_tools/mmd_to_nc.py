@@ -47,35 +47,40 @@ class Mmd_to_nc(object):
         return
 
     @staticmethod
-    def get_acdd(mmd_field, ind=0):
+    def get_acdd(mmd_field):
         """
         Get corresponding ACDD element name from an MMD name.
 
-        Input
-        ====
-        mmd_field: dict
-            MMD element to translate into ACDD
-        ind : int (default 0)
-            Index of list element to use if the type of an ACDD attribute is a list
+        Parameters
+        ----------
+        mmd_field : dict
+            MMD element to translate into ACDD.
+
+        Returns
+        -------
+        acdd_attrs : list
+            List of ACDD attributes that can be used for this MMD
+            field.
+        comments : list
+            One comment for each ACDD attribute. If there is no
+            comment for an ACDD attribute, the corresponding list
+            item is None.
+
         """
 
-        out = None
-        sep = None
+        acdd_fields = []
+        comments = []
 
         # Check that there is an ACDD translation available
         if 'acdd' in mmd_field:
+            for key in mmd_field['acdd'].keys():
+                acdd_fields.append(key)
+                if 'comment' in mmd_field['acdd'][key]:
+                    comments.append(mmd_field['acdd'][key]['comment'])
+                else:
+                    comments.append(None)
 
-            # If translation found is a list, take only one element
-            if type(mmd_field['acdd']) is list:
-                out = mmd_field['acdd'][ind]
-            else:
-                out = mmd_field['acdd']
-
-            # Check if there is separator defined for this field
-            if 'separator' in mmd_field:
-                sep = mmd_field['separator']
-
-        return out, sep
+        return acdd_fields, comments
 
     def process_element(self, xml_element, translations):
         """
