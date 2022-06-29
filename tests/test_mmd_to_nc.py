@@ -315,26 +315,44 @@ class TestMMD2NC(unittest.TestCase):
             # MMD element with no ACDD translation
             'mmd_element_with_no_acdd_translation': {'acdd_ext': 'whatever'},
             # MMD element with several ACDD translations
-            'mmd_element_with_list': {'acdd': ['translation_1', 'translation_2']},
+            'mmd_element_with_options': {
+                'acdd': {
+                    'translation_1': {},
+                    'translation_2': {}
+                }
+            },
             # MMD element with repetition allowed
-            'mmd_element_with_repetition_allowed': {'acdd': 'whatever', 'separator': ';'}
+            'mmd_element_with_repetition_allowed': {
+                'acdd': {
+                    'whatever': {'separator': ';'}
+                }
+            }
         }
         # Test translation
         # Simple direct translation
-        acdd, sep = md.get_acdd(translation['metadata_identifier'])
-        self.assertEqual(acdd, 'id')
-        self.assertIsNone(sep)
+        acdd, comment, sep = md.get_acdd(translation['metadata_identifier'])
+        self.assertEqual(acdd[0], 'id')
+        self.assertEqual(acdd[1], 'naming_authority')
+        self.assertEqual(comment[0],
+                translation['metadata_identifier']['acdd']['id']['comment'])
+        self.assertEqual(comment[1],
+                translation['metadata_identifier']['acdd']['naming_authority']['comment'])
+
         # MMD element with no ACDD translation
-        acdd, sep = md.get_acdd(translation['mmd_element_with_no_acdd_translation'])
+        acdd, comment, sep = md.get_acdd(translation['mmd_element_with_no_acdd_translation'])
         self.assertIsNone(acdd)
         self.assertIsNone(sep)
+
         # MMD element with several ACDD translations
-        acdd, sep = md.get_acdd(translation['mmd_element_with_list'])
-        self.assertEqual(acdd, 'translation_1')
-        self.assertIsNone(sep)
+        acdd, comment, sep = md.get_acdd(translation['mmd_element_with_options'])
+        self.assertEqual(acdd[0], 'translation_1')
+        self.assertEqual(acdd[1], 'translation_2')
+        self.assertIsNone(sep[0])
+        self.assertIsNone(sep[1])
+
         # MMD element with repetition allowed
-        acdd, sep = md.get_acdd(translation['mmd_element_with_repetition_allowed'])
-        self.assertEqual(acdd, 'whatever')
+        acdd, comment, sep = md.get_acdd(translation['mmd_element_with_repetition_allowed'])
+        self.assertEqual(acdd[0], 'whatever')
         self.assertEqual(sep, ';')
 
     def test_process_element_1(self):

@@ -75,10 +75,13 @@ class Mmd_to_nc(object):
         if 'acdd' in mmd_field:
             for key in mmd_field['acdd'].keys():
                 acdd_fields.append(key)
-                if 'comment' in mmd_field['acdd'][key]:
+                if 'comment' in mmd_field['acdd'][key].keys():
                     comments.append(mmd_field['acdd'][key]['comment'])
                 else:
                     comments.append(None)
+        else:
+            acdd_fields = None
+            comments = None
 
         return acdd_fields, comments
 
