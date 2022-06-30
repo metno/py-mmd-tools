@@ -79,15 +79,20 @@ class Nc_to_mmd(object):
             raise ValueError('Instrument or Platform group were not initialised')
 
         # Open netcdf file for reading
+        with self.read_nc_file(self.netcdf_product) as ncin:
+            self.check_attributes_not_empty(ncin)
+
+        return
+
+    def read_nc_file(self, fn):
+        """ Open netcdf dataset, appending #fillmismatch if necessary
+        """
         try:
             ncin = Dataset(self.netcdf_product)
         except OSError:
             ncin = Dataset(self.netcdf_product+'#fillmismatch')
 
-        self.check_attributes_not_empty(ncin)
-        ncin.close()
-
-        return
+        return ncin
 
     def separate_repeated(self, repetition_allowed, acdd_attr, separator=','):
         """ToDo: Add docstring"""
@@ -169,24 +174,26 @@ class Nc_to_mmd(object):
         """Look up ACDD and ACDD extensions to populate MMD elements"""
         acdd_short_name = mmd_element['data_center_name']['short_name'].pop('acdd_ext')
         short_names = []
+
+        acdd_short_name_key = list(acdd_short_name.keys())[0]
         try:
-            short_names = self.separate_repeated(True, getattr(
-                ncin, list(acdd_short_name.keys())[0]))
+            short_names = self.separate_repeated(True, getattr(ncin, acdd_short_name_key))
         except AttributeError:
             self.missing_attributes['errors'].append('%s is a required attribute'
-                                                     % acdd_short_name)
+                                                     % acdd_short_name_key)
 
         acdd_long_name = mmd_element['data_center_name']['long_name'].pop('acdd')
+        acdd_long_name_key = list(acdd_long_name.keys())[0]
         try:
-            long_names = self.separate_repeated(True, getattr(ncin,
-                list(acdd_long_name.keys())[0]))
+            long_names = self.separate_repeated(True, getattr(ncin, acdd_long_name_key))
         except AttributeError:
             self.missing_attributes['errors'].append('%s is a required attribute'
-                                                     % acdd_long_name)
+                                                     % acdd_long_name_key)
 
         acdd_url = mmd_element['data_center_url'].pop('acdd')
+        acdd_url_key = list(acdd_url.keys())[0]
         try:
-            urls = self.separate_repeated(True, getattr(ncin, list(acdd_url.keys())[0]))
+            urls = self.separate_repeated(True, getattr(ncin, acdd_url_key))
         except AttributeError:
             urls = ''
 
@@ -328,7 +335,7 @@ class Nc_to_mmd(object):
         start_dates = []
         acdd_start_key = list(acdd_start.keys())[0]
         if acdd_start_key in ncin.ncattrs():
-            start_dates = [getattr(ncin, acdd_start_key)]
+            start_dates = self.separate_repeated(True, getattr(ncin, acdd_start_key))
         else:
             self.missing_attributes['errors'].append(
                 '%s is a required ACDD attribute' % acdd_start_key
@@ -336,7 +343,7 @@ class Nc_to_mmd(object):
         acdd_end_key = list(acdd_end.keys())[0]
         end_dates = []
         if acdd_end_key in ncin.ncattrs():
-            end_dates = [getattr(ncin, acdd_end_key)]
+            end_dates = self.separate_repeated(True, getattr(ncin, acdd_end_key))
 
         if start_dates:
             try:
@@ -626,10 +633,10 @@ class Nc_to_mmd(object):
                 True, getattr(ncin, acdd_publication_date_key)
             )
 
-        #acdd_title = mmd_element['title'].pop('acdd')
-        #acdd_title_key = list(acdd_title.keys())[0]
-        #if acdd_title_key in ncin.ncattrs():
-        #    title = getattr(ncin, acdd_title_key)
+        acdd_title = mmd_element['title'].pop('acdd')
+        acdd_title_key = list(acdd_title.keys())[0]
+        if acdd_title_key in ncin.ncattrs():
+            title = getattr(ncin, acdd_title_key)
         acdd_url = mmd_element['url'].pop('acdd')
         urls = []
         acdd_url_key = list(acdd_url.keys())[0]
@@ -641,15 +648,13 @@ class Nc_to_mmd(object):
         if acdd_other_key in ncin.ncattrs():
             others = self.separate_repeated(True, getattr(ncin, acdd_other_key))
         data = []
-        import ipdb
-        ipdb.set_trace()
         for i in range(len(publication_dates)):
             try:
                 publication_date = isoparse(publication_dates[i])
             except ParserError:
                 # in case the dates are not actual dates
                 self.missing_attributes['errors'].append(
-                    'ACDD attribute %s must contain a valid date' % acdd_publication_date
+                    'ACDD attribute %s must contain a valid ISO8601 date' % acdd_publication_date
                 )
             else:
                 if len(urls) <= i:
@@ -662,8 +667,9 @@ class Nc_to_mmd(object):
                     other = others[i]
                 data.append({
                     'author': authors,
-                    'publication_date': publication_date,
-                    'title': self.metadata['title'],
+                    # save as ISO8601, not datetime object..
+                    'publication_date': publication_dates[i],
+                    'title': title,
                     'url': url,
                     'other': other,
                 })
@@ -772,7 +778,7 @@ class Nc_to_mmd(object):
             pp = shapely.wkt.loads(wkt)
         except WKTReadingError:
             self.missing_attributes['errors'].append(
-                '%s must be formatted as a WKT string' % acdd
+                '%s must be formatted as a WKT string' % acdd_key
             )
         else:
             lat = pp.exterior.coords.xy[0]
@@ -834,7 +840,8 @@ class Nc_to_mmd(object):
         """
         for attr in ncin.ncattrs():
             if not ncin.getncattr(attr):
-                raise ValueError("Global attribute %s is empty - please correct." % attr)
+                raise ValueError("%s: Global attribute %s is empty - please correct." % (
+                    self.netcdf_product, attr))
 
     def to_mmd(self, collection=None, checksum_calculation=False, mmd_yaml=None,
                *args, **kwargs):
@@ -884,10 +891,7 @@ class Nc_to_mmd(object):
         geographic_extent_rectangle = kwargs.pop('geographic_extent_rectangle', '')
 
         # Open netcdf file for reading
-        try:
-            ncin = Dataset(self.netcdf_product)
-        except OSError:
-            ncin = Dataset(self.netcdf_product+'#fillmismatch')
+        ncin = self.read_nc_file(self.netcdf_product)
 
         self.check_attributes_not_empty(ncin)
 
@@ -945,10 +949,10 @@ class Nc_to_mmd(object):
         if geographic_extent_rectangle:
             self.metadata['geographic_extent']['rectangle'] = {
                 'srsName': 'EPSG:4326',
-                'north': list(geographic_extent_rectangle['geospatial_lat_max'].keys())[0],
-                'south': list(geographic_extent_rectangle['geospatial_lat_min'].keys())[0],
-                'west': list(geographic_extent_rectangle['geospatial_lon_min'].keys())[0],
-                'east': list(geographic_extent_rectangle['geospatial_lon_max'].keys())[0]
+                'north': geographic_extent_rectangle['geospatial_lat_max'],
+                'south': geographic_extent_rectangle['geospatial_lat_min'],
+                'west': geographic_extent_rectangle['geospatial_lon_min'],
+                'east': geographic_extent_rectangle['geospatial_lon_max'],
             }
             mmd_yaml['geographic_extent'].pop('rectangle')
         else:

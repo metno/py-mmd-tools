@@ -18,11 +18,12 @@ import unittest
 
 import pandas as pd
 
-from unittest.mock import patch
+from dateutil.parser import isoparse
 from filehash import FileHash
 from lxml import etree
 from netCDF4 import Dataset
 from pkg_resources import resource_string
+from unittest.mock import patch
 
 from py_mmd_tools.nc_to_mmd import Nc_to_mmd
 from py_mmd_tools.yaml_to_adoc import nc_attrs_from_yaml, get_attr_info
@@ -175,13 +176,14 @@ class TestNC2MMD(unittest.TestCase):
         )
 
     def test_missing_geographic_extent_but_provided_as_kwarg(self):
-        """ToDo: Add docstring"""
+        """Test that the geographic extent rectangle can be added
+        as a kwarg.
+        """
         yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
-        nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc', check_only=True)
-        with self.assertRaises(AttributeError):
-            nc2mmd.to_mmd(geographic_extent_rectangle={
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_rectangle.nc', check_only=True)
+        nc2mmd.to_mmd(geographic_extent_rectangle={
                 'geospatial_lat_max': 90,
                 'geospatial_lat_min': -90,
                 'geospatial_lon_min': -180,
@@ -499,12 +501,6 @@ class TestNC2MMD(unittest.TestCase):
             check_only=True
         )
         ncin = Dataset(nc2mmd.netcdf_product)
-        mmd_yaml['personnel']['name']['acdd'].pop(-1)
-        mmd_yaml['personnel']['name']['acdd'] = mmd_yaml['personnel']['name']['acdd'][0]
-        mmd_yaml['personnel']['role']['acdd'].pop(-1)
-        mmd_yaml['personnel']['role']['acdd'] = mmd_yaml['personnel']['role']['acdd'][0]
-        mmd_yaml['personnel']['email'].pop('acdd_ext')
-        mmd_yaml['personnel']['organisation'].pop('acdd_ext')
         value = nc2mmd.get_personnel(mmd_yaml['personnel'], ncin)
         self.assertEqual(value[0]['name'], 'Trygve')
         self.assertEqual(value[1]['name'], 'Nina')
@@ -734,10 +730,9 @@ class TestNC2MMD(unittest.TestCase):
             'http://nbstds.met.no/thredds/dodsC/NBS/S1A/2021/01/31/IW/'
             'S1A_IW_GRDH_1SDV_20210131T172816_20210131T172841_036385_04452D_505F.nc'
         )
-        nc2mmd = Nc_to_mmd(fn, check_only=True)
         try:
-            nc2mmd.to_mmd()
-        except Exception:
+            nc2mmd = Nc_to_mmd(fn, check_only=True)
+        except Exception as e:
             pass
         mock_nc_dataset.assert_called_with(fn+'#fillmismatch')
 
@@ -1073,16 +1068,14 @@ class TestNC2MMD(unittest.TestCase):
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
-        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        md = Nc_to_mmd(self.reference_nc, check_only=True)
         # To overwrite date_created, wihtout saving it to file we use diskless
-        ncin = Dataset(md.netcdf_product, "w", diskless=True)
-        ncin.title = 'Test dataset'
-        ncin.date_created = '2020-01-01T12:00:00Z, 2021-01-01T12:00:00Z, 2022-01-01T12:00:00Z'
-        md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
-        self.assertEqual(
-            md.missing_attributes['errors'][0],
-            'ACDD attribute date_created must contain a date'
-        )
+        ncin = Dataset(md.netcdf_product)
+        #ncin.date_created = '2020-01-01T12:00:00Z'
+        #md.metadata['title'] = 'Test dataset'
+        data = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
+        self.assertEqual(data[0]['title'],
+                'Direct Broadcast data processed in satellite swath to L1C.')
 
     def test_ACDD_attr__date_metadata_modified_type___missing(self):
         """Test that the correct error is raised when date_created
@@ -1172,8 +1165,10 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
-        dt = datetime.datetime.strptime(value[0]['publication_date'], d_format)
-        self.assertEqual(dt, datetime.datetime(2020, 11, 27, 0, 0))
+        dt = isoparse(value[0]['publication_date'])
+        self.assertEqual(dt.year, 2020)
+        self.assertEqual(dt.month, 11)
+        self.assertEqual(dt.day, 27)
         self.assertEqual(
             value[0]['title'], 'Direct Broadcast data processed in satellite swath to L1C.'
         )
@@ -1244,6 +1239,15 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd.to_mmd()
         spatial_repr = nc2mmd.metadata['access_constraint']
         self.assertEqual(spatial_repr, 'Open')
+
+    def test_check_attributes_not_empty(self):
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.geospatial_bounds = ""
+        with self.assertRaises(ValueError) as e:
+            md.check_attributes_not_empty(ncin)
+        self.assertIn('Global attribute geospatial_bounds is empty - please correct.',
+                str(e.exception))
 
 
 if __name__ == '__main__':
