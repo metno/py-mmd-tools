@@ -834,7 +834,12 @@ class TestNC2MMD(unittest.TestCase):
         mmd_yaml['dummy_field'] = {}
         mmd_yaml['dummy_field']['minOccurs'] = '1'
         mmd_yaml['dummy_field']['default'] = 'test'
-        mmd_yaml['dummy_field']['acdd_ext'] = 'dummy_field'
+        mmd_yaml['dummy_field']['acdd_ext'] = {
+                'dummy_field': {
+                    'comment': 'no comment',
+                    'default': 'hei'
+                }
+            }
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
         nc2mmd.to_mmd(mmd_yaml=mmd_yaml)
         self.assertEqual(
@@ -1071,7 +1076,8 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(self.fail_nc, check_only=True)
         # To overwrite date_created, wihtout saving it to file we use diskless
         ncin = Dataset(md.netcdf_product, "w", diskless=True)
-        ncin.date_created = ''
+        ncin.title = 'Test dataset'
+        ncin.date_created = '2020-01-01T12:00:00Z, 2021-01-01T12:00:00Z, 2022-01-01T12:00:00Z'
         md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
         self.assertEqual(
             md.missing_attributes['errors'][0],

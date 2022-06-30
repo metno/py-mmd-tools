@@ -353,7 +353,7 @@ class TestMMD2NC(unittest.TestCase):
         # MMD element with repetition allowed
         acdd, comment, sep = md.get_acdd(translation['mmd_element_with_repetition_allowed'])
         self.assertEqual(acdd[0], 'whatever')
-        self.assertEqual(sep, ';')
+        self.assertEqual(sep[0], ';')
 
     def test_process_element_1(self):
         """

@@ -70,6 +70,7 @@ class Mmd_to_nc(object):
 
         acdd_fields = []
         comments = []
+        sep = []
 
         # Check that there is an ACDD translation available
         if 'acdd' in mmd_field:
@@ -79,11 +80,16 @@ class Mmd_to_nc(object):
                     comments.append(mmd_field['acdd'][key]['comment'])
                 else:
                     comments.append(None)
+                if 'separator' in mmd_field['acdd'][key].keys():
+                    sep.append(mmd_field['acdd'][key]['separator'])
+                else:
+                    sep.append(None)
         else:
             acdd_fields = None
             comments = None
+            sep = None
 
-        return acdd_fields, comments
+        return acdd_fields, comments, sep
 
     def process_element(self, xml_element, translations):
         """

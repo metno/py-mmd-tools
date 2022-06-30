@@ -25,7 +25,7 @@ import shapely.wkt
 from filehash import FileHash
 from itertools import zip_longest
 from pkg_resources import resource_string
-from dateutil.parser import parse
+from dateutil.parser import isoparse
 from dateutil.parser._parser import ParserError
 from uuid import UUID
 
@@ -67,6 +67,7 @@ class Nc_to_mmd(object):
             'errors': [],
             'warnings': []
         }
+        self.metadata = {}
 
         self.platform_group = MMDGroup('mmd', 'https://vocab.met.no/mmd/Platform')
         self.platform_group.init_vocab()
@@ -76,6 +77,15 @@ class Nc_to_mmd(object):
 
         if not (self.platform_group.is_initialised and self.instrument_group.is_initialised):
             raise ValueError('Instrument or Platform group were not initialised')
+
+        # Open netcdf file for reading
+        try:
+            ncin = Dataset(self.netcdf_product)
+        except OSError:
+            ncin = Dataset(self.netcdf_product+'#fillmismatch')
+
+        self.check_attributes_not_empty(ncin)
+        ncin.close()
 
         return
 
@@ -106,22 +116,25 @@ class Nc_to_mmd(object):
         default = mmd_element.pop('default', '')
         repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['0', '1']
         mmd_element.pop('comment', '')
-        separator = mmd_element.pop('separator', ',')
 
         data = None
         if not acdd and not acdd_ext and default:
             data = default
         elif not acdd:
             if acdd_ext and len(mmd_element.items()) == 0:
-                if acdd_ext in ncin.ncattrs():
+                separator = acdd_ext.pop('separator', ',')
+                acdd_ext_key = list(acdd_ext.keys())[0]
+                if acdd_ext_key in ncin.ncattrs():
                     data = self.separate_repeated(
-                        repetition_allowed, getattr(ncin, acdd_ext), separator
+                        repetition_allowed, getattr(ncin, acdd_ext_key), separator
                     )
                 elif default:
                     data = default
+                elif 'default' in acdd_ext[acdd_ext_key].keys():
+                    data = acdd_ext[acdd_ext_key]['default']
                 elif required:
                     self.missing_attributes['errors'].append(
-                        '%s is a required attribute' % acdd_ext
+                        '%s is a required attribute' % acdd_ext_key
                     )
             elif len(mmd_element.items()) > 0:
                 data = {}
@@ -129,9 +142,11 @@ class Nc_to_mmd(object):
                     if val:
                         data[key] = self.get_acdd_metadata(val, ncin, key)
         else:
-            if acdd in ncin.ncattrs():
+            acdd_key = list(acdd.keys())[0]
+            if acdd_key in ncin.ncattrs():
+                separator = acdd.pop('separator', ',')
                 data = self.separate_repeated(
-                    repetition_allowed, getattr(ncin, acdd), separator
+                    repetition_allowed, getattr(ncin, acdd_key), separator
                 )
             elif required:
                 # We may allow some missing elements (in particular for
@@ -142,7 +157,7 @@ class Nc_to_mmd(object):
                 #     self.missing_attributes['warnings'].append(
                 #            'Using default value %s for %s' %(str(default), acdd))
                 # else:
-                self.missing_attributes['errors'].append('%s is a required attribute' % acdd)
+                self.missing_attributes['errors'].append('%s is a required attribute' % acdd_key)
 
         if mmd_element_name != 'metadata_status' and required and data == default:
             self.missing_attributes['warnings'].append(
@@ -155,21 +170,23 @@ class Nc_to_mmd(object):
         acdd_short_name = mmd_element['data_center_name']['short_name'].pop('acdd_ext')
         short_names = []
         try:
-            short_names = self.separate_repeated(True, getattr(ncin, acdd_short_name))
+            short_names = self.separate_repeated(True, getattr(
+                ncin, list(acdd_short_name.keys())[0]))
         except AttributeError:
             self.missing_attributes['errors'].append('%s is a required attribute'
                                                      % acdd_short_name)
 
         acdd_long_name = mmd_element['data_center_name']['long_name'].pop('acdd')
         try:
-            long_names = self.separate_repeated(True, getattr(ncin, acdd_long_name))
+            long_names = self.separate_repeated(True, getattr(ncin,
+                list(acdd_long_name.keys())[0]))
         except AttributeError:
             self.missing_attributes['errors'].append('%s is a required attribute'
                                                      % acdd_long_name)
 
         acdd_url = mmd_element['data_center_url'].pop('acdd')
         try:
-            urls = self.separate_repeated(True, getattr(ncin, acdd_url))
+            urls = self.separate_repeated(True, getattr(ncin, list(acdd_url.keys())[0]))
         except AttributeError:
             urls = ''
 
@@ -214,25 +231,25 @@ class Nc_to_mmd(object):
         times = []
         types = []
         received_time = ''
-        for tt in acdd_time:
+        for tt in acdd_time.keys():
             received_time += '%s, ' % tt
         received_type = ''
-        for ty in acdd_type:
+        for ty in acdd_type.keys():
             received_type += '%s, ' % ty
 
-        if DATE_CREATED not in acdd_time:
+        if DATE_CREATED not in acdd_time.keys():
             raise AttributeError(
                 'ACDD attribute inconsistency in mmd_elements.yaml. Expected %s but received %s.'
                 % (DATE_CREATED, received_time)
             )
 
-        if 'date_metadata_modified' not in acdd_time:
+        if 'date_metadata_modified' not in acdd_time.keys():
             raise AttributeError(
                 'ACDD attribute inconsistency in mmd_elements.yaml. Expected %s but received %s.'
                 % ('date_metadata_modified', received_type)
             )
 
-        for field_name in acdd_time:
+        for field_name in acdd_time.keys():
             # Already checked if part of ncin
             if field_name == DATE_CREATED:
                 times.append(ncin.date_created)
@@ -267,7 +284,11 @@ class Nc_to_mmd(object):
         return self.get_title_or_abstract('abstract', mmd_element, ncin)
 
     def get_title_or_abstract(self, elem_name, mmd_element, ncin):
-        """ToDo: Add docstring"""
+        """ Title and abstract need to have translations (to
+        Norwegian at least). This function handles such
+        functionality, which differs somewhat for the needs of
+        other fields.
+        """
         # The main title or abstract is the acdd element
         acdd = mmd_element[elem_name].pop('acdd')
         # ACDD does not have information on language - mmd_element['land']['acdd_ext']
@@ -278,49 +299,56 @@ class Nc_to_mmd(object):
         acdd_ext = mmd_element[elem_name].pop('acdd_ext', [])
         data = []
         contents = []
-        if acdd in ncin.ncattrs():
-            contents.append(getattr(ncin, acdd))
+        acdd_key = list(acdd.keys())[0]
+        if acdd_key in ncin.ncattrs():
+            contents.append(getattr(ncin, acdd_key))
         else:
-            self.missing_attributes['errors'].append('%s is a required ACDD attribute' % acdd)
+            self.missing_attributes['errors'].append('%s is a required ACDD attribute'
+                                                     % acdd_key)
             return data
-        if acdd_ext_lang in ncin.ncattrs():
-            content_lang = [getattr(ncin, acdd_ext_lang)]
+        acdd_ext_lang_key = list(acdd_ext_lang.keys())[0]
+        if acdd_ext_lang_key in ncin.ncattrs():
+            content_lang = [getattr(ncin, acdd_ext_lang_key)]
         else:
-            content_lang = ['en']
-        for lang in acdd_ext:
-            if lang in ncin.ncattrs():
-                contents.append(getattr(ncin, lang))
-                content_lang.append(lang[-2:])
+            content_lang = [acdd_ext_lang[acdd_ext_lang_key]['default']]
+        lang_key = list(acdd_ext.keys())
+        for lang_key in acdd_ext:
+            if lang_key in ncin.ncattrs():
+                contents.append(getattr(ncin, lang_key))
+                content_lang.append(lang_key[-2:])
         for i in range(len(contents)):
             data.append({elem_name: contents[i], 'lang': content_lang[i]})
         return data
 
     def get_temporal_extents(self, mmd_element, ncin):
         """ToDo: Add docstring"""
-        separator = mmd_element['start_date'].pop('separator')
         acdd_start = mmd_element['start_date'].pop('acdd')
         acdd_end = mmd_element['end_date'].pop('acdd')
         data = []
         start_dates = []
-        if acdd_start in ncin.ncattrs():
-            start_dates = [getattr(ncin, acdd_start)]
+        acdd_start_key = list(acdd_start.keys())[0]
+        if acdd_start_key in ncin.ncattrs():
+            start_dates = [getattr(ncin, acdd_start_key)]
         else:
             self.missing_attributes['errors'].append(
-                '%s is a required ACDD attribute' % acdd_start
+                '%s is a required ACDD attribute' % acdd_start_key
             )
+        acdd_end_key = list(acdd_end.keys())[0]
         end_dates = []
-        if acdd_end in ncin.ncattrs():
-            end_dates = [getattr(ncin, acdd_end)]
+        if acdd_end_key in ncin.ncattrs():
+            end_dates = [getattr(ncin, acdd_end_key)]
 
         if start_dates:
             try:
-                parse(start_dates[0])
+                isoparse(start_dates[0])
             except ParserError:
+                separator = acdd_start.pop('separator', ',')
                 start_dates = self.separate_repeated(True, start_dates[0], separator)
         if end_dates:
             try:
-                parse(end_dates[0])
+                isoparse(end_dates[0])
             except ParserError:
+                separator = acdd_end.pop('separator', ',')
                 end_dates = self.separate_repeated(True, end_dates[0], separator)
 
         for i in range(len(start_dates)):
@@ -332,18 +360,14 @@ class Nc_to_mmd(object):
         return data
 
     def get_attribute_name_list(self, mmd_element):
-        """Return list of attribute names either in ACDD or in an
-        extension to ACDD
+        """Return dict of ACDD and ACDD_EXT attribute names. 
         """
-        att_names_acdd = mmd_element.pop('acdd')
-        if not isinstance(att_names_acdd, list):
-            att_names_acdd = [att_names_acdd]
+        att_names = mmd_element.pop('acdd', {})
         att_names_acdd_ext = mmd_element.pop('acdd_ext', '')
         if att_names_acdd_ext:
-            if not isinstance(att_names_acdd_ext, list):
-                att_names_acdd_ext = [att_names_acdd_ext]
-            att_names_acdd.extend(att_names_acdd_ext)
-        return att_names_acdd
+            for key in att_names_acdd_ext.keys():
+                att_names[key] = att_names_acdd_ext[key]
+        return att_names
 
     def get_personnel(self, mmd_element, ncin):
         """ToDo: Add docstring"""
@@ -356,42 +380,41 @@ class Nc_to_mmd(object):
         acdd_emails = self.get_attribute_name_list(mmd_element['email'])
         acdd_organisations = self.get_attribute_name_list(mmd_element['organisation'])
 
-        for acdd_name in acdd_names:
+        for acdd_name in acdd_names.keys():
             # Get names
             if acdd_name in ncin.ncattrs():
                 these_names = self.separate_repeated(True, getattr(ncin, acdd_name))
             else:
-                these_names = [mmd_element['name']['default']]
+                these_names = [acdd_names[acdd_name]['default']]
             names.extend(these_names)
             tmp = acdd_name
             acdd_main = tmp.replace('_name', '')
             # Get roles
-            acdd_role = [role for role in acdd_roles if acdd_main in role][0]
+            acdd_role = [role for role in acdd_roles.keys() if acdd_main in role][0]
             if acdd_role in ncin.ncattrs():
                 roles.extend(self.separate_repeated(True, getattr(ncin, acdd_role)))
             else:
-                roles.extend([mmd_element['role']['default']])
+                roles.extend([acdd_roles[acdd_role]['default']])
             # Get emails
-            if len(acdd_emails) > 1:
-                acdd_email = [email for email in acdd_emails if acdd_main in email][0]
-            else:
-                acdd_email = acdd_emails[0]
+            acdd_email = [email for email in acdd_emails.keys() if acdd_main in email][0]
             if acdd_email and acdd_email in ncin.ncattrs():
                 emails.extend(self.separate_repeated(True, getattr(ncin, acdd_email)))
             else:
-                emails.extend([mmd_element['email']['default']])
+                emails.extend([acdd_emails[acdd_email]['default']])
             # Get organisations
-            if len(acdd_organisations) > 1:
-                acdd_organisations = [
-                    organisation for organisation in acdd_organisations
+            acdd_organisations_list = [
+                    organisation for organisation in acdd_organisations.keys()
                     if acdd_main in organisation
                 ]
             these_orgs = []
-            for org_elem in acdd_organisations:
+            for org_elem in acdd_organisations_list:
                 if org_elem and org_elem in ncin.ncattrs():
                     these_orgs.extend(self.separate_repeated(True, getattr(ncin, org_elem)))
             if not these_orgs:
-                these_orgs = [mmd_element['organisation']['default']]
+                for org in acdd_organisations.keys():
+                    if type(acdd_organisations[org]) is dict and \
+                            'default' in acdd_organisations[org].keys():
+                        these_orgs.append(acdd_organisations[org]['default'])
             if not len(these_orgs) == len(these_names):
                 for i in range(len(these_names)):
                     if len(these_orgs) - 1 < i:
@@ -433,8 +456,9 @@ class Nc_to_mmd(object):
         ok_formatting = True
         acdd_vocabulary = mmd_element['vocabulary'].pop('acdd')
         vocabularies = []
-        if acdd_vocabulary in ncin.ncattrs():
-            vocabularies = self.separate_repeated(True, getattr(ncin, acdd_vocabulary))
+        acdd_vocabulary_key = list(acdd_vocabulary.keys())[0]
+        if acdd_vocabulary_key in ncin.ncattrs():
+            vocabularies = self.separate_repeated(True, getattr(ncin, acdd_vocabulary_key))
         else:
             ok_formatting = False
             self.missing_attributes['errors'].append(
@@ -456,8 +480,9 @@ class Nc_to_mmd(object):
 
         keywords = []
         acdd_keyword = mmd_element['keyword'].pop('acdd')
-        if acdd_keyword in ncin.ncattrs():
-            keywords = self.separate_repeated(True, getattr(ncin, acdd_keyword))
+        acdd_keyword_key = list(acdd_keyword.keys())[0]
+        if acdd_keyword_key in ncin.ncattrs():
+            keywords = self.separate_repeated(True, getattr(ncin, acdd_keyword_key))
         else:
             ok_formatting = False
             self.missing_attributes['errors'].append(
@@ -492,12 +517,16 @@ class Nc_to_mmd(object):
         """ToDo: Add docstring"""
         acdd = mmd_element['long_name'].pop('acdd')
         projects = []
-        if acdd in ncin.ncattrs():
-            projects = self.separate_repeated(True, getattr(ncin, acdd))
+
+        acdd_key = list(acdd.keys())[0]
+        if acdd_key in ncin.ncattrs():
+            projects = self.separate_repeated(True, getattr(ncin, acdd_key))
+
         acdd_short = mmd_element['short_name'].pop('acdd_ext')
         projects_short = []
-        if acdd_short in ncin.ncattrs():
-            projects_short = self.separate_repeated(True, getattr(ncin, acdd_short))
+        acdd_short_key = list(acdd_short.keys())[0]
+        if acdd_short_key in ncin.ncattrs():
+            projects_short = self.separate_repeated(True, getattr(ncin, acdd_short_key))
         data = []
         for i in range(len(projects)):
             data.append({
@@ -515,25 +544,30 @@ class Nc_to_mmd(object):
         """
         long_names = []
         acdd_long_name = mmd_element['long_name'].pop('acdd')
-        if acdd_long_name in ncin.ncattrs():
-            long_names = self.separate_repeated(True, getattr(ncin, acdd_long_name))
+        acdd_long_name_key = list(acdd_long_name.keys())[0]
+        if acdd_long_name_key in ncin.ncattrs():
+            long_names = self.separate_repeated(True, getattr(ncin, acdd_long_name_key))
 
         ilong_names = []
         acdd_instrument_long_name = mmd_element['instrument']['long_name'].pop('acdd')
-        if acdd_instrument_long_name in ncin.ncattrs():
+        acdd_instrument_long_name_key = list(acdd_instrument_long_name.keys())[0]
+        if acdd_instrument_long_name_key in ncin.ncattrs():
             ilong_names = self.separate_repeated(
-                True, getattr(ncin, acdd_instrument_long_name)
+                True, getattr(ncin, acdd_instrument_long_name_key)
             )
 
         resources = []
         acdd_resource = mmd_element['resource'].pop('acdd')
-        if acdd_resource in ncin.ncattrs():
-            resources = self.separate_repeated(True, getattr(ncin, acdd_resource))
+        acdd_resource_key = list(acdd_resource.keys())[0]
+        if acdd_resource_key in ncin.ncattrs():
+            resources = self.separate_repeated(True, getattr(ncin, acdd_resource_key))
 
         iresources = []
         acdd_instrument_resource = mmd_element['instrument']['resource'].pop('acdd')
-        if acdd_instrument_resource in ncin.ncattrs():
-            iresources = self.separate_repeated(True, getattr(ncin, acdd_instrument_resource))
+        acdd_instrument_resource_key = list(acdd_instrument_resource.keys())[0]
+        if acdd_instrument_resource_key in ncin.ncattrs():
+            iresources = self.separate_repeated(True,
+                    getattr(ncin, acdd_instrument_resource_key))
 
         data = []
         for long_name, ilong_name, resource, iresource in zip_longest(
@@ -580,35 +614,42 @@ class Nc_to_mmd(object):
         """
         acdd_author = mmd_element['author'].pop('acdd')
         authors = []
-        if acdd_author in ncin.ncattrs():
-            authors = getattr(ncin, acdd_author)
+        acdd_author_key = list(acdd_author.keys())[0]
+        if acdd_author_key in ncin.ncattrs():
+            authors = getattr(ncin, acdd_author_key)
 
         publication_dates = []
         acdd_publication_date = mmd_element['publication_date'].pop('acdd')
-        if acdd_publication_date in ncin.ncattrs():
+        acdd_publication_date_key = list(acdd_publication_date.keys())[0]
+        if acdd_publication_date_key in ncin.ncattrs():
             publication_dates = self.separate_repeated(
-                True, getattr(ncin, acdd_publication_date)
+                True, getattr(ncin, acdd_publication_date_key)
             )
 
-        acdd_title = mmd_element['title'].pop('acdd')
-        if acdd_title in ncin.ncattrs():
-            title = getattr(ncin, acdd_title)
+        #acdd_title = mmd_element['title'].pop('acdd')
+        #acdd_title_key = list(acdd_title.keys())[0]
+        #if acdd_title_key in ncin.ncattrs():
+        #    title = getattr(ncin, acdd_title_key)
         acdd_url = mmd_element['url'].pop('acdd')
         urls = []
-        if acdd_url in ncin.ncattrs():
-            urls = self.separate_repeated(True, getattr(ncin, acdd_url))
+        acdd_url_key = list(acdd_url.keys())[0]
+        if acdd_url_key in ncin.ncattrs():
+            urls = self.separate_repeated(True, getattr(ncin, acdd_url_key))
         acdd_other = mmd_element['other'].pop('acdd')
         others = []
-        if acdd_other in ncin.ncattrs():
-            others = self.separate_repeated(True, getattr(ncin, acdd_other))
+        acdd_other_key = list(acdd_other.keys())[0]
+        if acdd_other_key in ncin.ncattrs():
+            others = self.separate_repeated(True, getattr(ncin, acdd_other_key))
         data = []
+        import ipdb
+        ipdb.set_trace()
         for i in range(len(publication_dates)):
             try:
-                publication_date = parse(publication_dates[i]).strftime('%Y-%m-%d')
+                publication_date = isoparse(publication_dates[i])
             except ParserError:
                 # in case the dates are not actual dates
                 self.missing_attributes['errors'].append(
-                    'ACDD attribute %s must contain a date' % acdd_publication_date
+                    'ACDD attribute %s must contain a valid date' % acdd_publication_date
                 )
             else:
                 if len(urls) <= i:
@@ -622,7 +663,7 @@ class Nc_to_mmd(object):
                 data.append({
                     'author': authors,
                     'publication_date': publication_date,
-                    'title': title,
+                    'title': self.metadata['title'],
                     'url': url,
                     'other': other,
                 })
@@ -662,11 +703,13 @@ class Nc_to_mmd(object):
         naming_authority = ''
         # id and naming_authority are required, and both should be in
         # the acdd list
-        if len(acdd) != 2 or self.ACDD_ID not in acdd or self.ACDD_NAMING_AUTH not in acdd:
+        acdd_key = list(acdd.keys())
+        if len(acdd_key) != 2 or self.ACDD_ID not in acdd_key or \
+                self.ACDD_NAMING_AUTH not in acdd_key:
             raise AttributeError(
                 'ACDD attribute inconsistency in mmd_elements.yaml. Expected %s and %s but '
                 'received %s.'
-                % (self.ACDD_ID, self.ACDD_NAMING_AUTH, str(acdd))
+                % (self.ACDD_ID, self.ACDD_NAMING_AUTH, str(acdd_key))
             )
         if self.ACDD_ID not in ncin.ncattrs():
             self.missing_attributes['errors'].append('%s is a required attribute.' % self.ACDD_ID)
@@ -694,17 +737,19 @@ class Nc_to_mmd(object):
         return naming_authority + ':' + ncid
 
     def get_related_dataset(self, mmd_element, ncin):
-        """ToDo: Add docstring"""
+        """Get id and relation type for a related dataset"""
         acdd_ext_relation_type = mmd_element['relation_type']['acdd_ext']
         relation_types = []
-        if acdd_ext_relation_type in ncin.ncattrs():
+        acdd_ext_relation_type_key = list(acdd_ext_relation_type.keys())[0]
+        if acdd_ext_relation_type_key in ncin.ncattrs():
             relation_types = self.separate_repeated(
-                True, getattr(ncin, acdd_ext_relation_type)
+                True, getattr(ncin, acdd_ext_relation_type_key)
             )
         acdd_ext_id = mmd_element['related_dataset']['acdd_ext']
         ids = []
-        if acdd_ext_id in ncin.ncattrs():
-            ids = self.separate_repeated(True, getattr(ncin, acdd_ext_id))
+        acdd_ext_id_key = list(acdd_ext_id.keys())[0]
+        if acdd_ext_id_key in ncin.ncattrs():
+            ids = self.separate_repeated(True, getattr(ncin, acdd_ext_id_key))
         # TODO: use if-test and raise exception instead:
         assert len(relation_types) == len(ids)
         data = []
@@ -719,9 +764,10 @@ class Nc_to_mmd(object):
         """ToDo: Add docstring"""
         data = None
         acdd = mmd_element['acdd']
-        if acdd not in ncin.ncattrs():
+        acdd_key = list(acdd.keys())[0]
+        if acdd_key not in ncin.ncattrs():
             return None
-        wkt = eval('ncin.%s'%acdd)
+        wkt = eval('ncin.%s'%acdd_key)
         try:
             pp = shapely.wkt.loads(wkt)
         except WKTReadingError:
@@ -741,38 +787,54 @@ class Nc_to_mmd(object):
         return data
 
     def get_geographic_extent_rectangle(self, mmd_element, ncin):
-        """ToDo: Add docstring"""
+        """Get dataset coverage as a rectangle (north, south, east, west).
+        """
         data = {}
         acdd_north = mmd_element['north']['acdd']
         acdd_south = mmd_element['south']['acdd']
         acdd_east = mmd_element['east']['acdd']
         acdd_west = mmd_element['west']['acdd']
         data['srsName'] = mmd_element['srsName']['default']
-        if acdd_north not in ncin.ncattrs():
+
+        acdd_north_key = list(acdd_north.keys())[0]
+        if acdd_north_key not in ncin.ncattrs():
             self.missing_attributes['errors'].append(
-                '%s is a required attribute' % acdd_north
+                '%s is a required attribute' % acdd_north_key
             )
         else:
-            data['north'] = getattr(ncin, acdd_north)
-        if acdd_south not in ncin.ncattrs():
+            data['north'] = getattr(ncin, acdd_north_key)
+
+        acdd_south_key = list(acdd_south.keys())[0]
+        if acdd_south_key not in ncin.ncattrs():
             self.missing_attributes['errors'].append(
-                '%s is a required attribute' % acdd_south
+                '%s is a required attribute' % acdd_south_key
             )
         else:
-            data['south'] = getattr(ncin, acdd_south)
-        if acdd_east not in ncin.ncattrs():
+            data['south'] = getattr(ncin, acdd_south_key)
+
+        acdd_east_key = list(acdd_east.keys())[0]
+        if acdd_east_key not in ncin.ncattrs():
             self.missing_attributes['errors'].append(
-                '%s is a required attribute' % acdd_east
+                '%s is a required attribute' % acdd_east_key
             )
         else:
-            data['east'] = getattr(ncin, acdd_east)
-        if acdd_west not in ncin.ncattrs():
+            data['east'] = getattr(ncin, acdd_east_key)
+
+        acdd_west_key = list(acdd_west.keys())[0]
+        if acdd_west_key not in ncin.ncattrs():
             self.missing_attributes['errors'].append(
-                '%s is a required attribute' % acdd_west
+                '%s is a required attribute' % acdd_west_key
             )
         else:
-            data['west'] = getattr(ncin, acdd_west)
+            data['west'] = getattr(ncin, acdd_west_key)
         return data
+
+    def check_attributes_not_empty(self, ncin):
+        """ Check that no global attributes are empty.
+        """
+        for attr in ncin.ncattrs():
+            if not ncin.getncattr(attr):
+                raise ValueError("Global attribute %s is empty - please correct." % attr)
 
     def to_mmd(self, collection=None, checksum_calculation=False, mmd_yaml=None,
                *args, **kwargs):
@@ -827,8 +889,9 @@ class Nc_to_mmd(object):
         except OSError:
             ncin = Dataset(self.netcdf_product+'#fillmismatch')
 
+        self.check_attributes_not_empty(ncin)
+
         # Get list of MMD elements
-        self.metadata = {}
         if mmd_yaml is None:
             mmd_yaml = yaml.load(
                 resource_string(self.__module__.split('.')[0], 'mmd_elements.yaml'),
@@ -882,16 +945,17 @@ class Nc_to_mmd(object):
         if geographic_extent_rectangle:
             self.metadata['geographic_extent']['rectangle'] = {
                 'srsName': 'EPSG:4326',
-                'north': geographic_extent_rectangle['geospatial_lat_max'],
-                'south': geographic_extent_rectangle['geospatial_lat_min'],
-                'west': geographic_extent_rectangle['geospatial_lon_min'],
-                'east': geographic_extent_rectangle['geospatial_lon_max']
+                'north': list(geographic_extent_rectangle['geospatial_lat_max'].keys())[0],
+                'south': list(geographic_extent_rectangle['geospatial_lat_min'].keys())[0],
+                'west': list(geographic_extent_rectangle['geospatial_lon_min'].keys())[0],
+                'east': list(geographic_extent_rectangle['geospatial_lon_max'].keys())[0]
             }
             mmd_yaml['geographic_extent'].pop('rectangle')
         else:
-            self.metadata['geographic_extent']['rectangle'] = self.get_geographic_extent_rectangle(
-                mmd_yaml['geographic_extent'].pop('rectangle'), ncin
-            )
+            self.metadata['geographic_extent']['rectangle'] = \
+                    self.get_geographic_extent_rectangle(
+                            mmd_yaml['geographic_extent'].pop('rectangle'), ncin
+                        )
         # Check for geographic_extent/polygon
         polygon = self.get_geographic_extent_polygon(
             mmd_yaml['geographic_extent'].pop('polygon'), ncin
@@ -938,7 +1002,8 @@ class Nc_to_mmd(object):
             fchecksum = hasher.hash_file(file_for_checksum_calculation)
 
             self.metadata['storage_information']['checksum'] = fchecksum
-            self.metadata['storage_information']['checksum_type'] = '%ssum' % hasher.hash_algorithm
+            self.metadata['storage_information']['checksum_type'] = '%ssum' % \
+                                                                    hasher.hash_algorithm
 
         if rm_file_for_checksum_calculation:
             os.remove(file_for_checksum_calculation)
