@@ -781,7 +781,7 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         # Only one value in the list
-        mmd_yaml['metadata_identifier']['acdd'] = ['id']
+        mmd_yaml['metadata_identifier']['acdd'] = {'id': {}}
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
         ncin = Dataset(nc2mmd.netcdf_product)
         with self.assertRaises(AttributeError) as e:
@@ -793,7 +793,7 @@ class TestNC2MMD(unittest.TestCase):
         )
         # Inconsistency of ACCD id in mmd_elements.yaml (='jkhakjh')
         # and the hardcoded one (='id')
-        mmd_yaml['metadata_identifier']['acdd'] = ['jkhakjh', 'naming_authority']
+        mmd_yaml['metadata_identifier']['acdd'] = {'jkhakjh': {}, 'naming_authority': {}}
         with self.assertRaises(AttributeError) as e:
             nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
         self.assertEqual(
@@ -803,7 +803,7 @@ class TestNC2MMD(unittest.TestCase):
         )
         # Inconsistency of ACCD naming_authority in mmd_elements.yaml
         # (='jklhkha') and the hardcoded one (='naming_authority')
-        mmd_yaml['metadata_identifier']['acdd'] = ['id', 'jklhkha']
+        mmd_yaml['metadata_identifier']['acdd'] = {'id': {}, 'jklhkha': {}}
         with self.assertRaises(AttributeError) as e:
             nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
         self.assertEqual(
