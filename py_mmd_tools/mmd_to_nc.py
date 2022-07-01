@@ -245,7 +245,9 @@ class Mmd_to_nc(object):
         element: 'keywords' XML element from MMD. Example:
             <mmd:keywords vocabulary="NORTHEMES">
               <mmd:keyword>Weather and climate</mmd:keyword>
-              <mmd:resource>https://register.geonorge.no/subregister/metadata-kodelister/kartverket/nasjonal-temainndeling</mmd:resource>
+              <mmd:resource>
+                https://register.geonorge.no/subregister/metadata-kodelister/kartverket/nasjonal-temainndeling
+              </mmd:resource>
               <mmd:separator></mmd:separator>
             </mmd:keywords>
 
@@ -266,7 +268,8 @@ class Mmd_to_nc(object):
         # Syntax: "prefix:keyword"
         out['keywords'] = ':'.join([prefix, element.find('mmd:keyword',
                                                          namespaces=self.namespaces).text])
-        sep['keywords'] = self.mmd_yaml['keywords']['keyword']['separator']
+        for key in self.mmd_yaml['keywords']['keyword']['acdd'].keys():
+            sep['keywords'] = self.mmd_yaml['keywords']['keyword']['acdd'][key]['separator']
 
         # ACDD keywords_vocabulary element
         # Syntax: "prefix:uri"
@@ -274,7 +277,9 @@ class Mmd_to_nc(object):
         found = element.find('mmd:resource', namespaces=self.namespaces)
         if found is not None:
             out['keywords_vocabulary'] = ':'.join([prefix, found.text])
-            sep['keywords_vocabulary'] = self.mmd_yaml['keywords']['vocabulary']['separator']
+            for key in self.mmd_yaml['keywords']['vocabulary']['acdd'].keys():
+                sep['keywords_vocabulary'] = \
+                        self.mmd_yaml['keywords']['vocabulary']['acdd'][key]['separator']
 
         # Update ACDD dictionary
         self.update_acdd(out, sep)

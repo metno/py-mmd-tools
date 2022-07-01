@@ -1122,10 +1122,10 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         in_dict = mmd_yaml['last_metadata_update']
-        in_dict['update']['datetime']['acdd'] = [
-            'new_name_for_date_created',  # this will cause an error
-            'date_metadata_modified'
-        ]
+        in_dict['update']['datetime']['acdd'] = {
+                'new_name_for_date_created': {},  # this will cause an error
+                'date_metadata_modified': {}
+            }
         md = Nc_to_mmd(self.reference_nc, check_only=True)
         ncin = Dataset(md.netcdf_product)
         with self.assertRaises(AttributeError) as context1:
@@ -1133,10 +1133,14 @@ class TestNC2MMD(unittest.TestCase):
         self.assertTrue(
             'ACDD attribute inconsistency in mmd_elements.yaml' in str(context1.exception)
         )
-        in_dict['update']['datetime']['acdd'] = [
-            'date_created',
-            'new_name_for_date_metadata_modified'  # this will cause an error
-        ]
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        in_dict = mmd_yaml['last_metadata_update']
+        in_dict['update']['datetime']['acdd'] = {
+                'date_created': {},
+                'new_name_for_date_metadata_modified': {}  # this will cause an error
+            }
         with self.assertRaises(AttributeError) as context2:
             md.get_metadata_updates(in_dict, ncin)
         self.assertTrue(

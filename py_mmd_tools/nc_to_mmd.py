@@ -469,7 +469,7 @@ class Nc_to_mmd(object):
         else:
             ok_formatting = False
             self.missing_attributes['errors'].append(
-                '%s is a required ACDD attribute' % acdd_vocabulary
+                '%s is a required ACDD attribute' % acdd_vocabulary_key
             )
         resources = []
         resource_short_names = []
@@ -480,7 +480,7 @@ class Nc_to_mmd(object):
                 ok_formatting = False
                 self.missing_attributes['errors'].append(
                     '%s must be formatted as <short_name>:<long_name>:<url>'
-                    % acdd_vocabulary)
+                    % acdd_vocabulary_key)
             else:
                 resources.append(voc_elems[0]+':'+voc_elems[2]+':'+voc_elems[3])
                 resource_short_names.append(voc_elems[0])
@@ -493,7 +493,7 @@ class Nc_to_mmd(object):
         else:
             ok_formatting = False
             self.missing_attributes['errors'].append(
-                '%s is a required ACDD attribute' % acdd_keyword
+                '%s is a required ACDD attribute' % acdd_keyword_key
             )
 
         keyword_short_names = []
@@ -504,7 +504,7 @@ class Nc_to_mmd(object):
                 ok_formatting = False
                 self.missing_attributes['errors'].append(
                     '%s must be defined in the %s ACDD attribute'
-                    % (keyword_short_name, acdd_vocabulary)
+                    % (keyword_short_name, acdd_vocabulary_key)
                 )
 
         data = []
