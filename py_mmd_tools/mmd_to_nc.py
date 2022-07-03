@@ -110,16 +110,18 @@ class Mmd_to_nc(object):
         if tag in translations and not translations[tag] is None:
 
             # Corresponding ACDD element name
-            acdd_name, sep = Mmd_to_nc.get_acdd(translations[tag])
+            acdd_name, comments, sep = Mmd_to_nc.get_acdd(translations[tag])
 
             # Some MMD elements that are listed in mmd_yaml do not have an ACDD
             # translation, so must check that an ACDD translation has been found
+            import ipdb
+            ipdb.set_trace()
             if acdd_name is not None:
-                # Update the dictionary containing the ACDD elements
-                if type(acdd_name) is dict:
-                    # there are separate comments for the attributes
-                    # which are not needes
-                    acdd_name = list(acdd_name.keys())
+                ## Update the dictionary containing the ACDD elements
+                #if type(acdd_name) is dict:
+                #    # there are separate comments for the attributes
+                #    # which are not needes
+                #    acdd_name = list(acdd_name.keys())
                 self.update_acdd({acdd_name: xml_element.text}, {acdd_name: sep})
 
     def update_acdd(self, new_dict, sep=None):

@@ -542,10 +542,13 @@ class Nc_to_mmd(object):
             projects_short = self.separate_repeated(True, getattr(ncin, acdd_short_key))
         data = []
         for i in range(len(projects)):
-            data.append({
-                'long_name': projects[i],
-                'short_name': projects_short[i]
-            })
+            tmp = {}
+            tmp['long_name'] = projects[i],
+            # project is not required, so project short name should
+            # not be required either
+            if len(projects) == len(projects_short):
+                tmp['short_name'] = projects_short[i]
+            data.append(tmp)
         return data
 
     def get_platforms(self, mmd_element, ncin):
