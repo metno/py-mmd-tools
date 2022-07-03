@@ -543,7 +543,7 @@ class Nc_to_mmd(object):
         data = []
         for i in range(len(projects)):
             tmp = {}
-            tmp['long_name'] = projects[i],
+            tmp['long_name'] = projects[i]
             # project is not required, so project short name should
             # not be required either
             if len(projects) == len(projects_short):
