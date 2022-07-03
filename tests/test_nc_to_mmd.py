@@ -97,11 +97,9 @@ class TestNC2MMD(unittest.TestCase):
         with self.assertRaises(ValueError):
             Nc_to_mmd('tests/data/reference_nc.nc', output_file=None, check_only=True)
 
-    def test_date_created_type__not_present(self):
-        """Test that the line with 'if default' in get_acdd_metadata is
-        covered. Note that we would normally use the function
-        get_acdd_metadata to get date_created and date_created_type but
-        then the line in get_acdd_metadata will not be covered..
+    def test_default_when_no_acdd_or_acdd_ext(self):
+        """ Test that a default value can be used even if no acdd
+        or acdd_ext fields are present.
         """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
@@ -109,10 +107,47 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_acdd_metadata(
-            mmd_yaml['last_metadata_update']['update']['type'],
-            ncin, 'date_created_type'
+            mmd_yaml['metadata_status'],
+            ncin, 'metadata_status'
         )
-        self.assertEqual(value, 'Created')
+        self.assertEqual(value, 'Active')
+
+    def test__get_acdd_metadata__dont_accept_alternatives(self):
+        """ Test that the function get_acdd_metadata raises an
+        error if there are several alternative acdd or acdd_ext
+        fields.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
+        ncin = Dataset(nc2mmd.netcdf_product)
+        with self.assertRaises(ValueError) as e:
+            value = nc2mmd.get_acdd_metadata(
+                mmd_yaml['metadata_identifier'],
+                ncin, 'metadata_identifier'
+            )
+        self.assertEqual(str(e.exception), 'Multiple ACDD or ACCD extension fields provided.'
+                ' Please use another translation function.')
+
+    # This test doesn't make sense, since we have a separate function
+    # for metadata updates. Remove later, following review..
+    #def test_date_created_type__not_present(self):
+    #    """Test that the line with 'if default' in get_acdd_metadata is
+    #    covered. Note that we would normally use the function
+    #    get_acdd_metadata to get date_created and date_created_type but
+    #    then the line in get_acdd_metadata will not be covered..
+    #    """
+    #    mmd_yaml = yaml.load(
+    #        resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+    #    )
+    #    nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
+    #    ncin = Dataset(nc2mmd.netcdf_product)
+    #    value = nc2mmd.get_acdd_metadata(
+    #        mmd_yaml['last_metadata_update']['update']['type'],
+    #        ncin, 'date_created_type'
+    #    )
+    #    self.assertEqual(value, 'Created')
 
     def test_get_acdd_metadata_uses_default_date_created_type(self):
         """Test that the get_acdd_metadata function uses default

@@ -116,8 +116,14 @@ class Nc_to_mmd(object):
 
         required = mmd_element.pop('minOccurs', '') == '1'
 
-        acdd = mmd_element.pop('acdd', '')
-        acdd_ext = mmd_element.pop('acdd_ext', '')
+        acdd = mmd_element.pop('acdd', {})
+        acdd_ext = mmd_element.pop('acdd_ext', {})
+        # This function only accepts one alternative ACDD field for
+        # the translation
+        if len(acdd.keys()) + len(acdd_ext.keys()) > 1:
+            raise ValueError('Multiple ACDD or ACCD extension fields provided.'
+                ' Please use another translation function.')
+
         default = mmd_element.pop('default', '')
         repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['0', '1']
         mmd_element.pop('comment', '')
