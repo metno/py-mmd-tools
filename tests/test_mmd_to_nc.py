@@ -61,8 +61,9 @@ class TestMMD2NC(unittest.TestCase):
         """ Get global attributes of updated nc file """
         with nc.Dataset(tested, 'r') as f:
             """ Check some fields"""
-            self.assertEqual(f.getncattr('id'), 'npp-viirs-mband-20201127134002-20201127135124')
-            self.assertEqual(f.getncattr('institution'), 'MET NORWAY')
+            self.assertEqual(f.getncattr('id'), 'b7cb7934-77ca-4439-812e-f560df3fe7eb')
+            self.assertEqual(f.getncattr('naming_authority'), 'no.met')
+            self.assertEqual(f.getncattr('institution'), 'Norwegian Meteorological Institute')
 
     def test_update_nc_2(self):
         """
@@ -79,6 +80,24 @@ class TestMMD2NC(unittest.TestCase):
             f.id = 'my other id'
         # Check that error is raised
         self.assertRaises(Exception, lambda: md.update_nc())
+
+    def test__process_metadata_identifier(self):
+        """ Test processing of the MMD metadata identifier.
+        """
+        # Initialize
+        md = Mmd_to_nc(self.reference_xml, self.orig_nc)
+        XML = "{%s}" % self.namespaces['xml']
+        MMD = "{%s}" % self.namespaces['mmd']
+        # Create metadata_identifier element
+        main = ET.Element(MMD+'mmd', nsmap=self.namespaces)
+        id = ET.SubElement(main, MMD+'metadata_identifier')
+        id.text = 'no.met:c7f8731b-5cfe-4cb5-ac57-168a19a2957b'
+        # - Test 1: English language title
+        md.process_metadata_identifier(id)
+        # Expected output: English title added to ACDD attributes
+        self.assertEqual(md.acdd_metadata['id'], 'c7f8731b-5cfe-4cb5-ac57-168a19a2957b')
+        self.assertEqual(md.acdd_metadata['naming_authority'], 'no.met')
+
 
     def test_process_title_and_abstract(self):
         """

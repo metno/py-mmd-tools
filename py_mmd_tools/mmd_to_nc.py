@@ -114,15 +114,16 @@ class Mmd_to_nc(object):
 
             # Some MMD elements that are listed in mmd_yaml do not have an ACDD
             # translation, so must check that an ACDD translation has been found
-            import ipdb
-            ipdb.set_trace()
             if acdd_name is not None:
+                if len(acdd_name) > 1:
+                    raise ValueError('Multiple ACDD or ACCD extension fields provided.'
+                            ' Please use another translation function.')
                 ## Update the dictionary containing the ACDD elements
                 #if type(acdd_name) is dict:
                 #    # there are separate comments for the attributes
                 #    # which are not needes
                 #    acdd_name = list(acdd_name.keys())
-                self.update_acdd({acdd_name: xml_element.text}, {acdd_name: sep})
+                self.update_acdd({acdd_name[0]: xml_element.text}, {acdd_name[0]: sep})
 
     def update_acdd(self, new_dict, sep=None):
         """
@@ -158,15 +159,34 @@ class Mmd_to_nc(object):
                 else:
                     self.acdd_metadata[key] = new_dict[key]
 
-    def process_last_metadata_update(self, element):
+    def process_metadata_identifier(self, element):
+        """ The metadata_identifier in MMD is translated to two
+        fields in ACDD, the 'id' and the 'naming_authority'.
         """
-        Special case for MMD element "last_metadata_update".
-        This element has two ACDD translations: date_created and date_metadata_modified. As the
-        appropriate translation in this case is 'date_metadata_modified' only, it has do be done
+        # Name of the XML element without namespace
+        tag = ET.QName(element).localname
+        if not tag=='metadata_identifier':
+            raise OptionError('Wrong input')
+        # Corresponding ACDD element name
+        acdd_name, comments, sep = Mmd_to_nc.get_acdd(self.mmd_yaml['metadata_identifier'])
+        assert 'id' in acdd_name
+        assert 'naming_authority' in acdd_name
+        [naming_authority, id] = element.text.split(':')
+        self.update_acdd({
+            'id': id,
+            'naming_authority': naming_authority
+        })
+
+    def process_last_metadata_update(self, element):
+        """ Special case for MMD element "last_metadata_update".
+        This element has two ACDD translations: date_created and
+        date_metadata_modified. As the appropriate translation in
+        this case is 'date_metadata_modified' only, it has do be done
         via a special case.
 
-        Note: It might be possible to not use a special case for this element if the order of acdd
-        translations in mmd_elements.yaml was changed.
+        Note: It might be possible to not use a special case for this
+        element if the order of acdd translations in mmd_elements.yaml
+        was changed.
 
         Input
         ====
@@ -180,12 +200,15 @@ class Mmd_to_nc(object):
 
         """
 
-        self.update_acdd({'date_metadata_modified': element.find('mmd:update/mmd:datetime',
-                                                                 namespaces=self.namespaces).text},
-                         {'date_metadata_modified': self.mmd_yaml['last_metadata_update']['update']
-                         ['datetime']['separator']})
+        self.update_acdd({
+                'date_metadata_modified': element.find('mmd:update/mmd:datetime',
+                    namespaces=self.namespaces).text
+            }, {
+                'date_metadata_modified': self.mmd_yaml['last_metadata_update']['update']
+                         ['datetime']['acdd']['date_metadata_modified']['separator']
+            })
 
-    def process_personnel(self, element):
+    def process_personnel(self, element, separator=','):
         """
         Special case for MMD element "personnel". Since its child elements are related one to
         another, they must to be processed simultaneously.
@@ -199,7 +222,13 @@ class Mmd_to_nc(object):
               <mmd:email>pepe@met.no</mmd:email>
             </mmd:personnel>
 
+        separator : str
+            Defaults to ',', which is common for all the personnel
+            elements.
+
         """
+        assert separator == \
+                self.mmd_yaml['personnel']['role']['acdd']['creator_role']['separator']
 
         out = {}
         sep = {}
@@ -224,7 +253,8 @@ class Mmd_to_nc(object):
         for mmd_field in acdd_translation_and_mmd_required_fields:
             nc_field = '_'.join([prefix, mmd_field])
             out[nc_field] = element.find(f'mmd:{mmd_field}', namespaces=self.namespaces).text
-            sep[nc_field] = self.mmd_yaml['personnel'][mmd_field]['separator']
+            #sep[nc_field] = self.mmd_yaml['personnel'][mmd_field]['acdd']['separator']
+            sep[nc_field] = separator
 
         # Process the optional field, so first check if they are defined in the MMD file
         for mmd_field in acdd_translation_and_mmd_optional_fields:
@@ -232,7 +262,8 @@ class Mmd_to_nc(object):
             if field is not None:
                 nc_field = '_'.join([prefix, mmd_field])
                 out[nc_field] = field.text
-                sep[nc_field] = self.mmd_yaml['personnel'][mmd_field]['separator']
+                #sep[nc_field] = self.mmd_yaml['personnel'][mmd_field]['acdd']['separator']
+                sep[nc_field] = separator
 
         # Update the dictionary containing the ACDD elements
         self.update_acdd(out, sep)
@@ -313,7 +344,9 @@ class Mmd_to_nc(object):
         for child in ['publisher', 'url', 'other']:
             found = element.find(f'mmd:{child}', namespaces=self.namespaces)
             if found is not None:
-                self.update_acdd({self.mmd_yaml['dataset_citation'][child]['acdd']: found.text})
+                self.update_acdd({
+                    list(self.mmd_yaml['dataset_citation'][child]['acdd'].keys())[0]: found.text
+                })
 
     def process_title_and_abstract(self, element):
         """
@@ -332,11 +365,11 @@ class Mmd_to_nc(object):
         tag = ET.QName(element).localname
 
         # Get ACDD name corresponding to MMD element name
-        acdd_name, sep = self.get_acdd(self.mmd_yaml[tag][tag])
+        acdd_name, comments, sep = self.get_acdd(self.mmd_yaml[tag][tag])
 
         # Keep only title and abstract with attribute 'en' (english language)
         if element.attrib["{%s}" % self.namespaces['xml'] + 'lang'] == 'en':
-            self.update_acdd({acdd_name: element.text})
+            self.update_acdd({acdd_name[0]: element.text})
 
     def update_nc(self):
         """
@@ -346,21 +379,25 @@ class Mmd_to_nc(object):
         # Loop on elements from mmd_yaml
         for mmd_element in self.mmd_yaml:
 
-            # Find corresponding XML element in MMD
+            # Find corresponding XML element in the MMD file
             elements = self.tree.findall('mmd:' + mmd_element, self.namespaces)
 
             # Not all elements on mmd_yaml are required MMD elements,
-            # So, if element is not found on MMD, continue
+            # So, if element is not found in the MMD file, continue
             if len(elements) == 0:
                 print(f'{mmd_element} not found in input MMD file')
                 continue
 
-            # Some MMD elements have repetition allowed,
-            # so loop on  MMD elements found
+            # Loop the elements found in the MMD file (some MMD
+            # elements have repetition allowed)
             for element in elements:
 
+                # Special case for metadata_identifier
+                if mmd_element == 'metadata_identifier':
+                    self.process_metadata_identifier(element)
+
                 # Special case for MMD elements "title" and "abstract"
-                if mmd_element in ['title', 'abstract']:
+                elif mmd_element in ['title', 'abstract']:
                     self.process_title_and_abstract(element)
 
                 # Special case for keywords element
@@ -377,9 +414,6 @@ class Mmd_to_nc(object):
 
                 # If XML element found has no child elements, process it directly
                 elif len(list(element)) == 0:
-                    if 'metadata_identifier' in mmd_element:
-                        import ipdb
-                        ipdb.set_trace()
                     self.process_element(element, self.mmd_yaml)
 
                 # Special case for MMD element "dataset_citation"
