@@ -25,7 +25,7 @@ from netCDF4 import Dataset
 from pkg_resources import resource_string
 from unittest.mock import patch
 
-from py_mmd_tools.nc_to_mmd import Nc_to_mmd
+from py_mmd_tools.nc_to_mmd import Nc_to_mmd, validate_iso8601
 from py_mmd_tools.yaml_to_adoc import nc_attrs_from_yaml, get_attr_info
 
 warnings.simplefilter("ignore", ResourceWarning)
@@ -447,7 +447,9 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(nc2mmd.metadata['temporal_extent']['end_date'], '1950-01-01T00:00:00Z')
 
     def test_temporal_extent_two_startdates(self):
-        """ToDo: Add docstring"""
+        """Test that two start dates are handled correctly in the
+        translation to MMD.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -459,6 +461,34 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[2]['start_date'], '2021-01-27T13:40:02.019817Z')
         self.assertEqual(value[0]['end_date'], '2020-11-27T13:51:24.401505Z')
         self.assertEqual(value[1]['end_date'], '2020-12-27T13:51:24.019817Z')
+
+    def test_temporal_extent_two_startdates_one_wrong(self):
+        """Test that two start dates are handled correctly in the
+        translation to MMD.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd('tests/data/reference_nc_attrs_multiple.nc', check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.time_coverage_start = "2020-11-27T13:40:02.019817Z, 2020-12-27 13:40:02.019817"
+        ncin.time_coverage_end = "2020-11-27T13:51:24.401505Z, 2020-12-27 13:51:24.019817"
+        value = md.get_temporal_extents(mmd_yaml['temporal_extent'], ncin)
+        self.assertEqual(
+            md.missing_attributes['errors'][0],
+            'ACDD time attributes must contain valid ISO8601 dates. ' \
+                    '2020-12-27 13:40:02.019817 is invalid.'
+        )
+
+    def test__validate_iso8601(self):
+        self.assertFalse(validate_iso8601(""))
+        self.assertFalse(validate_iso8601(None))
+        self.assertFalse(validate_iso8601("2017-01-01"))
+        self.assertTrue(validate_iso8601("2008-08-30T01:45:36.123Z"))
+        self.assertTrue(validate_iso8601("2016-12-13T21:20:37.593194+00:00"))
+        self.assertFalse(validate_iso8601("2019-02-29T12:00:00+00:00"))
+        self.assertFalse(validate_iso8601("2020-12-27 13:40:02.019817"))
+        self.assertTrue(validate_iso8601("2020-11-27T13:40:02.019817Z"))
 
     def test_temporal_extent(self):
         """ToDo: Add docstring"""
@@ -755,6 +785,34 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(
             value[0]['title'],
             'Direct Broadcast data processed in satellite swath to L1C.'
+        )
+
+    def test_dataset_citation_invalid_date(self):
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.time_coverage_start = "2020-11-27T13:40:02.019817Z"
+        ncin.time_coverage_end = "2020-11-27T13:51:24.401505Z"
+        ncin.creator_name = 'Kreator Kreatorsen'
+        ncin.date_created = "2020-11-28T13:51:24.401505Z"
+        ncin.title = "Test dataset"
+        ncin.metadata_link = "https://data.met.no/dataset/uuid-for-the-dataset"
+        ncin.references = "Some free-text refences"
+        value = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
+        self.assertEqual(value[0]['author'], 'Kreator Kreatorsen')
+
+        # Test that an error is appended if date created is not in
+        # the correct format
+        ncin.date_created = "2020-11-28 13:51:24"
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        value = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
+        self.assertEqual(
+            md.missing_attributes['errors'][0],
+            "ACDD attribute date_created must contain a valid ISO8601 date."
         )
 
     @patch('py_mmd_tools.nc_to_mmd.Dataset')

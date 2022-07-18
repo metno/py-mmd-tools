@@ -15,6 +15,7 @@ py-mmd-tools is licensed under the Apache License 2.0
 <https://github.com/metno/py-mmd-tools/blob/master/LICENSE>
 """
 import os
+import re
 import warnings
 import yaml
 import jinja2
@@ -38,6 +39,30 @@ from shapely.errors import WKTReadingError
 
 logging.basicConfig(level=logging.INFO)
 
+
+def validate_iso8601(isodatetime):
+    regex = (
+        r'^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])'
+        'T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]'
+        '|[01][0-9]):[0-5][0-9])?$'
+    )
+    match_iso8601 = re.compile(regex).match
+    valid = False
+    try:
+        mm = match_iso8601( isodatetime ) 
+    except:
+        mm = None
+
+    if mm is not None:
+        valid = True
+        # Test with isoparse as well
+        try:
+            dt = isoparse(isodatetime)
+        except (ParserError, ValueError) as e:
+            # ValueError in case of a not existing date, such as 29th Feb 2019
+            valid = False
+
+    return valid
 
 class Nc_to_mmd(object):
 
@@ -351,18 +376,17 @@ class Nc_to_mmd(object):
         if acdd_end_key in ncin.ncattrs():
             end_dates = self.separate_repeated(True, getattr(ncin, acdd_end_key))
 
-        if start_dates:
-            try:
-                isoparse(start_dates[0])
-            except ParserError:
-                separator = acdd_start.pop('separator', ',')
-                start_dates = self.separate_repeated(True, start_dates[0], separator)
-        if end_dates:
-            try:
-                isoparse(end_dates[0])
-            except ParserError:
-                separator = acdd_end.pop('separator', ',')
-                end_dates = self.separate_repeated(True, end_dates[0], separator)
+        # Make sure dates are provided in isoformat
+        dates = start_dates
+        dates.extend(end_dates)
+        if dates:
+            for date in dates:
+                if not validate_iso8601(date):
+                    # in case the date is not in ISO8601 format
+                    self.missing_attributes['errors'].append(
+                        'ACDD time attributes must contain valid ISO8601 dates. %s is invalid.'
+                        % date
+                    )
 
         for i in range(len(start_dates)):
             t_ext = {}
@@ -658,14 +682,14 @@ class Nc_to_mmd(object):
             others = self.separate_repeated(True, getattr(ncin, acdd_other_key))
         data = []
         for i in range(len(publication_dates)):
-            try:
-                publication_date = isoparse(publication_dates[i])
-            except ParserError:
+            if not validate_iso8601(publication_dates[i]):
                 # in case the dates are not actual dates
                 self.missing_attributes['errors'].append(
-                    'ACDD attribute %s must contain a valid ISO8601 date' % acdd_publication_date
+                    'ACDD attribute %s must contain a valid ISO8601 date.'
+                    % acdd_publication_date_key
                 )
             else:
+                publication_date = isoparse(publication_dates[i])
                 if len(urls) <= i:
                     url = ''
                 else:
