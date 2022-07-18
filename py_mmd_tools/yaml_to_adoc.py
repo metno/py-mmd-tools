@@ -45,23 +45,41 @@ def get_attr_info(key, convention, normalized):
         required = int(normalized[min_occurs_key])
     else:
         required = 0
-    separator_key = key.replace(convention, 'separator')
-    if separator_key in normalized.keys():
-        separator = normalized[separator_key]
-    else:
-        separator = ''
-    default_key = key.replace(convention, 'default')
-    if default_key in normalized.keys():
-        default = normalized[default_key]
-    else:
-        default = ''
-    comment_key = key.replace(convention, 'comment')
-    if comment_key in normalized.keys():
-        comment = normalized[comment_key]
-    else:
-        comment = ''
-    return required, repetition_allowed, comment, separator, default
+    #separator_key = key.replace(convention, 'separator')
+    #if separator_key in normalized.keys():
+    #    separator = normalized[separator_key]
+    #else:
+    #    separator = ''
+    #default_key = key.replace(convention, 'default')
+    #if default_key in normalized.keys():
+    #    default = normalized[default_key]
+    #else:
+    #    default = ''
+    #comment_key = key.replace(convention, 'comment')
+    #if comment_key in normalized.keys():
+    #    comment = normalized[comment_key]
+    #else:
+    #    comment = ''
+    return required, repetition_allowed#, comment, separator, default
 
+def repetition_allowed(mmd_field):
+    pass
+
+def required_mmd_field(field):
+    """ Return True if an MMD field is required, otherwise False.
+
+    Input
+    =====
+    field : dict
+        Dictionary of translations and specifications for an MMD field
+
+    """
+    if 'minOccurs' in field.keys():
+        required = bool(int(field['minOccurs']))
+    else:
+        required = False
+
+    return required
 
 def nc_attrs_from_yaml():
     """ToDo: Add docstring"""
@@ -84,15 +102,23 @@ def nc_attrs_from_yaml():
         'as the authoritative source. If any translations from ACDD to\n'
         'MMD should be changed, the changes should be made in that file.\n'
     )
-    attributes['acdd_ext'] = []
     attributes['acdd'] = {}
     attributes['acdd']['required'] = []
     attributes['acdd']['not_required'] = []
+    attributes['acdd_ext'] = []
+
+    # Loop mmd_yaml to separate between required and not required MMD fields
+    for key, val in mmd_yaml.items():
+        import ipdb
+        ipdb.set_trace()
+
     for key, val in normalized.items():
-        if key.endswith('acdd'):
-            required, repetition_allowed, comment, separator, default = get_attr_info(
+        if 'acdd' in key:
+            required, repetition_allowed = get_attr_info(
                 key, 'acdd', normalized
             )
+            import ipdb
+            ipdb.set_trace()
             if required:
                 attributes['acdd']['required'].append({
                     'mmd_field': key.replace('>acdd', ''),
@@ -111,8 +137,8 @@ def nc_attrs_from_yaml():
                     'separator': separator,
                     'default': default,
                 })
-        if key.endswith('acdd_ext'):
-            required, repetition_allowed, comment, separator, default = get_attr_info(
+        if 'acdd_ext' in key:
+            required, repetition_allowed = get_attr_info(
                 key, 'acdd_ext', normalized
             )
             attributes['acdd_ext'].append({

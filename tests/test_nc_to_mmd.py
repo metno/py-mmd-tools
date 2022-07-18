@@ -48,14 +48,36 @@ class TestNCAttrsFromYaml(unittest.TestCase):
         # Flatten dict
         df = pd.json_normalize(mmd_yaml, sep='>')
         normalized = df.to_dict(orient='records')[0]
-        sd_required, repetition_allowed, repetition_str, separator, default = get_attr_info(
+        sd_required, repetition_allowed = get_attr_info(
             'temporal_extent>start_date>acdd', 'acdd', normalized
         )
-        ed_required, repetition_allowed, repetition_str, separator, default = get_attr_info(
+        ed_required, repetition_allowed = get_attr_info(
             'temporal_extent>end_date>acdd', 'acdd', normalized
         )
         self.assertTrue(sd_required)
         self.assertFalse(ed_required)
+
+    def test_get_attr_info__missing_attrs(self):
+        """ 
+        - Check that max_occurs is set to an empty string in case
+        it is missing in the yaml file, and that repetition is then
+        allowed.
+        - Check that required is set to 0 if minOccurs is missing in
+        the yaml file, and that the attribute is then not required.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        mao = mmd_yaml['temporal_extent']['start_date'].pop('maxOccurs')
+        mio = mmd_yaml['temporal_extent']['start_date'].pop('minOccurs')
+        # Flatten dict
+        df = pd.json_normalize(mmd_yaml, sep='>')
+        normalized = df.to_dict(orient='records')[0]
+        sd_required, repetition_allowed = get_attr_info(
+            'temporal_extent>start_date>acdd', 'acdd', normalized
+        )
+        self.assertFalse(sd_required)
+        self.assertTrue(repetition_allowed)
 
 
 class TestNC2MMD(unittest.TestCase):
