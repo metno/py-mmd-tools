@@ -146,7 +146,7 @@ geographic_extent:
         comment: No repetition allowed
 
 location:
-  maxOccurs: '0'
+  maxOccurs: '1'
   minOccurs: '0'
   location_vocabulary:
   location_category:
