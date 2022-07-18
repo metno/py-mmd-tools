@@ -98,6 +98,20 @@ class TestMMD2NC(unittest.TestCase):
         self.assertEqual(md.acdd_metadata['id'], 'c7f8731b-5cfe-4cb5-ac57-168a19a2957b')
         self.assertEqual(md.acdd_metadata['naming_authority'], 'no.met')
 
+    def test__process_metadata_identifier_wrong_input(self):
+        """ Test that an error is raised if there is no tag
+        'metadata_identifier' in the provided element.
+        """
+        # Initialize
+        md = Mmd_to_nc(self.reference_xml, self.orig_nc)
+        XML = "{%s}" % self.namespaces['xml']
+        MMD = "{%s}" % self.namespaces['mmd']
+        # Create wrong element
+        main = ET.Element(MMD+'mmd', nsmap=self.namespaces)
+        id = ET.SubElement(main, MMD+'wrong_tag')
+        id.text = 'no.met:c7f8731b-5cfe-4cb5-ac57-168a19a2957b'
+        # Test that an error is raised
+        self.assertRaises(ValueError, lambda: md.process_metadata_identifier(id))
 
     def test_process_title_and_abstract(self):
         """
@@ -411,3 +425,12 @@ class TestMMD2NC(unittest.TestCase):
         element_to_translate = md.tree.find('mmd:metadata_status', md.namespaces)
         md.process_element(element_to_translate, md.mmd_yaml)
         self.assertIsNone(md.acdd_metadata)
+
+    def test__process_element__multiple_alternatives(self):
+        # Initialize
+        md = Mmd_to_nc(self.reference_xml, self.orig_nc)
+        # MMD element not listed in the translation dictionary
+        element_to_translate = md.tree.find(
+                'mmd:metadata_identifier', md.namespaces)
+        self.assertRaises(ValueError, lambda: md.process_element(element_to_translate,
+                                                                 md.mmd_yaml))

@@ -166,7 +166,7 @@ class Mmd_to_nc(object):
         # Name of the XML element without namespace
         tag = ET.QName(element).localname
         if not tag=='metadata_identifier':
-            raise OptionError('Wrong input')
+            raise ValueError('Wrong input')
         # Corresponding ACDD element name
         acdd_name, comments, sep = Mmd_to_nc.get_acdd(self.mmd_yaml['metadata_identifier'])
         assert 'id' in acdd_name
