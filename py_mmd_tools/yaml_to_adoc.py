@@ -1,66 +1,8 @@
 import yaml
 import jinja2
-import pandas as pd
 
 from pkg_resources import resource_string
 
-
-def get_attr_info(key, convention, normalized):
-    """Get information about the MMD fields.
-
-    Input
-    =====
-    key: str
-        MMD element to check
-    convention: str
-        e.g., acdd or acdd_ext
-    normalized: dict
-        a normalized version of the mmd_elements dict (keys are, e.g.,
-        'personnel>organisation>acdd' or
-        'personnel>organisation>separator')
-
-    Returns
-    =======
-    required: int
-        if it is required
-    repetition: str ('yes' or 'no')
-        if repetition is allowed
-    comment: str
-        a longer string representation for use in the DMH
-    separator: str
-        sign for separating elements that can be repeated (e.g., ','
-        or ';')
-    default:
-        a default value for elements that are required but missing in
-        the netcdf file
-    """
-    max_occurs_key = key.replace(convention, 'maxOccurs')
-    if max_occurs_key in normalized.keys():
-        max_occurs = normalized[max_occurs_key]
-    else:
-        max_occurs = ''
-    repetition_allowed = 'yes' if max_occurs not in ['0', '1'] else 'no'
-    min_occurs_key = key.replace(convention, 'minOccurs')
-    if min_occurs_key in normalized.keys():
-        required = int(normalized[min_occurs_key])
-    else:
-        required = 0
-    #separator_key = key.replace(convention, 'separator')
-    #if separator_key in normalized.keys():
-    #    separator = normalized[separator_key]
-    #else:
-    #    separator = ''
-    #default_key = key.replace(convention, 'default')
-    #if default_key in normalized.keys():
-    #    default = normalized[default_key]
-    #else:
-    #    default = ''
-    #comment_key = key.replace(convention, 'comment')
-    #if comment_key in normalized.keys():
-    #    comment = normalized[comment_key]
-    #else:
-    #    comment = ''
-    return required, repetition_allowed#, comment, separator, default
 
 def repetition_allowed(field):
     """ Return True if an MMD/ACDD field has repetition allowed,
@@ -79,6 +21,7 @@ def repetition_allowed(field):
 
     return rep
 
+
 def required(field):
     """ Return True if a field is required, otherwise False.
 
@@ -95,6 +38,7 @@ def required(field):
         required = False
 
     return required
+
 
 def set_attribute(mmd_field, val, convention, attributes, req='not_required'):
     """ Set the attributes[convention][required] dict from a given
@@ -134,16 +78,17 @@ def set_attribute(mmd_field, val, convention, attributes, req='not_required'):
         comment, sep, default = '', '', ''
         if val[convention][attr] is not None:
             comment = val[convention][attr].pop('comment', '')
-            sep = val[convention][attr].pop('separator', '') 
+            sep = val[convention][attr].pop('separator', '')
             default = val[convention][attr].pop('default', '')
         attributes[convention][req].append({
-                'mmd_field': mmd_field,
-                'attribute': attr,
-                'repetition_allowed': repetition_allowed(val[convention][attr]),
-                'comment': comment,
-                'separator': sep,
-                'default': default
-            })
+            'mmd_field': mmd_field,
+            'attribute': attr,
+            'repetition_allowed': repetition_allowed(val[convention][attr]),
+            'comment': comment,
+            'separator': sep,
+            'default': default
+        })
+
 
 def set_attributes(mmd_field, val_dict, attributes):
     """ Loop val_dict to populate attributes dict that contains
@@ -174,6 +119,7 @@ def set_attributes(mmd_field, val_dict, attributes):
         mmd_field_name = mmd_field + '>' + key
         set_attributes(mmd_field_name, val, attributes)
 
+
 def nc_attrs_from_yaml():
     """ Create an asciidoc file with text and tables describing the
     translation between ACDD and MMD, plus extra netCDF attributes
@@ -184,10 +130,6 @@ def nc_attrs_from_yaml():
             globals()['__name__'].split('.')[0], 'mmd_elements.yaml'
         ), Loader=yaml.FullLoader
     )
-
-    # Flatten dict
-    df = pd.json_normalize(mmd_yaml, sep='>')
-    normalized = df.to_dict(orient='records')[0]
 
     attributes = {}
     attributes['message'] = (
@@ -207,7 +149,7 @@ def nc_attrs_from_yaml():
 
     for key, val in mmd_yaml.items():
         set_attributes(key, val, attributes)
-    
+
     def is_list(value):
         return isinstance(value, list)
 

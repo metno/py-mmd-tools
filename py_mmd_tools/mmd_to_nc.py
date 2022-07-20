@@ -117,12 +117,8 @@ class Mmd_to_nc(object):
             if acdd_name is not None:
                 if len(acdd_name) > 1:
                     raise ValueError('Multiple ACDD or ACCD extension fields provided.'
-                            ' Please use another translation function.')
-                ## Update the dictionary containing the ACDD elements
-                #if type(acdd_name) is dict:
-                #    # there are separate comments for the attributes
-                #    # which are not needes
-                #    acdd_name = list(acdd_name.keys())
+                                     ' Please use another translation function.')
+                # Update the dictionary containing the ACDD elements
                 self.update_acdd({acdd_name[0]: xml_element.text}, {acdd_name[0]: sep})
 
     def update_acdd(self, new_dict, sep=None):
@@ -165,7 +161,7 @@ class Mmd_to_nc(object):
         """
         # Name of the XML element without namespace
         tag = ET.QName(element).localname
-        if not tag=='metadata_identifier':
+        if not tag == 'metadata_identifier':
             raise ValueError('Wrong input')
         # Corresponding ACDD element name
         acdd_name, comments, sep = Mmd_to_nc.get_acdd(self.mmd_yaml['metadata_identifier'])
@@ -201,12 +197,13 @@ class Mmd_to_nc(object):
         """
 
         self.update_acdd({
-                'date_metadata_modified': element.find('mmd:update/mmd:datetime',
-                    namespaces=self.namespaces).text
-            }, {
-                'date_metadata_modified': self.mmd_yaml['last_metadata_update']['update']
-                         ['datetime']['acdd']['date_metadata_modified']['separator']
-            })
+            'date_metadata_modified': element.find('mmd:update/mmd:datetime',
+                                                   namespaces=self.namespaces).text
+        }, {
+            'date_metadata_modified': self.mmd_yaml['last_metadata_update']['update']
+                                                   ['datetime']['acdd']['date_metadata_modified']
+                                                   ['separator']
+        })
 
     def process_personnel(self, element, separator=','):
         """
@@ -228,7 +225,7 @@ class Mmd_to_nc(object):
 
         """
         assert separator == \
-                self.mmd_yaml['personnel']['role']['acdd']['creator_role']['separator']
+            self.mmd_yaml['personnel']['role']['acdd']['creator_role']['separator']
 
         out = {}
         sep = {}
@@ -253,7 +250,6 @@ class Mmd_to_nc(object):
         for mmd_field in acdd_translation_and_mmd_required_fields:
             nc_field = '_'.join([prefix, mmd_field])
             out[nc_field] = element.find(f'mmd:{mmd_field}', namespaces=self.namespaces).text
-            #sep[nc_field] = self.mmd_yaml['personnel'][mmd_field]['acdd']['separator']
             sep[nc_field] = separator
 
         # Process the optional field, so first check if they are defined in the MMD file
@@ -262,7 +258,6 @@ class Mmd_to_nc(object):
             if field is not None:
                 nc_field = '_'.join([prefix, mmd_field])
                 out[nc_field] = field.text
-                #sep[nc_field] = self.mmd_yaml['personnel'][mmd_field]['acdd']['separator']
                 sep[nc_field] = separator
 
         # Update the dictionary containing the ACDD elements
@@ -312,7 +307,7 @@ class Mmd_to_nc(object):
             out['keywords_vocabulary'] = ':'.join([prefix, found.text])
             for key in self.mmd_yaml['keywords']['vocabulary']['acdd'].keys():
                 sep['keywords_vocabulary'] = \
-                        self.mmd_yaml['keywords']['vocabulary']['acdd'][key]['separator']
+                    self.mmd_yaml['keywords']['vocabulary']['acdd'][key]['separator']
 
         # Update ACDD dictionary
         self.update_acdd(out, sep)

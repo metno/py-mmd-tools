@@ -86,7 +86,6 @@ class TestMMD2NC(unittest.TestCase):
         """
         # Initialize
         md = Mmd_to_nc(self.reference_xml, self.orig_nc)
-        XML = "{%s}" % self.namespaces['xml']
         MMD = "{%s}" % self.namespaces['mmd']
         # Create metadata_identifier element
         main = ET.Element(MMD+'mmd', nsmap=self.namespaces)
@@ -104,7 +103,6 @@ class TestMMD2NC(unittest.TestCase):
         """
         # Initialize
         md = Mmd_to_nc(self.reference_xml, self.orig_nc)
-        XML = "{%s}" % self.namespaces['xml']
         MMD = "{%s}" % self.namespaces['mmd']
         # Create wrong element
         main = ET.Element(MMD+'mmd', nsmap=self.namespaces)
@@ -340,8 +338,8 @@ class TestMMD2NC(unittest.TestCase):
                         'comment': 'Required, and should be UUID. No repetition allowed.'
                     },
                     'naming_authority': {
-                        'comment': 'Required. We recommend using reverse-DNS naming. No ' \
-                                'repetition allowed.'
+                        'comment': 'Required. We recommend using reverse-DNS naming. No '
+                                   'repetition allowed.'
                     }
                 }
             },
@@ -366,10 +364,14 @@ class TestMMD2NC(unittest.TestCase):
         acdd, comment, sep = md.get_acdd(translation['metadata_identifier'])
         self.assertEqual(acdd[0], 'id')
         self.assertEqual(acdd[1], 'naming_authority')
-        self.assertEqual(comment[0],
-                translation['metadata_identifier']['acdd']['id']['comment'])
-        self.assertEqual(comment[1],
-                translation['metadata_identifier']['acdd']['naming_authority']['comment'])
+        self.assertEqual(
+            comment[0],
+            translation['metadata_identifier']['acdd']['id']['comment']
+        )
+        self.assertEqual(
+            comment[1],
+            translation['metadata_identifier']['acdd']['naming_authority']['comment']
+        )
 
         # MMD element with no ACDD translation
         acdd, comment, sep = md.get_acdd(translation['mmd_element_with_no_acdd_translation'])
@@ -389,9 +391,8 @@ class TestMMD2NC(unittest.TestCase):
         self.assertEqual(sep[0], ';')
 
     def test_process_element_1(self):
-        """
-         Test function process_element, ie, for an XML element of an MMD file, get ACDD translation
-         Simple direct translation.
+        """ Test function process_element, i.e., for an XML element of
+        an MMD file, get ACDD translation. Simple direct translation.
         """
         # Initialize
         md = Mmd_to_nc(self.reference_xml, self.orig_nc)
@@ -413,7 +414,7 @@ class TestMMD2NC(unittest.TestCase):
         md = Mmd_to_nc(self.reference_xml, self.orig_nc)
         # MMD element not listed in the translation dictionary
         element_to_translate = md.tree.find(
-                'mmd:personnel/mmd:contact_address/mmd:country', md.namespaces)
+            'mmd:personnel/mmd:contact_address/mmd:country', md.namespaces)
         md.process_element(element_to_translate, md.mmd_yaml)
         self.assertIsNone(md.acdd_metadata)
         # MMD element listed in the translation dictionary, but with no translation information
@@ -431,6 +432,6 @@ class TestMMD2NC(unittest.TestCase):
         md = Mmd_to_nc(self.reference_xml, self.orig_nc)
         # MMD element not listed in the translation dictionary
         element_to_translate = md.tree.find(
-                'mmd:metadata_identifier', md.namespaces)
+            'mmd:metadata_identifier', md.namespaces)
         self.assertRaises(ValueError, lambda: md.process_element(element_to_translate,
                                                                  md.mmd_yaml))

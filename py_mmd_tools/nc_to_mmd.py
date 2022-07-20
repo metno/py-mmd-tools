@@ -43,26 +43,27 @@ logging.basicConfig(level=logging.INFO)
 def validate_iso8601(isodatetime):
     regex = (
         r'^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])'
-        'T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]'
-        '|[01][0-9]):[0-5][0-9])?$'
+        r'T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]'
+        r'|[01][0-9]):[0-5][0-9])?$'
     )
     match_iso8601 = re.compile(regex).match
     valid = False
     try:
-        mm = match_iso8601( isodatetime ) 
-    except:
+        mm = match_iso8601(isodatetime)
+    except TypeError:
         mm = None
 
     if mm is not None:
         valid = True
         # Test with isoparse as well
         try:
-            dt = isoparse(isodatetime)
-        except (ParserError, ValueError) as e:
+            isoparse(isodatetime)
+        except (ParserError, ValueError):
             # ValueError in case of a not existing date, such as 29th Feb 2019
             valid = False
 
     return valid
+
 
 class Nc_to_mmd(object):
 
@@ -147,7 +148,7 @@ class Nc_to_mmd(object):
         # the translation
         if len(acdd.keys()) + len(acdd_ext.keys()) > 1:
             raise ValueError('Multiple ACDD or ACCD extension fields provided.'
-                ' Please use another translation function.')
+                             ' Please use another translation function.')
 
         default = mmd_element.pop('default', '')
         repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['0', '1']
@@ -397,7 +398,7 @@ class Nc_to_mmd(object):
         return data
 
     def get_attribute_name_list(self, mmd_element):
-        """Return dict of ACDD and ACDD_EXT attribute names. 
+        """ Return dict of ACDD and ACDD_EXT attribute names.
         """
         att_names = mmd_element.pop('acdd', {})
         att_names_acdd_ext = mmd_element.pop('acdd_ext', '')
@@ -440,9 +441,8 @@ class Nc_to_mmd(object):
                 emails.extend([acdd_emails[acdd_email]['default']])
             # Get organisations
             acdd_organisations_list = [
-                    organisation for organisation in acdd_organisations.keys()
-                    if acdd_main in organisation
-                ]
+                organisation for organisation in acdd_organisations.keys()
+                if acdd_main in organisation]
             these_orgs = []
             for org_elem in acdd_organisations_list:
                 if org_elem and org_elem in ncin.ncattrs():
@@ -606,8 +606,8 @@ class Nc_to_mmd(object):
         acdd_instrument_resource = mmd_element['instrument']['resource'].pop('acdd')
         acdd_instrument_resource_key = list(acdd_instrument_resource.keys())[0]
         if acdd_instrument_resource_key in ncin.ncattrs():
-            iresources = self.separate_repeated(True,
-                    getattr(ncin, acdd_instrument_resource_key))
+            iresources = self.separate_repeated(
+                True, getattr(ncin, acdd_instrument_resource_key))
 
         data = []
         for long_name, ilong_name, resource, iresource in zip_longest(
@@ -689,7 +689,6 @@ class Nc_to_mmd(object):
                     % acdd_publication_date_key
                 )
             else:
-                publication_date = isoparse(publication_dates[i])
                 if len(urls) <= i:
                     url = ''
                 else:
@@ -990,9 +989,8 @@ class Nc_to_mmd(object):
             mmd_yaml['geographic_extent'].pop('rectangle')
         else:
             self.metadata['geographic_extent']['rectangle'] = \
-                    self.get_geographic_extent_rectangle(
-                            mmd_yaml['geographic_extent'].pop('rectangle'), ncin
-                        )
+                self.get_geographic_extent_rectangle(
+                    mmd_yaml['geographic_extent'].pop('rectangle'), ncin)
         # Check for geographic_extent/polygon
         polygon = self.get_geographic_extent_polygon(
             mmd_yaml['geographic_extent'].pop('polygon'), ncin
