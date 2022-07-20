@@ -473,7 +473,7 @@ dataset_citation:
     acdd_ext:
       doi:
         maxOccurs: '1'
-        comment: Can be also be the DOI of a parent dataset.
+        comment: Can also be the DOI of a parent dataset.
   url:
     acdd:
       metadata_link:
