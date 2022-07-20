@@ -470,6 +470,9 @@ dataset_citation:
   pages:
   isbn:
   doi:
+    acdd_ext:
+      doi:
+        maxOccurs: '1'
   url:
     acdd:
       metadata_link:
