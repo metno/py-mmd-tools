@@ -473,6 +473,7 @@ dataset_citation:
     acdd_ext:
       doi:
         maxOccurs: '1'
+        comment: Only add this if the dataset has a DOI.
   url:
     acdd:
       metadata_link:
