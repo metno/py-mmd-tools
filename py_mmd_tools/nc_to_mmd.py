@@ -37,8 +37,6 @@ from netCDF4 import Dataset
 
 from shapely.errors import WKTReadingError
 
-logging.basicConfig(level=logging.INFO)
-
 
 def validate_iso8601(isodatetime):
     regex = (
