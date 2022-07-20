@@ -150,15 +150,11 @@ def nc_attrs_from_yaml():
     for key, val in mmd_yaml.items():
         set_attributes(key, val, attributes)
 
-    def is_list(value):
-        return isinstance(value, list)
-
     env = jinja2.Environment(
         loader=jinja2.PackageLoader(globals()['__name__'].split('.')[0], 'templates'),
         autoescape=jinja2.select_autoescape(['html', 'xml']),
         trim_blocks=True, lstrip_blocks=True
     )
-    env.filters['is_list'] = is_list
     template = env.get_template('nc_attributes_template.adoc')
 
     out_doc = template.render(data=attributes)

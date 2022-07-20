@@ -83,7 +83,7 @@ class TestNCAttrsFromYaml(unittest.TestCase):
             'mmd_field': 'dataset_production_status',
             'attribute': 'dataset_production_status',
             'repetition_allowed': False,
-            'comment': 'No repetition allowed',
+            'comment': 'No repetition allowed.',
             'separator': '',
             'default': 'Complete'
         })
@@ -172,7 +172,7 @@ class TestNCAttrsFromYaml(unittest.TestCase):
             'mmd_field': 'keywords>keyword',
             'attribute': 'keywords',
             'repetition_allowed': True,
-            'comment': 'Comma separated list',
+            'comment': 'Comma separated list.',
             'separator': ',',
             'default': ''
         })
