@@ -26,12 +26,204 @@ from pkg_resources import resource_string
 from unittest.mock import patch
 
 from py_mmd_tools.nc_to_mmd import Nc_to_mmd, validate_iso8601
-from py_mmd_tools.yaml_to_adoc import nc_attrs_from_yaml, get_attr_info
+from py_mmd_tools.yaml_to_adoc import nc_attrs_from_yaml
+from py_mmd_tools.yaml_to_adoc import get_attr_info
+from py_mmd_tools.yaml_to_adoc import required
+from py_mmd_tools.yaml_to_adoc import repetition_allowed
+from py_mmd_tools.yaml_to_adoc import set_attribute
+from py_mmd_tools.yaml_to_adoc import set_attributes
 
 warnings.simplefilter("ignore", ResourceWarning)
 
 
 class TestNCAttrsFromYaml(unittest.TestCase):
+
+    def setUp(self):
+        """ Sets up class with an attribute `mmd_yaml` containing
+        the MMD to ACDD translations.
+        """
+        self.mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        self.attributes = {}
+        self.attributes['acdd'] = {}
+        self.attributes['acdd']['required'] = []
+        self.attributes['acdd']['not_required'] = []
+        self.attributes['acdd_ext'] = {}
+        self.attributes['acdd_ext']['required'] = []
+        self.attributes['acdd_ext']['not_required'] = []
+
+    def test_set_attribute__wrong_input(self):
+        """ Test that errors are raised in case of wrong input to the
+        set_attribute method.
+        """
+        mmd_field = 'keywords'
+        key = 'maxOccurs'
+        val = self.mmd_yaml[mmd_field][key]
+        convention = 'acdd'
+        with self.assertRaises(ValueError):
+            set_attribute(mmd_field, val, convention, self.attributes, req='not_required')
+
+    def test_set_attribute__no_convention(self):
+        """ Test the set_attribute method when no convention is
+        defined in mmd_yaml.
+        """
+        mmd_field = 'alternate_identifier'
+        val = self.mmd_yaml[mmd_field]
+        convention = 'acdd'
+        set_attribute(mmd_field, val, convention, self.attributes, req='not_required')
+        self.assertFalse(bool(self.attributes['acdd']['not_required']))
+
+    def test_set_attribute__one_conv_field(self):
+        """ Test the set_attribute method when one convention field
+        is provided in mmd_yaml. Tests both acdd and acdd_ext.
+        """
+        # Test acdd_ext
+        mmd_field = 'dataset_production_status'
+        val = self.mmd_yaml[mmd_field]
+        convention = 'acdd_ext'
+        set_attribute(mmd_field, val, convention, self.attributes, req='not_required')
+        self.assertEqual(self.attributes['acdd_ext']['not_required'][0],
+                {
+                    'mmd_field': 'dataset_production_status',
+                    'attribute': 'dataset_production_status',
+                    'repetition_allowed': False,
+                    'comment': 'No repetition allowed',
+                    'separator': '',
+                    'default': 'Complete'
+                    })
+        # Test acdd
+        mmd_field = 'operational_status'
+        val = self.mmd_yaml[mmd_field]
+        convention = 'acdd'
+        set_attribute(mmd_field, val, convention, self.attributes, req='not_required')
+        self.assertEqual(self.attributes['acdd']['not_required'][0],
+                {
+                    'mmd_field': 'operational_status',
+                    'attribute': 'processing_level',
+                    'repetition_allowed': False,
+                    'comment': 'No repetition allowed. See the MMD docs for valid keywords.',
+                    'separator': '',
+                    'default': ''
+                    })
+
+    def test_set_attribute__two_conv_fields(self):
+        """ Test the set_attribute method when two convention fields
+        are provided in mmd_yaml.
+        """
+        mmd_field = 'metadata_identifier'
+        val = self.mmd_yaml[mmd_field]
+        convention = 'acdd'
+        set_attribute(mmd_field, val, convention, self.attributes, req='required')
+        self.assertEqual(self.attributes['acdd']['required'][0],
+                {
+                    'mmd_field': 'metadata_identifier',
+                    'attribute': 'id',
+                    'repetition_allowed': False,
+                    'comment': 'Required, and should be UUID. No repetition allowed.',
+                    'separator': '',
+                    'default': ''
+                    })
+        self.assertEqual(self.attributes['acdd']['required'][1],
+                {
+                    'mmd_field': 'metadata_identifier',
+                    'attribute': 'naming_authority',
+                    'repetition_allowed': False,
+                    'comment': 'Required. We recommend using reverse-DNS naming. ' \
+                            'No repetition allowed.',
+                    'separator': '',
+                    'default': ''
+                    })
+
+    def test_set_attribute__required_not_req(self):
+        """ Test the set_attribute method when the
+        attributes[convention]['required'] field should be
+        populated but the convention is not required.
+        """
+        mmd_field = 'operational_status'
+        val = self.mmd_yaml[mmd_field]
+        convention = 'acdd'
+        set_attribute(mmd_field, val, convention, self.attributes, req='required')
+        self.assertEqual(self.attributes['acdd']['required'], [])
+        self.assertEqual(self.attributes['acdd']['not_required'], [])
+
+    def test_set_attribute__not_required_req(self):
+        """ Test the set_attribute method when the
+        attributes[convention]['not_required'] field should be
+        populated but the convention is required.
+        """
+        mmd_field = 'iso_topic_category'
+        val = self.mmd_yaml[mmd_field]
+        convention = 'acdd_ext'
+        set_attribute(mmd_field, val, convention, self.attributes, req='not_required')
+        self.assertEqual(self.attributes['acdd']['required'], [])
+        self.assertEqual(self.attributes['acdd']['not_required'], [])
+
+    def test_set_attributes__single(self):
+        mmd_field = 'metadata_identifier'
+        val = self.mmd_yaml[mmd_field]
+        set_attributes(mmd_field, val, self.attributes)
+        self.assertEqual(self.attributes['acdd']['required'][0],
+                {
+                    'mmd_field': 'metadata_identifier',
+                    'attribute': 'id',
+                    'repetition_allowed': False,
+                    'comment': 'Required, and should be UUID. No repetition allowed.',
+                    'separator': '',
+                    'default': ''
+                })
+
+    def test_set_attributes__nested(self):
+        mmd_field = 'keywords'
+        val = self.mmd_yaml[mmd_field]
+        set_attributes(mmd_field, val, self.attributes)
+        self.assertEqual(self.attributes['acdd']['required'][0],
+                {
+                    'mmd_field': 'keywords>keyword',
+                    'attribute': 'keywords',
+                    'repetition_allowed': True,
+                    'comment': 'Comma separated list',
+                    'separator': ',',
+                    'default': ''
+                })
+
+    def test_required__is_required(self):
+        """ Test method required on a required MMD field.
+        """
+        self.assertTrue(required(self.mmd_yaml['temporal_extent']['start_date']))
+
+    def test_required__not_required(self):
+        """ Test method required on a not required MMD field.
+        """
+        self.assertFalse(required(self.mmd_yaml['temporal_extent']['end_date']))
+
+    def test_required__minOccurs_missing(self):
+        """ Test method required on an MMD field where the minOccurs
+        key is missing.
+        """
+        sd = self.mmd_yaml['temporal_extent']['start_date']
+        sd.pop('minOccurs')
+        self.assertFalse(required(sd))
+
+    def test_repetition_allowed(self):
+        """ Test method repetition_allowed with an MMD field which
+        can allows repetition.
+        """
+        self.assertTrue(repetition_allowed(self.mmd_yaml['temporal_extent']['start_date']))
+
+    def test_repetition_allowed__not_allowed(self):
+        """ Test method repetition_allowed with an MMD field which
+        can does not allow repetition.
+        """
+        self.assertFalse(repetition_allowed(self.mmd_yaml['geographic_extent']))
+
+    def test_repetition_allowed__maxOccurs_missing(self):
+        """ Test method repetition_allowed with an MMD field where
+        the maxOccurs key is missing.
+        """
+        sd = self.mmd_yaml['temporal_extent']['start_date']
+        sd.pop('maxOccurs')
+        self.assertTrue(repetition_allowed(sd))
 
     def test_nc_attrs_from_yaml(self):
         """ToDo: Add docstring"""
@@ -42,11 +234,8 @@ class TestNCAttrsFromYaml(unittest.TestCase):
         """Check that time_coverage_start and time_coverage_end are
         required.
         """
-        mmd_yaml = yaml.load(
-            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-        )
         # Flatten dict
-        df = pd.json_normalize(mmd_yaml, sep='>')
+        df = pd.json_normalize(self.mmd_yaml, sep='>')
         normalized = df.to_dict(orient='records')[0]
         sd_required, repetition_allowed = get_attr_info(
             'temporal_extent>start_date>acdd', 'acdd', normalized
@@ -65,13 +254,10 @@ class TestNCAttrsFromYaml(unittest.TestCase):
         - Check that required is set to 0 if minOccurs is missing in
         the yaml file, and that the attribute is then not required.
         """
-        mmd_yaml = yaml.load(
-            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-        )
-        mao = mmd_yaml['temporal_extent']['start_date'].pop('maxOccurs')
-        mio = mmd_yaml['temporal_extent']['start_date'].pop('minOccurs')
+        mao = self.mmd_yaml['temporal_extent']['start_date'].pop('maxOccurs')
+        mio = self.mmd_yaml['temporal_extent']['start_date'].pop('minOccurs')
         # Flatten dict
-        df = pd.json_normalize(mmd_yaml, sep='>')
+        df = pd.json_normalize(self.mmd_yaml, sep='>')
         normalized = df.to_dict(orient='records')[0]
         sd_required, repetition_allowed = get_attr_info(
             'temporal_extent>start_date>acdd', 'acdd', normalized

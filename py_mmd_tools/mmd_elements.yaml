@@ -4,8 +4,12 @@ metadata_identifier:
   minOccurs: '1'
   acdd: 
     id:
+      maxOccurs: '1'
+      minOccurs: '1'
       comment: Required, and should be UUID. No repetition allowed.
     naming_authority:
+      maxOccurs: '1'
+      minOccurs: '1'
       comment: Required. We recommend using reverse-DNS naming. No repetition allowed.
 
 alternate_identifier:
@@ -35,6 +39,7 @@ last_metadata_update:
           separator: ','
           comment: Format as ISO8601. Comma separated list if more than once.
         date_created:
+          minOccurs: '1'
           comment: Format as ISO8601.
     type:
       minOccurs: '1'
@@ -58,6 +63,7 @@ title:
     minOccurs: '1'
     acdd:
       title:
+        minOccurs: '1'
         comment: Use ACDD extension "title_no" for Norwegian translation.
     acdd_ext:
       title_no:
@@ -76,6 +82,7 @@ abstract:
     minOccurs: '1'
     acdd:
       summary:
+        minOccurs: '1'
         separator: ';'
         comment: Use ACDD extension "summary_no" for Norwegian translation.
     acdd_ext:
@@ -96,6 +103,7 @@ temporal_extent:
     minOccurs: '1'
     acdd:
       time_coverage_start:
+        minOccurs: '1'
         comment: Comma separated list
         separator: ','
   end_date:
@@ -119,24 +127,32 @@ geographic_extent:
       minOccurs: '1'
       acdd:
         geospatial_lat_max:
+          maxOccurs: '1'
+          minOccurs: '1'
           comment: No repetition allowed
     south:
       maxOccurs: '1'
       minOccurs: '1'
       acdd:
         geospatial_lat_min:
+          maxOccurs: '1'
+          minOccurs: '1'
           comment: No repetition allowed
     east:
       maxOccurs: '1'
       minOccurs: '1'
       acdd:
         geospatial_lon_max:
+          maxOccurs: '1'
+          minOccurs: '1'
           comment: No repetition allowed
     west:
       maxOccurs: '1'
       minOccurs: '1'
       acdd:
         geospatial_lon_min:
+          maxOccurs: '1'
+          minOccurs: '1'
           comment: No repetition allowed
   polygon:
     maxOccurs: '1'
@@ -162,6 +178,7 @@ dataset_production_status:
   acdd_ext:
     dataset_production_status:
       comment: No repetition allowed
+      maxOccurs: '1'
       default: Complete
 
 dataset_language:
@@ -174,7 +191,8 @@ operational_status:
   minOccurs: '0'
   acdd:
     processing_level:
-      comment: No repetition allowed
+      maxOccurs: '1'
+      comment: No repetition allowed. See the MMD docs for valid keywords.
 
 access_constraint:
   maxOccurs: '1'
@@ -190,11 +208,13 @@ use_constraint:
     maxOccurs: '1'
     acdd:
       license:
+        maxOccurs: '1'
         comment: No repetition allowed
   resource:
     maxOccurs: '1'
     acdd_ext:
       license_resource:
+        maxOccurs: '1'
         comment: No repetition allowed
   license_text:
 
@@ -290,10 +310,12 @@ related_dataset:
   related_dataset:
     acdd_ext:
       related_dataset_id:
+        separator: ','
         comment: Comma separated list
   relation_type:
     acdd_ext:
       related_dataset_relation_type:
+        separator: ','
         comment: Comma separated list
 
 storage_information:
@@ -327,12 +349,14 @@ keywords:
     minOccurs: '1'
     acdd:
       keywords:
+        minOccurs: '1'
         separator: ','
         comment: Comma separated list
   vocabulary:
     minOccurs: '1'
     acdd:
       keywords_vocabulary:
+        minOccurs: '1'
         comment: Comma separated list
         separator: ','
   resource:
@@ -402,9 +426,11 @@ quality_control:
 
 spatial_representation:
   maxOccurs: '1'
-  minOccurs: '1'
+  minOccurs: '1' # MMD docs has '0' but see issue #96, def in PR97
   acdd_ext:
     spatial_representation:
+      minOccurs: '1' # see #96 and https://github.com/metno/py-mmd-tools/pull/97
+      maxOccurs: '1'
       comment: No repetition allowed
 
 activity_type:
