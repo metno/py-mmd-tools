@@ -47,13 +47,7 @@ The following ACDD elements are required:
 |=======================================================================
 |*ACDD Attribute* |*MMD equivalent* |*Comment*
 {% for elem in data['acdd']['required'] %}
-    {% if elem['attribute'] | is_list %}
-        {% for subelem in elem['attribute'] %}
-|{{ subelem }} | {{ elem['mmd_field'] }} | {{ elem['comment'] }}
-        {% endfor %}
-    {% else %}
 |{{ elem['attribute'] }} | {{ elem['mmd_field'] }} | {{ elem['comment'] }}
-{% endif %}
 {% endfor %}
 |=======================================================================
 
@@ -62,13 +56,7 @@ The following ACDD elements are (highly) recommended:
 |=======================================================================
 |*ACDD Attribute* |*Default* |*MMD equivalent* |*Comment*
 {% for elem in data['acdd']['not_required'] %}
-    {% if elem[0] | is_list %}
-        {% for subelem in elem[0] %}
-|{{ subelem }} | {{ elem['default'] }} | {{ elem['mmd_field'] }} | {{ elem['comment'] }}
-        {% endfor %}
-    {% else %}
 |{{ elem['attribute'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }} | {{ elem['comment'] }}
-{% endif %}
 {% endfor %}
 |=======================================================================
 
@@ -76,7 +64,10 @@ The following elements are ACDD extensions that are needed to improve (meta)data
 [cols=",,,"]
 |=======================================================================
 |*Necessary non-ACDD Attribute* |*Default* |*MMD equivalent* |*Comment*
-{% for elem in data['acdd_ext'] %}
+{% for elem in data['acdd_ext']['required'] %}
+|{{ elem['attribute'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }} | {{ elem['comment'] }}
+{% endfor %}
+{% for elem in data['acdd_ext']['not_required'] %}
 |{{ elem['attribute'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }} | {{ elem['comment'] }}
 {% endfor %}
 |=======================================================================
