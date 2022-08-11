@@ -12,49 +12,213 @@ import os
 import pathlib
 import tempfile
 import yaml
-import datetime
 import warnings
 import unittest
 
-import pandas as pd
-
-from unittest.mock import patch
+from dateutil.parser import isoparse
 from filehash import FileHash
 from lxml import etree
 from netCDF4 import Dataset
 from pkg_resources import resource_string
+from unittest.mock import patch
 
-from py_mmd_tools.nc_to_mmd import Nc_to_mmd
-from py_mmd_tools.yaml_to_adoc import nc_attrs_from_yaml, get_attr_info
+from py_mmd_tools.nc_to_mmd import Nc_to_mmd, validate_iso8601
+from py_mmd_tools.yaml_to_adoc import nc_attrs_from_yaml
+from py_mmd_tools.yaml_to_adoc import required
+from py_mmd_tools.yaml_to_adoc import repetition_allowed
+from py_mmd_tools.yaml_to_adoc import set_attribute
+from py_mmd_tools.yaml_to_adoc import set_attributes
 
 warnings.simplefilter("ignore", ResourceWarning)
 
 
 class TestNCAttrsFromYaml(unittest.TestCase):
 
+    def setUp(self):
+        """ Sets up class with an attribute `mmd_yaml` containing
+        the MMD to ACDD translations.
+        """
+        self.mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        self.attributes = {}
+        self.attributes['acdd'] = {}
+        self.attributes['acdd']['required'] = []
+        self.attributes['acdd']['not_required'] = []
+        self.attributes['acdd_ext'] = {}
+        self.attributes['acdd_ext']['required'] = []
+        self.attributes['acdd_ext']['not_required'] = []
+
+    def test_set_attribute__wrong_input(self):
+        """ Test that errors are raised in case of wrong input to the
+        set_attribute method.
+        """
+        mmd_field = 'keywords'
+        key = 'maxOccurs'
+        val = self.mmd_yaml[mmd_field][key]
+        convention = 'acdd'
+        with self.assertRaises(ValueError):
+            set_attribute(mmd_field, val, convention, self.attributes, req='not_required')
+
+    def test_set_attribute__no_convention(self):
+        """ Test the set_attribute method when no convention is
+        defined in mmd_yaml.
+        """
+        mmd_field = 'alternate_identifier'
+        val = self.mmd_yaml[mmd_field]
+        convention = 'acdd'
+        set_attribute(mmd_field, val, convention, self.attributes, req='not_required')
+        self.assertFalse(bool(self.attributes['acdd']['not_required']))
+
+    def test_set_attribute__one_conv_field(self):
+        """ Test the set_attribute method when one convention field
+        is provided in mmd_yaml. Tests both acdd and acdd_ext.
+        """
+        # Test acdd_ext
+        mmd_field = 'dataset_production_status'
+        val = self.mmd_yaml[mmd_field]
+        convention = 'acdd_ext'
+        set_attribute(mmd_field, val, convention, self.attributes, req='not_required')
+        self.assertEqual(self.attributes['acdd_ext']['not_required'][0], {
+            'mmd_field': 'dataset_production_status',
+            'attribute': 'dataset_production_status',
+            'repetition_allowed': False,
+            'comment': 'No repetition allowed.',
+            'separator': '',
+            'default': 'Complete'
+        })
+        # Test acdd
+        mmd_field = 'operational_status'
+        val = self.mmd_yaml[mmd_field]
+        convention = 'acdd'
+        set_attribute(mmd_field, val, convention, self.attributes, req='not_required')
+        self.assertEqual(self.attributes['acdd']['not_required'][0], {
+            'mmd_field': 'operational_status',
+            'attribute': 'processing_level',
+            'repetition_allowed': False,
+            'comment': 'No repetition allowed. See the MMD docs for valid keywords.',
+            'separator': '',
+            'default': ''
+        })
+
+    def test_set_attribute__two_conv_fields(self):
+        """ Test the set_attribute method when two convention fields
+        are provided in mmd_yaml.
+        """
+        mmd_field = 'metadata_identifier'
+        val = self.mmd_yaml[mmd_field]
+        convention = 'acdd'
+        set_attribute(mmd_field, val, convention, self.attributes, req='required')
+        self.assertEqual(self.attributes['acdd']['required'][0], {
+            'mmd_field': 'metadata_identifier',
+            'attribute': 'id',
+            'repetition_allowed': False,
+            'comment': 'Required, and should be UUID. No repetition allowed.',
+            'separator': '',
+            'default': ''
+        })
+        self.assertEqual(self.attributes['acdd']['required'][1], {
+            'mmd_field': 'metadata_identifier',
+            'attribute': 'naming_authority',
+            'repetition_allowed': False,
+            'comment': 'Required. We recommend using reverse-DNS naming. '
+                       'No repetition allowed.',
+            'separator': '',
+            'default': ''
+        })
+
+    def test_set_attribute__required_not_req(self):
+        """ Test the set_attribute method when the
+        attributes[convention]['required'] field should be
+        populated but the convention is not required.
+        """
+        mmd_field = 'operational_status'
+        val = self.mmd_yaml[mmd_field]
+        convention = 'acdd'
+        set_attribute(mmd_field, val, convention, self.attributes, req='required')
+        self.assertEqual(self.attributes['acdd']['required'], [])
+        self.assertEqual(self.attributes['acdd']['not_required'], [])
+
+    def test_set_attribute__not_required_req(self):
+        """ Test the set_attribute method when the
+        attributes[convention]['not_required'] field should be
+        populated but the convention is required.
+        """
+        mmd_field = 'iso_topic_category'
+        val = self.mmd_yaml[mmd_field]
+        convention = 'acdd_ext'
+        set_attribute(mmd_field, val, convention, self.attributes, req='not_required')
+        self.assertEqual(self.attributes['acdd']['required'], [])
+        self.assertEqual(self.attributes['acdd']['not_required'], [])
+
+    def test_set_attributes__single(self):
+        mmd_field = 'metadata_identifier'
+        val = self.mmd_yaml[mmd_field]
+        set_attributes(mmd_field, val, self.attributes)
+        self.assertEqual(self.attributes['acdd']['required'][0], {
+            'mmd_field': 'metadata_identifier',
+            'attribute': 'id',
+            'repetition_allowed': False,
+            'comment': 'Required, and should be UUID. No repetition allowed.',
+            'separator': '',
+            'default': ''
+        })
+
+    def test_set_attributes__nested(self):
+        mmd_field = 'keywords'
+        val = self.mmd_yaml[mmd_field]
+        set_attributes(mmd_field, val, self.attributes)
+        self.assertEqual(self.attributes['acdd']['required'][0], {
+            'mmd_field': 'keywords>keyword',
+            'attribute': 'keywords',
+            'repetition_allowed': True,
+            'comment': 'Comma separated list.',
+            'separator': ',',
+            'default': ''
+        })
+
+    def test_required__is_required(self):
+        """ Test method required on a required MMD field.
+        """
+        self.assertTrue(required(self.mmd_yaml['temporal_extent']['start_date']))
+
+    def test_required__not_required(self):
+        """ Test method required on a not required MMD field.
+        """
+        self.assertFalse(required(self.mmd_yaml['temporal_extent']['end_date']))
+
+    def test_required__minOccurs_missing(self):
+        """ Test method required on an MMD field where the minOccurs
+        key is missing.
+        """
+        sd = self.mmd_yaml['temporal_extent']['start_date']
+        sd.pop('minOccurs')
+        self.assertFalse(required(sd))
+
+    def test_repetition_allowed(self):
+        """ Test method repetition_allowed with an MMD field which
+        can allows repetition.
+        """
+        self.assertTrue(repetition_allowed(self.mmd_yaml['temporal_extent']['start_date']))
+
+    def test_repetition_allowed__not_allowed(self):
+        """ Test method repetition_allowed with an MMD field which
+        can does not allow repetition.
+        """
+        self.assertFalse(repetition_allowed(self.mmd_yaml['geographic_extent']))
+
+    def test_repetition_allowed__maxOccurs_missing(self):
+        """ Test method repetition_allowed with an MMD field where
+        the maxOccurs key is missing.
+        """
+        sd = self.mmd_yaml['temporal_extent']['start_date']
+        sd.pop('maxOccurs')
+        self.assertTrue(repetition_allowed(sd))
+
     def test_nc_attrs_from_yaml(self):
         """ToDo: Add docstring"""
         adoc = nc_attrs_from_yaml()
         self.assertEqual(type(adoc), str)
-
-    def test_get_attr_info__time_coverage(self):
-        """Check that time_coverage_start and time_coverage_end are
-        required.
-        """
-        mmd_yaml = yaml.load(
-            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-        )
-        # Flatten dict
-        df = pd.json_normalize(mmd_yaml, sep='>')
-        normalized = df.to_dict(orient='records')[0]
-        sd_required, repetition_allowed, repetition_str, separator, default = get_attr_info(
-            'temporal_extent>start_date>acdd', 'acdd', normalized
-        )
-        ed_required, repetition_allowed, repetition_str, separator, default = get_attr_info(
-            'temporal_extent>end_date>acdd', 'acdd', normalized
-        )
-        self.assertTrue(sd_required)
-        self.assertFalse(ed_required)
 
 
 class TestNC2MMD(unittest.TestCase):
@@ -96,11 +260,9 @@ class TestNC2MMD(unittest.TestCase):
         with self.assertRaises(ValueError):
             Nc_to_mmd('tests/data/reference_nc.nc', output_file=None, check_only=True)
 
-    def test_date_created_type__not_present(self):
-        """Test that the line with 'if default' in get_acdd_metadata is
-        covered. Note that we would normally use the function
-        get_acdd_metadata to get date_created and date_created_type but
-        then the line in get_acdd_metadata will not be covered..
+    def test_default_when_no_acdd_or_acdd_ext(self):
+        """ Test that a default value can be used even if no acdd
+        or acdd_ext fields are present.
         """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
@@ -108,10 +270,29 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_acdd_metadata(
-            mmd_yaml['last_metadata_update']['update']['type'],
-            ncin, 'date_created_type'
+            mmd_yaml['metadata_status'],
+            ncin, 'metadata_status'
         )
-        self.assertEqual(value, 'Created')
+        self.assertEqual(value, 'Active')
+
+    def test__get_acdd_metadata__dont_accept_alternatives(self):
+        """ Test that the function get_acdd_metadata raises an
+        error if there are several alternative acdd or acdd_ext
+        fields.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
+        ncin = Dataset(nc2mmd.netcdf_product)
+        with self.assertRaises(ValueError) as e:
+            nc2mmd.get_acdd_metadata(
+                mmd_yaml['metadata_identifier'],
+                ncin, 'metadata_identifier'
+            )
+        self.assertEqual(str(e.exception),
+                         'Multiple ACDD or ACCD extension fields provided.'
+                         ' Please use another translation function.')
 
     def test_get_acdd_metadata_uses_default_date_created_type(self):
         """Test that the get_acdd_metadata function uses default
@@ -175,46 +356,45 @@ class TestNC2MMD(unittest.TestCase):
         )
 
     def test_missing_geographic_extent_but_provided_as_kwarg(self):
-        """ToDo: Add docstring"""
+        """Test that the geographic extent rectangle can be added
+        as a kwarg.
+        """
         yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
-        nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc', check_only=True)
-        with self.assertRaises(AttributeError):
-            nc2mmd.to_mmd(geographic_extent_rectangle={
-                'geospatial_lat_max': 90,
-                'geospatial_lat_min': -90,
-                'geospatial_lon_min': -180,
-                'geospatial_lon_max': 180
-            })
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_rectangle.nc', check_only=True)
+        nc2mmd.to_mmd(geographic_extent_rectangle={
+            'geospatial_lat_max': 90,
+            'geospatial_lat_min': -90,
+            'geospatial_lon_min': -180,
+            'geospatial_lon_max': 180
+        })
         self.assertEqual(nc2mmd.metadata['geographic_extent']['rectangle']['north'], 90)
 
     def test_collection_is_not_list(self):
         """Test that an error is raised if the collection input
-        parameter is not of type list.
+        parameter is wrong type.
         """
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc', check_only=True)
         with self.assertRaises(ValueError) as e:
-            nc2mmd.to_mmd(collection='ADC')
-        self.assertEqual(str(e.exception), 'collection must be of type list')
+            nc2mmd.to_mmd(collection=2)
+        self.assertEqual(str(e.exception), 'collection must be of type str or list')
 
     def test_collection_not_set(self):
         """ToDo: Add docstring"""
         nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_collection.nc', check_only=True)
         req_ok, msg = nc2mmd.to_mmd()
         self.assertTrue(req_ok)
+        self.assertEqual(nc2mmd.metadata['collection'], ['ADC', 'METNCS'])
 
     def test_collection_set(self):
         """ToDo: Add docstring"""
-        mmd_yaml = yaml.load(
-            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-        )
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
-        ncin = Dataset(nc2mmd.netcdf_product)
-        value = nc2mmd.get_acdd_metadata(mmd_yaml['collection'], ncin, 'collection')
+        status, msg = nc2mmd.to_mmd(collection='ADC')
         # nc files should normally not have a collection element, as this is
         # set during harvesting
-        self.assertEqual(value, ['METNCS', 'SIOS', 'ADC'])
+        self.assertTrue(status)
+        self.assertEqual(nc2mmd.metadata['collection'], ['ADC'])
 
     def test_abstract(self):
         """ToDo: Add docstring"""
@@ -412,7 +592,9 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(nc2mmd.metadata['temporal_extent']['end_date'], '1950-01-01T00:00:00Z')
 
     def test_temporal_extent_two_startdates(self):
-        """ToDo: Add docstring"""
+        """Test that two start dates are handled correctly in the
+        translation to MMD.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -424,6 +606,35 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[2]['start_date'], '2021-01-27T13:40:02.019817Z')
         self.assertEqual(value[0]['end_date'], '2020-11-27T13:51:24.401505Z')
         self.assertEqual(value[1]['end_date'], '2020-12-27T13:51:24.019817Z')
+
+    def test_temporal_extent_two_startdates_one_wrong(self):
+        """Test that two start dates are handled correctly in the
+        translation to MMD.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd('tests/data/reference_nc_attrs_multiple.nc', check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.time_coverage_start = "2020-11-27T13:40:02.019817Z, 2020-12-27 13:40:02.019817"
+        ncin.time_coverage_end = "2020-11-27T13:51:24.401505Z, 2020-12-27 13:51:24.019817"
+        value = md.get_temporal_extents(mmd_yaml['temporal_extent'], ncin)
+        self.assertEqual(value[0]['start_date'], '2020-11-27T13:40:02.019817Z')
+        self.assertEqual(
+            md.missing_attributes['errors'][0],
+            'ACDD time attributes must contain valid ISO8601 dates. '
+            '2020-12-27 13:40:02.019817 is invalid.'
+        )
+
+    def test__validate_iso8601(self):
+        self.assertFalse(validate_iso8601(""))
+        self.assertFalse(validate_iso8601(None))
+        self.assertFalse(validate_iso8601("2017-01-01"))
+        self.assertTrue(validate_iso8601("2008-08-30T01:45:36.123Z"))
+        self.assertTrue(validate_iso8601("2016-12-13T21:20:37.593194+00:00"))
+        self.assertFalse(validate_iso8601("2019-02-29T12:00:00+00:00"))
+        self.assertFalse(validate_iso8601("2020-12-27 13:40:02.019817"))
+        self.assertTrue(validate_iso8601("2020-11-27T13:40:02.019817Z"))
 
     def test_temporal_extent(self):
         """ToDo: Add docstring"""
@@ -501,12 +712,6 @@ class TestNC2MMD(unittest.TestCase):
             check_only=True
         )
         ncin = Dataset(nc2mmd.netcdf_product)
-        mmd_yaml['personnel']['name']['acdd'].pop(-1)
-        mmd_yaml['personnel']['name']['acdd'] = mmd_yaml['personnel']['name']['acdd'][0]
-        mmd_yaml['personnel']['role']['acdd'].pop(-1)
-        mmd_yaml['personnel']['role']['acdd'] = mmd_yaml['personnel']['role']['acdd'][0]
-        mmd_yaml['personnel']['email'].pop('acdd_ext')
-        mmd_yaml['personnel']['organisation'].pop('acdd_ext')
         value = nc2mmd.get_personnel(mmd_yaml['personnel'], ncin)
         self.assertEqual(value[0]['name'], 'Trygve')
         self.assertEqual(value[1]['name'], 'Nina')
@@ -728,6 +933,34 @@ class TestNC2MMD(unittest.TestCase):
             'Direct Broadcast data processed in satellite swath to L1C.'
         )
 
+    def test_dataset_citation_invalid_date(self):
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.time_coverage_start = "2020-11-27T13:40:02.019817Z"
+        ncin.time_coverage_end = "2020-11-27T13:51:24.401505Z"
+        ncin.creator_name = 'Kreator Kreatorsen'
+        ncin.date_created = "2020-11-28T13:51:24.401505Z"
+        ncin.title = "Test dataset"
+        ncin.metadata_link = "https://data.met.no/dataset/uuid-for-the-dataset"
+        ncin.references = "Some free-text refences"
+        value = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
+        self.assertEqual(value[0]['author'], 'Kreator Kreatorsen')
+
+        # Test that an error is appended if date created is not in
+        # the correct format
+        ncin.date_created = "2020-11-28 13:51:24"
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        value = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
+        self.assertEqual(
+            md.missing_attributes['errors'][0],
+            "ACDD attribute date_created must contain a valid ISO8601 date."
+        )
+
     @patch('py_mmd_tools.nc_to_mmd.Dataset')
     def test_oserror_opendap(self, mock_nc_dataset):
         """ToDo: Add docstring"""
@@ -736,10 +969,9 @@ class TestNC2MMD(unittest.TestCase):
             'http://nbstds.met.no/thredds/dodsC/NBS/S1A/2021/01/31/IW/'
             'S1A_IW_GRDH_1SDV_20210131T172816_20210131T172841_036385_04452D_505F.nc'
         )
-        nc2mmd = Nc_to_mmd(fn, check_only=True)
         try:
-            nc2mmd.to_mmd()
-        except Exception:
+            Nc_to_mmd(fn, check_only=True)
+        except OSError:
             pass
         mock_nc_dataset.assert_called_with(fn+'#fillmismatch')
 
@@ -788,7 +1020,7 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         # Only one value in the list
-        mmd_yaml['metadata_identifier']['acdd'] = ['id']
+        mmd_yaml['metadata_identifier']['acdd'] = {'id': {}}
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
         ncin = Dataset(nc2mmd.netcdf_product)
         with self.assertRaises(AttributeError) as e:
@@ -800,7 +1032,7 @@ class TestNC2MMD(unittest.TestCase):
         )
         # Inconsistency of ACCD id in mmd_elements.yaml (='jkhakjh')
         # and the hardcoded one (='id')
-        mmd_yaml['metadata_identifier']['acdd'] = ['jkhakjh', 'naming_authority']
+        mmd_yaml['metadata_identifier']['acdd'] = {'jkhakjh': {}, 'naming_authority': {}}
         with self.assertRaises(AttributeError) as e:
             nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
         self.assertEqual(
@@ -810,7 +1042,7 @@ class TestNC2MMD(unittest.TestCase):
         )
         # Inconsistency of ACCD naming_authority in mmd_elements.yaml
         # (='jklhkha') and the hardcoded one (='naming_authority')
-        mmd_yaml['metadata_identifier']['acdd'] = ['id', 'jklhkha']
+        mmd_yaml['metadata_identifier']['acdd'] = {'id': {}, 'jklhkha': {}}
         with self.assertRaises(AttributeError) as e:
             nc2mmd.get_metadata_identifier(mmd_yaml['metadata_identifier'], ncin)
         self.assertEqual(
@@ -836,7 +1068,10 @@ class TestNC2MMD(unittest.TestCase):
         mmd_yaml['dummy_field'] = {}
         mmd_yaml['dummy_field']['minOccurs'] = '1'
         mmd_yaml['dummy_field']['default'] = 'test'
-        mmd_yaml['dummy_field']['acdd_ext'] = 'dummy_field'
+        mmd_yaml['dummy_field']['acdd_ext'] = {
+            'dummy_field': {
+                'comment': 'no comment',
+                'default': 'hei'}}
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
         nc2mmd.to_mmd(mmd_yaml=mmd_yaml)
         self.assertEqual(
@@ -1070,15 +1305,13 @@ class TestNC2MMD(unittest.TestCase):
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
-        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        md = Nc_to_mmd(self.reference_nc, check_only=True)
         # To overwrite date_created, wihtout saving it to file we use diskless
-        ncin = Dataset(md.netcdf_product, "w", diskless=True)
-        ncin.date_created = ''
-        md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
+        ncin = Dataset(md.netcdf_product)
+        data = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
         self.assertEqual(
-            md.missing_attributes['errors'][0],
-            'ACDD attribute date_created must contain a date'
-        )
+            data[0]['title'],
+            'Direct Broadcast data processed in satellite swath to L1C.')
 
     def test_ACDD_attr__date_metadata_modified_type___missing(self):
         """Test that the correct error is raised when date_created
@@ -1125,10 +1358,9 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         in_dict = mmd_yaml['last_metadata_update']
-        in_dict['update']['datetime']['acdd'] = [
-            'new_name_for_date_created',  # this will cause an error
-            'date_metadata_modified'
-        ]
+        in_dict['update']['datetime']['acdd'] = {
+            'new_name_for_date_created': {},  # this will cause an error
+            'date_metadata_modified': {}}
         md = Nc_to_mmd(self.reference_nc, check_only=True)
         ncin = Dataset(md.netcdf_product)
         with self.assertRaises(AttributeError) as context1:
@@ -1136,10 +1368,13 @@ class TestNC2MMD(unittest.TestCase):
         self.assertTrue(
             'ACDD attribute inconsistency in mmd_elements.yaml' in str(context1.exception)
         )
-        in_dict['update']['datetime']['acdd'] = [
-            'date_created',
-            'new_name_for_date_metadata_modified'  # this will cause an error
-        ]
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        in_dict = mmd_yaml['last_metadata_update']
+        in_dict['update']['datetime']['acdd'] = {
+            'date_created': {},
+            'new_name_for_date_metadata_modified': {}}  # this will cause an error
         with self.assertRaises(AttributeError) as context2:
             md.get_metadata_updates(in_dict, ncin)
         self.assertTrue(
@@ -1161,15 +1396,16 @@ class TestNC2MMD(unittest.TestCase):
 
     def test_publication_date(self):
         """ToDo: Add docstring"""
-        d_format = '%Y-%m-%d'
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
-        dt = datetime.datetime.strptime(value[0]['publication_date'], d_format)
-        self.assertEqual(dt, datetime.datetime(2020, 11, 27, 0, 0))
+        dt = isoparse(value[0]['publication_date'])
+        self.assertEqual(dt.year, 2020)
+        self.assertEqual(dt.month, 11)
+        self.assertEqual(dt.day, 27)
         self.assertEqual(
             value[0]['title'], 'Direct Broadcast data processed in satellite swath to L1C.'
         )
@@ -1240,6 +1476,15 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd.to_mmd()
         spatial_repr = nc2mmd.metadata['access_constraint']
         self.assertEqual(spatial_repr, 'Open')
+
+    def test_check_attributes_not_empty(self):
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.geospatial_bounds = ""
+        with self.assertRaises(ValueError) as e:
+            md.check_attributes_not_empty(ncin)
+        self.assertIn('Global attribute geospatial_bounds is empty - please correct.',
+                      str(e.exception))
 
 
 if __name__ == '__main__':

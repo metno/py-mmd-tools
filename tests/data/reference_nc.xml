@@ -1,76 +1,158 @@
 <mmd:mmd xmlns:mmd="http://www.met.no/schema/mmd" xmlns:gml="http://www.opengis.net/gml">
-  <mmd:platform>
-    <mmd:ancillary>
-      <mmd:timeliness>NRT</mmd:timeliness>
-    </mmd:ancillary>
-    <mmd:instrument>
-      <mmd:short_name>VIIRS</mmd:short_name>
-      <mmd:long_name>Visible/Infrared Imager Radiometer Suite</mmd:long_name>
-      <mmd:resource>https://www.wmo-sat.info/oscar/instruments/view/604</mmd:resource>
-    </mmd:instrument>
-    <mmd:short_name>SNPP</mmd:short_name>
-    <mmd:long_name>Suomi National Polar-orbiting Partnership</mmd:long_name>
-    <mmd:resource>https://www.wmo-sat.info/oscar/satellites/view/342</mmd:resource>
-  </mmd:platform>
-  <mmd:collection>GCS</mmd:collection>
-  <mmd:personnel>
-    <mmd:email>post@met.no</mmd:email>
-    <mmd:name>DIVISION FOR OBSERVATION QUALITY AND DATA PROCESSING</mmd:name>
-    <mmd:role>Technical contact</mmd:role>
-    <mmd:country>NORWAY</mmd:country>
-    <mmd:email>post@met.no</mmd:email>
-    <mmd:organisation>MET NORWAY</mmd:organisation>
-    <mmd:name>DIVISION FOR OBSERVATION QUALITY AND DATA PROCESSING</mmd:name>
-  </mmd:personnel>
+  <mmd:metadata_identifier>no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb</mmd:metadata_identifier>
+  <mmd:title xml:lang="en">Direct Broadcast data processed in satellite swath to L1C.</mmd:title>
+  <mmd:title xml:lang="no">Norsk tittel</mmd:title>
+  <mmd:abstract xml:lang="en">Direct Broadcast data received at MET NORWAY Oslo. Processed by standard processing software to geolocated and calibrated values in satellite swath in received instrument resolution. This contains the M-Bands.</mmd:abstract>
+  <mmd:abstract xml:lang="no">Norsk abstrakt.</mmd:abstract>
+  <mmd:metadata_status>Active</mmd:metadata_status>
   <mmd:dataset_production_status>In Work</mmd:dataset_production_status>
+  <mmd:collection>ADC</mmd:collection>
+  <mmd:collection>METNCS</mmd:collection>
   <mmd:last_metadata_update>
     <mmd:update>
       <mmd:datetime>2020-11-27T14:05:56Z</mmd:datetime>
       <mmd:note/>
       <mmd:type>Created</mmd:type>
     </mmd:update>
+    <mmd:update>
+      <mmd:datetime>2020-11-27T14:05:56Z</mmd:datetime>
+      <mmd:type>Created</mmd:type>
+    </mmd:update>
   </mmd:last_metadata_update>
+  <mmd:temporal_extent>
+    <mmd:start_date>2020-11-27T13:40:02.019817Z</mmd:start_date>
+    <mmd:end_date>2020-11-27T13:51:24.401505Z</mmd:end_date>
+  </mmd:temporal_extent>
+  <mmd:iso_topic_category>climatologyMeteorologyAtmosphere</mmd:iso_topic_category>
+  <mmd:iso_topic_category>environment</mmd:iso_topic_category>
+  <mmd:iso_topic_category>oceans</mmd:iso_topic_category>
+  <mmd:keywords vocabulary="GCMDSK">
+    <mmd:keyword>Earth Science &gt; Atmosphere &gt; Atmospheric radiation</mmd:keyword>
+    <mmd:resource>https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/sciencekeywords</mmd:resource>
+    <mmd:separator></mmd:separator>
+  </mmd:keywords>
+  <mmd:keywords vocabulary="GEMET">
+    <mmd:keyword>Meteorological geographical features</mmd:keyword>
+    <mmd:keyword>Atmospheric conditions</mmd:keyword>
+    <mmd:keyword>Oceanographic geographical features</mmd:keyword>
+    <mmd:resource>http://inspire.ec.europa.eu/theme</mmd:resource>
+    <mmd:separator></mmd:separator>
+  </mmd:keywords>
+  <mmd:keywords vocabulary="NORTHEMES">
+    <mmd:keyword>Weather and climate</mmd:keyword>
+    <mmd:resource>https://register.geonorge.no/metadata-kodelister/nasjonal-temainndeling</mmd:resource>
+    <mmd:separator></mmd:separator>
+  </mmd:keywords>
   <mmd:geographic_extent>
-    <mmd:rectangle>
+    <mmd:rectangle srsName="EPSG:4326">
       <mmd:north>77.96752166748047</mmd:north>
       <mmd:south>33.142425537109375</mmd:south>
       <mmd:east>18.263349533081055</mmd:east>
       <mmd:west>-68.47174835205078</mmd:west>
     </mmd:rectangle>
+    <mmd:polygon>
+      <gml:Polygon id="polygon" srsName="EPSG:4326">
+        <gml:exterior>
+          <gml:LinearRing>
+            <gml:pos>69.0000 3.7900</gml:pos>
+            <gml:pos>69.0600 4.3900</gml:pos>
+            <gml:pos>69.1200 4.9900</gml:pos>
+            <gml:pos>69.1700 5.6000</gml:pos>
+            <gml:pos>69.2200 6.2100</gml:pos>
+            <gml:pos>69.2700 6.8300</gml:pos>
+            <gml:pos>69.3200 7.4400</gml:pos>
+            <gml:pos>69.3700 8.0600</gml:pos>
+            <gml:pos>69.4100 8.6800</gml:pos>
+            <gml:pos>69.4500 9.3100</gml:pos>
+            <gml:pos>69.5000 9.9700</gml:pos>
+            <gml:pos>69.5000 9.9700</gml:pos>
+            <gml:pos>69.3100 10.0700</gml:pos>
+            <gml:pos>69.1100 10.1600</gml:pos>
+            <gml:pos>68.9200 10.2600</gml:pos>
+            <gml:pos>68.7300 10.3500</gml:pos>
+            <gml:pos>68.5400 10.4400</gml:pos>
+            <gml:pos>68.3500 10.5300</gml:pos>
+            <gml:pos>68.1600 10.6200</gml:pos>
+            <gml:pos>67.9700 10.7100</gml:pos>
+            <gml:pos>67.7800 10.7900</gml:pos>
+            <gml:pos>67.5700 10.8800</gml:pos>
+            <gml:pos>67.5700 10.8800</gml:pos>
+            <gml:pos>67.5300 10.2700</gml:pos>
+            <gml:pos>67.4900 9.6900</gml:pos>
+            <gml:pos>67.4500 9.1200</gml:pos>
+            <gml:pos>67.4100 8.5500</gml:pos>
+            <gml:pos>67.3600 7.9800</gml:pos>
+            <gml:pos>67.3100 7.4200</gml:pos>
+            <gml:pos>67.2600 6.8500</gml:pos>
+            <gml:pos>67.2100 6.2900</gml:pos>
+            <gml:pos>67.1600 5.7400</gml:pos>
+            <gml:pos>67.1000 5.1800</gml:pos>
+            <gml:pos>67.1000 5.1800</gml:pos>
+            <gml:pos>67.3000 5.0400</gml:pos>
+            <gml:pos>67.4900 4.9100</gml:pos>
+            <gml:pos>67.6800 4.7700</gml:pos>
+            <gml:pos>67.8700 4.6400</gml:pos>
+            <gml:pos>68.0600 4.5000</gml:pos>
+            <gml:pos>68.2500 4.3600</gml:pos>
+            <gml:pos>68.4300 4.2200</gml:pos>
+            <gml:pos>68.6200 4.0700</gml:pos>
+            <gml:pos>68.8100 3.9300</gml:pos>
+            <gml:pos>69.0000 3.7900</gml:pos>
+          </gml:LinearRing>
+        </gml:exterior>
+      </gml:Polygon>
+    </mmd:polygon>
   </mmd:geographic_extent>
-  <mmd:metadata_identifier>npp-viirs-mband-20201127134002-20201127135124</mmd:metadata_identifier>
-  <mmd:data_center>
-    <mmd:data_center_name>
-      <mmd:long_name>MET NORWAY</mmd:long_name>
-    </mmd:data_center_name>
-  </mmd:data_center>
-  <mmd:iso_topic_category>climatologyMeteorologyAtmosphere</mmd:iso_topic_category>
-  <mmd:iso_topic_category>environment</mmd:iso_topic_category>
-  <mmd:iso_topic_category>oceans</mmd:iso_topic_category>
-  <mmd:keywords vocabulary="GCMD">
-    <mmd:keyword>Earth Science &gt; Atmosphere &gt; Atmospheric radiation</mmd:keyword>
-  </mmd:keywords>
+  <mmd:dataset_language>en</mmd:dataset_language>
+  <mmd:operational_status>Operational</mmd:operational_status>
+  <mmd:access_constraint>Open</mmd:access_constraint>
   <mmd:use_constraint>
     <mmd:identifier>CC-BY-4.0</mmd:identifier>
-    <mmd:resource>https://spdx.org/licenses/CC-BY-4.0</mmd:resource>
+    <mmd:resource>http://spdx.org/licenses/CC-BY-4.0</mmd:resource>
   </mmd:use_constraint>
-  <mmd:metadata_status>Active</mmd:metadata_status>
-  <mmd:operational_status>Operational</mmd:operational_status>
+  <mmd:personnel>
+    <mmd:role>Technical contact</mmd:role>
+    <mmd:name>DIVISION FOR OBSERVATION QUALITY AND DATA PROCESSING</mmd:name>
+    <mmd:email>post@met.no</mmd:email>
+    <mmd:organisation>Norwegian Meteorological Institute</mmd:organisation>
+    <mmd:contact_address>
+        <mmd:country>NORWAY</mmd:country>
+    </mmd:contact_address>
+  </mmd:personnel>
+  <mmd:data_center>
+    <mmd:data_center_name>
+      <mmd:short_name>NO/MET</mmd:short_name>
+      <mmd:long_name>Norwegian Meteorological Institute</mmd:long_name>
+    </mmd:data_center_name>
+    <mmd:data_center_url>met.no</mmd:data_center_url>
+  </mmd:data_center>
+  <mmd:storage_information>
+    <mmd:file_name>reference_nc.nc</mmd:file_name>
+    <mmd:file_location>tests/data/reference_nc.nc</mmd:file_location>
+    <mmd:file_format>NetCDF-CF</mmd:file_format>
+    <mmd:file_size unit="MB">0.02</mmd:file_size>
+    <mmd:checksum type=""></mmd:checksum>
+  </mmd:storage_information>
   <mmd:project>
-    <mmd:long_name>Govermental core service</mmd:long_name>
+    <mmd:short_name>METNCS</mmd:short_name>
+    <mmd:long_name>MET Norway core services</mmd:long_name>
   </mmd:project>
-  <mmd:abstract xml:lang="en">Direct Broadcast data received at MET NORWAY Oslo. Processed by standard processing software to geolocated and calibrated values in satellite swath in received instrument resolution. This contains the M-Bands.</mmd:abstract>
-  <mmd:temporal_extent>
-    <mmd:end_date>2020-11-27T13:51:24.401505Z</mmd:end_date>
-    <mmd:start_date>2020-11-27T13:40:02.019817Z</mmd:start_date>
-  </mmd:temporal_extent>
-  <mmd:title xml:lang="en">Direct Broadcast data processed in satellite swath to L1C.</mmd:title>
-  <!--<mmd:data_access>
-	<mmd:type>OGC WMS</mmd:type>
-	<mmd:description>OGC Web Mapping Service, URI to GetCapabilities Document.</mmd:description>
-	<mmd:resource></mmd:resource>
-	<mmd:wms_layers>
-		<mmd:wms_layer></mmd:wms_layer>
-	</mmd:wms_layers>
-</mmd:data_access>-->
+  <mmd:platform>
+    <mmd:short_name>SNPP</mmd:short_name>
+    <mmd:long_name>Suomi National Polar-orbiting Partnership</mmd:long_name>
+    <mmd:resource>https://www.wmo-sat.info/oscar/satellites/view/342</mmd:resource>
+    <mmd:instrument>
+      <mmd:short_name>VIIRS</mmd:short_name>
+      <mmd:long_name>Visible/Infrared Imager Radiometer Suite</mmd:long_name>
+      <mmd:resource>https://www.wmo-sat.info/oscar/instruments/view/604</mmd:resource>
+    </mmd:instrument>
+  </mmd:platform>
+  <mmd:spatial_representation>grid</mmd:spatial_representation>
+  <mmd:dataset_citation>
+    <mmd:author>DIVISION FOR OBSERVATION QUALITY AND DATA PROCESSING</mmd:author>
+    <mmd:publication_date>2020-11-27T14:05:56Z</mmd:publication_date>
+    <mmd:title>Direct Broadcast data processed in satellite swath to L1C.</mmd:title>
+    <mmd:url>https://met.no/the/dataset/landing-page</mmd:url>
+    <mmd:other>https://met.no/published/or/web-based/references/that/describe/the/data/or/methods/used/to/produce/it/should/be/URI</mmd:other>
+  </mmd:dataset_citation>
 </mmd:mmd>

@@ -2,22 +2,29 @@
 metadata_identifier:
   maxOccurs: '1'
   minOccurs: '1'
-  repetition: No repetition allowed. Both id and naming_authority are required.
   acdd: 
-    - id
-    - naming_authority
+    id:
+      maxOccurs: '1'
+      minOccurs: '1'
+      comment: Required, and should be UUID. No repetition allowed.
+    naming_authority:
+      maxOccurs: '1'
+      minOccurs: '1'
+      comment: Required. We recommend using reverse-DNS naming. No repetition allowed.
 
 alternate_identifier:
   maxOccurs: unbounded
   minOccurs: '0'
   alternate_identifier:
-    repetition: Comma separated list
-    separator: ','
-    acdd_ext: alternate_identifier
+    acdd_ext:
+      alternate_identifier:
+        comment: Alternative identifier for the dataset (but not DOI). Comma separated list.
+        separator: ','
   type:
-    repetition: Comma separated list
-    separator: ','
-    acdd_ext: alternate_identifier_type
+    acdd_ext:
+      alternate_identifier_type:
+        comment: Identification of the type of identifier used. Comma separated list.
+        separator: ','
 
 last_metadata_update:
   maxOccurs: '1'
@@ -27,22 +34,21 @@ last_metadata_update:
     minOccurs: '1'
     datetime:
       minOccurs: '1'
-      separator: ','
-      repetition: Use date_metadata_modified with comma separation
       acdd: 
-        - date_metadata_modified
-        - date_created
+        date_metadata_modified:
+          separator: ','
+          comment: Format as ISO8601. Comma separated list if more than once.
+        date_created:
+          minOccurs: '1'
+          comment: Format as ISO8601.
     type:
       minOccurs: '1'
-      separator: ','
-      repetition: Comma separated list
       acdd_ext:
-        - date_metadata_modified_type
-        - date_created_type
-      #- Created
-      #- Minor modification
-      #- Major modification
-      default: Created
+        date_metadata_modified_type:
+          separator: ','
+          comment: E.g., major or minor modification. Comma separated list.
+        date_created_type:
+          default: Created
     note:
 
 metadata_status:
@@ -50,60 +56,63 @@ metadata_status:
   minOccurs: '1'
   default: Active
 
-# this is set during harvesting and should not normally be needed in the nc files
-collection:
-  maxOccurs: unbounded
-  minOccurs: '0'
-  repetition: Comma separated list
-  acdd_ext: collection
-  separator: ','
-
 title:
   maxOccurs: 'unbounded'
   minOccurs: '1'
   title:
     minOccurs: '1'
-    acdd: title
-    repetition: Use ACDD extension for translations
+    acdd:
+      title:
+        minOccurs: '1'
+        comment: Use ACDD extension "title_no" for Norwegian translation.
     acdd_ext:
-      - title_no
+      title_no:
+        comment: Used for Norwegian version of the title.
   lang:
     minOccurs: '1'
-    acdd_ext: title_lang
-    repetition: No repetition allowed
-    default: en
+    acdd_ext:
+      title_lang:
+        comment: ISO language code.
+        default: en
 
 abstract:
   maxOccurs: unbounded
   minOccurs: '1'
-  separator: ';'
   abstract:
     minOccurs: '1'
-    repetition: Use ACDD extension for translations
-    acdd: summary
+    acdd:
+      summary:
+        minOccurs: '1'
+        separator: ';'
+        comment: Use ACDD extension "summary_no" for Norwegian translation.
     acdd_ext:
-      - summary_no
+      summary_no:
+        comment: Used for Norwegian version of the abstract.
   lang:
     minOccurs: '1'
-    acdd_ext: summary_lang
-    repetition: No repetition allowed
-    default: en
+    acdd_ext:
+      summary_lang:
+        comment: ISO language code.
+        default: en
 
 temporal_extent:
   maxOccurs: unbounded
   minOccurs: '1'
   start_date:
-    repetition: Comma separated list
-    acdd: time_coverage_start
-    separator: ','
     maxOccurs: unbounded
     minOccurs: '1'
+    acdd:
+      time_coverage_start:
+        minOccurs: '1'
+        comment: Comma separated list.
+        separator: ','
   end_date:
-    separator: ','
-    repetition: Comma separated list
-    acdd: time_coverage_end
     maxOccurs: unbounded
     minOccurs: '0'
+    acdd:
+      time_coverage_end:
+        separator: ','
+        comment: Comma separated list.
 
 geographic_extent:
   maxOccurs: '1'
@@ -116,31 +125,44 @@ geographic_extent:
     north:
       maxOccurs: '1'
       minOccurs: '1'
-      repetition: No repetition allowed
-      acdd: geospatial_lat_max
+      acdd:
+        geospatial_lat_max:
+          maxOccurs: '1'
+          minOccurs: '1'
+          comment: No repetition allowed.
     south:
       maxOccurs: '1'
       minOccurs: '1'
-      repetition: No repetition allowed
-      acdd: geospatial_lat_min
+      acdd:
+        geospatial_lat_min:
+          maxOccurs: '1'
+          minOccurs: '1'
+          comment: No repetition allowed.
     east:
       maxOccurs: '1'
       minOccurs: '1'
-      repetition: No repetition allowed
-      acdd: geospatial_lon_max
+      acdd:
+        geospatial_lon_max:
+          maxOccurs: '1'
+          minOccurs: '1'
+          comment: No repetition allowed.
     west:
       maxOccurs: '1'
       minOccurs: '1'
-      repetition: No repetition allowed
-      acdd: geospatial_lon_min
+      acdd:
+        geospatial_lon_min:
+          maxOccurs: '1'
+          minOccurs: '1'
+          comment: No repetition allowed.
   polygon:
     maxOccurs: '1'
     minOccurs: '0'
-    repetition: No repetition allowed
-    acdd: geospatial_bounds
+    acdd:
+      geospatial_bounds:
+        comment: No repetition allowed.
 
 location:
-  maxOccurs: '0'
+  maxOccurs: '1'
   minOccurs: '0'
   location_vocabulary:
   location_category:
@@ -153,9 +175,11 @@ location:
 dataset_production_status:
   maxOccurs: '1'
   minOccurs: '1'
-  repetition: No repetition allowed
-  default: Complete
-  acdd_ext: dataset_production_status
+  acdd_ext:
+    dataset_production_status:
+      comment: No repetition allowed.
+      maxOccurs: '1'
+      default: Complete
 
 dataset_language:
   maxOccurs: '1'
@@ -165,61 +189,80 @@ dataset_language:
 operational_status:
   maxOccurs: '1'
   minOccurs: '0'
-  repetition: No repetition allowed
-  acdd: processing_level
+  acdd:
+    processing_level:
+      maxOccurs: '1'
+      comment: No repetition allowed. See the MMD docs for valid keywords.
 
 access_constraint:
   maxOccurs: '1'
   minOccurs: '0'
-  repetition: No repetition allowed
-  acdd_ext: access_constraint
+  acdd_ext:
+    access_constraint:
+      comment: No repetition allowed.
 
 use_constraint:
   maxOccurs: '1'
   minOccurs: '0'
   identifier:
     maxOccurs: '1'
-    repetition: No repetition allowed
-    acdd: license
+    acdd:
+      license:
+        maxOccurs: '1'
+        comment: No repetition allowed.
   resource:
     maxOccurs: '1'
-    repetition: No repetition allowed
-    acdd_ext: license_resource
+    acdd_ext:
+      license_resource:
+        maxOccurs: '1'
+        comment: No repetition allowed.
   license_text:
 
 personnel:
   maxOccurs: unbounded
   minOccurs: '0'
   role:
-    default: 'Investigator'
-    separator: ','
-    repetition: Comma separated list
     acdd: 
-      - creator_role
-      - contributor_role
+      creator_role:
+        default: 'Investigator'
+        separator: ','
+        comment: Comma separated list.
+      contributor_role:
+        default: 'Investigator'
+        separator: ','
+        comment: Comma separated list.
   name:
-    default: 'Not available'
-    separator: ','
-    repetition: Comma separated list
     acdd:
-      - creator_name
-      - contributor_name
+      creator_name:
+        default: 'Not available'
+        separator: ','
+        comment: Comma separated list.
+      contributor_name:
+        default: 'Not available'
+        separator: ','
+        comment: Comma separated list.
   email:
-    default: 'Not available'
-    separator: ','
-    repetition: Comma separated list
-    acdd: creator_email
-    acdd_ext: contributor_email
+    acdd:
+      creator_email:
+        default: 'Not available'
+        separator: ','
+        comment: Comma separated list.
+    acdd_ext:
+      contributor_email:
+        default: 'Not available'
+        separator: ','
+        comment: Comma separated list.
   phone:
   fax:
   organisation:
-    default: 'Not available'
-    separator: ','
-    repetition: Comma separated list
-    acdd: creator_institution
+    acdd:
+      creator_institution:
+        default: 'Not available'
+        separator: ','
+        comment: Comma separated list.
     acdd_ext: 
-      - contributor_institution
-      - contributor_organisation
+      contributor_institution:
+      contributor_organisation:
   contact_address:
     address:
     city:
@@ -232,17 +275,20 @@ data_center:
   minOccurs: '0'
   data_center_name:
     short_name:
-      separator: ','
-      repetition: Comma separated list
-      acdd_ext: institution_short_name
+      acdd_ext:
+        institution_short_name:
+          separator: ','
+          comment: Comma separated list.
     long_name: 
-      separator: ','
-      repetition: Comma separated list
-      acdd: institution
+      acdd:
+        institution:
+          separator: ','
+          comment: Comma separated list.
   data_center_url:
-    separator: ','
-    repetition: Comma separated list
-    acdd: publisher_url
+    acdd:
+      publisher_url:
+        separator: ','
+        comment: Comma separated list.
 
 data_access:
   maxOccurs: unbounded
@@ -262,11 +308,15 @@ related_dataset:
   maxOccurs: unbounded
   minOccurs: '0'
   related_dataset:
-    repetition: Comma separated list
-    acdd_ext: related_dataset_id
+    acdd_ext:
+      related_dataset_id:
+        separator: ','
+        comment: Comma separated list.
   relation_type:
-    repetition: Comma separated list
-    acdd_ext: related_dataset_relation_type
+    acdd_ext:
+      related_dataset_relation_type:
+        separator: ','
+        comment: Comma separated list.
 
 storage_information:
   maxOccurs: '1'
@@ -287,23 +337,28 @@ related_information:
 iso_topic_category:
   maxOccurs: unbounded
   minOccurs: '1'
-  repetition: Comma separated list
-  acdd_ext: iso_topic_category
-  separator: ','
+  acdd_ext:
+    iso_topic_category:
+      separator: ','
+      comment: Comma separated list.
 
 keywords:
   maxOccurs: unbounded
   minOccurs: '1'
   keyword:
     minOccurs: '1'
-    separator: ','
-    repetition: Comma separated list
-    acdd: keywords
+    acdd:
+      keywords:
+        minOccurs: '1'
+        separator: ','
+        comment: Comma separated list.
   vocabulary:
     minOccurs: '1'
-    repetition: Comma separated list
-    acdd: keywords_vocabulary
-    separator: ','
+    acdd:
+      keywords_vocabulary:
+        minOccurs: '1'
+        comment: Comma separated list.
+        separator: ','
   resource:
   separator:
 
@@ -311,43 +366,49 @@ project:
   maxOccurs: unbounded
   minOccurs: '0'
   short_name:
-    separator: ';'
-    repetition: Semicolon separated list
-    acdd_ext: project_short_name
+    acdd_ext:
+      project_short_name:
+        separator: ';'
+        comment: Semicolon separated list.
   long_name:
-    separator: ';'
-    repetition: Semicolon separated list
-    acdd: project
+    acdd:
+      project:
+        separator: ';'
+        comment: Semicolon separated list.
 
 platform:
   maxOccurs: unbounded
   minOccurs: '0'
   short_name:
     separator: ','
-    repetition: Comma separated list
+    comment: Comma separated list.
   long_name:
-    separator: ','
-    repetition: Comma separated list
-    acdd: platform
+    acdd:
+      platform:
+        separator: ','
+        comment: Comma separated list.
   resource:
-    separator: ','
-    repetition: Comma separated list
-    acdd: platform_vocabulary
+    acdd:
+      platform_vocabulary:
+        separator: ','
+        comment: Comma separated list.
   orbit_relative:
   orbit_absolute:
   orbit_direction:
   instrument:
     short_name:
       separator: ','
-      repetition: Comma separated list
+      comment: Comma separated list.
     long_name:
-      separator: ','
-      repetition: Comma separated list
-      acdd: instrument
+      acdd:
+        instrument:
+          separator: ','
+          comment: Comma separated list.
     resource:
-      separator: ','
-      repetition: Comma separated list
-      acdd: instrument_vocabulary
+      acdd:
+        instrument_vocabulary:
+          separator: ','
+          comment: Comma separated list.
     mode:
     polarisation:
     product_type:
@@ -359,52 +420,66 @@ platform:
 quality_control:
   maxOccurs: '1'
   minOccurs: '0'
-  repetition: No repetition allowed
-  acdd_ext: quality_control
+  acdd_ext:
+    quality_control:
+      comment: No repetition allowed.
 
 spatial_representation:
   maxOccurs: '1'
-  minOccurs: '1'
-  repetition: No repetition allowed
-  acdd_ext: spatial_representation
+  minOccurs: '1' # MMD docs has '0' but see issue #96, def in PR97
+  acdd_ext:
+    spatial_representation:
+      minOccurs: '1' # see #96 and https://github.com/metno/py-mmd-tools/pull/97
+      maxOccurs: '1'
+      comment: No repetition allowed.
 
 activity_type:
   maxOccurs: unbounded
   minOccurs: '0'
-  acdd: source
-  repetition: Semicolon separated list
-  separator: ';'
+  acdd:
+    source:
+      comment: Semicolon separated list.
+      separator: ';'
 
 dataset_citation:
   maxOccurs: unbounded
   minOccurs: '0'
   author:
-    acdd: creator_name
-    repetition: Comma separated list
-    separator: ','
+    acdd:
+      creator_name:
+        comment: Comma separated list.
+        separator: ','
   publication_date:
-    separator: ','
-    repetition: Comma separated list
-    acdd: date_created
+    acdd:
+      date_created:
+        separator: ','
+        comment: Comma separated list.
   title:
-    acdd: title
+    acdd:
+      title:
   series:
   edition:
   volume:
   issue:
   publication_place:
   publisher:
-    separator: ','
-    repetition: Comma separated list
-    acdd: publisher_name
+    acdd:
+      publisher_name:
+        separator: ','
+        comment: Comma separated list.
   pages:
   isbn:
   doi:
+    acdd_ext:
+      doi:
+        maxOccurs: '1'
   url:
-    separator: ','
-    repetition: Comma separated list
-    acdd: metadata_link
+    acdd:
+      metadata_link:
+        separator: ','
+        comment: Comma separated list.
   other:
-    separator: ','
-    repetition: Comma separated list
-    acdd: references
+    acdd:
+      references:
+        separator: ','
+        comment: Comma separated list.
