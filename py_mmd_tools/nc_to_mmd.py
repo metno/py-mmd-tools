@@ -36,7 +36,7 @@ from netCDF4 import Dataset
 from shapely.errors import WKTReadingError
 
 
-# Converts s to a normalized ISO 8601 value:YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.
+# Converts s to a normalized ISO 8601 value: YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.
 # Returns (<normalized value>, None) upon success, otherwise (None, <error reason>).
 def normalize_iso8601(s):
     # get initial datetime
