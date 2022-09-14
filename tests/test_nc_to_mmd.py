@@ -618,9 +618,9 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(md.netcdf_product, "w", diskless=True)
 
         valid_start = '2020-11-27T13:40:02.019817Z'
-        invalid_start = '2020-13-27T13:40:02.019817' # month outside [0,12]
+        invalid_start = '2020-13-27T13:40:02.019817'  # month outside [0,12]
         valid_end = '2020-11-27T13:51:24.401505Z'
-        invalid_end = '2020-13-27T13:51:24.019817' # month outside [0,12]
+        invalid_end = '2020-13-27T13:51:24.019817'  # month outside [0,12]
 
         ncin.time_coverage_start = '{}, {}'.format(valid_start, invalid_start)
         ncin.time_coverage_end = '{}, {}'.format(valid_end, invalid_end)
@@ -632,11 +632,10 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[0]['end_date'], valid_end)
         self.assertIn(template.format(invalid_end), md.missing_attributes['errors'][1])
 
-
     def test__normalize_iso8601(self):
         def valid(s):
             ndt, _ = normalize_iso8601(s)
-            return ndt != None
+            return ndt is not None
 
         self.assertFalse(valid(""))
         self.assertFalse(valid(None))
@@ -662,7 +661,6 @@ class TestNC2MMD(unittest.TestCase):
         self.assertTrue(valid("2020-12-27 13:40:02.019817"))
         self.assertTrue(valid("2020-11-27T13:40:02.019817Z"))
 
-
     def test__normalize_iso8601_0(self):
 
         dt = '2021-01-01T00:00:00Z'
@@ -674,7 +672,6 @@ class TestNC2MMD(unittest.TestCase):
         ndt_expected = dt_invalid
         ndt_actual = normalize_iso8601_0(dt_invalid)
         self.assertEqual(ndt_expected, ndt_actual)
-
 
     def test_temporal_extent(self):
         """ToDo: Add docstring"""

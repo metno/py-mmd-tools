@@ -15,7 +15,6 @@ py-mmd-tools is licensed under the Apache License 2.0
 <https://github.com/metno/py-mmd-tools/blob/master/LICENSE>
 """
 import os
-import re
 import warnings
 import yaml
 import jinja2
@@ -27,7 +26,6 @@ from filehash import FileHash
 from itertools import zip_longest
 from pkg_resources import resource_string
 from dateutil.parser import isoparse
-from dateutil.parser._parser import ParserError
 from uuid import UUID
 
 from metvocab.mmdgroup import MMDGroup
@@ -54,7 +52,7 @@ def normalize_iso8601(s):
     # format time zone (use 'Z' for zero UTC offset, otherwise '+hh:mm')
     utc_offset = dt.utcoffset()
     tz_hours = tz_mins = 0
-    if utc_offset != None:
+    if utc_offset is not None:
         secs = int(utc_offset.total_seconds())
         tz_hours = secs // 3600
         tz_mins = (secs % 3600) // 60
@@ -68,8 +66,8 @@ def normalize_iso8601(s):
 # Note: this function is used for cases where we 1) assume that s is already valid or 2) rely on
 # the validity of s to be checked elsewhere.
 def normalize_iso8601_0(s):
-    ndt, _= normalize_iso8601(s)
-    if ndt == None:
+    ndt, _ = normalize_iso8601(s)
+    if ndt is None:
         return s
     return ndt
 
@@ -392,13 +390,13 @@ class Nc_to_mmd(object):
             ndts = []
             for dt in dts:
                 ndt, reason = normalize_iso8601(dt)
-                if ndt == None:
-                    ndts.append(dt) # keep original
+                if ndt is None:
+                    ndts.append(dt)  # keep original
                     self.missing_attributes['errors'].append(
                         'ACDD start/end datetime %s is not valid ISO8601: %s.' % (dt, reason)
                     )
                 else:
-                    ndts.append(ndt) # replace with normalized form
+                    ndts.append(ndt)  # replace with normalized form
             return ndts
 
         nstart_dates = convert_to_normalized_iso8601(start_dates)
@@ -698,7 +696,7 @@ class Nc_to_mmd(object):
         data = []
         for i in range(len(publication_dates)):
             ndt, reason = normalize_iso8601(publication_dates[i])
-            if ndt == None:
+            if ndt is None:
                 # in case the dates are not actual dates
                 self.missing_attributes['errors'].append(
                     'ACDD attribute %s contains an invalid ISO8601 date: %s: %s'
