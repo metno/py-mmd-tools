@@ -36,9 +36,18 @@ from netCDF4 import Dataset
 from shapely.errors import WKTReadingError
 
 
-# Converts s to a normalized ISO 8601 value: YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.
-# Returns (<normalized value>, None) upon success, otherwise (None, <error reason>).
 def normalize_iso8601(s):
+    """Convert s to a normalized ISO 8601 value: YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.
+
+    Parameters:
+    -----------
+    s: str
+
+    Returns:
+    --------
+    (<normalized ISO 8601 form of s>, None) upon success, otherwise (None, <error reason>).
+    """
+
     # get initial datetime
     try:
         dt = isoparse(s)
@@ -61,11 +70,21 @@ def normalize_iso8601(s):
     return dt.strftime('%Y-%m-%dT%H:%M:%S{}{}'.format(sec_frac, tz)), None
 
 
-# A variant of normalize_iso8601() that returns the normalized form of s, or s itself if s is
-# not valid ISO 8601.
-# Note: this function is used for cases where we 1) assume that s is already valid or 2) rely on
-# the validity of s to be checked elsewhere.
 def normalize_iso8601_0(s):
+    """Convert s to a normalized ISO 8601 value (like normalize_iso8601()), but don't flag any
+    errors. If s is not valid ISO 8601, s itself is returned.
+    This function is used for cases where we 1) assume that s is already valid or 2) rely on
+    the validity of s to be checked elsewhere.
+
+    Parameters:
+    -----------
+    s: str
+
+    Returns:
+    --------
+    <normalized ISO 8601 form of s> upon success, otherwise the unmodified s.
+    """
+
     ndt, _ = normalize_iso8601(s)
     if ndt is None:
         return s
@@ -384,9 +403,24 @@ class Nc_to_mmd(object):
         if acdd_end_key in ncin.ncattrs():
             end_dates = self.separate_repeated(True, getattr(ncin, acdd_end_key))
 
-        # replaces datetimes in dts with ISO8601 normalized forms if possible, recording
-        # cases where normalization is not possible
         def convert_to_normalized_iso8601(dts):
+            """Replaces datetimes in dts with ISO 8601 normalized forms if possible, recording
+            cases where normalization is not possible
+
+            Parameters:
+            -----------
+            dts: list of str
+
+            Returns:
+            --------
+            A version of dts where each item is 1) replaced by the normalized ISO 8601 form if
+            possible, or 2) kept unmodified
+
+            Side effects:
+            -------------
+            For each item in dts that cannot be converted to normalized ISO 8601 form, a reason is
+            recorded in self.missing_attributes['errors'].
+            """
             ndts = []
             for dt in dts:
                 ndt, reason = normalize_iso8601(dt)
