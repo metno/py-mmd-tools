@@ -22,7 +22,7 @@ from netCDF4 import Dataset
 from pkg_resources import resource_string
 from unittest.mock import patch
 
-from py_mmd_tools.nc_to_mmd import Nc_to_mmd, validate_iso8601
+from py_mmd_tools.nc_to_mmd import Nc_to_mmd, normalize_iso8601, normalize_iso8601_0
 from py_mmd_tools.yaml_to_adoc import nc_attrs_from_yaml
 from py_mmd_tools.yaml_to_adoc import required
 from py_mmd_tools.yaml_to_adoc import repetition_allowed
@@ -616,25 +616,62 @@ class TestNC2MMD(unittest.TestCase):
         )
         md = Nc_to_mmd('tests/data/reference_nc_attrs_multiple.nc', check_only=True)
         ncin = Dataset(md.netcdf_product, "w", diskless=True)
-        ncin.time_coverage_start = "2020-11-27T13:40:02.019817Z, 2020-12-27 13:40:02.019817"
-        ncin.time_coverage_end = "2020-11-27T13:51:24.401505Z, 2020-12-27 13:51:24.019817"
-        value = md.get_temporal_extents(mmd_yaml['temporal_extent'], ncin)
-        self.assertEqual(value[0]['start_date'], '2020-11-27T13:40:02.019817Z')
-        self.assertEqual(
-            md.missing_attributes['errors'][0],
-            'ACDD time attributes must contain valid ISO8601 dates. '
-            '2020-12-27 13:40:02.019817 is invalid.'
-        )
 
-    def test__validate_iso8601(self):
-        self.assertFalse(validate_iso8601(""))
-        self.assertFalse(validate_iso8601(None))
-        self.assertFalse(validate_iso8601("2017-01-01"))
-        self.assertTrue(validate_iso8601("2008-08-30T01:45:36.123Z"))
-        self.assertTrue(validate_iso8601("2016-12-13T21:20:37.593194+00:00"))
-        self.assertFalse(validate_iso8601("2019-02-29T12:00:00+00:00"))
-        self.assertFalse(validate_iso8601("2020-12-27 13:40:02.019817"))
-        self.assertTrue(validate_iso8601("2020-11-27T13:40:02.019817Z"))
+        valid_start = '2020-11-27T13:40:02.019817Z'
+        invalid_start = '2020-13-27T13:40:02.019817'  # month outside [0,12]
+        valid_end = '2020-11-27T13:51:24.401505Z'
+        invalid_end = '2020-13-27T13:51:24.019817'  # month outside [0,12]
+
+        ncin.time_coverage_start = '{}, {}'.format(valid_start, invalid_start)
+        ncin.time_coverage_end = '{}, {}'.format(valid_end, invalid_end)
+        value = md.get_temporal_extents(mmd_yaml['temporal_extent'], ncin)
+
+        template = 'ACDD start/end datetime {} is not valid ISO8601:'
+        self.assertEqual(value[0]['start_date'], valid_start)
+        self.assertIn(template.format(invalid_start), md.missing_attributes['errors'][0])
+        self.assertEqual(value[0]['end_date'], valid_end)
+        self.assertIn(template.format(invalid_end), md.missing_attributes['errors'][1])
+
+    def test__normalize_iso8601(self):
+        def valid(s):
+            ndt, _ = normalize_iso8601(s)
+            return ndt is not None
+
+        self.assertFalse(valid(""))
+        self.assertFalse(valid(None))
+
+        self.assertTrue(valid("2017"))
+        self.assertTrue(valid("2017-01"))
+        self.assertTrue(valid("2017-01-01"))
+
+        self.assertFalse(valid("2017-01-01T"))
+        self.assertFalse(valid("2017-01-01Z"))
+
+        self.assertTrue(valid("2017-01-01T00"))
+        self.assertTrue(valid("2017-01-01T00:00"))
+        self.assertTrue(valid("2017-01-01T00:00:00"))
+
+        self.assertTrue(valid("2017-01-01T00Z"))
+        self.assertTrue(valid("2017-01-01T00:00Z"))
+        self.assertTrue(valid("2017-01-01T00:00:00Z"))
+
+        self.assertTrue(valid("2008-08-30T01:45:36.123Z"))
+        self.assertTrue(valid("2016-12-13T21:20:37.593194Z"))
+        self.assertFalse(valid("2019-02-29T12:00:00Z"))
+        self.assertTrue(valid("2020-12-27 13:40:02.019817"))
+        self.assertTrue(valid("2020-11-27T13:40:02.019817Z"))
+
+    def test__normalize_iso8601_0(self):
+
+        dt = '2021-01-01T00:00:00Z'
+        ndt_expected = '2021-01-01T00:00:00Z'
+        ndt_actual = normalize_iso8601_0(dt)
+        self.assertEqual(ndt_expected, ndt_actual)
+
+        dt_invalid = 'foobar'
+        ndt_expected = dt_invalid
+        ndt_actual = normalize_iso8601_0(dt_invalid)
+        self.assertEqual(ndt_expected, ndt_actual)
 
     def test_temporal_extent(self):
         """ToDo: Add docstring"""
@@ -951,14 +988,14 @@ class TestNC2MMD(unittest.TestCase):
 
         # Test that an error is appended if date created is not in
         # the correct format
-        ncin.date_created = "2020-11-28 13:51:24"
+        ncin.date_created = "2020-99-28 13:51:24"
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         value = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
-        self.assertEqual(
-            md.missing_attributes['errors'][0],
-            "ACDD attribute date_created must contain a valid ISO8601 date."
+        self.assertIn(
+            "ACDD attribute date_created contains an invalid ISO8601 date:",
+            md.missing_attributes['errors'][0]
         )
 
     @patch('py_mmd_tools.nc_to_mmd.Dataset')

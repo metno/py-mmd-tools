@@ -15,7 +15,6 @@ py-mmd-tools is licensed under the Apache License 2.0
 <https://github.com/metno/py-mmd-tools/blob/master/LICENSE>
 """
 import os
-import re
 import warnings
 import yaml
 import jinja2
@@ -27,7 +26,6 @@ from filehash import FileHash
 from itertools import zip_longest
 from pkg_resources import resource_string
 from dateutil.parser import isoparse
-from dateutil.parser._parser import ParserError
 from uuid import UUID
 
 from metvocab.mmdgroup import MMDGroup
@@ -38,29 +36,59 @@ from netCDF4 import Dataset
 from shapely.errors import WKTReadingError
 
 
-def validate_iso8601(isodatetime):
-    regex = (
-        r'^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])'
-        r'T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]'
-        r'|[01][0-9]):[0-5][0-9])?$'
-    )
-    match_iso8601 = re.compile(regex).match
-    valid = False
+def normalize_iso8601(s):
+    """Convert s to a normalized ISO 8601 value: YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.
+
+    Parameters:
+    -----------
+    s: str
+
+    Returns:
+    --------
+    (<normalized ISO 8601 form of s>, None) upon success, otherwise (None, <error reason>).
+    """
+
+    # get initial datetime
     try:
-        mm = match_iso8601(isodatetime)
-    except TypeError:
-        mm = None
+        dt = isoparse(s)
+    except Exception as e:
+        return None, str(e)
 
-    if mm is not None:
-        valid = True
-        # Test with isoparse as well
-        try:
-            isoparse(isodatetime)
-        except (ParserError, ValueError):
-            # ValueError in case of a not existing date, such as 29th Feb 2019
-            valid = False
+    # format second fraction (drop altogether if zero, otherwise '.<microsecs>' left-padded with
+    # zeros)
+    sec_frac = '' if dt.microsecond == 0 else '.{:06d}'.format(dt.microsecond)
 
-    return valid
+    # format time zone (use 'Z' for zero UTC offset, otherwise '+hh:mm')
+    utc_offset = dt.utcoffset()
+    tz_hours = tz_mins = 0
+    if utc_offset is not None:
+        secs = int(utc_offset.total_seconds())
+        tz_hours = secs // 3600
+        tz_mins = (secs % 3600) // 60
+    tz = 'Z' if (tz_hours == 0 and tz_mins == 0) else '+{:02d}:{:02d}'.format(tz_hours, tz_mins)
+
+    return dt.strftime('%Y-%m-%dT%H:%M:%S{}{}'.format(sec_frac, tz)), None
+
+
+def normalize_iso8601_0(s):
+    """Convert s to a normalized ISO 8601 value (like normalize_iso8601()), but don't flag any
+    errors. If s is not valid ISO 8601, s itself is returned.
+    This function is used for cases where we 1) assume that s is already valid or 2) rely on
+    the validity of s to be checked elsewhere.
+
+    Parameters:
+    -----------
+    s: str
+
+    Returns:
+    --------
+    <normalized ISO 8601 form of s> upon success, otherwise the unmodified s.
+    """
+
+    ndt, _ = normalize_iso8601(s)
+    if ndt is None:
+        return s
+    return ndt
 
 
 class Nc_to_mmd(object):
@@ -309,7 +337,7 @@ class Nc_to_mmd(object):
         data = {}
         data['update'] = []
         for i in range(len(times)):
-            data['update'].append({'datetime': times[i], 'type': types[i]})
+            data['update'].append({'datetime': normalize_iso8601_0(times[i]), 'type': types[i]})
         return data
 
     def get_titles(self, mmd_element, ncin):
@@ -375,23 +403,44 @@ class Nc_to_mmd(object):
         if acdd_end_key in ncin.ncattrs():
             end_dates = self.separate_repeated(True, getattr(ncin, acdd_end_key))
 
-        # Make sure dates are provided in isoformat
-        dates = start_dates
-        dates.extend(end_dates)
-        if dates:
-            for date in dates:
-                if not validate_iso8601(date):
-                    # in case the date is not in ISO8601 format
-                    self.missing_attributes['errors'].append(
-                        'ACDD time attributes must contain valid ISO8601 dates. %s is invalid.'
-                        % date
-                    )
+        def convert_to_normalized_iso8601(dts):
+            """Replaces datetimes in dts with ISO 8601 normalized forms if possible, recording
+            cases where normalization is not possible
 
-        for i in range(len(start_dates)):
+            Parameters:
+            -----------
+            dts: list of str
+
+            Returns:
+            --------
+            A version of dts where each item is 1) replaced by the normalized ISO 8601 form if
+            possible, or 2) kept unmodified
+
+            Side effects:
+            -------------
+            For each item in dts that cannot be converted to normalized ISO 8601 form, a reason is
+            recorded in self.missing_attributes['errors'].
+            """
+            ndts = []
+            for dt in dts:
+                ndt, reason = normalize_iso8601(dt)
+                if ndt is None:
+                    ndts.append(dt)  # keep original
+                    self.missing_attributes['errors'].append(
+                        'ACDD start/end datetime %s is not valid ISO8601: %s.' % (dt, reason)
+                    )
+                else:
+                    ndts.append(ndt)  # replace with normalized form
+            return ndts
+
+        nstart_dates = convert_to_normalized_iso8601(start_dates)
+        nend_dates = convert_to_normalized_iso8601(end_dates)
+
+        for i in range(len(nstart_dates)):
             t_ext = {}
-            t_ext['start_date'] = start_dates[i]
-            if len(end_dates) > i:
-                t_ext['end_date'] = end_dates[i]
+            t_ext['start_date'] = nstart_dates[i]
+            if len(nend_dates) > i:
+                t_ext['end_date'] = nend_dates[i]
             data.append(t_ext)
         return data
 
@@ -680,11 +729,12 @@ class Nc_to_mmd(object):
             others = self.separate_repeated(True, getattr(ncin, acdd_other_key))
         data = []
         for i in range(len(publication_dates)):
-            if not validate_iso8601(publication_dates[i]):
+            ndt, reason = normalize_iso8601(publication_dates[i])
+            if ndt is None:
                 # in case the dates are not actual dates
                 self.missing_attributes['errors'].append(
-                    'ACDD attribute %s must contain a valid ISO8601 date.'
-                    % acdd_publication_date_key
+                    'ACDD attribute %s contains an invalid ISO8601 date: %s: %s'
+                    % (acdd_publication_date_key, publication_dates[i], reason)
                 )
             else:
                 if len(urls) <= i:
@@ -698,7 +748,7 @@ class Nc_to_mmd(object):
                 data.append({
                     'author': authors,
                     # save as ISO8601, not datetime object..
-                    'publication_date': publication_dates[i],
+                    'publication_date': ndt,
                     'title': title,
                     'url': url,
                     'other': other,
