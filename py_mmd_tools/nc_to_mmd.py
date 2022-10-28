@@ -512,7 +512,7 @@ class Nc_to_mmd(object):
             clean = 1
         while clean:
             try:
-                ind = names.index('Not available')
+                ind = names.index('Not available', -1)
             except ValueError:
                 clean = 0
             else:
