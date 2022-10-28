@@ -228,7 +228,7 @@ personnel:
         separator: ','
         comment: Comma separated list.
       contributor_role:
-        default: 'Investigator'
+        default: 'Technical contact'
         separator: ','
         comment: Comma separated list.
   name:
