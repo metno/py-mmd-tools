@@ -23,6 +23,7 @@ from pkg_resources import resource_string
 from unittest.mock import patch
 
 from py_mmd_tools.nc_to_mmd import Nc_to_mmd, normalize_iso8601, normalize_iso8601_0
+from py_mmd_tools.nc_to_mmd import valid_url
 from py_mmd_tools.yaml_to_adoc import nc_attrs_from_yaml
 from py_mmd_tools.yaml_to_adoc import required
 from py_mmd_tools.yaml_to_adoc import repetition_allowed
@@ -244,6 +245,11 @@ class TestNC2MMD(unittest.TestCase):
     #     mock_init.return_value = None
     #     self.assertTrue(mock_init.called)
     #     self.assertTrue(mock_to_mmd.called)
+
+    def test_valid_url(self):
+        self.assertTrue(valid_url('http://www.google.com'))
+        self.assertTrue(valid_url('http://spdx.org/licenses/CC-BY-4.0'))
+        self.assertFalse(valid_url('www.google.com'))
 
     def test_init_raises_error(self):
         """Nc_to_mmd.__init__ should raise error if check_only=False,

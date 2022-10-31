@@ -15,6 +15,7 @@ py-mmd-tools is licensed under the Apache License 2.0
 <https://github.com/metno/py-mmd-tools/blob/master/LICENSE>
 """
 import os
+import re
 import warnings
 import yaml
 import jinja2
@@ -35,6 +36,18 @@ from netCDF4 import Dataset
 
 from shapely.errors import WKTReadingError
 
+
+def valid_url(url):
+    """ Validate a url pattern (not its existence).
+    """
+    regex = re.compile(
+        r'^(?:http|ftp)s?://' # http:// or https://
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'
+        r'localhost|' #localhost...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
+        r'(?::\d+)?' # optional port
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+    return re.match(regex, url) is not None
 
 def normalize_iso8601(s):
     """Convert s to a normalized ISO 8601 value: YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.
@@ -153,7 +166,7 @@ class Nc_to_mmd(object):
         return acdd_attr
 
     def get_acdd_metadata(self, mmd_element, ncin, mmd_element_name):
-        """Recursive function to trenslate from ACDD to MMD.
+        """Recursive function to translate from ACDD to MMD.
 
         If ACDD does not exist for a given MMD element, the function
         looks for an alternative acdd_ext element instead. It may also
@@ -695,7 +708,7 @@ class Nc_to_mmd(object):
 
     def get_dataset_citations(self, mmd_element, ncin):
         """MMD allows several dataset citations. This will lead to
-        problems with associating the diffetent elements to each other.
+        problems with associating the different elements to each other.
         In practice, most datasets will only have one citation, so will
         handle that eventuality if it arrives.
         """
@@ -922,6 +935,27 @@ class Nc_to_mmd(object):
             if not ncin.getncattr(attr):
                 raise ValueError("%s: Global attribute %s is empty - please correct." % (
                     self.netcdf_product, attr))
+
+    def get_license(self, ncin):
+        """ Get ACDD license attribute. The license should be provided
+        as a URL to a standard or specific license. It may also be 
+        specified as "Freely Distributed" or "None", or described in
+        free text including any restrictions to data access and
+        distribution. It is strongly recommended to use identifiers
+        and URL's from https://spdx.org/licenses/ and to use a form
+        similar to <URL>(<Identifier>) using elements from the SPDX
+        source listed above.
+        """
+        acdd_license = mmd_element['use_constraint']['resource']['acdd']
+        acdd_license_id = mmd_element['use_constraint']['identifier']['acdd_ext']
+        acdd_license = getattr(ncin, acdd).split('(')
+        license_url = acdd_license[0]
+        if len(acdd_license) > 1:
+            license_id = acdd_license[1][0:-1]
+        else:
+            license_id = getattr(ncin, acdd_license_id)
+
+
 
     def to_mmd(self, collection=None, checksum_calculation=False, mmd_yaml=None,
                *args, **kwargs):
