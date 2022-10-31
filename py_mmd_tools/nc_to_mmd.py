@@ -936,26 +936,42 @@ class Nc_to_mmd(object):
                 raise ValueError("%s: Global attribute %s is empty - please correct." % (
                     self.netcdf_product, attr))
 
-    def get_license(self, ncin):
-        """ Get ACDD license attribute. The license should be provided
-        as a URL to a standard or specific license. It may also be 
-        specified as "Freely Distributed" or "None", or described in
-        free text including any restrictions to data access and
-        distribution. It is strongly recommended to use identifiers
-        and URL's from https://spdx.org/licenses/ and to use a form
-        similar to <URL>(<Identifier>) using elements from the SPDX
-        source listed above.
+    def get_license(self, mmd_element, ncin):
+        """ Get ACDD license attribute. 
+
+        ACDD definition: The license should be provided as a URL to a
+        standard or specific license. It may also be specified as
+        "Freely Distributed" or "None", or described in free text
+        including any restrictions to data access and distribution.
+
+        adc.met.no addition: It is strongly recommended to use
+        identifiers and URL's from https://spdx.org/licenses/ and to
+        use a form similar to <URL>(<Identifier>) using elements from
+        the SPDX source listed above.
+
         """
-        acdd_license = mmd_element['use_constraint']['resource']['acdd']
-        acdd_license_id = mmd_element['use_constraint']['identifier']['acdd_ext']
-        acdd_license = getattr(ncin, acdd).split('(')
+        data = None
+        acdd_license = list(mmd_element['resource']['acdd'].keys())[0]
+        acdd_license_id = list(mmd_element['identifier']['acdd_ext'].keys())[0]
+        acdd_license = getattr(ncin, acdd_license).split('(')
         license_url = acdd_license[0]
-        if len(acdd_license) > 1:
-            license_id = acdd_license[1][0:-1]
+        # validate url
+        if not valid_url(license_url):
+            self.missing_attributes['errors'].append(
+                    '%s is not a valid url' % license_url
+                )
         else:
-            license_id = getattr(ncin, acdd_license_id)
-
-
+            data = {'resource': license_url}
+        if len(acdd_license) > 1:
+            data['identifier'] = acdd_license[1][0:-1]
+        else:
+            if acdd_license_id not in ncin.ncattrs():
+                self.missing_attributes['warnings'].append(
+                    '%s is a recommended attribute' % acdd_license_id
+                )
+            else:
+                data['identifier'] = getattr(ncin, acdd_license_id)
+        return data
 
     def to_mmd(self, collection=None, checksum_calculation=False, mmd_yaml=None,
                *args, **kwargs):
@@ -1080,6 +1096,10 @@ class Nc_to_mmd(object):
         if polygon:
             self.metadata['geographic_extent']['polygon'] = polygon
         mmd_yaml.pop('geographic_extent')
+
+        # Get use_constraint data
+        self.metadata['use_constraint'] = self.get_license(mmd_yaml.pop('use_constraint'), ncin)
+
         # Data access should not be read from the netCDF-CF file
         mmd_yaml.pop('data_access')
         # Add OPeNDAP data_access if "netcdf_product" is OPeNDAP url

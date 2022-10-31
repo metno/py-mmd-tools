@@ -251,6 +251,56 @@ class TestNC2MMD(unittest.TestCase):
         self.assertTrue(valid_url('http://spdx.org/licenses/CC-BY-4.0'))
         self.assertFalse(valid_url('www.google.com'))
 
+    def test_license__invalid_url(self):
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.reference_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.license = "spdx.org/licenses/CC-BY-4.0"
+        value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        self.assertEqual(
+            md.missing_attributes["errors"][0],
+            'spdx.org/licenses/CC-BY-4.0 is not a valid url'
+        )
+
+    def test_license__with_acdd_ext(self):
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.reference_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.license = "http://spdx.org/licenses/CC-BY-4.0"
+        ncin.license_identifier = "CC-BY-4.0"
+        value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
+        self.assertEqual(value['identifier'], 'CC-BY-4.0')
+
+    def test_license__simple(self):
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.reference_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.license = "http://spdx.org/licenses/CC-BY-4.0"
+        value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
+        self.assertEqual(len(list(value.keys())), 1)
+        self.assertEqual(
+            md.missing_attributes['warnings'][0],
+            'license_identifier is a recommended attribute')
+
+    def test_license__according_to_adc(self):
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.reference_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.license = "http://spdx.org/licenses/CC-BY-4.0(CC-BY-4.0)"
+        value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
+        self.assertEqual(value['identifier'], 'CC-BY-4.0')
+
     def test_init_raises_error(self):
         """Nc_to_mmd.__init__ should raise error if check_only=False,
         but output_file is None. Test that this is the case.

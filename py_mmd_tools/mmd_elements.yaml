@@ -208,6 +208,7 @@ use_constraint:
     maxOccurs: '1'
     acdd_ext:
       license_identifier:
+        minOccurs: '0'
         maxOccurs: '1'
   resource:
     maxOccurs: '1'
