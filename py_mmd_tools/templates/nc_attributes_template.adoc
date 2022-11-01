@@ -11,18 +11,24 @@ The ACDD recommendations should be followed in order to properly document your n
 
 ===== Notes 
 
-*Keywords* describe the content of your dataset following a given vocabulary. It should be provided as a comma separated list with a short name defining the vocabulary used followed by the actual keyword, i.e., ``short_name:keyword``. Example:
-
-[EXAMPLE]
-====
-:keywords = "GCMDSK:Earth Science > Atmosphere > Atmospheric radiation, GEMET:Meteorological geographical features, GEMET:Atmospheric conditions, NORTHEMES:Weather and climate" ;
-====
-
-In addition, ``keywords_vocabulary`` provides information about the vocabulary defining the keywords. Example:
+*Keywords* describe the content of your dataset following a given vocabulary. You may use any vocabularies to define your keywords, but a link to the keyword definitions should be provided in the ``keywords_vocabulary`` attribute. This attribute provides information about the vocabulary defining the keywords used in the ``keywords`` attribute. Example:
 
 [EXAMPLE]
 ====
 :keywords_vocabulary = "GCMDSK:GCMD Science Keywords:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/sciencekeywords, GEMET:INSPIRE Themes:http://inspire.ec.europa.eu/theme, NORTHEMES:GeoNorge Themes:https://register.geonorge.no/metadata-kodelister/nasjonal-temainndeling" ;
+====
+
+Note that the *GCMDSK*, *GEMET* and *NORTHEMES* vocabularies are required for indexing in https://adc.met.no/[S-ENDA] and https://www.geonorge.no/en/[Geonorge]. You may find appropriate keywords at the following links:
+
+* https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/sciencekeywords[GCMDSK]
+* http://inspire.ec.europa.eu/theme[GEMET]
+* https://register.geonorge.no/metadata-kodelister/nasjonal-temainndeling[NORTHEMES]
+
+The keywords should be provided by the ``keywords`` attribute as a comma separated list with a short name defining the vocabulary used, followed by the actual keyword, i.e., ``short_name:keyword``. Example:
+
+[EXAMPLE]
+====
+:keywords = "GCMDSK:Earth Science > Atmosphere > Atmospheric radiation, GEMET:Meteorological geographical features, GEMET:Atmospheric conditions, NORTHEMES:Weather and climate" ;
 ====
 
 See https://adc.met.no/node/96 for more information about how to define the ACDD keywords.
@@ -45,38 +51,29 @@ In order to check your netCDF-CF files, and to create MMD xml files, you can use
 The following ACDD elements are required:
 [cols=",,"]
 |=======================================================================
-|*ACDD Attribute* |*Repetition* |*MMD equivalent*
+|*ACDD Attribute* |*MMD equivalent* |*Comment*
 {% for elem in data['acdd']['required'] %}
-    {% if elem['attribute'] | is_list %}
-        {% for subelem in elem['attribute'] %}
-|{{ subelem }} | {{ elem['repetition_str'] }} | {{ elem['mmd_field'] }}
-        {% endfor %}
-    {% else %}
-|{{ elem['attribute'] }} | {{ elem['repetition_str'] }} | {{ elem['mmd_field'] }}
-{% endif %}
+|{{ elem['attribute'] }} | {{ elem['mmd_field'] }} | {{ elem['comment'] }}
 {% endfor %}
 |=======================================================================
 
-The following ACDD elements are recommended:
+The following ACDD elements are (highly) recommended:
 [cols=",,,"]
 |=======================================================================
-|*ACDD Attribute* |*Repetition* |*Default* |*MMD equivalent*
+|*ACDD Attribute* |*Default* |*MMD equivalent* |*Comment*
 {% for elem in data['acdd']['not_required'] %}
-    {% if elem[0] | is_list %}
-        {% for subelem in elem[0] %}
-|{{ subelem }} | {{ elem['repetition_str'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
-        {% endfor %}
-    {% else %}
-|{{ elem['attribute'] }} | {{ elem['repetition_str'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
-{% endif %}
+|{{ elem['attribute'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }} | {{ elem['comment'] }}
 {% endfor %}
 |=======================================================================
 
 The following elements are ACDD extensions that are needed to improve (meta)data interoperability. Please refer to the documentation of https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html[MMD] for more details:
 [cols=",,,"]
 |=======================================================================
-|*Extra Attribute* |*Repetition* |*Default* |*MMD equivalent*
-{% for elem in data['acdd_ext'] %}
-|{{ elem['attribute'] }} | {{ elem['repetition_str'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }}
+|*Necessary non-ACDD Attribute* |*Default* |*MMD equivalent* |*Comment*
+{% for elem in data['acdd_ext']['required'] %}
+|{{ elem['attribute'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }} | {{ elem['comment'] }}
+{% endfor %}
+{% for elem in data['acdd_ext']['not_required'] %}
+|{{ elem['attribute'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }} | {{ elem['comment'] }}
 {% endfor %}
 |=======================================================================
