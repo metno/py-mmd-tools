@@ -251,6 +251,24 @@ class TestNC2MMD(unittest.TestCase):
         self.assertTrue(valid_url('http://spdx.org/licenses/CC-BY-4.0'))
         self.assertFalse(valid_url('www.google.com'))
 
+    def test_license__deprecated_attrs(self):
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.reference_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.license = "CC-BY-4.0"
+        ncin.license_resource = "http://spdx.org/licenses/CC-BY-4.0"
+        value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
+        self.assertEqual(value['identifier'], 'CC-BY-4.0')
+        self.assertEqual(
+            md.missing_attributes["warnings"][0],
+            '"license_resource" is a deprecated attribute')
+        self.assertEqual(
+            md.missing_attributes["warnings"][1],
+            'license_identifier is a recommended attribute')
+
     def test_license__invalid_url(self):
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
@@ -1004,12 +1022,10 @@ class TestNC2MMD(unittest.TestCase):
 
     def test_check_only(self):
         """Run netCDF attributes to MMD translation with check_only
-        flag. Also make sure that the warning about using default
-        value 'Active' for the MMD metadata_status field is disabled.
+        flag.
         """
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
         req_ok, msg = nc2mmd.to_mmd()
-        self.assertFalse(nc2mmd.missing_attributes['warnings'])
         self.assertTrue(req_ok)
         self.assertEqual(msg, '')
 
@@ -1168,7 +1184,7 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
         nc2mmd.to_mmd(mmd_yaml=mmd_yaml)
         self.assertEqual(
-            nc2mmd.missing_attributes['warnings'][0],
+            nc2mmd.missing_attributes['warnings'][2],
             'Using default value test for dummy_field'
         )
 
@@ -1229,7 +1245,6 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(
             nc2mmd.missing_attributes['errors'][1], 'naming_authority is a required attribute.'
         )
-        self.assertEqual(nc2mmd.missing_attributes['warnings'], [])
         self.assertFalse(Nc_to_mmd.is_valid_uuid(nc2mmd.metadata['metadata_identifier']))
         self.assertEqual(':', value)
 
@@ -1264,7 +1279,6 @@ class TestNC2MMD(unittest.TestCase):
                 'id ACDD attribute is not valid.'
             )
         )
-        self.assertEqual(nc2mmd.missing_attributes['warnings'], [])
         self.assertFalse(Nc_to_mmd.is_valid_uuid(nc2mmd.metadata['metadata_identifier']))
         ncin = Dataset(nc2mmd.netcdf_product)
         id = ncin.getncattr('id')
