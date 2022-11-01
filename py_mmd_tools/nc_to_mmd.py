@@ -923,6 +923,28 @@ class Nc_to_mmd(object):
                 raise ValueError("%s: Global attribute %s is empty - please correct." % (
                     self.netcdf_product, attr))
 
+    def check_conventions(self, ncin):
+        """ Check that the Conventions attribute is present, and
+        that it contains all needed information.
+        """
+        # Check that the Conventions attribute is present
+        if 'Conventions' not in ncin.ncattrs():
+            self.missing_attributes['errors'].append(
+                'Required attribute "Conventions" is missing.')
+        else:
+            # Check that the conventions attribute contains CF and ACCD
+            if 'CF' not in ncin.getncattr('Conventions'):
+                self.missing_attributes['errors'].append(
+                    'The dataset should follow the CF-standard. Please '
+                    'provide the CF standard version in the Conventions '
+                    'attribute.')
+
+            if 'ACDD' not in ncin.getncattr('Conventions'):
+                self.missing_attributes['errors'].append(
+                    'The dataset should follow the ACDD convention. '
+                    'Please provide the ACDD convention version in '
+                    'the Conventions attribute.')
+
     def to_mmd(self, collection=None, checksum_calculation=False, mmd_yaml=None,
                *args, **kwargs):
         """Method for parsing and mapping NetCDF attributes to MMD.
@@ -1091,13 +1113,12 @@ class Nc_to_mmd(object):
         if rm_file_for_checksum_calculation:
             os.remove(file_for_checksum_calculation)
 
+        self.check_conventions(ncin)
+
         if len(self.missing_attributes['warnings']) > 0:
             warnings.warn('\n\t'+'\n\t'.join(self.missing_attributes['warnings']))
         if len(self.missing_attributes['errors']) > 0:
             raise AttributeError('\n\t'+'\n\t'.join(self.missing_attributes['errors']))
-
-        # Finally, check that the conventions attribute contains CF and ACCD
-        assert 'CF' in ncin.getncattr('Conventions') and 'ACDD' in ncin.getncattr('Conventions')
 
         env = jinja2.Environment(
             loader=jinja2.PackageLoader(self.__module__.split('.')[0], 'templates'),

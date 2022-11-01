@@ -1523,6 +1523,31 @@ class TestNC2MMD(unittest.TestCase):
         self.assertIn('Global attribute geospatial_bounds is empty - please correct.',
                       str(e.exception))
 
+    def test_check_conventions__missing(self):
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.tull = "tull"
+        md.check_conventions(ncin)
+        self.assertEqual(
+            md.missing_attributes["errors"][0],
+            'Required attribute "Conventions" is missing.')
+
+    def test_check_conventions__cf_and_acdd_missing(self):
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.Conventions = "tull"
+        md.check_conventions(ncin)
+        self.assertEqual(
+            md.missing_attributes["errors"][0],
+            'The dataset should follow the CF-standard. Please '
+            'provide the CF standard version in the Conventions '
+            'attribute.')
+        self.assertEqual(
+            md.missing_attributes["errors"][1],
+            'The dataset should follow the ACDD convention. '
+            'Please provide the ACDD convention version in '
+            'the Conventions attribute.')
+
 
 if __name__ == '__main__':
     unittest.main()
