@@ -1020,14 +1020,14 @@ class Nc_to_mmd(object):
             tt, msg = normalize_iso8601(time_coverage_start)
             if tt is None:
                 self.missing_attributes['errors'].append(
-                    "Datetime element must be in ISO8601 format: "
+                    "time_coverage_start must be in ISO8601 format: "
                     "YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.")
             self.metadata['temporal_extent'] = {'start_date': time_coverage_start}
             if time_coverage_end:
                 tt, msg = normalize_iso8601(time_coverage_end)
                 if tt is None:
                     self.missing_attributes['errors'].append(
-                        "Datetime element must be in ISO8601 format: "
+                        "time_coverage_end must be in ISO8601 format: "
                         "YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.")
                 self.metadata['temporal_extent']['end_date'] = time_coverage_end
             mmd_yaml.pop('temporal_extent')
