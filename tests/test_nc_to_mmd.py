@@ -277,6 +277,7 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(md.netcdf_product, "w", diskless=True)
         ncin.license = "spdx.org/licenses/CC-BY-4.0"
         value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        self.assertIsNone(value)
         self.assertEqual(
             md.missing_attributes["errors"][0],
             'spdx.org/licenses/CC-BY-4.0 is not a valid url'

@@ -41,13 +41,14 @@ def valid_url(url):
     """ Validate a url pattern (not its existence).
     """
     regex = re.compile(
-        r'^(?:http|ftp)s?://' # http:// or https://
+        r'^(?:http|ftp)s?://'  # http:// or https://
         r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'
-        r'localhost|' #localhost...
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
-        r'(?::\d+)?' # optional port
+        r'localhost|'  # localhost...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+        r'(?::\d+)?'  # optional port
         r'(?:/?|[/?]\S+)$', re.IGNORECASE)
     return re.match(regex, url) is not None
+
 
 def normalize_iso8601(s):
     """Convert s to a normalized ISO 8601 value: YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.
@@ -937,7 +938,7 @@ class Nc_to_mmd(object):
                     self.netcdf_product, attr))
 
     def get_license(self, mmd_element, ncin):
-        """ Get ACDD license attribute. 
+        """ Get ACDD license attribute.
 
         ACDD definition: The license should be provided as a URL to a
         standard or specific license. It may also be specified as
@@ -963,14 +964,12 @@ class Nc_to_mmd(object):
                 license_url = ncin.license_resource
             if not valid_url(license_url):
                 self.missing_attributes['errors'].append(
-                        '%s is not a valid url' % license_url
-                    )
+                    '%s is not a valid url' % license_url)
             else:
                 data = {'resource': license_url}
                 old_version = True
                 self.missing_attributes['warnings'].append(
-                        '"license_resource" is a deprecated attribute'
-                    )
+                    '"license_resource" is a deprecated attribute')
         else:
             data = {'resource': license_url}
         if len(acdd_license) > 1:
