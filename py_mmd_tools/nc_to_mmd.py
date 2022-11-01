@@ -237,11 +237,12 @@ class Nc_to_mmd(object):
         try:
             short_names = self.separate_repeated(True, getattr(ncin, acdd_short_name_key))
         except AttributeError:
-            self.missing_attributes['errors'].append('%s is a required attribute'
-                                                     % acdd_short_name_key)
+            self.missing_attributes['warnings'].append(
+                '%s is a recommended attribute' % acdd_short_name_key)
 
         acdd_long_name = mmd_element['data_center_name']['long_name'].pop('acdd')
         acdd_long_name_key = list(acdd_long_name.keys())[0]
+        long_names = []
         try:
             long_names = self.separate_repeated(True, getattr(ncin, acdd_long_name_key))
         except AttributeError:
@@ -256,18 +257,18 @@ class Nc_to_mmd(object):
             urls = ''
 
         data = []
-        for i in range(len(short_names)):
+        for i in range(len(long_names)):
             if len(urls) <= i:
                 url = ''
             else:
                 url = urls[i]
-            data.append({
-                'data_center_name': {
-                    'short_name': short_names[i],
-                    'long_name': long_names[i],
-                },
+            dc = {
+                'data_center_name': {'long_name': long_names[i]},
                 'data_center_url': url,
-            })
+            }
+            if len(short_names) == len(long_names):
+                dc['data_center_name']['short_name'] = short_names[i]
+            data.append(dc)
         return data
 
     def get_metadata_updates(self, mmd_element, ncin):

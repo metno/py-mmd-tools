@@ -349,11 +349,11 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(
             nc2mmd.missing_attributes['errors'][0], 'geospatial_lat_max is a required attribute'
         )
-        self.assertEqual(nc2mmd.missing_attributes['errors'][4],
-                         'institution_short_name is a required attribute')
         self.assertEqual(
-            nc2mmd.missing_attributes['errors'][5], 'institution is a required attribute'
+            nc2mmd.missing_attributes['errors'][4], 'institution is a required attribute'
         )
+        self.assertEqual(nc2mmd.missing_attributes['warnings'][0],
+                         'institution_short_name is a recommended attribute')
 
     def test_missing_geographic_extent_but_provided_as_kwarg(self):
         """Test that the geographic extent rectangle can be added
@@ -1522,6 +1522,30 @@ class TestNC2MMD(unittest.TestCase):
             md.check_attributes_not_empty(ncin)
         self.assertIn('Global attribute geospatial_bounds is empty - please correct.',
                       str(e.exception))
+
+    def test_institution_long_name_missing(self):
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.institution_short_name = "NO/MPE/NVE"
+        md.get_data_centers(mmd_yaml['data_center'], ncin)
+        self.assertEqual(
+            md.missing_attributes['errors'][0],
+            'institution is a required attribute')
+
+    def test_institution_short_name_missing(self):
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.institution = "Norwegian Meteorological Institute"
+        md.get_data_centers(mmd_yaml['data_center'], ncin)
+        self.assertEqual(
+            md.missing_attributes['warnings'][0],
+            'institution_short_name is a recommended attribute')
 
 
 if __name__ == '__main__':
