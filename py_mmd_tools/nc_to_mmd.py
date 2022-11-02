@@ -888,43 +888,25 @@ class Nc_to_mmd(object):
         """Get dataset coverage as a rectangle (north, south, east, west).
         """
         data = {}
-        acdd_north = mmd_element['north']['acdd']
-        acdd_south = mmd_element['south']['acdd']
-        acdd_east = mmd_element['east']['acdd']
-        acdd_west = mmd_element['west']['acdd']
+        directions = ['north', 'south', 'east', 'west']
+
         data['srsName'] = mmd_element['srsName']['default']
+        for dir in directions:
+            acdd = mmd_element[dir]['acdd']
+            acdd_key = list(acdd.keys())[0]
+            if acdd_key not in ncin.ncattrs():
+                self.missing_attributes['errors'].append(
+                    '%s is a required attribute' % acdd_key
+                )
+            else:
+                data[dir] = getattr(ncin, acdd_key)
+                try:
+                    float(data[dir])
+                except ValueError:
+                    self.missing_attributes['errors'].append(
+                        '%s must be convertible to float type.' % acdd_key
+                    )
 
-        acdd_north_key = list(acdd_north.keys())[0]
-        if acdd_north_key not in ncin.ncattrs():
-            self.missing_attributes['errors'].append(
-                '%s is a required attribute' % acdd_north_key
-            )
-        else:
-            data['north'] = getattr(ncin, acdd_north_key)
-
-        acdd_south_key = list(acdd_south.keys())[0]
-        if acdd_south_key not in ncin.ncattrs():
-            self.missing_attributes['errors'].append(
-                '%s is a required attribute' % acdd_south_key
-            )
-        else:
-            data['south'] = getattr(ncin, acdd_south_key)
-
-        acdd_east_key = list(acdd_east.keys())[0]
-        if acdd_east_key not in ncin.ncattrs():
-            self.missing_attributes['errors'].append(
-                '%s is a required attribute' % acdd_east_key
-            )
-        else:
-            data['east'] = getattr(ncin, acdd_east_key)
-
-        acdd_west_key = list(acdd_west.keys())[0]
-        if acdd_west_key not in ncin.ncattrs():
-            self.missing_attributes['errors'].append(
-                '%s is a required attribute' % acdd_west_key
-            )
-        else:
-            data['west'] = getattr(ncin, acdd_west_key)
         return data
 
     def check_attributes_not_empty(self, ncin):
