@@ -1538,7 +1538,8 @@ class TestNC2MMD(unittest.TestCase):
             "https://ieeexplore.ieee.org/document/7914752(Scientific publication)"
         )
         data = md.get_related_information(mmd_yaml['related_information'], ncin)
-        self.assertEqual(data[0]['resource'],
+        self.assertEqual(
+            data[0]['resource'],
             'https://data.met.no/dataset/3f9974bf-b073-4c16-81d8-c34fcf3b1f01')
         self.assertEqual(data[0]['type'], 'Dataset landing page')
         self.assertEqual(data[1]['resource'], 'https://ieeexplore.ieee.org/document/7914752')
@@ -1560,6 +1561,7 @@ class TestNC2MMD(unittest.TestCase):
             "https://ieeexplore.ieee.org/document/7914752(Scientific publication)"
         )
         data = md.get_related_information(mmd_yaml['related_information'], ncin)
+        self.assertEqual(data[0]['type'], 'Scientific publication')
         self.assertEqual(
             md.missing_attributes["errors"][0],
             'Reference types must follow a controlled vocabulary from'
@@ -1582,6 +1584,7 @@ class TestNC2MMD(unittest.TestCase):
             "https://ieeexplore.ieee__.org/document/7914752(Scientific publication)"
         )
         data = md.get_related_information(mmd_yaml['related_information'], ncin)
+        self.assertEqual(data, [])
         self.assertEqual(
             md.missing_attributes["errors"][0],
             'references must contain valid uris')
@@ -1600,9 +1603,11 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(md.netcdf_product, "w", diskless=True)
         ncin.references = "landing_page, paper"
         data = md.get_related_information(mmd_yaml['related_information'], ncin)
+        self.assertEqual(data, [])
         self.assertEqual(
             md.missing_attributes["errors"][0],
             "references must be formed as <uri>(<type>).")
+
 
 if __name__ == '__main__':
     unittest.main()
