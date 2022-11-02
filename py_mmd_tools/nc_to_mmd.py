@@ -37,7 +37,9 @@ from shapely.errors import WKTReadingError
 
 
 def normalize_iso8601(s):
-    """Convert s to a normalized ISO 8601 value: YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.
+    """Convert provided string (s) to a normalized ISO 8601 value:
+
+    YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.
 
     Parameters:
     -----------
@@ -337,7 +339,13 @@ class Nc_to_mmd(object):
         data = {}
         data['update'] = []
         for i in range(len(times)):
-            data['update'].append({'datetime': normalize_iso8601_0(times[i]), 'type': types[i]})
+            tt, msg = normalize_iso8601(times[i])
+            if tt is None:
+                self.missing_attributes['errors'].append(
+                    "Datetime element must be in ISO8601 format: "
+                    "YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.")
+            else:
+                data['update'].append({'datetime': tt, 'type': types[i]})
         return data
 
     def get_titles(self, mmd_element, ncin):
@@ -404,8 +412,9 @@ class Nc_to_mmd(object):
             end_dates = self.separate_repeated(True, getattr(ncin, acdd_end_key))
 
         def convert_to_normalized_iso8601(dts):
-            """Replaces datetimes in dts with ISO 8601 normalized forms if possible, recording
-            cases where normalization is not possible
+            """ Replaces datetimes in dts with ISO 8601 normalized
+            forms if possible, recording cases where normalization is
+            not possible.
 
             Parameters:
             -----------
@@ -413,13 +422,15 @@ class Nc_to_mmd(object):
 
             Returns:
             --------
-            A version of dts where each item is 1) replaced by the normalized ISO 8601 form if
-            possible, or 2) kept unmodified
+            A version of dts where each item is 1) replaced by the
+            normalized ISO 8601 form if possible, or 2) kept
+            unmodified.
 
             Side effects:
             -------------
-            For each item in dts that cannot be converted to normalized ISO 8601 form, a reason is
-            recorded in self.missing_attributes['errors'].
+            For each item in dts that cannot be converted to
+            normalized ISO 8601 form, a reason is recorded in
+            self.missing_attributes['errors'].
             """
             ndts = []
             for dt in dts:
@@ -798,7 +809,8 @@ class Nc_to_mmd(object):
                 % (self.ACDD_ID, self.ACDD_NAMING_AUTH, str(acdd_key))
             )
         if self.ACDD_ID not in ncin.ncattrs():
-            self.missing_attributes['errors'].append('%s is a required attribute.' % self.ACDD_ID)
+            self.missing_attributes['errors'].append(
+                '%s is a required attribute.' % self.ACDD_ID)
         if self.ACDD_NAMING_AUTH not in ncin.ncattrs():
             self.missing_attributes['errors'].append(
                 '%s is a required attribute.' % self.ACDD_NAMING_AUTH
@@ -1005,8 +1017,18 @@ class Nc_to_mmd(object):
         self.metadata['title'] = self.get_titles(mmd_yaml.pop('title'), ncin)
         self.metadata['abstract'] = self.get_abstracts(mmd_yaml.pop('abstract'), ncin)
         if time_coverage_start:
+            tt, msg = normalize_iso8601(time_coverage_start)
+            if tt is None:
+                self.missing_attributes['errors'].append(
+                    "time_coverage_start must be in ISO8601 format: "
+                    "YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.")
             self.metadata['temporal_extent'] = {'start_date': time_coverage_start}
             if time_coverage_end:
+                tt, msg = normalize_iso8601(time_coverage_end)
+                if tt is None:
+                    self.missing_attributes['errors'].append(
+                        "time_coverage_end must be in ISO8601 format: "
+                        "YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.")
                 self.metadata['temporal_extent']['end_date'] = time_coverage_end
             mmd_yaml.pop('temporal_extent')
         else:
