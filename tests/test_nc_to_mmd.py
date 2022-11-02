@@ -944,7 +944,6 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(nc2mmd.netcdf_product)
         value = nc2mmd.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
         self.assertEqual(value[0]['url'], '')
-        self.assertEqual(value[0]['other'], '')
 
     def test_check_only(self):
         """Run netCDF attributes to MMD translation with check_only
@@ -1300,6 +1299,9 @@ class TestNC2MMD(unittest.TestCase):
             xsd_obj = etree.XMLSchema(etree.parse(self.reference_xsd))
             xml_doc = etree.ElementTree(file=tested)
             valid = xsd_obj.validate(xml_doc)
+            if not valid:
+                import ipdb
+                ipdb.set_trace()
             self.assertTrue(valid, msg='%s' % xsd_obj.error_log)
 
     def test_create_mmd_missing_publisher_url(self):
@@ -1489,7 +1491,7 @@ class TestNC2MMD(unittest.TestCase):
         with self.assertRaises(AttributeError):
             nc2mmd.to_mmd()
         self.assertEqual(
-            nc2mmd.missing_attributes['errors'][0],
+            nc2mmd.missing_attributes['errors'][1],
             'geospatial_lat_max is a required attribute'
         )
 
@@ -1523,6 +1525,84 @@ class TestNC2MMD(unittest.TestCase):
         self.assertIn('Global attribute geospatial_bounds is empty - please correct.',
                       str(e.exception))
 
+    def test_acdd_references_as_related_information(self):
+        """ Test that references (doi/uri) are correctly retrieved."""
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.references = (
+            "https://data.met.no/dataset/3f9974bf-b073-4c16-81d8-c34fcf3b1f01"
+            "(Dataset landing page),"
+            "https://ieeexplore.ieee.org/document/7914752(Scientific publication)"
+        )
+        data = md.get_related_information(mmd_yaml['related_information'], ncin)
+        self.assertEqual(data[0]['resource'],
+            'https://data.met.no/dataset/3f9974bf-b073-4c16-81d8-c34fcf3b1f01')
+        self.assertEqual(data[0]['type'], 'Dataset landing page')
+        self.assertEqual(data[1]['resource'], 'https://ieeexplore.ieee.org/document/7914752')
+        self.assertEqual(data[1]['type'], 'Scientific publication')
+
+    def test_acdd_references_invalid_type(self):
+        """ Test that error messages are created if the reference
+        types are not in the MMD controlled vocabulary for related
+        information types.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.references = (
+            "https://data.met.no/dataset/3f9974bf-b073-4c16-81d8-c34fcf3b1f01"
+            "(kjhf),"
+            "https://ieeexplore.ieee.org/document/7914752(Scientific publication)"
+        )
+        data = md.get_related_information(mmd_yaml['related_information'], ncin)
+        self.assertEqual(
+            md.missing_attributes["errors"][0],
+            'Reference types must follow a controlled vocabulary from'
+            ' MMD (see https://htmlpreview.github.io/?https://github.'
+            'com/metno/mmd/blob/master/doc/mmd-specification.html#'
+            'related-information-types).')
+
+    def test_acdd_references_invalid_url(self):
+        """ Test that an error message is created if the reference
+        uri is invalid.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.references = (
+            "https://data.invalid_domain.no/dataset/3f9974bf-b073-4c16-81d8-c34fcf3b1f01"
+            "(Dataset landing page),"
+            "https://ieeexplore.ieee__.org/document/7914752(Scientific publication)"
+        )
+        data = md.get_related_information(mmd_yaml['related_information'], ncin)
+        self.assertEqual(
+            md.missing_attributes["errors"][0],
+            'references must contain valid uris')
+        self.assertEqual(
+            md.missing_attributes["errors"][1],
+            'references must contain valid uris')
+
+    def test_acdd_references_malformed(self):
+        """ Test that an error message is created if the references
+        are not valid uris.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.references = "landing_page, paper"
+        data = md.get_related_information(mmd_yaml['related_information'], ncin)
+        self.assertEqual(
+            md.missing_attributes["errors"][0],
+            "references must be formed as <uri>(<type>).")
 
 if __name__ == '__main__':
     unittest.main()

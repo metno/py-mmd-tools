@@ -332,6 +332,10 @@ related_information:
   minOccurs: '0'
   type:
   resource:
+    acdd:
+      references:
+        separator: ','
+        comment: Comma separated list of published or web-based references that describe the data or methods used to produce it. Use a form similar to <URL>(<type>) using related information types in MMD.
   description:
 
 iso_topic_category:
@@ -479,7 +483,3 @@ dataset_citation:
         separator: ','
         comment: Comma separated list.
   other:
-    acdd:
-      references:
-        separator: ','
-        comment: Comma separated list.
