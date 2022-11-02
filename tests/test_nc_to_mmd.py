@@ -601,11 +601,11 @@ class TestNC2MMD(unittest.TestCase):
                 time_coverage_end='1950/01/01 00:00:00'
             )
         self.assertEqual(
-            nc2mmd.missing_attributes['errors'][4],
+            nc2mmd.missing_attributes['errors'][3],
             "time_coverage_start must be in ISO8601 format: "
             "YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.")
         self.assertEqual(
-            nc2mmd.missing_attributes['errors'][5],
+            nc2mmd.missing_attributes['errors'][4],
             "time_coverage_end must be in ISO8601 format: "
             "YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.")
 
