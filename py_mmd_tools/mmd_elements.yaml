@@ -262,7 +262,6 @@ personnel:
         comment: Comma separated list.
     acdd_ext: 
       contributor_institution:
-      contributor_organisation:
   contact_address:
     address:
     city:
