@@ -591,6 +591,24 @@ class TestNC2MMD(unittest.TestCase):
                          '1850-01-01T00:00:00Z')
         self.assertEqual(nc2mmd.metadata['temporal_extent']['end_date'], '1950-01-01T00:00:00Z')
 
+    def test_missing_temporal_extent_but_start_and_end_provided_as_kwargs_and_wrong(self):
+        """Test that errors are raised when input times are not iso"""
+        yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
+        nc2mmd = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc', check_only=True)
+        with self.assertRaises(AttributeError):
+            nc2mmd.to_mmd(
+                time_coverage_start='1850/01/01 00:00:00',
+                time_coverage_end='1950/01/01 00:00:00'
+            )
+        self.assertEqual(
+            nc2mmd.missing_attributes['errors'][4],
+            "time_coverage_start must be in ISO8601 format: "
+            "YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.")
+        self.assertEqual(
+            nc2mmd.missing_attributes['errors'][5],
+            "time_coverage_end must be in ISO8601 format: "
+            "YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.")
+
     def test_temporal_extent_two_startdates(self):
         """Test that two start dates are handled correctly in the
         translation to MMD.
@@ -1351,6 +1369,28 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(
             data[0]['title'],
             'Direct Broadcast data processed in satellite swath to L1C.')
+
+    def test_get_metadata_updates__datetimes_not_iso(self):
+        """ Test that an error is raised if datetimes of metadata
+        updates are not ISO 8601.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        # To overwrite date_created, wihtout saving it to file we use diskless
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.date_created = '2019/01/01 00:00:00'
+        ncin.date_metadata_modified = '2020/01/01 00:00:00'
+        md.get_metadata_updates(mmd_yaml['last_metadata_update'], ncin)
+        self.assertEqual(
+            md.missing_attributes['errors'][0],
+            "Datetime element must be in ISO8601 format: "
+            "YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.")
+        self.assertEqual(
+            md.missing_attributes['errors'][1],
+            "Datetime element must be in ISO8601 format: "
+            "YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.")
 
     def test_ACDD_attr__date_metadata_modified_type___missing(self):
         """Test that the correct error is raised when date_created
