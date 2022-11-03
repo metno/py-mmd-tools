@@ -203,19 +203,19 @@ access_constraint:
 
 use_constraint:
   maxOccurs: '1'
-  minOccurs: '0'
+  minOccurs: '1'
   identifier:
+    maxOccurs: '1'
+    acdd_ext:
+      license_identifier:
+        minOccurs: '0'
+        maxOccurs: '1'
+  resource:
     maxOccurs: '1'
     acdd:
       license:
+        minOccurs: '1'
         maxOccurs: '1'
-        comment: No repetition allowed.
-  resource:
-    maxOccurs: '1'
-    acdd_ext:
-      license_resource:
-        maxOccurs: '1'
-        comment: No repetition allowed.
   license_text:
 
 personnel:

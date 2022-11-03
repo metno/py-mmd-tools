@@ -15,6 +15,7 @@ py-mmd-tools is licensed under the Apache License 2.0
 <https://github.com/metno/py-mmd-tools/blob/master/LICENSE>
 """
 import os
+import re
 import warnings
 import yaml
 import jinja2
@@ -34,6 +35,19 @@ import pathlib
 from netCDF4 import Dataset
 
 from shapely.errors import WKTReadingError
+
+
+def valid_url(url):
+    """ Validate a url pattern (not its existence).
+    """
+    regex = re.compile(
+        r'^(?:http|ftp)s?://'  # http:// or https://
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'
+        r'localhost|'  # localhost...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+        r'(?::\d+)?'  # optional port
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+    return re.match(regex, url) is not None
 
 
 def normalize_iso8601(s):
@@ -155,7 +169,7 @@ class Nc_to_mmd(object):
         return acdd_attr
 
     def get_acdd_metadata(self, mmd_element, ncin, mmd_element_name):
-        """Recursive function to trenslate from ACDD to MMD.
+        """Recursive function to translate from ACDD to MMD.
 
         If ACDD does not exist for a given MMD element, the function
         looks for an alternative acdd_ext element instead. It may also
@@ -707,7 +721,7 @@ class Nc_to_mmd(object):
 
     def get_dataset_citations(self, mmd_element, ncin):
         """MMD allows several dataset citations. This will lead to
-        problems with associating the diffetent elements to each other.
+        problems with associating the different elements to each other.
         In practice, most datasets will only have one citation, so will
         handle that eventuality if it arrives.
         """
@@ -958,6 +972,54 @@ class Nc_to_mmd(object):
                     'Please provide the ACDD convention version in '
                     'the Conventions attribute.')
 
+    def get_license(self, mmd_element, ncin):
+        """ Get ACDD license attribute.
+
+        ACDD definition: The license should be provided as a URL to a
+        standard or specific license. It may also be specified as
+        "Freely Distributed" or "None", or described in free text
+        including any restrictions to data access and distribution.
+
+        adc.met.no addition: It is strongly recommended to use
+        identifiers and URL's from https://spdx.org/licenses/ and to
+        use a form similar to <URL>(<Identifier>) using elements from
+        the SPDX source listed above.
+
+        """
+        data = None
+        old_version = False
+        acdd_license = list(mmd_element['resource']['acdd'].keys())[0]
+        acdd_license_id = list(mmd_element['identifier']['acdd_ext'].keys())[0]
+        acdd_license = getattr(ncin, acdd_license).split('(')
+        license_url = acdd_license[0]
+        # validate url
+        if not valid_url(license_url):
+            # Try deprecated attribute name
+            if 'license_resource' in ncin.ncattrs():
+                license_url = ncin.license_resource
+            if not valid_url(license_url):
+                self.missing_attributes['errors'].append(
+                    '%s is not a valid url' % license_url)
+            else:
+                data = {'resource': license_url}
+                old_version = True
+                self.missing_attributes['warnings'].append(
+                    '"license_resource" is a deprecated attribute')
+        else:
+            data = {'resource': license_url}
+        if len(acdd_license) > 1:
+            data['identifier'] = acdd_license[1][0:-1]
+        else:
+            if acdd_license_id not in ncin.ncattrs():
+                self.missing_attributes['warnings'].append(
+                    '%s is a recommended attribute' % acdd_license_id
+                )
+                if old_version:
+                    data['identifier'] = ncin.license
+            else:
+                data['identifier'] = getattr(ncin, acdd_license_id)
+        return data
+
     def to_mmd(self, collection=None, checksum_calculation=False, mmd_yaml=None,
                *args, **kwargs):
         """Method for parsing and mapping NetCDF attributes to MMD.
@@ -1091,6 +1153,10 @@ class Nc_to_mmd(object):
         if polygon:
             self.metadata['geographic_extent']['polygon'] = polygon
         mmd_yaml.pop('geographic_extent')
+
+        # Get use_constraint data
+        self.metadata['use_constraint'] = self.get_license(mmd_yaml.pop('use_constraint'), ncin)
+
         # Data access should not be read from the netCDF-CF file
         mmd_yaml.pop('data_access')
         # Add OPeNDAP data_access if "netcdf_product" is OPeNDAP url
