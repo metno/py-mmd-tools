@@ -935,6 +935,32 @@ class TestNC2MMD(unittest.TestCase):
             'keywords_vocabulary must be formatted as <short_name>:<long_name>:<url>'
         )
 
+    def test_keywords_vocabulary__invalid_url_pattern(self):
+        """ Test that an error message is issued if the url pattern
+        of a vocabulary is wrong.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.keywords = "GCMDSK:Earth Science > Atmosphere > Atmospheric radiation, " \
+                        "GEMET:Meteorological geographical features, " \
+                        "GEMET:Atmospheric conditions, " \
+                        "NORTHEMES:Weather and climate"
+        ncin.keywords_vocabulary = (
+            "GCMDSK:GCMD Science Keywords:"
+            "https://gcmd.earth_data.nasa.gov/kms/concepts/concept_scheme/sciencekeywords, "
+            "GEMET:INSPIRE Themes:http://inspire.ec.eur_opa.eu/theme, "
+            "NORTHEMES:GeoNorge Themes:"
+            "https://register.geonorge.no/metadata-kodelister/nasjonal-temainndeling")
+        md.get_keywords(mmd_yaml['keywords'], ncin)
+        self.assertEqual(
+            md.missing_attributes['errors'][0],
+            'https://gcmd.earth_data.nasa.gov/kms/concepts/concept_scheme/sciencekeywords'
+            ' in keywords_vocabulary attribute is not a valid url'
+        )
+
     def test_keywords_vocabulary_missing(self):
         """ToDo: Add docstring"""
         mmd_yaml = yaml.load(

@@ -615,6 +615,10 @@ class Nc_to_mmd(object):
             for vocabulary in vocabularies:
                 prefix = vocabulary.split(':')[0]
                 resource = [r.replace(prefix+':', '') for r in resources if prefix in r][0]
+                if not valid_url(resource):
+                    self.missing_attributes['errors'].append(
+                        '%s in %s attribute is not a valid url' % (resource, acdd_vocabulary_key))
+                    continue
                 keywords_this = [k.replace(prefix+':', '') for k in keywords if prefix in k]
                 data.append({
                     'resource': resource,
@@ -713,9 +717,17 @@ class Nc_to_mmd(object):
             if iresource != '':
                 instrument_dict['resource'] = iresource
 
-            data_dict['instrument'] = instrument_dict
+            if valid_url(instrument_dict['resource']):
+                data_dict['instrument'] = instrument_dict
+            else:
+                self.missing_attributes['errors'].append(
+                    '%s in %s attribute is not a valid url' % (instrument_dict['resource'], acdd_instrument_resource_key))
 
-            data.append(data_dict)
+            if valid_url(data_dict['resource']):
+                data.append(data_dict)
+            else:
+                self.missing_attributes['errors'].append(
+                    '%s in %s attribute is not a valid url' % (data_dict['resource'], acdd_resource_key))
 
         return data
 
