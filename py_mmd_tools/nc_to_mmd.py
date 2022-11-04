@@ -706,10 +706,10 @@ class Nc_to_mmd(object):
             if resource != '':
                 data_dict['resource'] = resource
 
-            if data_dict['resource']=='' or not valid_url(data_dict['resource']):
+            if data_dict['resource'] == '' or not valid_url(data_dict['resource']):
                 self.missing_attributes['warnings'].append(
                     '"%s" in %s attribute is not a valid url' % (data_dict['resource'],
-                        acdd_resource_key))
+                                                                 acdd_resource_key))
                 data_dict.pop('resource')
 
             instrument_dict = {
@@ -723,10 +723,10 @@ class Nc_to_mmd(object):
             if iresource != '':
                 instrument_dict['resource'] = iresource
 
-            if instrument_dict['resource']=='' or not valid_url(instrument_dict['resource']):
+            if instrument_dict['resource'] == '' or not valid_url(instrument_dict['resource']):
                 self.missing_attributes['warnings'].append(
                     '"%s" in %s attribute is not a valid url' % (instrument_dict['resource'],
-                        acdd_instrument_resource_key))
+                                                                 acdd_instrument_resource_key))
                 instrument_dict.pop('resource')
 
             if instrument_dict['long_name'] != '' or instrument_dict['short_name'] != '':

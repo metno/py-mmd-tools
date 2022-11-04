@@ -888,7 +888,7 @@ class TestNC2MMD(unittest.TestCase):
         value = md.get_platforms(mmd_yaml['platform'], ncin)
         self.assertEqual(value[0]['short_name'], 'SNPP')
         self.assertEqual(md.missing_attributes['warnings'][0],
-            '"" in instrument_vocabulary attribute is not a valid url')
+                         '"" in instrument_vocabulary attribute is not a valid url')
 
     def test_platform_vocabulary_invalid_url(self):
         mmd_yaml = yaml.load(
@@ -901,9 +901,9 @@ class TestNC2MMD(unittest.TestCase):
         value = md.get_platforms(mmd_yaml['platform'], ncin)
         self.assertEqual(value, [{'long_name': 'Envisat', 'short_name': ''}])
         self.assertEqual(md.missing_attributes['warnings'][0],
-            '"invalid_url" in platform_vocabulary attribute is not a valid url')
+                         '"invalid_url" in platform_vocabulary attribute is not a valid url')
         self.assertEqual(md.missing_attributes['warnings'][1],
-                '"" in instrument_vocabulary attribute is not a valid url')
+                         '"" in instrument_vocabulary attribute is not a valid url')
 
     def test_missing_platform_vocabulary(self):
         mmd_yaml = yaml.load(
@@ -915,9 +915,9 @@ class TestNC2MMD(unittest.TestCase):
         value = md.get_platforms(mmd_yaml['platform'], ncin)
         self.assertEqual(value, [{'long_name': 'Envisat', 'short_name': ''}])
         self.assertEqual(md.missing_attributes['warnings'][0],
-            '"" in platform_vocabulary attribute is not a valid url')
+                         '"" in platform_vocabulary attribute is not a valid url')
         self.assertEqual(md.missing_attributes['warnings'][1],
-                '"" in instrument_vocabulary attribute is not a valid url')
+                         '"" in instrument_vocabulary attribute is not a valid url')
 
     def test_missing_vocabulary_platform(self):
         """ToDo: Add docstring"""
@@ -1096,9 +1096,9 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(md.netcdf_product)
         value = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
         self.assertEqual(value[0]['author'],
-            'DIVISION FOR OBSERVATION QUALITY AND DATA PROCESSING')
+                         'DIVISION FOR OBSERVATION QUALITY AND DATA PROCESSING')
         self.assertEqual(md.missing_attributes['warnings'][0],
-            'metadata_link attribute is missing')
+                         'metadata_link attribute is missing')
 
     def test_dataset_citation_invalid_url(self):
         """ Test that a warning is issued if the url provided in the
@@ -1117,7 +1117,7 @@ class TestNC2MMD(unittest.TestCase):
         value = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
         self.assertEqual(value[0]['author'], 'Tester Test')
         self.assertEqual(md.missing_attributes['warnings'][0],
-            '"invalid_url" in metadata_link attribute is not a valid url')
+                         '"invalid_url" in metadata_link attribute is not a valid url')
 
     def test_check_only(self):
         """Run netCDF attributes to MMD translation with check_only
