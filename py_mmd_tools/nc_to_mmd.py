@@ -788,15 +788,16 @@ class Nc_to_mmd(object):
                 if len(urls) <= i:
                     # Issue warning
                     self.missing_attributes['warnings'].append(
-                        '%s attribute is missing' % acdd_url)
+                        '%s attribute is missing' % acdd_url_key)
                     url = ''
                 else:
                     url = urls[i]
                 # Validate the url
                 if not valid_url(url):
-                    # Issue warning
-                    self.missing_attributes['warnings'].append(
-                        '"%s" in %s attribute is not a valid url' % (url, acdd_url))
+                    if url != '':
+                        # Issue warning
+                        self.missing_attributes['warnings'].append(
+                            '"%s" in %s attribute is not a valid url' % (url, acdd_url_key))
                 else:
                     data_dict['url'] = url
 
