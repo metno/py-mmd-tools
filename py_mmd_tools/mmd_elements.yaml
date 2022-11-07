@@ -48,7 +48,7 @@ history:
       maxOccurs: '1'
       minOccurs: '1'
       comment: Required
-      description: Provides an audit trail for modifications to the original data. This attribute is also in the NetCDF Users Guide ('This is a character array with a line for each invocation of a program that has modified the dataset. Well-behaved generic netCDF applications should append a line containing: date, time of day, user name, program name and command arguments'). To include a more complete description you can append a reference to an ISO Lineage entity; see NOAA EDM ISO Lineage guidance.
+      description: Provides an audit trail for modifications to the original data. This attribute is also in the NetCDF Users Guide ('This is a character array with a line for each invocation of a program that has modified the dataset. Well-behaved generic netCDF applications should append a line containing date, time of day, user name, program name and command arguments'). To include a more complete description you can append a reference to an ISO Lineage entity; see NOAA EDM ISO Lineage guidance.
 
 last_metadata_update:
   maxOccurs: '1'
@@ -132,7 +132,7 @@ temporal_extent:
         minOccurs: '1'
         comment: Comma separated list.
         separator: ','
-        description: Describes the time of the first data point in the data set. Use the ISO 8601:2004 date format, preferably the extended format as recommended in the Attribute Content Guidance section. I.e. YYYY-MM-DDTHH:MM:SSZ (always use UTC).
+        description: Describes the time of the first data point in the data set. Use the ISO 8601\:2004 date format, preferably the extended format as recommended in the Attribute Content Guidance section. I.e. YYYY-MM-DDTHH:MM:SSZ (always use UTC).
   end_date:
     maxOccurs: unbounded
     minOccurs: '0'
