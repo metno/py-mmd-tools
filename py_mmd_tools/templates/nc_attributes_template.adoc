@@ -58,22 +58,22 @@ The following ACDD elements are required:
 |=======================================================================
 
 The following ACDD elements are (highly) recommended:
-[cols=",,,"]
+[cols=",,"]
 |=======================================================================
-|*ACDD Attribute* |*Default* |*MMD equivalent* |*Comment*
+|*ACDD Attribute* |*MMD equivalent* |*Description*
 {% for elem in data['acdd']['not_required'] %}
-|{{ elem['attribute'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }} | {{ elem['comment'] }}
+|{{ elem['attribute'] }} | {{ elem['mmd_field'] }} | {{ elem['description'] }}
 {% endfor %}
 |=======================================================================
 
 The following elements are ACDD extensions that are needed to improve (meta)data interoperability. Please refer to the documentation of https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html[MMD] for more details:
-[cols=",,,"]
+[cols=",,"]
 |=======================================================================
-|*Necessary non-ACDD Attribute* |*Default* |*MMD equivalent* |*Comment*
+|*Necessary non-ACDD Attribute* |*MMD equivalent* |*Description*
 {% for elem in data['acdd_ext']['required'] %}
-|{{ elem['attribute'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }} | {{ elem['comment'] }}
+|{{ elem['attribute'] }} | {{ elem['mmd_field'] }} | {{ elem['description'] }}
 {% endfor %}
 {% for elem in data['acdd_ext']['not_required'] %}
-|{{ elem['attribute'] }} | {{ elem['default'] }} | {{ elem['mmd_field'] }} | {{ elem['comment'] }}
+|{{ elem['attribute'] }} | {{ elem['mmd_field'] }} | {{ elem['description'] }}
 {% endfor %}
 |=======================================================================
