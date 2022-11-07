@@ -75,7 +75,7 @@ def set_attribute(mmd_field, val, convention, attributes, req='not_required'):
             continue
         if req == 'not_required' and required(val[convention][attr]):
             continue
-        comment, sep, default, descr = '', '', ''. ''
+        comment, sep, default, descr = '', '', '', ''
         if val[convention][attr] is not None:
             comment = val[convention][attr].pop('comment', '')
             descr = val[convention][attr].pop('description', '')
