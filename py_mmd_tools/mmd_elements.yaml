@@ -7,10 +7,12 @@ metadata_identifier:
       maxOccurs: '1'
       minOccurs: '1'
       comment: Required, and should be UUID. No repetition allowed.
+      description: An identifier for the dataset, provided by and unique within its naming authority. The combination of the "naming authority" and the "id" should be globally unique, but the id can be globally unique by itself also. A uuid is recommended.
     naming_authority:
       maxOccurs: '1'
       minOccurs: '1'
       comment: Required. We recommend using reverse-DNS naming. No repetition allowed.
+      description: The organization that provides the initial id (see above) for the dataset. The naming authority should be uniquely specified by this attribute. We recommend using reverse-DNS naming for the naming authority.
 
 alternate_identifier:
   maxOccurs: unbounded
@@ -65,6 +67,7 @@ title:
       title:
         minOccurs: '1'
         comment: Use ACDD extension "title_no" for Norwegian translation.
+        description: A short phrase or sentence describing the dataset. In many discovery systems, the title will be displayed in the results list from a search, and therefore should be human readable and reasonable to display in a list of such names. This attribute is also recommended by the NetCDF Users Guide and the CF conventions.
     acdd_ext:
       title_no:
         comment: Used for Norwegian version of the title.
@@ -85,6 +88,7 @@ abstract:
         minOccurs: '1'
         separator: ';'
         comment: Use ACDD extension "summary_no" for Norwegian translation.
+        description: A paragraph describing the dataset, analogous to an abstract for a paper.
     acdd_ext:
       summary_no:
         comment: Used for Norwegian version of the abstract.
@@ -130,6 +134,7 @@ geographic_extent:
           maxOccurs: '1'
           minOccurs: '1'
           comment: No repetition allowed.
+          description: Describes a simple upper latitude limit; may be part of a 2- or 3-dimensional bounding region. Geospatial_lat_max specifies the northernmost latitude covered by the dataset. Must be decimal degrees north.
     south:
       maxOccurs: '1'
       minOccurs: '1'
@@ -138,6 +143,7 @@ geographic_extent:
           maxOccurs: '1'
           minOccurs: '1'
           comment: No repetition allowed.
+          description: Describes a simple lower latitude limit; may be part of a 2- or 3-dimensional bounding region. Geospatial_lat_min specifies the southernmost latitude covered by the dataset. Must be decimal degrees north.
     east:
       maxOccurs: '1'
       minOccurs: '1'
@@ -146,6 +152,7 @@ geographic_extent:
           maxOccurs: '1'
           minOccurs: '1'
           comment: No repetition allowed.
+          description: Describes a simple longitude limit; may be part of a 2- or 3-dimensional bounding region. geospatial_lon_max specifies the easternmost longitude covered by the dataset. Cases where geospatial_lon_min is greater than geospatial_lon_max indicate the bounding box extends from geospatial_lon_max, through the longitude range discontinuity meridian (either the antimeridian for -180:180 values, or Prime Meridian for 0:360 values), to geospatial_lon_min; for example, geospatial_lon_min=170 and geospatial_lon_max=-175 incorporates 15 degrees of longitude (ranges 170 to 180 and -180 to -175). Must be decimal degrees east (negative westwards).
     west:
       maxOccurs: '1'
       minOccurs: '1'
@@ -154,6 +161,7 @@ geographic_extent:
           maxOccurs: '1'
           minOccurs: '1'
           comment: No repetition allowed.
+          description: Describes a simple longitude limit; may be part of a 2- or 3-dimensional bounding region. geospatial_lon_min specifies the westernmost longitude covered by the dataset. See also geospatial_lon_max. Must be decimal degrees east (negative westwards).
   polygon:
     maxOccurs: '1'
     minOccurs: '0'
@@ -352,6 +360,7 @@ keywords:
         minOccurs: '1'
         separator: ','
         comment: Comma separated list.
+        description: A comma-separated list of keywords and/or phrases. Keywords may be common words or phrases, terms from a controlled vocabulary (GCMD is required), or URIs for terms from a controlled vocabulary (see also "keywords_vocabulary" attribute). If keywords are extracted from, e.g., GCMD Science Keywords, add keywords_vocabulary='GCMDSK' and prefix in any case each keyword with the appropriate prefix.
   vocabulary:
     minOccurs: '1'
     acdd:
@@ -359,6 +368,7 @@ keywords:
         minOccurs: '1'
         comment: Comma separated list.
         separator: ','
+        description: If you are using a controlled vocabulary for the words/phrases in your "keywords" attribute, this is the unique name or identifier of the vocabulary from which keywords are taken. If more than one keyword vocabulary is used, each may be presented with a key, a long name, and a url, followed by a comma, so that keywords may be prefixed with the controlled vocabulary key. Example: 'GCMD:GCMD Keywords:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/sciencekeywords, GEMET:INSPIRE Themes:http://inspire.ec.europa.eu/theme'.
   resource:
   separator:
 
