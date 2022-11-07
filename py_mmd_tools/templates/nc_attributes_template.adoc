@@ -49,11 +49,11 @@ This section provides lists of ACDD elements that are required and recommended, 
 In order to check your netCDF-CF files, and to create MMD xml files, you can use the nc2mmd.py script in the https://github.com/metno/py-mmd-tools[py-mmd-tools] Python package.
 
 The following ACDD elements are required:
-[cols=",,"]
+[cols=",,,"]
 |=======================================================================
-|*ACDD Attribute* |*MMD equivalent* |*Comment*
+|*ACDD Attribute* |*MMD equivalent* |*Description* |*Comment*
 {% for elem in data['acdd']['required'] %}
-|{{ elem['attribute'] }} | {{ elem['mmd_field'] }} | {{ elem['comment'] }}
+|{{ elem['attribute'] }} |{{ elem['mmd_field'] }} |{{ elem['description'] }}
 {% endfor %}
 |=======================================================================
 
