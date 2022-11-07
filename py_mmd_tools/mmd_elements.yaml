@@ -75,7 +75,7 @@ last_metadata_update:
         date_metadata_modified_type:
           separator: ','
           comment: E.g., major or minor modification. Comma separated list.
-          description: "Minor modification" or "Major modification".
+          description: Minor modification or Major modification.
         date_created_type:
           default: Created
           description: Defaults to "Created". Not necessary as netcdf attribute.
@@ -106,6 +106,7 @@ title:
       title_lang:
         comment: ISO language code.
         default: en
+        description: ISO language code for the title. Defaults to "en".
 
 abstract:
   maxOccurs: unbounded
@@ -117,7 +118,7 @@ abstract:
         minOccurs: '1'
         separator: ';'
         comment: Use ACDD extension "summary_no" for Norwegian translation.
-        description: A paragraph describing the dataset, analogous to an abstract for a paper.
+        description: A paragraph describing the dataset, analogous to an abstract for a paper. Use ACDD extension "summary_no" for Norwegian translation.
     acdd_ext:
       summary_no:
         comment: Used for Norwegian version of the abstract.
@@ -128,6 +129,7 @@ abstract:
       summary_lang:
         comment: ISO language code.
         default: en
+        description: ISO language code for the summary. Defaults to "en".
 
 temporal_extent:
   maxOccurs: unbounded
