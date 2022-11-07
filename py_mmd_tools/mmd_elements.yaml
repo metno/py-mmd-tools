@@ -28,7 +28,7 @@ alternate_identifier:
       alternate_identifier_type:
         comment: Identification of the type of identifier used. Comma separated list.
         separator: ','
-        description: Identification of the type of identifier used. Currently no controlled vocabulary is defined, but this should be added once better knowledge of domains are known.
+        description: Type of identifier used. Currently no controlled vocabulary is defined, but this should be added once better knowledge of domains are known.
 
 # conventions is not in MMD but is required for the netcdf file...
 conventions:
@@ -75,8 +75,10 @@ last_metadata_update:
         date_metadata_modified_type:
           separator: ','
           comment: E.g., major or minor modification. Comma separated list.
+          description: "Minor modification" or "Major modification".
         date_created_type:
           default: Created
+          description: Defaults to "Created". Not necessary as netcdf attribute.
     note:
 
 metadata_status:
@@ -97,6 +99,7 @@ title:
     acdd_ext:
       title_no:
         comment: Used for Norwegian version of the title.
+        description: Norwegian version of the title.
   lang:
     minOccurs: '1'
     acdd_ext:
@@ -118,6 +121,7 @@ abstract:
     acdd_ext:
       summary_no:
         comment: Used for Norwegian version of the abstract.
+        description: Norwegian version of the abstract.
   lang:
     minOccurs: '1'
     acdd_ext:
