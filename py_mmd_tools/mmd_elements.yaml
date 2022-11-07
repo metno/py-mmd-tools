@@ -22,11 +22,13 @@ alternate_identifier:
       alternate_identifier:
         comment: Alternative identifier for the dataset (but not DOI). Comma separated list.
         separator: ','
+        description: Alternative identifier for the dataset described by the metadata document. This identifier is when datasets may have multiple identifiers, e.g., identifiers depending on the framework data are shared through.
   type:
     acdd_ext:
       alternate_identifier_type:
         comment: Identification of the type of identifier used. Comma separated list.
         separator: ','
+        description: Identification of the type of identifier used. Currently no controlled vocabulary is defined, but this should be added once better knowledge of domains are known.
 
 # conventions is not in MMD but is required for the netcdf file...
 conventions:
@@ -62,9 +64,11 @@ last_metadata_update:
         date_metadata_modified:
           separator: ','
           comment: Format as ISO8601. Comma separated list if more than once.
+          description: The date on which the metadata was last modified. The ISO 8601:2004 extended date format is recommended.
         date_created:
           minOccurs: '1'
           comment: Format as ISO8601.
+          description: The date on which this version of the data was created (modification of variable values implies a new version, hence this would be assigned the date of the most recent modification of variable values). Metadata changes are not considered when assigning the date_created. The ISO 8601:2004 extended date format is recommended, e.g., 2020-10-20T12:35:00Z.
     type:
       minOccurs: '1'
       acdd_ext:
@@ -258,15 +262,18 @@ personnel:
   maxOccurs: unbounded
   minOccurs: '0'
   role:
-    acdd: 
+    acdd_ext: 
       creator_role:
         default: 'Investigator'
         separator: ','
         comment: Comma separated list.
+        description: The role of the data creator is by default 'Investigator'.
+    acdd: 
       contributor_role:
         default: 'Technical contact'
         separator: ','
         comment: Comma separated list.
+        description: The role of any individuals, projects, or institutions that contributed to the creation of this data. May be presented as free text, or in a structured format compatible with conversion to ncML (e.g., insensitive to changes in whitespace, including end-of-line characters). Multiple roles should be presented in the same order and number as the names in contributor_names.
   name:
     acdd:
       creator_name:
@@ -278,6 +285,7 @@ personnel:
         default: 'Not available'
         separator: ','
         comment: Comma separated list.
+        description: The name of any individuals, projects, or institutions that contributed to the creation of this data. May be presented as free text, or in a structured format compatible with conversion to ncML (e.g., insensitive to changes in whitespace, including end-of-line characters).
   creator_type:
     acdd:
       creator_type:
@@ -336,6 +344,7 @@ data_center:
       publisher_url:
         separator: ','
         comment: Comma separated list.
+        description: The URL of the person (or other entity specified by the publisher_type attribute) responsible for publishing the data file or product to users, with its current metadata and format.
 
 data_access:
   maxOccurs: unbounded
@@ -487,6 +496,7 @@ spatial_representation:
       minOccurs: '1' # see #96 and https://github.com/metno/py-mmd-tools/pull/97
       maxOccurs: '1'
       comment: No repetition allowed.
+      description: The method used to spatially represent geographic information. Valid entries are vector, grid, point and trajectory (see https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#spatial-representation[section 4.16 of the MMD specification]).
 
 activity_type:
   maxOccurs: unbounded
@@ -505,6 +515,7 @@ dataset_citation:
       creator_name:
         comment: Comma separated list.
         separator: ','
+        description: The name of the person (or other creator type specified by the creator_type attribute) principally responsible for creating this data.
   publication_date:
     acdd:
       date_created:
@@ -514,6 +525,7 @@ dataset_citation:
   title:
     acdd:
       title:
+        description: A short phrase or sentence describing the dataset. In many discovery systems, the title will be displayed in the results list from a search, and therefore should be human readable and reasonable to display in a list of such names. This attribute is also recommended by the NetCDF Users Guide and the CF conventions.
   series:
   edition:
   volume:
