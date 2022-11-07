@@ -223,6 +223,7 @@ dataset_production_status:
       comment: No repetition allowed.
       maxOccurs: '1'
       default: Complete
+      description: Production status for the dataset using a controlled vocabulary. The valid keywords are listed in https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#dataset-production-status-types[section 4.2 of the MMD specification]. If set as "In Work", remember that end_date in https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#temporal_extent[section 2.8 of the MMD specification] can (should) be empty.
 
 dataset_language:
   maxOccurs: '1'
@@ -244,6 +245,8 @@ access_constraint:
   acdd_ext:
     access_constraint:
       comment: No repetition allowed.
+      description: Limitations on the access to the dataset. See https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#access-constraints[section 4.6 of the MMD specification] for a list of valid values.
+
 
 use_constraint:
   maxOccurs: '1'
@@ -254,6 +257,7 @@ use_constraint:
       license_identifier:
         minOccurs: '0'
         maxOccurs: '1'
+        description: Referring to the spdx licenseId. If the identifier is specified in the license attribute as <URL>(<Identifier>), license_identifier is not needed.
   resource:
     maxOccurs: '1'
     acdd:
@@ -311,6 +315,7 @@ personnel:
         default: 'Not available'
         separator: ','
         comment: Comma separated list.
+        description: The email address of the contributor(s). Consistency across comma separated lists for all contributor_* attributes is required.
   phone:
   fax:
   organisation:
@@ -322,7 +327,7 @@ personnel:
         description: The institution of the creator; should uniquely identify the creator's institution. This attribute's value should be specified even if it matches the value of publisher_institution, or if creator_type is institution. See description of creator_type.
     acdd_ext: 
       contributor_institution:
-      contributor_organisation:
+        description: The institution of the contributor(s). Consistency across comma separated lists for all contributor_* attributes is required.
   contact_address:
     address:
     city:
@@ -339,6 +344,7 @@ data_center:
         institution_short_name:
           separator: ','
           comment: Comma separated list.
+          description:
     long_name: 
       acdd:
         institution:
@@ -374,11 +380,13 @@ related_dataset:
       related_dataset_id:
         separator: ','
         comment: Comma separated list.
+        description: Specifies the relation between this dataset and another dataset. The type of relationship is determined by the relation_type attribute. The content of the element is a valid identifier.
   relation_type:
     acdd_ext:
       related_dataset_relation_type:
         separator: ','
         comment: Comma separated list.
+        description: Valid content is either "parent" (this dataset is a child dataset of the referenced dataset) or "auxiliary" (this dataset is auxiliary data for the referenced dataset).
 
 storage_information:
   maxOccurs: '1'
@@ -435,6 +443,7 @@ project:
       project_short_name:
         separator: ';'
         comment: Semicolon separated list.
+        description:
   long_name:
     acdd:
       project:
@@ -493,6 +502,7 @@ quality_control:
   acdd_ext:
     quality_control:
       comment: No repetition allowed.
+      description: The level of quality control performed on the dataset/product. Valid keywords are listed in https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#quality-control[section 4.22 of the MMD specification]. Additional information about data quality control can be provided through the related_information element providing a URL to the quality control documentation.
 
 spatial_representation:
   maxOccurs: '1'
@@ -549,6 +559,7 @@ dataset_citation:
     acdd_ext:
       doi:
         maxOccurs: '1'
+        description: Digital Object Identifier (if available).
   url:
     acdd:
       metadata_link:
