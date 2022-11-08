@@ -211,7 +211,7 @@ class TestNCAttrsFromYaml(unittest.TestCase):
             'comment': 'Comma separated list.',
             'default': '',
             'description':
-                'A comma-separated list of keywords and/or'
+                'A comma-separated list of keywords and/or '
                 'phrases. Keywords may be common words or phrases, '
                 'terms from a controlled vocabulary (GCMD is '
                 'required), or URIs for terms from a controlled '
@@ -1770,7 +1770,7 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(
             md.missing_attributes["errors"][0],
             'Required attribute "Conventions" is missing. This should'
-            'be provided as a comma-separated string of the '
+            ' be provided as a comma-separated string of the '
             'conventions that are followed by the dataset.')
 
     def test_check_conventions__cf_and_acdd_missing(self):
