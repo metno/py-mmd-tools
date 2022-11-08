@@ -169,7 +169,7 @@ class Nc_to_mmd(object):
         return acdd_attr
 
     def get_acdd_metadata(self, mmd_element, ncin, mmd_element_name):
-        """Recursive function to trenslate from ACDD to MMD.
+        """Recursive function to translate from ACDD to MMD.
 
         If ACDD does not exist for a given MMD element, the function
         looks for an alternative acdd_ext element instead. It may also
@@ -721,7 +721,7 @@ class Nc_to_mmd(object):
 
     def get_dataset_citations(self, mmd_element, ncin):
         """MMD allows several dataset citations. This will lead to
-        problems with associating the diffetent elements to each other.
+        problems with associating the different elements to each other.
         In practice, most datasets will only have one citation, so will
         handle that eventuality if it arrives.
         """
@@ -991,6 +991,76 @@ class Nc_to_mmd(object):
                 raise ValueError("%s: Global attribute %s is empty - please correct." % (
                     self.netcdf_product, attr))
 
+    def check_conventions(self, ncin):
+        """ Check that the Conventions attribute is present, and
+        that it contains all needed information.
+        """
+        # Check that the Conventions attribute is present
+        if 'Conventions' not in ncin.ncattrs():
+            self.missing_attributes['errors'].append(
+                'Required attribute "Conventions" is missing.')
+        else:
+            # Check that the conventions attribute contains CF and ACCD
+            if 'CF' not in ncin.getncattr('Conventions'):
+                self.missing_attributes['errors'].append(
+                    'The dataset should follow the CF-standard. Please '
+                    'provide the CF standard version in the Conventions '
+                    'attribute.')
+
+            if 'ACDD' not in ncin.getncattr('Conventions'):
+                self.missing_attributes['errors'].append(
+                    'The dataset should follow the ACDD convention. '
+                    'Please provide the ACDD convention version in '
+                    'the Conventions attribute.')
+
+    def get_license(self, mmd_element, ncin):
+        """ Get ACDD license attribute.
+
+        ACDD definition: The license should be provided as a URL to a
+        standard or specific license. It may also be specified as
+        "Freely Distributed" or "None", or described in free text
+        including any restrictions to data access and distribution.
+
+        adc.met.no addition: It is strongly recommended to use
+        identifiers and URL's from https://spdx.org/licenses/ and to
+        use a form similar to <URL>(<Identifier>) using elements from
+        the SPDX source listed above.
+
+        """
+        data = None
+        old_version = False
+        acdd_license = list(mmd_element['resource']['acdd'].keys())[0]
+        acdd_license_id = list(mmd_element['identifier']['acdd_ext'].keys())[0]
+        acdd_license = getattr(ncin, acdd_license).split('(')
+        license_url = acdd_license[0]
+        # validate url
+        if not valid_url(license_url):
+            # Try deprecated attribute name
+            if 'license_resource' in ncin.ncattrs():
+                license_url = ncin.license_resource
+            if not valid_url(license_url):
+                self.missing_attributes['errors'].append(
+                    '%s is not a valid url' % license_url)
+            else:
+                data = {'resource': license_url}
+                old_version = True
+                self.missing_attributes['warnings'].append(
+                    '"license_resource" is a deprecated attribute')
+        else:
+            data = {'resource': license_url}
+        if len(acdd_license) > 1:
+            data['identifier'] = acdd_license[1][0:-1]
+        else:
+            if acdd_license_id not in ncin.ncattrs():
+                self.missing_attributes['warnings'].append(
+                    '%s is a recommended attribute' % acdd_license_id
+                )
+                if old_version:
+                    data['identifier'] = ncin.license
+            else:
+                data['identifier'] = getattr(ncin, acdd_license_id)
+        return data
+
     def to_mmd(self, collection=None, checksum_calculation=False, mmd_yaml=None,
                *args, **kwargs):
         """Method for parsing and mapping NetCDF attributes to MMD.
@@ -1124,6 +1194,10 @@ class Nc_to_mmd(object):
         if polygon:
             self.metadata['geographic_extent']['polygon'] = polygon
         mmd_yaml.pop('geographic_extent')
+
+        # Get use_constraint data
+        self.metadata['use_constraint'] = self.get_license(mmd_yaml.pop('use_constraint'), ncin)
+
         # Data access should not be read from the netCDF-CF file
         mmd_yaml.pop('data_access')
         # Add OPeNDAP data_access if "netcdf_product" is OPeNDAP url
@@ -1169,13 +1243,12 @@ class Nc_to_mmd(object):
         if rm_file_for_checksum_calculation:
             os.remove(file_for_checksum_calculation)
 
+        self.check_conventions(ncin)
+
         if len(self.missing_attributes['warnings']) > 0:
             warnings.warn('\n\t'+'\n\t'.join(self.missing_attributes['warnings']))
         if len(self.missing_attributes['errors']) > 0:
             raise AttributeError('\n\t'+'\n\t'.join(self.missing_attributes['errors']))
-
-        # Finally, check that the conventions attribute contains CF and ACCD
-        assert 'CF' in ncin.getncattr('Conventions') and 'ACDD' in ncin.getncattr('Conventions')
 
         env = jinja2.Environment(
             loader=jinja2.PackageLoader(self.__module__.split('.')[0], 'templates'),
