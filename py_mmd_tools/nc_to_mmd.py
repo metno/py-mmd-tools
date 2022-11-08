@@ -15,7 +15,6 @@ py-mmd-tools is licensed under the Apache License 2.0
 <https://github.com/metno/py-mmd-tools/blob/master/LICENSE>
 """
 import os
-import re
 import warnings
 import yaml
 import jinja2
@@ -37,16 +36,17 @@ from netCDF4 import Dataset
 from shapely.errors import WKTReadingError
 from urllib.parse import urlparse
 
+
 def valid_url(url):
     """ Validate a url pattern (not its existence).
     """
     try:
-        result = parsed_url = urlparse(url )
+        result = urlparse(url)
         return all([result.scheme, result.netloc])
-
-    except Exception as e:
+    except Exception:
         return False
-    
+
+
 def normalize_iso8601(s):
     """Convert provided string (s) to a normalized ISO 8601 value:
 
