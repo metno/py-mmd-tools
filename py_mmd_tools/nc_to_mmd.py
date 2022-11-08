@@ -966,7 +966,9 @@ class Nc_to_mmd(object):
         # Check that the Conventions attribute is present
         if 'Conventions' not in ncin.ncattrs():
             self.missing_attributes['errors'].append(
-                'Required attribute "Conventions" is missing.')
+                'Required attribute "Conventions" is missing. This '
+                'should be provided as a comma-separated string of '
+                'the conventions that are followed by the dataset.')
         else:
             # Check that the conventions attribute contains CF and ACCD
             if 'CF' not in ncin.getncattr('Conventions'):

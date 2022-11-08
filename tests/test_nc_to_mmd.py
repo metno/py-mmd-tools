@@ -39,6 +39,7 @@ class TestNCAttrsFromYaml(unittest.TestCase):
         """ Sets up class with an attribute `mmd_yaml` containing
         the MMD to ACDD translations.
         """
+        self.maxDiff = None
         self.mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -81,12 +82,23 @@ class TestNCAttrsFromYaml(unittest.TestCase):
         convention = 'acdd_ext'
         set_attribute(mmd_field, val, convention, self.attributes, req='not_required')
         self.assertEqual(self.attributes['acdd_ext']['not_required'][0], {
-            'mmd_field': 'dataset_production_status',
             'attribute': 'dataset_production_status',
-            'repetition_allowed': False,
             'comment': 'No repetition allowed.',
+            'default': 'Complete',
+            'description':
+                'Production status for the dataset, using a controlled '
+                'vocabulary. The valid keywords are listed in '
+                'https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/'
+                'master/doc/mmd-specification.html#dataset-production-status-types[section '
+                '4.2 of the MMD specification]. If set as "In Work", remember '
+                'that end_date in '
+                'https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/'
+                'master/doc/mmd-specification.html#temporal_extent[section '
+                '2.8 of the MMD specification] can (should) be empty.',
+            'mmd_field': 'dataset_production_status',
+            'recommended': True,
+            'repetition_allowed': False,
             'separator': '',
-            'default': 'Complete'
         })
         # Test acdd
         mmd_field = 'operational_status'
@@ -94,12 +106,19 @@ class TestNCAttrsFromYaml(unittest.TestCase):
         convention = 'acdd'
         set_attribute(mmd_field, val, convention, self.attributes, req='not_required')
         self.assertEqual(self.attributes['acdd']['not_required'][0], {
-            'mmd_field': 'operational_status',
             'attribute': 'processing_level',
+            'comment': 'Optional',
+            'default': '',
+            'description':
+                'A textual description of the processing (or quality control) '
+                'level of the data. Valid keywords are listed in '
+                'https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/'
+                'master/doc/mmd-specification.html#operational-status[Section '
+                '4.5 of the MMD specification].',
+            'mmd_field': 'operational_status',
+            'recommended': True,
             'repetition_allowed': False,
-            'comment': 'No repetition allowed. See the MMD docs for valid keywords.',
             'separator': '',
-            'default': ''
         })
 
     def test_set_attribute__two_conv_fields(self):
@@ -111,21 +130,33 @@ class TestNCAttrsFromYaml(unittest.TestCase):
         convention = 'acdd'
         set_attribute(mmd_field, val, convention, self.attributes, req='required')
         self.assertEqual(self.attributes['acdd']['required'][0], {
-            'mmd_field': 'metadata_identifier',
             'attribute': 'id',
-            'repetition_allowed': False,
             'comment': 'Required, and should be UUID. No repetition allowed.',
+            'default': '',
+            'description':
+                'An identifier for the dataset, provided by and unique within '
+                'its naming authority. The combination of the "naming '
+                'authority" and the "id" should be globally unique, but the id '
+                'can be globally unique by itself also. A uuid is recommended.',
+            'mmd_field': 'metadata_identifier',
+            'recommended': True,
+            'repetition_allowed': False,
             'separator': '',
-            'default': ''
         })
         self.assertEqual(self.attributes['acdd']['required'][1], {
-            'mmd_field': 'metadata_identifier',
             'attribute': 'naming_authority',
-            'repetition_allowed': False,
             'comment': 'Required. We recommend using reverse-DNS naming. '
                        'No repetition allowed.',
+            'default': '',
+            'description':
+                'The organization that provides the initial id (see above) for '
+                'the dataset. The naming authority should be uniquely '
+                'specified by this attribute. We recommend using reverse-DNS '
+                'naming for the naming authority.',
+            'mmd_field': 'metadata_identifier',
+            'recommended': True,
+            'repetition_allowed': False,
             'separator': '',
-            'default': ''
         })
 
     def test_set_attribute__required_not_req(self):
@@ -157,12 +188,18 @@ class TestNCAttrsFromYaml(unittest.TestCase):
         val = self.mmd_yaml[mmd_field]
         set_attributes(mmd_field, val, self.attributes)
         self.assertEqual(self.attributes['acdd']['required'][0], {
-            'mmd_field': 'metadata_identifier',
             'attribute': 'id',
-            'repetition_allowed': False,
             'comment': 'Required, and should be UUID. No repetition allowed.',
+            'default': '',
+            'description':
+                'An identifier for the dataset, provided by and unique within '
+                'its naming authority. The combination of the "naming '
+                'authority" and the "id" should be globally unique, but the id '
+                'can be globally unique by itself also. A uuid is recommended.',
+            'mmd_field': 'metadata_identifier',
+            'recommended': True,
+            'repetition_allowed': False,
             'separator': '',
-            'default': ''
         })
 
     def test_set_attributes__nested(self):
@@ -170,12 +207,23 @@ class TestNCAttrsFromYaml(unittest.TestCase):
         val = self.mmd_yaml[mmd_field]
         set_attributes(mmd_field, val, self.attributes)
         self.assertEqual(self.attributes['acdd']['required'][0], {
-            'mmd_field': 'keywords>keyword',
             'attribute': 'keywords',
-            'repetition_allowed': True,
             'comment': 'Comma separated list.',
+            'default': '',
+            'description':
+                'A comma-separated list of keywords and/or '
+                'phrases. Keywords may be common words or phrases, '
+                'terms from a controlled vocabulary (GCMD is '
+                'required), or URIs for terms from a controlled '
+                'vocabulary (see also "keywords_vocabulary" '
+                'attribute). If keywords are extracted from, e.g., '
+                'GCMD Science Keywords, add '
+                'keywords_vocabulary="GCMDSK" and prefix in any case '
+                'each keyword with the appropriate prefix.',
+            'mmd_field': 'keywords>keyword',
+            'recommended': True,
+            'repetition_allowed': True,
             'separator': ',',
-            'default': ''
         })
 
     def test_required__is_required(self):
@@ -1740,7 +1788,9 @@ class TestNC2MMD(unittest.TestCase):
         md.check_conventions(ncin)
         self.assertEqual(
             md.missing_attributes["errors"][0],
-            'Required attribute "Conventions" is missing.')
+            'Required attribute "Conventions" is missing. This should'
+            ' be provided as a comma-separated string of the '
+            'conventions that are followed by the dataset.')
 
     def test_check_conventions__cf_and_acdd_missing(self):
         md = Nc_to_mmd(self.fail_nc, check_only=True)
