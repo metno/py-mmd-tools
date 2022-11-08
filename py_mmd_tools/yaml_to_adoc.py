@@ -57,9 +57,9 @@ def set_attribute(mmd_field, val, convention, attributes, req='not_required'):
     attributes : dict
         A dictionary that contains relevant information about the MMD
         to ACDD translation. E.g., the MMD field name, the ACDD
-        attribute name, if repetition is allowed, a comment, how to
-        separate between repetitions (e.g., by commas), and/or a
-        default value.
+        attribute name, if repetition is allowed, a description and a
+        comment, how to separate between repetitions (e.g., by
+        commas), and/or a default value.
     req : str, default 'not_required'
         To specify if the attributes[convention]['required'] dict
         should be populated, or if the
@@ -75,9 +75,11 @@ def set_attribute(mmd_field, val, convention, attributes, req='not_required'):
             continue
         if req == 'not_required' and required(val[convention][attr]):
             continue
-        comment, sep, default = '', '', ''
+        comment, sep, default, descr = '', '', '', ''
         if val[convention][attr] is not None:
             comment = val[convention][attr].pop('comment', '')
+            descr = val[convention][attr].pop('description', '')
+            recommended = val[convention][attr].pop('recommended', True)
             sep = val[convention][attr].pop('separator', '')
             default = val[convention][attr].pop('default', '')
         attributes[convention][req].append({
@@ -85,6 +87,8 @@ def set_attribute(mmd_field, val, convention, attributes, req='not_required'):
             'attribute': attr,
             'repetition_allowed': repetition_allowed(val[convention][attr]),
             'comment': comment,
+            'description': descr,
+            'recommended': recommended,
             'separator': sep,
             'default': default
         })
