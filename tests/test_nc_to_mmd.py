@@ -1114,7 +1114,6 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd('tests/data/reference_nc_missing_keywords_vocab.nc', check_only=True)
         ncin = Dataset(md.netcdf_product)
         value = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
-        self.assertEqual(value[0]['url'], '')
         self.assertEqual(value[0]['author'],
                          'DIVISION FOR OBSERVATION QUALITY AND DATA PROCESSING')
         self.assertEqual(md.missing_attributes['warnings'][0],

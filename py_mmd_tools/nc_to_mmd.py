@@ -796,9 +796,6 @@ class Nc_to_mmd(object):
                 else:
                     data_dict['url'] = url
 
-                if len(others) > i:
-                    data_dict['other'] = others[i]
-
                 data.append(data_dict)
 
         return data
