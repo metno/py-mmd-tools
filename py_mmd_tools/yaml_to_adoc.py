@@ -79,6 +79,7 @@ def set_attribute(mmd_field, val, convention, attributes, req='not_required'):
         if val[convention][attr] is not None:
             comment = val[convention][attr].pop('comment', '')
             descr = val[convention][attr].pop('description', '')
+            recommended = val[convention][attr].pop('recommended', True)
             sep = val[convention][attr].pop('separator', '')
             default = val[convention][attr].pop('default', '')
         attributes[convention][req].append({
@@ -87,6 +88,7 @@ def set_attribute(mmd_field, val, convention, attributes, req='not_required'):
             'repetition_allowed': repetition_allowed(val[convention][attr]),
             'comment': comment,
             'description': descr,
+            'recommended': recommended,
             'separator': sep,
             'default': default
         })

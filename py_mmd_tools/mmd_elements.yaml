@@ -63,6 +63,7 @@ last_metadata_update:
       acdd: 
         date_metadata_modified:
           separator: ','
+          recommended: False
           comment: Format as ISO8601. Comma separated list if more than once.
           description: The date on which the metadata was last modified. The ISO 8601:2004 extended date format is recommended.
         date_created:
@@ -74,6 +75,7 @@ last_metadata_update:
       acdd_ext:
         date_metadata_modified_type:
           separator: ','
+          recommended: False
           comment: E.g., major or minor modification. Comma separated list.
           description: Minor modification or Major modification.
         date_created_type:

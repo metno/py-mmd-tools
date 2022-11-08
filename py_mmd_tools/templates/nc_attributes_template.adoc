@@ -57,12 +57,14 @@ The following ACDD elements are required:
 {% endfor %}
 |=======================================================================
 
-The following ACDD elements are (highly) recommended:
+The following ACDD elements are recommended (should be used if there is no good reason not to use it):
 [cols="1,1,3"]
 |=======================================================================
 |*ACDD Attribute* |*MMD equivalent* |*Description*
 {% for elem in data['acdd']['not_required'] %}
+  {% if elem['recommended'] %}
 |{{ elem['attribute'] }} | {{ elem['mmd_field'] }} | {{ elem['description'] }}
+  {% endif %}
 {% endfor %}
 |=======================================================================
 
