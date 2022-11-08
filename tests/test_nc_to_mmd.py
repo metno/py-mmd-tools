@@ -478,6 +478,25 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(md.missing_attributes['warnings'][0],
                          'institution_short_name is a recommended attribute')
 
+    def test_geographic_extent_rectangle_is_floatable(self):
+        """ Test that the provided geospatial coordinates can be
+        converted to float.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.geospatial_lat_max = "60.158733f; // float"
+        ncin.geospatial_lat_min = "59.78492f; // float"
+        ncin.geospatial_lon_max = "10.944986f; // float"
+        ncin.geospatial_lon_min = "10.508897f; // float"
+        md.get_geographic_extent_rectangle(
+            mmd_yaml['geographic_extent']['rectangle'], ncin)
+        self.assertEqual(
+            md.missing_attributes['errors'][0],
+            'geospatial_lat_max must be convertible to float type.')
+
     def test_missing_geographic_extent_but_provided_as_kwarg(self):
         """Test that the geographic extent rectangle can be added
         as a kwarg.
