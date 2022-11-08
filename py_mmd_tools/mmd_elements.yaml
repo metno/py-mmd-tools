@@ -471,7 +471,7 @@ platform:
     acdd:
       platform_vocabulary:
         separator: ','
-        comment: Recommended
+        comment:
         description: Controlled vocabulary for the names used in the "platform" attribute. Should be provided as urls in a comma separated list.
   orbit_relative:
   orbit_absolute:
