@@ -1536,9 +1536,6 @@ class TestNC2MMD(unittest.TestCase):
             xsd_obj = etree.XMLSchema(etree.parse(self.reference_xsd))
             xml_doc = etree.ElementTree(file=tested)
             valid = xsd_obj.validate(xml_doc)
-            if not valid:
-                import ipdb
-                ipdb.set_trace()
             self.assertTrue(valid, msg='%s' % xsd_obj.error_log)
 
     def test_create_mmd_missing_publisher_url(self):
