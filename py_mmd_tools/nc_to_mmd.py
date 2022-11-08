@@ -41,7 +41,7 @@ def valid_url(url):
     """ Validate a url pattern (not its existence).
     """
     try:
-        urllib.parse(url)
+        urllib.parse(url, strict_parsing=True )
         return True 
     except:
         return False
