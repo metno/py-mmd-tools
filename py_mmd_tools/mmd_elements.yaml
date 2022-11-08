@@ -79,6 +79,7 @@ last_metadata_update:
           comment: E.g., major or minor modification. Comma separated list.
           description: Minor modification or Major modification.
         date_created_type:
+          recommended: False
           default: Created
           description: Defaults to "Created". Not necessary as netcdf attribute.
     note:
@@ -152,7 +153,7 @@ temporal_extent:
       time_coverage_end:
         separator: ','
         comment: Comma separated list.
-        description: Describes the time of the last data point in the data set. Use ISO 8601:2004 date format, preferably the extended format as recommended in the Attribute Content Guidance section. I.e. YYYY-MM-DDTHH:MM:SSZ (always use UTC).
+        description: Describes the time of the last data point in the data set. If the dataset is continuously updated with new measurements (e.g., a timeseries receiving new observations), this attribute can be omitted. Use ISO 8601:2004 date format, preferably the extended format as recommended in the Attribute Content Guidance section. I.e. YYYY-MM-DDTHH:MM:SSZ (always use UTC).
 
 geographic_extent:
   maxOccurs: '1'
@@ -204,7 +205,7 @@ geographic_extent:
     acdd:
       geospatial_bounds:
         comment: Recommended.
-        description: Describes the data's 2D or 3D geospatial extent in OGC's Well-Known Text (WKT) Geometry format (reference the OGC Simple Feature Access (SFA) specification). The meaning and order of values for each point's coordinates depends on the coordinate reference system (CRS). The ACDD default is 2D geometry in the EPSG:4326 coordinate reference system. The default may be overridden with geospatial_bounds_crs and geospatial_bounds_vertical_crs (see those attributes). EPSG:4326 coordinate values are latitude (decimal degrees_north) and longitude (decimal degrees_east), in that order. Longitude values in the default case are limited to the [-180, 180) range. Example; 'POLYGON ((40.26 -111.29, 41.26 -111.29, 41.26 -110.29, 40.26 -110.29, 40.26 -111.29))'.
+        description: Describes the data's 2D or 3D geospatial extent in OGC's Well-Known Text (WKT) Geometry format (reference the OGC Simple Feature Access (SFA) specification). The meaning and order of values for each point's coordinates depends on the coordinate reference system (CRS). The ACDD default is 2D geometry in the EPSG:4326 coordinate reference system. The default may be overridden with geospatial_bounds_crs and geospatial_bounds_vertical_crs (see those attributes). EPSG:4326 coordinate values are latitude (decimal degrees_north) and longitude (decimal degrees_east), in that order. Longitude values in the default case are limited to the [-180, 180) range. Example; 'POLYGON ((40.26 -111.29, 41.26 -111.29, 41.26 -110.29, 40.26 -110.29, 40.26 -111.29))'. Use this to improve the dataset findability through geospatial search.
 
 location:
   maxOccurs: '1'
@@ -225,7 +226,7 @@ dataset_production_status:
       comment: No repetition allowed.
       maxOccurs: '1'
       default: Complete
-      description: Production status for the dataset using a controlled vocabulary. The valid keywords are listed in https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#dataset-production-status-types[section 4.2 of the MMD specification]. If set as "In Work", remember that end_date in https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#temporal_extent[section 2.8 of the MMD specification] can (should) be empty.
+      description: Production status for the dataset, using a controlled vocabulary. The valid keywords are listed in https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#dataset-production-status-types[section 4.2 of the MMD specification]. If set as "In Work", remember that end_date in https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#temporal_extent[section 2.8 of the MMD specification] can (should) be empty.
 
 dataset_language:
   maxOccurs: '1'
@@ -239,7 +240,7 @@ operational_status:
     processing_level:
       maxOccurs: '1'
       comment: Optional
-      description: A textual description of the processing (or quality control) level of the data. Valid MMD keywords are listed in https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#operational-status[Section 4.5 of the MMD specification].
+      description: A textual description of the processing (or quality control) level of the data. Valid keywords are listed in https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#operational-status[Section 4.5 of the MMD specification].
 
 access_constraint:
   maxOccurs: '1'
@@ -278,6 +279,7 @@ personnel:
       creator_role:
         default: 'Investigator'
         separator: ','
+        recommended: False
         comment: Comma separated list.
         description: The role of the data creator is by default 'Investigator'.
     acdd: 
@@ -346,7 +348,7 @@ data_center:
         institution_short_name:
           separator: ','
           comment: Comma separated list.
-          description:
+          description: Short version of the institution name.
     long_name: 
       acdd:
         institution:
@@ -358,7 +360,7 @@ data_center:
       publisher_url:
         separator: ','
         comment: Comma separated list.
-        description: The URL of the person (or other entity specified by the publisher_type attribute) responsible for publishing the data file or product to users, with its current metadata and format.
+        description: The URL of the person (or other entity specified by the publisher_type attribute) responsible for publishing the data file or product to users.
 
 data_access:
   maxOccurs: unbounded
@@ -382,7 +384,7 @@ related_dataset:
       related_dataset_id:
         separator: ','
         comment: Comma separated list.
-        description: Specifies the relation between this dataset and another dataset. The type of relationship is determined by the relation_type attribute. The content of the element is a valid identifier.
+        description: Specifies the relation between this dataset and another dataset. The type of relationship is determined by the related_dataset_relation_type attribute. The content of the element is a valid identifier.
   relation_type:
     acdd_ext:
       related_dataset_relation_type:
@@ -445,7 +447,7 @@ project:
       project_short_name:
         separator: ';'
         comment: Semicolon separated list.
-        description:
+        description: Short version of the project name.
   long_name:
     acdd:
       project:
@@ -543,6 +545,7 @@ dataset_citation:
   title:
     acdd:
       title:
+        recommended: False # since it is already listed above (this way, we avoid duplication in the DMH tables
         description: A short phrase or sentence describing the dataset. In many discovery systems, the title will be displayed in the results list from a search, and therefore should be human readable and reasonable to display in a list of such names. This attribute is also recommended by the NetCDF Users Guide and the CF conventions.
   series:
   edition:
@@ -567,7 +570,7 @@ dataset_citation:
       metadata_link:
         separator: ','
         comment: Required
-        description: The URL of the person (or entity specified by the publisher_type attribute) responsible for publishing the data file or product to users.
+        description: A URL that gives the location of more complete metadata. A persistent URL is recommended for this attribute.
   other:
     acdd:
       references:
