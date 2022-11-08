@@ -41,13 +41,12 @@ def valid_url(url):
     """ Validate a url pattern (not its existence).
     """
     try:
-        urlparse(url )
-        return True
+        result = parsed_url = urlparse(url )
+        return all([result.scheme, result.netloc])
+
     except Exception as e:
-        print("ASDSD : " + str(e))
         return False
-
-
+    
 def normalize_iso8601(s):
     """Convert provided string (s) to a normalized ISO 8601 value:
 
