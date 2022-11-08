@@ -23,6 +23,7 @@ from pkg_resources import resource_string
 from unittest.mock import patch
 
 from py_mmd_tools.nc_to_mmd import Nc_to_mmd, normalize_iso8601, normalize_iso8601_0
+from py_mmd_tools.nc_to_mmd import valid_url
 from py_mmd_tools.yaml_to_adoc import nc_attrs_from_yaml
 from py_mmd_tools.yaml_to_adoc import required
 from py_mmd_tools.yaml_to_adoc import repetition_allowed
@@ -244,6 +245,80 @@ class TestNC2MMD(unittest.TestCase):
     #     mock_init.return_value = None
     #     self.assertTrue(mock_init.called)
     #     self.assertTrue(mock_to_mmd.called)
+
+    def test_valid_url(self):
+        self.assertTrue(valid_url('http://www.google.com'))
+        self.assertTrue(valid_url('http://spdx.org/licenses/CC-BY-4.0'))
+        self.assertFalse(valid_url('www.google.com'))
+
+    def test_license__deprecated_attrs(self):
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.reference_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.license = "CC-BY-4.0"
+        ncin.license_resource = "http://spdx.org/licenses/CC-BY-4.0"
+        value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
+        self.assertEqual(value['identifier'], 'CC-BY-4.0')
+        self.assertEqual(
+            md.missing_attributes["warnings"][0],
+            '"license_resource" is a deprecated attribute')
+        self.assertEqual(
+            md.missing_attributes["warnings"][1],
+            'license_identifier is a recommended attribute')
+
+    def test_license__invalid_url(self):
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.reference_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.license = "spdx.org/licenses/CC-BY-4.0"
+        value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        self.assertIsNone(value)
+        self.assertEqual(
+            md.missing_attributes["errors"][0],
+            'spdx.org/licenses/CC-BY-4.0 is not a valid url'
+        )
+
+    def test_license__with_acdd_ext(self):
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.reference_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.license = "http://spdx.org/licenses/CC-BY-4.0"
+        ncin.license_identifier = "CC-BY-4.0"
+        value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
+        self.assertEqual(value['identifier'], 'CC-BY-4.0')
+
+    def test_license__simple(self):
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.reference_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.license = "http://spdx.org/licenses/CC-BY-4.0"
+        value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
+        self.assertEqual(len(list(value.keys())), 1)
+        self.assertEqual(
+            md.missing_attributes['warnings'][0],
+            'license_identifier is a recommended attribute')
+
+    def test_license__according_to_adc(self):
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.reference_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.license = "http://spdx.org/licenses/CC-BY-4.0(CC-BY-4.0)"
+        value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
+        self.assertEqual(value['identifier'], 'CC-BY-4.0')
 
     def test_init_raises_error(self):
         """Nc_to_mmd.__init__ should raise error if check_only=False,
@@ -966,12 +1041,10 @@ class TestNC2MMD(unittest.TestCase):
 
     def test_check_only(self):
         """Run netCDF attributes to MMD translation with check_only
-        flag. Also make sure that the warning about using default
-        value 'Active' for the MMD metadata_status field is disabled.
+        flag.
         """
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
         req_ok, msg = nc2mmd.to_mmd()
-        self.assertFalse(nc2mmd.missing_attributes['warnings'])
         self.assertTrue(req_ok)
         self.assertEqual(msg, '')
 
@@ -1130,7 +1203,7 @@ class TestNC2MMD(unittest.TestCase):
         nc2mmd = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
         nc2mmd.to_mmd(mmd_yaml=mmd_yaml)
         self.assertEqual(
-            nc2mmd.missing_attributes['warnings'][0],
+            nc2mmd.missing_attributes['warnings'][2],
             'Using default value test for dummy_field'
         )
 
@@ -1191,7 +1264,6 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(
             nc2mmd.missing_attributes['errors'][1], 'naming_authority is a required attribute.'
         )
-        self.assertEqual(nc2mmd.missing_attributes['warnings'], [])
         self.assertFalse(Nc_to_mmd.is_valid_uuid(nc2mmd.metadata['metadata_identifier']))
         self.assertEqual(':', value)
 
@@ -1226,7 +1298,6 @@ class TestNC2MMD(unittest.TestCase):
                 'id ACDD attribute is not valid.'
             )
         )
-        self.assertEqual(nc2mmd.missing_attributes['warnings'], [])
         self.assertFalse(Nc_to_mmd.is_valid_uuid(nc2mmd.metadata['metadata_identifier']))
         ncin = Dataset(nc2mmd.netcdf_product)
         id = ncin.getncattr('id')
@@ -1562,6 +1633,31 @@ class TestNC2MMD(unittest.TestCase):
             md.check_attributes_not_empty(ncin)
         self.assertIn('Global attribute geospatial_bounds is empty - please correct.',
                       str(e.exception))
+
+    def test_check_conventions__missing(self):
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.tull = "tull"
+        md.check_conventions(ncin)
+        self.assertEqual(
+            md.missing_attributes["errors"][0],
+            'Required attribute "Conventions" is missing.')
+
+    def test_check_conventions__cf_and_acdd_missing(self):
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.Conventions = "tull"
+        md.check_conventions(ncin)
+        self.assertEqual(
+            md.missing_attributes["errors"][0],
+            'The dataset should follow the CF-standard. Please '
+            'provide the CF standard version in the Conventions '
+            'attribute.')
+        self.assertEqual(
+            md.missing_attributes["errors"][1],
+            'The dataset should follow the ACDD convention. '
+            'Please provide the ACDD convention version in '
+            'the Conventions attribute.')
 
     def test_institution_long_name_missing(self):
         mmd_yaml = yaml.load(
