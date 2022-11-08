@@ -568,8 +568,8 @@ dataset_citation:
   url:
     acdd:
       metadata_link:
-        separator: ','
-        comment: Required
+        maxOccurs: '1'
+        comment: E.g., a dataset landing page
         description: A URL that gives the location of more complete metadata. A persistent URL is recommended for this attribute.
   other:
     acdd:
