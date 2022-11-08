@@ -35,19 +35,16 @@ import pathlib
 from netCDF4 import Dataset
 
 from shapely.errors import WKTReadingError
-
+from urllib.parse import urlparse
 
 def valid_url(url):
     """ Validate a url pattern (not its existence).
     """
-    regex = re.compile(
-        r'^(?:http|ftp)s?://'  # http:// or https://
-        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'
-        r'localhost|'  # localhost...
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
-        r'(?::\d+)?'  # optional port
-        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
-    return re.match(regex, url) is not None
+    try:
+        urllib.parse(url)
+        return True 
+    except:
+        return False
 
 
 def normalize_iso8601(s):
