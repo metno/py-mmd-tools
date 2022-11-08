@@ -765,11 +765,6 @@ class Nc_to_mmd(object):
         acdd_url_key = list(acdd_url.keys())[0]
         if acdd_url_key in ncin.ncattrs():
             urls = self.separate_repeated(True, getattr(ncin, acdd_url_key))
-        acdd_other = mmd_element['other'].pop('acdd')
-        others = []
-        acdd_other_key = list(acdd_other.keys())[0]
-        if acdd_other_key in ncin.ncattrs():
-            others = self.separate_repeated(True, getattr(ncin, acdd_other_key))
         data = []
         for i in range(len(publication_dates)):
             ndt, reason = normalize_iso8601(publication_dates[i])
@@ -800,9 +795,6 @@ class Nc_to_mmd(object):
                             '"%s" in %s attribute is not a valid url' % (url, acdd_url_key))
                 else:
                     data_dict['url'] = url
-
-                if len(others) > i:
-                    data_dict['other'] = others[i]
 
                 data.append(data_dict)
 
@@ -949,6 +941,57 @@ class Nc_to_mmd(object):
                         '%s must be convertible to float type.' % acdd_key
                     )
 
+        return data
+
+    def get_related_information(self, mmd_element, ncin):
+        """ Get related information stored in the netcdf attribute
+        references.
+        """
+        VALID_TYPES = [
+            'Project home page',
+            'Users guide',
+            'Dataset landing page',
+            'Scientific publication',
+            'Data paper',
+            'Data management plan',
+            'Software',
+            'Other documentation',
+            'Observation facility',
+            'Extended metadata',
+        ]
+        data = []
+        repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['0', '1']
+        acdd = mmd_element['resource']['acdd']
+        separator = acdd.pop('separator', ',')
+        acdd_key = list(acdd.keys())[0]
+        refs = []
+        if acdd_key in ncin.ncattrs():
+            refs = self.separate_repeated(repetition_allowed, getattr(ncin, acdd_key), separator)
+        for ref in refs:
+            ri = ref.split('(')
+            if len(ri) != 2:
+                self.missing_attributes['errors'].append(
+                    "%s must be formed as <uri>(<type>)." % acdd_key
+                )
+                continue
+            uri = ri[0]
+            if not valid_url(uri):
+                self.missing_attributes['errors'].append(
+                    '%s must contain valid uris' % acdd_key
+                )
+                continue
+            type = ri[1][:-1]
+            if type not in VALID_TYPES:
+                self.missing_attributes['errors'].append(
+                    'Reference types must follow a controlled '
+                    'vocabulary from MMD (see https://htmlpreview.'
+                    'github.io/?https://github.com/metno/mmd/blob/'
+                    'master/doc/mmd-specification.html#related-'
+                    'information-types).')
+                continue
+            ri = {'resource': uri, 'type': type}
+            ri['description'] = ""  # not easily available in acdd - needs to be discussed
+            data.append(ri)
         return data
 
     def check_attributes_not_empty(self, ncin):
@@ -1137,11 +1180,11 @@ class Nc_to_mmd(object):
         self.metadata['project'] = self.get_projects(mmd_yaml.pop('project'), ncin)
         self.metadata['platform'] = self.get_platforms(mmd_yaml.pop('platform'), ncin)
         self.metadata['dataset_citation'] = self.get_dataset_citations(
-            mmd_yaml.pop('dataset_citation'), ncin
-        )
+            mmd_yaml.pop('dataset_citation'), ncin)
         self.metadata['related_dataset'] = self.get_related_dataset(
-            mmd_yaml.pop('related_dataset'), ncin
-        )
+            mmd_yaml.pop('related_dataset'), ncin)
+        self.metadata['related_information'] = self.get_related_information(
+            mmd_yaml.pop('related_information'), ncin)
         # Optionally add geographic extent
         self.metadata['geographic_extent'] = {}
         if geographic_extent_rectangle:

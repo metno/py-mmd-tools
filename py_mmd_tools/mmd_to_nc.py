@@ -336,7 +336,7 @@ class Mmd_to_nc(object):
                 <mmd:publisher>John Doe</mmd:publisher>
             </mmd:dataset_citation>
         """
-        for child in ['publisher', 'url', 'other']:
+        for child in ['publisher', 'url']:
             found = element.find(f'mmd:{child}', namespaces=self.namespaces)
             if found is not None:
                 self.update_acdd({
