@@ -475,10 +475,8 @@ dataset_citation:
   url:
     acdd:
       metadata_link:
-        separator: ','
-        comment: Comma separated list.
+        maxOccurs: '1'
+        comment: DOI or dataset landing page
   other:
     acdd:
       references:
-        separator: ','
-        comment: Comma separated list.
