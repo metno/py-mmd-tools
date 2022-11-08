@@ -225,7 +225,7 @@ class Mmd_to_nc(object):
 
         """
         assert separator == \
-            self.mmd_yaml['personnel']['role']['acdd']['creator_role']['separator']
+            self.mmd_yaml['personnel']['name']['acdd']['creator_name']['separator']
 
         out = {}
         sep = {}

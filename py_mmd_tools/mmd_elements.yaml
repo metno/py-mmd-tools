@@ -427,7 +427,7 @@ keywords:
         minOccurs: '1'
         separator: ','
         comment: Comma separated list.
-        description: A comma-separated list of keywords and/or phrases. Keywords may be common words or phrases, terms from a controlled vocabulary (GCMD is required), or URIs for terms from a controlled vocabulary (see also "keywords_vocabulary" attribute). If keywords are extracted from, e.g., GCMD Science Keywords, add keywords_vocabulary='GCMDSK' and prefix in any case each keyword with the appropriate prefix.
+        description: A comma-separated list of keywords and/or phrases. Keywords may be common words or phrases, terms from a controlled vocabulary (GCMD is required), or URIs for terms from a controlled vocabulary (see also "keywords_vocabulary" attribute). If keywords are extracted from, e.g., GCMD Science Keywords, add keywords_vocabulary="GCMDSK" and prefix in any case each keyword with the appropriate prefix.
   vocabulary:
     minOccurs: '1'
     acdd:
