@@ -41,9 +41,10 @@ def valid_url(url):
     """ Validate a url pattern (not its existence).
     """
     try:
-        urllib.parse(url, strict_parsing=True )
-        return True 
-    except:
+        urlparse(url )
+        return True
+    except Exception as e:
+        print("ASDSD : " + str(e))
         return False
 
 
