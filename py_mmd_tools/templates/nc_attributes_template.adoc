@@ -73,9 +73,13 @@ The following elements are ACDD extensions that are useful to improve (meta)data
 |=======================================================================
 |*Necessary non-ACDD Attribute* |*MMD equivalent* |*Description*
 {% for elem in data['acdd_ext']['required'] %}
+  {% if elem['recommended'] %}
 |{{ elem['attribute'] }} | {{ elem['mmd_field'] }} | {{ elem['description'] }}
+  {% endif %}
 {% endfor %}
 {% for elem in data['acdd_ext']['not_required'] %}
+  {% if elem['recommended'] %}
 |{{ elem['attribute'] }} | {{ elem['mmd_field'] }} | {{ elem['description'] }}
+  {% endif %}
 {% endfor %}
 |=======================================================================

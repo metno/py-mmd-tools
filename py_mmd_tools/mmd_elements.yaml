@@ -294,7 +294,7 @@ personnel:
         default: 'Not available'
         separator: ','
         comment: Required. Consistency across comma separated lists for all creator_* attributes is required. Do not use ',' except for separating elements.
-        description: The name of the person (or other creator type specified by the creator_type attribute) principally responsible for creating this data. See description of creator_type.
+        description: The name of the person (or other creator type specified by the creator_type attribute) principally responsible for creating this data. If multiple persons are involved, please list these as a comma separated list. Anyone that should be listed as dataset creators in DOI landing pages should be added to this item.
       contributor_name:
         default: 'Not available'
         separator: ','
