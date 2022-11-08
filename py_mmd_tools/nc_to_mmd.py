@@ -612,6 +612,10 @@ class Nc_to_mmd(object):
             for vocabulary in vocabularies:
                 prefix = vocabulary.split(':')[0]
                 resource = [r.replace(prefix+':', '') for r in resources if prefix in r][0]
+                if not valid_url(resource):
+                    self.missing_attributes['errors'].append(
+                        '%s in %s attribute is not a valid url' % (resource, acdd_vocabulary_key))
+                    continue
                 keywords_this = [k.replace(prefix+':', '') for k in keywords if prefix in k]
                 data.append({
                     'resource': resource,
@@ -699,6 +703,12 @@ class Nc_to_mmd(object):
             if resource != '':
                 data_dict['resource'] = resource
 
+            if data_dict['resource'] == '' or not valid_url(data_dict['resource']):
+                self.missing_attributes['warnings'].append(
+                    '"%s" in %s attribute is not a valid url' % (data_dict['resource'],
+                                                                 acdd_resource_key))
+                data_dict.pop('resource')
+
             instrument_dict = {
                 'long_name': instrument_data.get('Long_Name', ''),
                 'short_name': instrument_data.get('Short_Name', ''),
@@ -710,7 +720,14 @@ class Nc_to_mmd(object):
             if iresource != '':
                 instrument_dict['resource'] = iresource
 
-            data_dict['instrument'] = instrument_dict
+            if instrument_dict['resource'] == '' or not valid_url(instrument_dict['resource']):
+                self.missing_attributes['warnings'].append(
+                    '"%s" in %s attribute is not a valid url' % (instrument_dict['resource'],
+                                                                 acdd_instrument_resource_key))
+                instrument_dict.pop('resource')
+
+            if instrument_dict['long_name'] != '' or instrument_dict['short_name'] != '':
+                data_dict['instrument'] = instrument_dict
 
             data.append(data_dict)
 
@@ -760,22 +777,32 @@ class Nc_to_mmd(object):
                     % (acdd_publication_date_key, publication_dates[i], reason)
                 )
             else:
+                data_dict = {
+                    'author': authors,
+                    'publication_date': ndt,
+                    'title': title,
+                }
                 if len(urls) <= i:
+                    # Issue warning
+                    self.missing_attributes['warnings'].append(
+                        '%s attribute is missing' % acdd_url_key)
                     url = ''
                 else:
                     url = urls[i]
-                if len(others) <= i:
-                    other = ''
+                # Validate the url
+                if not valid_url(url):
+                    if url != '':
+                        # Issue warning
+                        self.missing_attributes['warnings'].append(
+                            '"%s" in %s attribute is not a valid url' % (url, acdd_url_key))
                 else:
-                    other = others[i]
-                data.append({
-                    'author': authors,
-                    # save as ISO8601, not datetime object..
-                    'publication_date': ndt,
-                    'title': title,
-                    'url': url,
-                    'other': other,
-                })
+                    data_dict['url'] = url
+
+                if len(others) > i:
+                    data_dict['other'] = others[i]
+
+                data.append(data_dict)
+
         return data
 
     @staticmethod
