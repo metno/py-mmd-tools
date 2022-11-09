@@ -7,10 +7,12 @@ metadata_identifier:
       maxOccurs: '1'
       minOccurs: '1'
       comment: Required, and should be UUID. No repetition allowed.
+      description: An identifier for the dataset, provided by and unique within its naming authority. The combination of the "naming authority" and the "id" should be globally unique, but the id can be globally unique by itself also. A uuid is recommended.
     naming_authority:
       maxOccurs: '1'
       minOccurs: '1'
       comment: Required. We recommend using reverse-DNS naming. No repetition allowed.
+      description: The organization that provides the initial id (see above) for the dataset. The naming authority should be uniquely specified by this attribute. We recommend using reverse-DNS naming for the naming authority.
 
 alternate_identifier:
   maxOccurs: unbounded
@@ -20,11 +22,35 @@ alternate_identifier:
       alternate_identifier:
         comment: Alternative identifier for the dataset (but not DOI). Comma separated list.
         separator: ','
+        description: Alternative identifier for the dataset described by the metadata document. This identifier is when datasets may have multiple identifiers, e.g., identifiers depending on the framework data are shared through.
   type:
     acdd_ext:
       alternate_identifier_type:
         comment: Identification of the type of identifier used. Comma separated list.
         separator: ','
+        description: Type of identifier used. Currently no controlled vocabulary is defined, but this should be added once better knowledge of domains are known.
+
+# conventions is not in MMD but is required for the netcdf file...
+Conventions:
+  maxOccurs: '1'
+  minOccurs: '1'
+  acdd:
+    Conventions:
+      maxOccurs: '1'
+      minOccurs: '1'
+      comment: Required
+      description: A comma-separated string of the conventions that are followed by the dataset. For files that follow this version of ACDD, include the string 'ACDD-1.3' (this attribute is described in the NetCDF Users Guide.)
+
+# history is not in MMD but is required for the netcdf file...
+history:
+  maxOccurs: '1'
+  minOccurs: '1'
+  acdd:
+    history:
+      maxOccurs: '1'
+      minOccurs: '1'
+      comment: Required
+      description: Provides an audit trail for modifications to the original data. This attribute is also in the NetCDF Users Guide ('This is a character array with a line for each invocation of a program that has modified the dataset. Well-behaved generic netCDF applications should append a line containing date, time of day, user name, program name and command arguments'). To include a more complete description you can append a reference to an ISO Lineage entity; see NOAA EDM ISO Lineage guidance.
 
 last_metadata_update:
   maxOccurs: '1'
@@ -37,18 +63,25 @@ last_metadata_update:
       acdd: 
         date_metadata_modified:
           separator: ','
+          recommended: False
           comment: Format as ISO8601. Comma separated list if more than once.
+          description: The date on which the metadata was last modified. The ISO 8601:2004 extended date format is recommended.
         date_created:
           minOccurs: '1'
           comment: Format as ISO8601.
+          description: The date on which this version of the data was created (modification of variable values implies a new version, hence this would be assigned the date of the most recent modification of variable values). Metadata changes are not considered when assigning the date_created. The ISO 8601:2004 extended date format is recommended, e.g., 2020-10-20T12:35:00Z.
     type:
       minOccurs: '1'
       acdd_ext:
         date_metadata_modified_type:
           separator: ','
+          recommended: False
           comment: E.g., major or minor modification. Comma separated list.
+          description: Minor modification or Major modification.
         date_created_type:
+          recommended: False
           default: Created
+          description: Defaults to "Created". Not necessary as netcdf attribute.
     note:
 
 metadata_status:
@@ -65,15 +98,18 @@ title:
       title:
         minOccurs: '1'
         comment: Use ACDD extension "title_no" for Norwegian translation.
+        description: A short phrase or sentence describing the dataset. In many discovery systems, the title will be displayed in the results list from a search, and therefore should be human readable and reasonable to display in a list of such names. This attribute is also recommended by the NetCDF Users Guide and the CF conventions.
     acdd_ext:
       title_no:
         comment: Used for Norwegian version of the title.
+        description: Norwegian version of the title.
   lang:
     minOccurs: '1'
     acdd_ext:
       title_lang:
         comment: ISO language code.
         default: en
+        description: ISO language code for the title. Defaults to "en".
 
 abstract:
   maxOccurs: unbounded
@@ -85,15 +121,18 @@ abstract:
         minOccurs: '1'
         separator: ';'
         comment: Use ACDD extension "summary_no" for Norwegian translation.
+        description: A paragraph describing the dataset, analogous to an abstract for a paper. Use ACDD extension "summary_no" for Norwegian translation.
     acdd_ext:
       summary_no:
         comment: Used for Norwegian version of the abstract.
+        description: Norwegian version of the abstract.
   lang:
     minOccurs: '1'
     acdd_ext:
       summary_lang:
         comment: ISO language code.
         default: en
+        description: ISO language code for the summary. Defaults to "en".
 
 temporal_extent:
   maxOccurs: unbounded
@@ -106,6 +145,7 @@ temporal_extent:
         minOccurs: '1'
         comment: Comma separated list.
         separator: ','
+        description: Describes the time of the first data point in the data set. Use the ISO 8601:2004 date format, preferably the extended format as recommended in the Attribute Content Guidance section. I.e. YYYY-MM-DDTHH:MM:SSZ (always use UTC).
   end_date:
     maxOccurs: unbounded
     minOccurs: '0'
@@ -113,6 +153,7 @@ temporal_extent:
       time_coverage_end:
         separator: ','
         comment: Comma separated list.
+        description: Describes the time of the last data point in the data set. If the dataset is continuously updated with new measurements (e.g., a timeseries receiving new observations), this attribute can be omitted. Use ISO 8601:2004 date format, preferably the extended format as recommended in the Attribute Content Guidance section. I.e. YYYY-MM-DDTHH:MM:SSZ (always use UTC).
 
 geographic_extent:
   maxOccurs: '1'
@@ -130,6 +171,7 @@ geographic_extent:
           maxOccurs: '1'
           minOccurs: '1'
           comment: No repetition allowed.
+          description: Describes a simple upper latitude limit; may be part of a 2- or 3-dimensional bounding region. Geospatial_lat_max specifies the northernmost latitude covered by the dataset. Must be decimal degrees north.
     south:
       maxOccurs: '1'
       minOccurs: '1'
@@ -138,6 +180,7 @@ geographic_extent:
           maxOccurs: '1'
           minOccurs: '1'
           comment: No repetition allowed.
+          description: Describes a simple lower latitude limit; may be part of a 2- or 3-dimensional bounding region. Geospatial_lat_min specifies the southernmost latitude covered by the dataset. Must be decimal degrees north.
     east:
       maxOccurs: '1'
       minOccurs: '1'
@@ -146,6 +189,7 @@ geographic_extent:
           maxOccurs: '1'
           minOccurs: '1'
           comment: No repetition allowed.
+          description: Describes a simple longitude limit; may be part of a 2- or 3-dimensional bounding region. geospatial_lon_max specifies the easternmost longitude covered by the dataset. Cases where geospatial_lon_min is greater than geospatial_lon_max indicate the bounding box extends from geospatial_lon_max, through the longitude range discontinuity meridian (either the antimeridian for -180:180 values, or Prime Meridian for 0:360 values), to geospatial_lon_min; for example, geospatial_lon_min=170 and geospatial_lon_max=-175 incorporates 15 degrees of longitude (ranges 170 to 180 and -180 to -175). Must be decimal degrees east (negative westwards).
     west:
       maxOccurs: '1'
       minOccurs: '1'
@@ -154,12 +198,14 @@ geographic_extent:
           maxOccurs: '1'
           minOccurs: '1'
           comment: No repetition allowed.
+          description: Describes a simple longitude limit; may be part of a 2- or 3-dimensional bounding region. geospatial_lon_min specifies the westernmost longitude covered by the dataset. See also geospatial_lon_max. Must be decimal degrees east (negative westwards).
   polygon:
     maxOccurs: '1'
     minOccurs: '0'
     acdd:
       geospatial_bounds:
-        comment: No repetition allowed.
+        comment:
+        description: Describes the data's 2D or 3D geospatial extent in OGC's Well-Known Text (WKT) Geometry format (reference the OGC Simple Feature Access (SFA) specification). The meaning and order of values for each point's coordinates depends on the coordinate reference system (CRS). The ACDD default is 2D geometry in the EPSG:4326 coordinate reference system. The default may be overridden with geospatial_bounds_crs and geospatial_bounds_vertical_crs (see those attributes). EPSG:4326 coordinate values are latitude (decimal degrees_north) and longitude (decimal degrees_east), in that order. Longitude values in the default case are limited to the [-180, 180) range. Example; 'POLYGON ((40.26 -111.29, 41.26 -111.29, 41.26 -110.29, 40.26 -110.29, 40.26 -111.29))'. Use this to improve the dataset findability through geospatial search.
 
 location:
   maxOccurs: '1'
@@ -180,6 +226,7 @@ dataset_production_status:
       comment: No repetition allowed.
       maxOccurs: '1'
       default: Complete
+      description: Production status for the dataset, using a controlled vocabulary. The valid keywords are listed in https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#dataset-production-status-types[section 4.2 of the MMD specification]. If set as "In Work", remember that end_date in https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#temporal_extent[section 2.8 of the MMD specification] can (should) be empty.
 
 dataset_language:
   maxOccurs: '1'
@@ -192,7 +239,8 @@ operational_status:
   acdd:
     processing_level:
       maxOccurs: '1'
-      comment: No repetition allowed. See the MMD docs for valid keywords.
+      comment: Optional
+      description: A textual description of the processing (or quality control) level of the data. Valid keywords are listed in https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#operational-status[Section 4.5 of the MMD specification].
 
 access_constraint:
   maxOccurs: '1'
@@ -200,6 +248,8 @@ access_constraint:
   acdd_ext:
     access_constraint:
       comment: No repetition allowed.
+      description: Limitations on the access to the dataset. See https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#access-constraints[section 4.6 of the MMD specification] for a list of valid values.
+
 
 use_constraint:
   maxOccurs: '1'
@@ -210,48 +260,66 @@ use_constraint:
       license_identifier:
         minOccurs: '0'
         maxOccurs: '1'
+        description: Referring to the spdx licenseId. If the identifier is specified in the license attribute as <URL>(<Identifier>), license_identifier is not needed.
   resource:
     maxOccurs: '1'
     acdd:
       license:
         minOccurs: '1'
         maxOccurs: '1'
+        comment: Required.
+        description: Provide the URL to a standard or specific license, enter "Freely Distributed" or "None", or describe any restrictions to data access and distribution in free text. It is strongly recommended to use identifiers and URL's from https://spdx.org/licenses/ and to use a form similar to <URL>(<Identifier>) using elements from the SPDX source listed above.
   license_text:
 
 personnel:
   maxOccurs: unbounded
   minOccurs: '0'
   role:
-    acdd: 
+    acdd_ext: 
       creator_role:
         default: 'Investigator'
         separator: ','
+        recommended: False
         comment: Comma separated list.
+        description: The role of the data creator is by default 'Investigator'.
+    acdd: 
       contributor_role:
         default: 'Technical contact'
         separator: ','
         comment: Comma separated list.
+        description: The role of any individuals, projects, or institutions that contributed to the creation of this data. May be presented as free text, or in a structured format compatible with conversion to ncML (e.g., insensitive to changes in whitespace, including end-of-line characters). Multiple roles should be presented in the same order and number as the names in contributor_names.
   name:
     acdd:
       creator_name:
         default: 'Not available'
         separator: ','
-        comment: Comma separated list.
+        comment: Required. Consistency across comma separated lists for all creator_* attributes is required. Do not use ',' except for separating elements.
+        description: The name of the person (or other creator type specified by the creator_type attribute) principally responsible for creating this data. If multiple persons are involved, please list these as a comma separated list. Anyone that should be listed as dataset creators in DOI landing pages should be added to this item.
       contributor_name:
         default: 'Not available'
         separator: ','
         comment: Comma separated list.
+        description: The name of any individuals, projects, or institutions that contributed to the creation of this data. May be presented as free text, or in a structured format compatible with conversion to ncML (e.g., insensitive to changes in whitespace, including end-of-line characters).
+  creator_type:
+    acdd:
+      creator_type:
+        default: person
+        separator: ','
+        comment: Required (unless it is "person"). Consistency across comma separated lists for all creator_* attributes is required. Do not use ',' except for separating elements.
+        description: Specifies type of creator (one of 'person', 'group', 'institution', or 'position'). If this attribute is not specified, the creator is assumed to be a person. If multiple persons are involved, please list these as a comma separated string. In such situation please remember to add a comma separated string for creator_institution and creator_email as well. Consistency between these fields are done from left to right.
   email:
     acdd:
       creator_email:
         default: 'Not available'
         separator: ','
-        comment: Comma separated list.
+        comment: Required. Consistency across comma separated lists for all creator_* attributes is required. Do not use ',' except for separating elements.
+        description: The email address of the person (or other creator type specified by the creator_type attribute) principally responsible for creating this data. See description of creator_type.
     acdd_ext:
       contributor_email:
         default: 'Not available'
         separator: ','
         comment: Comma separated list.
+        description: The email address of the contributor(s). Consistency across comma separated lists for all contributor_* attributes is required.
   phone:
   fax:
   organisation:
@@ -259,10 +327,11 @@ personnel:
       creator_institution:
         default: 'Not available'
         separator: ','
-        comment: Comma separated list.
+        comment: Required. Consistency across comma separated lists for all creator_* attributes is required. Do not use ',' except for separating elements. 
+        description: The institution of the creator; should uniquely identify the creator's institution. This attribute's value should be specified even if it matches the value of publisher_institution, or if creator_type is institution. See description of creator_type.
     acdd_ext: 
       contributor_institution:
-      contributor_organisation:
+        description: The institution of the contributor(s). Consistency across comma separated lists for all contributor_* attributes is required.
   contact_address:
     address:
     city:
@@ -279,16 +348,19 @@ data_center:
         institution_short_name:
           separator: ','
           comment: Comma separated list.
+          description: Short version of the institution name.
     long_name: 
       acdd:
         institution:
           separator: ','
-          comment: Comma separated list.
+          comment: Required
+          description: The name of the institution principally responsible for originating this data. This attribute is recommended by the CF convention.
   data_center_url:
     acdd:
       publisher_url:
         separator: ','
         comment: Comma separated list.
+        description: The URL of the person (or other entity specified by the publisher_type attribute) responsible for publishing the data file or product to users.
 
 data_access:
   maxOccurs: unbounded
@@ -312,11 +384,13 @@ related_dataset:
       related_dataset_id:
         separator: ','
         comment: Comma separated list.
+        description: Specifies the relation between this dataset and another dataset. The type of relationship is determined by the related_dataset_relation_type attribute. The content of the element is a valid identifier.
   relation_type:
     acdd_ext:
       related_dataset_relation_type:
         separator: ','
         comment: Comma separated list.
+        description: Valid content is either "parent" (this dataset is a child dataset of the referenced dataset) or "auxiliary" (this dataset is auxiliary data for the referenced dataset).
 
 storage_information:
   maxOccurs: '1'
@@ -332,6 +406,11 @@ related_information:
   minOccurs: '0'
   type:
   resource:
+    acdd:
+      references:
+        separator: ','
+        comment: Comma separated list.
+        description: Published or web-based references that describe the data or methods used to produce it. Recommend URIs (such as a URL or DOI) for papers or other references. This attribute is defined in the CF conventions.
   description:
 
 iso_topic_category:
@@ -341,6 +420,7 @@ iso_topic_category:
     iso_topic_category:
       separator: ','
       comment: Comma separated list.
+      description: ISO topic category fetched from a controlled vocabulary. Accepted elements are listed in https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#iso-topic-categories[the MMD specification].
 
 keywords:
   maxOccurs: unbounded
@@ -352,6 +432,7 @@ keywords:
         minOccurs: '1'
         separator: ','
         comment: Comma separated list.
+        description: A comma-separated list of keywords and/or phrases. Keywords may be common words or phrases, terms from a controlled vocabulary (GCMD is required), or URIs for terms from a controlled vocabulary (see also "keywords_vocabulary" attribute). If keywords are extracted from, e.g., GCMD Science Keywords, add keywords_vocabulary="GCMDSK" and prefix in any case each keyword with the appropriate prefix.
   vocabulary:
     minOccurs: '1'
     acdd:
@@ -359,6 +440,7 @@ keywords:
         minOccurs: '1'
         comment: Comma separated list.
         separator: ','
+        description: If you are using a controlled vocabulary for the words/phrases in your "keywords" attribute, this is the unique name or identifier of the vocabulary from which keywords are taken. If more than one keyword vocabulary is used, each may be presented with a key, a long name, and a url, followed by a comma, so that keywords may be prefixed with the controlled vocabulary key. Example; 'GCMDSK:GCMD Science Keywords:https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/sciencekeywords, GEMET:INSPIRE Themes:http://inspire.ec.europa.eu/theme'.
   resource:
   separator:
 
@@ -370,11 +452,13 @@ project:
       project_short_name:
         separator: ';'
         comment: Semicolon separated list.
+        description: Short version of the project name.
   long_name:
     acdd:
       project:
         separator: ';'
         comment: Semicolon separated list.
+        description: The name of the project(s) principally responsible for originating this data. Multiple projects can be separated by commas, as described under Attribute Content Guidelines. Examples; 'PATMOS-X', 'Extended Continental Shelf Project'. # If each substring includes a keyword in parantheses, the content within the paranthesis is interpreted as the short name for the project while the rest is the long name, e.g., 'Nansen Legacy (NLEG)'. --- this requires a modification of nc_to_mmd.py...
 
 platform:
   maxOccurs: unbounded
@@ -386,12 +470,14 @@ platform:
     acdd:
       platform:
         separator: ','
-        comment: Comma separated list.
+        comment: Recommended
+        description: Name of the platform(s) that supported the sensor used to create this dataset. Platforms can be of any type, including satellite, ship, station, aircraft or other. Indicate which controlled vocabulary that is used in the platform_vocabulary attribute. Comma separated list.
   resource:
     acdd:
       platform_vocabulary:
         separator: ','
-        comment: Comma separated list.
+        comment:
+        description: Controlled vocabulary for the names used in the "platform" attribute. Should be provided as urls in a comma separated list.
   orbit_relative:
   orbit_absolute:
   orbit_direction:
@@ -403,12 +489,14 @@ platform:
       acdd:
         instrument:
           separator: ','
-          comment: Comma separated list.
+          comment: Optional
+          description: Name of the instrument(s) or sensor(s) used to create this dataset. Indicate which controlled vocabulary that is used in the instrument_vocabulary attribute. Comma separated list.
     resource:
       acdd:
         instrument_vocabulary:
           separator: ','
           comment: Comma separated list.
+          description: Controlled vocabulary for the names used in the "instrument" attribute. Should be provided as urls in a comma separated list.
     mode:
     polarisation:
     product_type:
@@ -423,6 +511,7 @@ quality_control:
   acdd_ext:
     quality_control:
       comment: No repetition allowed.
+      description: The level of quality control performed on the dataset/product. Valid keywords are listed in https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#quality-control[section 4.22 of the MMD specification]. Additional information about data quality control can be provided through the related_information element providing a URL to the quality control documentation.
 
 spatial_representation:
   maxOccurs: '1'
@@ -432,14 +521,16 @@ spatial_representation:
       minOccurs: '1' # see #96 and https://github.com/metno/py-mmd-tools/pull/97
       maxOccurs: '1'
       comment: No repetition allowed.
+      description: The method used to spatially represent geographic information. Valid entries are vector, grid, point and trajectory (see https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#spatial-representation[section 4.16 of the MMD specification]).
 
 activity_type:
   maxOccurs: unbounded
   minOccurs: '0'
   acdd:
     source:
-      comment: Semicolon separated list.
+      comment: Optional
       separator: ';'
+      description: The method of production of the original data. This attribute is defined in the https://cfconventions.org/Data/cf-conventions/cf-conventions-1.10/cf-conventions.html#description-of-file-contents[CF Conventions]. Valid MMD values are listed in https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#activity-type[section 4.8 of the MMD specification].
 
 dataset_citation:
   maxOccurs: unbounded
@@ -449,14 +540,18 @@ dataset_citation:
       creator_name:
         comment: Comma separated list.
         separator: ','
+        description: The name of the person (or other creator type specified by the creator_type attribute) principally responsible for creating this data.
   publication_date:
     acdd:
       date_created:
         separator: ','
-        comment: Comma separated list.
+        comment: Required
+        description: The date on which this version of the data was created (modification of variable values implies a new version, hence this would be assigned the date of the most recent modification of variable values). Metadata changes are not considered when assigning the date_created. The ISO 8601:2004 extended date format is recommended, e.g., 2020-10-20T12:35:00Z.
   title:
     acdd:
       title:
+        recommended: False # since it is already listed above (this way, we avoid duplication in the DMH tables
+        description: A short phrase or sentence describing the dataset. In many discovery systems, the title will be displayed in the results list from a search, and therefore should be human readable and reasonable to display in a list of such names. This attribute is also recommended by the NetCDF Users Guide and the CF conventions.
   series:
   edition:
   volume:
@@ -466,20 +561,19 @@ dataset_citation:
     acdd:
       publisher_name:
         separator: ','
-        comment: Comma separated list.
+        comment: Required
+        description: The name of the person (or entity specified by the publisher_type attribute) responsible for publishing the data file or product to users.
   pages:
   isbn:
   doi:
     acdd_ext:
       doi:
         maxOccurs: '1'
+        description: Digital Object Identifier (if available).
   url:
     acdd:
       metadata_link:
-        separator: ','
-        comment: Comma separated list.
+        maxOccurs: '1'
+        comment: E.g., a dataset landing page
+        description: A URL that gives the location of more complete metadata. A persistent URL is recommended for this attribute.
   other:
-    acdd:
-      references:
-        separator: ','
-        comment: Comma separated list.

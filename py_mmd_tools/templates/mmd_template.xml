@@ -162,6 +162,7 @@
     {% for related_info in data['related_information'] %}
   <mmd:related_information>
     <mmd:type>{{ related_info['type'] }}</mmd:type>
+    <mmd:description>{{ related_info['description'] }}</mmd:description>
     <mmd:resource>{{ related_info['resource'] }}</mmd:resource>
   </mmd:related_information>
     {% endfor %}
