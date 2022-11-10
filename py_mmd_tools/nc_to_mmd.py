@@ -1044,8 +1044,8 @@ class Nc_to_mmd(object):
         old_version = False
         acdd_license = list(mmd_element['resource']['acdd'].keys())[0]
         acdd_license_id = list(mmd_element['identifier']['acdd_ext'].keys())[0]
-        acdd_license = getattr(ncin, acdd_license).split('(')
-        license_url = acdd_license[0]
+        license = getattr(ncin, acdd_license).split('(')
+        license_url = license[0]
         # validate url
         if not valid_url(license_url):
             # Try deprecated attribute name
@@ -1053,7 +1053,8 @@ class Nc_to_mmd(object):
                 license_url = ncin.license_resource
             if not valid_url(license_url):
                 self.missing_attributes['errors'].append(
-                    '%s is not a valid url' % license_url)
+                    '"%s" is not a valid url' % license_url)
+                return data
             else:
                 data = {'resource': license_url}
                 old_version = True
@@ -1061,8 +1062,8 @@ class Nc_to_mmd(object):
                     '"license_resource" is a deprecated attribute')
         else:
             data = {'resource': license_url}
-        if len(acdd_license) > 1:
-            data['identifier'] = acdd_license[1][0:-1]
+        if len(license) > 1:
+            data['identifier'] = license[1][0:-1]
         else:
             if acdd_license_id not in ncin.ncattrs():
                 self.missing_attributes['warnings'].append(
