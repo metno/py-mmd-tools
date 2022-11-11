@@ -33,12 +33,11 @@ The keywords should be provided by the ``keywords`` attribute as a comma separat
 
 See https://adc.met.no/node/96 for more information about how to define the ACDD keywords.
 
-A data *license* provides information about any restrictions on the use of the dataset. To support a linked data approach, the ``license`` element should be supported by a ``license_resource`` element, providing a link to the license definition. Example:
+A data *license* provides information about any restrictions on the use of the dataset. To support a linked data approach, it is strongly recommended to use identifiers and URL's from https://spdx.org/licenses/ and to use a form similar to <URL>(<Identifier>) using elements from the SPDX license list. Example:
 
 [EXAMPLE]
 ====
-:license = "CC-BY-4.0" ; +
-:license_resource = "http://spdx.org/licenses/CC-BY-4.0" ;
+:license = "http://spdx.org/licenses/CC-BY-4.0(CC-BY-4.0)" ;
 ====
 
 [[acdd-elements]]
