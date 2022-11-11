@@ -268,7 +268,7 @@ use_constraint:
         minOccurs: '1'
         maxOccurs: '1'
         comment: Required.
-        description: Provide the URL to a standard or specific license, enter "Freely Distributed" or "None", or describe any restrictions to data access and distribution in free text. It is strongly recommended to use identifiers and URL's from https://spdx.org/licenses/ and to use a form similar to <URL>(<Identifier>) using elements from the SPDX source listed above.
+        description: Provide the URL to a standard or specific license, enter "Freely Distributed" or "None", or describe any restrictions to data access and distribution in free text. It is strongly recommended to use identifiers and URL's from https://spdx.org/licenses/ and to use a form similar to <URL>(<Identifier>) using elements from the SPDX license list.
   license_text:
 
 personnel:
@@ -471,13 +471,13 @@ platform:
       platform:
         separator: ','
         comment: Recommended
-        description: Name of the platform(s) that supported the sensor used to create this dataset. Platforms can be of any type, including satellite, ship, station, aircraft or other. Indicate which controlled vocabulary that is used in the platform_vocabulary attribute. Comma separated list.
+        description: Name of the platform(s) that supported the sensor used to create this dataset. Platforms can be of any type, including satellite, ship, station, aircraft or other. Both https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#platform-1[MMD] and https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/platforms[GCMD] has controlled vocabularies for platform names. Indicate which controlled vocabulary that is used in the platform_vocabulary attribute. Comma separated list.
   resource:
     acdd:
       platform_vocabulary:
         separator: ','
         comment:
-        description: Controlled vocabulary for the names used in the "platform" attribute. Should be provided as urls in a comma separated list.
+        description: Controlled vocabulary for the names used in the "platform" attribute, e.g., https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#platform-1[MMD] or https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/platforms[GCMD]. Should be provided as urls in a comma separated list.
   orbit_relative:
   orbit_absolute:
   orbit_direction:
@@ -490,13 +490,13 @@ platform:
         instrument:
           separator: ','
           comment: Optional
-          description: Name of the instrument(s) or sensor(s) used to create this dataset. Indicate which controlled vocabulary that is used in the instrument_vocabulary attribute. Comma separated list.
+          description: Name of the instrument(s) or sensor(s) used to create this dataset. Both https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#instruments[MMD] and https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/instruments[GCMD] has controlled vocabularies for instrument names. Indicate which controlled vocabulary that is used in the instrument_vocabulary attribute. Comma separated list.
     resource:
       acdd:
         instrument_vocabulary:
           separator: ','
           comment: Comma separated list.
-          description: Controlled vocabulary for the names used in the "instrument" attribute. Should be provided as urls in a comma separated list.
+          description: Controlled vocabulary for the names used in the "instrument" attribute, e.g., https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#instruments[MMD] or https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/instruments[GCMD]. Should be provided as urls in a comma separated list.
     mode:
     polarisation:
     product_type:
