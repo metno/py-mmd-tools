@@ -410,7 +410,7 @@ related_information:
       references:
         separator: ','
         comment: Comma separated list.
-        description: Published or web-based references that describe the data or methods used to produce it. Recommend URIs (such as a URL or DOI) for papers or other references. This attribute is defined in the CF conventions.
+        description: Published or web-based references that describe the data or methods used to produce it. We recommend to use URIs (such as a URL or DOI) for papers or other references, and to use a form similar to <URL>(<Type>) using type elements from the https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#related-information-types[related information types in the MMD specification]. This attribute is defined in the CF conventions.
   description:
 
 iso_topic_category:
