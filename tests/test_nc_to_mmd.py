@@ -328,7 +328,7 @@ class TestNC2MMD(unittest.TestCase):
         self.assertIsNone(value)
         self.assertEqual(
             md.missing_attributes["errors"][0],
-            'spdx.org/licenses/CC-BY-4.0 is not a valid url'
+            '"spdx.org/licenses/CC-BY-4.0" is not a valid url'
         )
 
     def test_license__with_acdd_ext(self):
