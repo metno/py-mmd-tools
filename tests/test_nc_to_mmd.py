@@ -357,13 +357,24 @@ class TestNC2MMD(unittest.TestCase):
             md.missing_attributes['warnings'][0],
             'license_identifier is a recommended attribute')
 
-    def test_license__according_to_adc(self):
+    def test_license__according_to_adc1(self):
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.reference_nc, check_only=True)
         ncin = Dataset(md.netcdf_product, "w", diskless=True)
         ncin.license = "http://spdx.org/licenses/CC-BY-4.0(CC-BY-4.0)"
+        value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
+        self.assertEqual(value['identifier'], 'CC-BY-4.0')
+
+    def test_license__according_to_adc2(self):
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.reference_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.license = "http://spdx.org/licenses/CC-BY-4.0 (CC-BY-4.0)"
         value = md.get_license(mmd_yaml['use_constraint'], ncin)
         self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
         self.assertEqual(value['identifier'], 'CC-BY-4.0')
@@ -1832,7 +1843,7 @@ class TestNC2MMD(unittest.TestCase):
             md.missing_attributes['warnings'][0],
             'institution_short_name is a recommended attribute')
 
-    def test_acdd_references_as_related_information(self):
+    def test_acdd_references_as_related_information1(self):
         """ Test that references (doi/uri) are correctly retrieved."""
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
@@ -1843,6 +1854,26 @@ class TestNC2MMD(unittest.TestCase):
             "https://data.met.no/dataset/3f9974bf-b073-4c16-81d8-c34fcf3b1f01"
             "(Dataset landing page),"
             "https://ieeexplore.ieee.org/document/7914752(Scientific publication)"
+        )
+        data = md.get_related_information(mmd_yaml['related_information'], ncin)
+        self.assertEqual(
+            data[0]['resource'],
+            'https://data.met.no/dataset/3f9974bf-b073-4c16-81d8-c34fcf3b1f01')
+        self.assertEqual(data[0]['type'], 'Dataset landing page')
+        self.assertEqual(data[1]['resource'], 'https://ieeexplore.ieee.org/document/7914752')
+        self.assertEqual(data[1]['type'], 'Scientific publication')
+
+    def test_acdd_references_as_related_information2(self):
+        """ Test that references (doi/uri) are correctly retrieved."""
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.references = (
+            "https://data.met.no/dataset/3f9974bf-b073-4c16-81d8-c34fcf3b1f01"
+            " (Dataset landing page),"  # added a space
+            "https://ieeexplore.ieee.org/document/7914752 (Scientific publication)"  # added space
         )
         data = md.get_related_information(mmd_yaml['related_information'], ncin)
         self.assertEqual(
