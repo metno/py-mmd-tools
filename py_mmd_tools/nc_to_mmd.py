@@ -974,7 +974,7 @@ class Nc_to_mmd(object):
                     "%s must be formed as <uri>(<type>)." % acdd_key
                 )
                 continue
-            uri = ri[0]
+            uri = ri[0].strip()
             if not valid_url(uri):
                 self.missing_attributes['errors'].append(
                     '%s must contain valid uris' % acdd_key
@@ -1045,7 +1045,7 @@ class Nc_to_mmd(object):
         acdd_license = list(mmd_element['resource']['acdd'].keys())[0]
         acdd_license_id = list(mmd_element['identifier']['acdd_ext'].keys())[0]
         license = getattr(ncin, acdd_license).split('(')
-        license_url = license[0]
+        license_url = license[0].strip()
         # validate url
         if not valid_url(license_url):
             # Try deprecated attribute name
