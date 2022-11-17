@@ -781,9 +781,9 @@ class Nc_to_mmd(object):
                     'title': title,
                 }
                 if len(urls) <= i:
-                    # Issue warning
-                    self.missing_attributes['warnings'].append(
-                        '%s attribute is missing' % acdd_url_key)
+                    ## Issue warning (not necessary, since it is not mandatory)
+                    #self.missing_attributes['warnings'].append(
+                    #    '%s attribute is missing' % acdd_url_key)
                     url = ''
                 else:
                     url = urls[i]
