@@ -1179,8 +1179,10 @@ class TestNC2MMD(unittest.TestCase):
         value = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
         self.assertEqual(value[0]['author'],
                          'DIVISION FOR OBSERVATION QUALITY AND DATA PROCESSING')
+        """ Not issued unless the warning in nc_to_mmd.py is uncommented:
         self.assertEqual(md.missing_attributes['warnings'][0],
                          'metadata_link attribute is missing')
+        """
 
     def test_dataset_citation_invalid_url(self):
         """ Test that a warning is issued if the url provided in the
