@@ -962,11 +962,16 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd('tests/data/reference_nc_missing_keywords_vocab.nc', check_only=True)
-        ncin = Dataset(md.netcdf_product)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.platform = 'Suomi National Polar-orbiting Partnership'
+        ncin.instrument = 'ASAR'
+        ncin.instrument_vocabulary = 'not a valid vocab url'
         value = md.get_platforms(mmd_yaml['platform'], ncin)
         self.assertEqual(value[0]['short_name'], 'SNPP')
         self.assertEqual(md.missing_attributes['warnings'][0],
-                         '"" in instrument_vocabulary attribute is not a valid url')
+                         '"not a valid vocab url" in '
+                         'instrument_vocabulary attribute is not a '
+                         'valid url')
 
     def test_platform_vocabulary_invalid_url(self):
         mmd_yaml = yaml.load(
@@ -980,10 +985,11 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value, [{'long_name': 'Envisat', 'short_name': ''}])
         self.assertEqual(md.missing_attributes['warnings'][0],
                          '"invalid_url" in platform_vocabulary attribute is not a valid url')
-        self.assertEqual(md.missing_attributes['warnings'][1],
-                         '"" in instrument_vocabulary attribute is not a valid url')
 
     def test_missing_platform_vocabulary(self):
+        """ Test that a warning is issued if the platform vocabulary
+        is missing.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -994,8 +1000,6 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value, [{'long_name': 'Envisat', 'short_name': ''}])
         self.assertEqual(md.missing_attributes['warnings'][0],
                          '"" in platform_vocabulary attribute is not a valid url')
-        self.assertEqual(md.missing_attributes['warnings'][1],
-                         '"" in instrument_vocabulary attribute is not a valid url')
 
     def test_missing_vocabulary_platform(self):
         """ToDo: Add docstring"""
