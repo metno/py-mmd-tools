@@ -52,6 +52,28 @@ history:
       comment: Required
       description: Provides an audit trail for modifications to the original data. This attribute is also in the NetCDF Users Guide ('This is a character array with a line for each invocation of a program that has modified the dataset. Well-behaved generic netCDF applications should append a line containing date, time of day, user name, program name and command arguments'). To include a more complete description you can append a reference to an ISO Lineage entity; see NOAA EDM ISO Lineage guidance.
 
+# publisher_type is not in MMD but suggested for the netcdf file
+publisher_type:
+  maxOccurs: '1'
+  minOccurs: '0'
+  acdd:
+    publisher_type:
+      maxOccurs: '1'
+      minOccurs: '0'
+      comment: Suggested
+      description: Specifies type of publisher as one of 'person', 'group', 'institution', or 'position'. If this attribute is not specified, the publisher is assumed to be a person.
+
+# publisher_email is not in MMD but recommended for the netcdf file
+publisher_email:
+  maxOccurs: '1'
+  minOccurs: '0'
+  acdd:
+    publisher_email:
+      maxOccurs: '1'
+      minOccurs: '0'
+      comment: Recommended
+      description: The email address of the person (or other entity specified by the publisher_type attribute) responsible for publishing the data file or product to users, with its current metadata and format.
+
 last_metadata_update:
   maxOccurs: '1'
   minOccurs: '1'
@@ -471,7 +493,7 @@ platform:
       platform:
         separator: ','
         comment: Recommended
-        description: Name of the platform(s) that supported the sensor used to create this dataset. Platforms can be of any type, including satellite, ship, station, aircraft or other. Both https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#platform-1[MMD] and https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/platforms[GCMD] has controlled vocabularies for platform names. Indicate which controlled vocabulary that is used in the platform_vocabulary attribute. Comma separated list.
+        description: Name of the platform(s) that supported the sensor used to create this dataset. Platforms can be of any type, including satellite, ship, station, aircraft or other. Both https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#platform-1[MMD] and https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/platforms[GCMD] has controlled vocabularies for platform names (the GCMD one is a large xml file in which the data producer must search for the correct platform name [use prefLabel], e.g. like <ctrl>-f "models</skos:prefLabel"). Indicate which controlled vocabulary that is used in the platform_vocabulary attribute. Comma separated list.
   resource:
     acdd:
       platform_vocabulary:
@@ -490,7 +512,7 @@ platform:
         instrument:
           separator: ','
           comment: Optional
-          description: Name of the instrument(s) or sensor(s) used to create this dataset. Both https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#instruments[MMD] and https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/instruments[GCMD] has controlled vocabularies for instrument names. Indicate which controlled vocabulary that is used in the instrument_vocabulary attribute. Comma separated list.
+          description: Name of the instrument(s) or sensor(s) used to create this dataset. Both https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#instruments[MMD] and https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/instruments[GCMD] has controlled vocabularies for instrument names (the GCMD one is a large xml file in which the data producer must search for the correct instrument name [use prefLabel], e.g. like <ctrl>-f "thermometers</skos:prefLabel"). Indicate which controlled vocabulary that is used in the instrument_vocabulary attribute. Comma separated list.
     resource:
       acdd:
         instrument_vocabulary:
