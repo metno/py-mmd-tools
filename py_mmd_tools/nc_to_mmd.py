@@ -110,7 +110,7 @@ def normalize_iso8601_0(s):
 class Nc_to_mmd(object):
 
     # Some constants:
-    VALID_NAMING_AUTHORITIES = ['no.met']   # add others when needed..
+    VALID_NAMING_AUTHORITIES = ['no.met', ]  # 'no.nve']   # add others when needed. See #198
     ACDD_ID = 'id'
     ACDD_NAMING_AUTH = 'naming_authority'
     ACDD_ID_INVALID_CHARS = ['\\', '/', ':', ' ']
@@ -491,6 +491,7 @@ class Nc_to_mmd(object):
         acdd_emails = self.get_attribute_name_list(mmd_element['email'])
         acdd_organisations = self.get_attribute_name_list(mmd_element['organisation'])
 
+        data = []
         for acdd_name in acdd_names.keys():
             # Get names
             if acdd_name in ncin.ncattrs():
@@ -531,8 +532,17 @@ class Nc_to_mmd(object):
                         these_orgs.append(these_orgs[i-1])
             organisations.extend(these_orgs)
 
-        if not len(names) == len(roles) == len(emails) == len(organisations):
-            self.missing_attributes['errors'].append('Attributes must have same number of entries')
+            if not len(names) == len(roles) == len(emails) == len(organisations):
+                acdd_orgs = ''
+                for acdd_org in acdd_organisations_list:
+                    acdd_orgs += '/%s' % acdd_org
+                acdd_orgs = acdd_orgs[1:]
+                self.missing_attributes['errors'].append(
+                    'ACDD attributes %s, %s, %s and %s must have the '
+                    'same number of (comma separated) entries.' % (acdd_name, acdd_role,
+                                                                   acdd_email, acdd_orgs))
+                return data
+
         clean = 0
         if len(names) > 1 and 'Not available' in names:
             clean = 1
@@ -550,7 +560,6 @@ class Nc_to_mmd(object):
                 else:
                     clean = 0
 
-        data = []
         for i in range(len(names)):
             data.append({
                 'role': roles[i],
@@ -1027,7 +1036,7 @@ class Nc_to_mmd(object):
                 self.missing_attributes['errors'].append(
                     'The dataset should follow the ACDD convention. '
                     'Please provide the ACDD convention version in '
-                    'the Conventions attribute.')
+                    'the "Conventions" attribute.')
 
     def get_license(self, mmd_element, ncin):
         """ Get ACDD license attribute.
