@@ -50,8 +50,10 @@ def create_parser():
     return parser
 
 
-def main(args):
+def main():
     """Run tool to create MMD xml file from input netCDF-CF file(s)"""
+
+    args = create_parser().parse_args()
 
     if pathlib.Path(args.input).is_dir():
         # Directory containing nc files
@@ -76,5 +78,4 @@ def main(args):
 
 
 if __name__ == '__main__':  # pragma: no cover
-    parser = create_parser()
-    main(parser.parse_args())
+    main()

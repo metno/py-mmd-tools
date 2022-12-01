@@ -36,8 +36,10 @@ def create_parser():
     return parser
 
 
-def main(args):
+def main():
     """Main method for checking netcdf file"""
+
+    args = create_parser().parse_args()
 
     # args.input as str, because if pathlib.Path, it is not compatible with URLs
     if pathlib.Path(args.input).is_dir():
@@ -67,5 +69,4 @@ def main(args):
 
 
 if __name__ == '__main__':  # pragma: no cover
-    parser = create_parser()
-    main(parser.parse_args())
+    main()

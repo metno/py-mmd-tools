@@ -38,8 +38,11 @@ def create_parser():
     return parser
 
 
-def main(args):
+def main():
     """ToDo: Add docstring"""
+
+    args = create_parser().parse_args()
+
     if not args.output_file:
         sys.exit()
 
@@ -49,5 +52,4 @@ def main(args):
 
 
 if __name__ == '__main__':  # pragma: no cover
-    parser = create_parser()
-    main(parser.parse_args())
+    main()
