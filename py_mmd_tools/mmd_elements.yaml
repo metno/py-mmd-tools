@@ -303,39 +303,39 @@ personnel:
         separator: ','
         recommended: False
         comment: Comma separated list.
-        description: The role of the data creator is by default 'Investigator'.
+        description: The role of the data creator is by default 'Investigator'. If multiple creators are provided, all roles should be provided as a comma separated list of the same length as the list of creator names. Creator roles should be defined using elements from the https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#contact-roles[contact role types in the MMD specification].
     acdd: 
       contributor_role:
         default: 'Technical contact'
         separator: ','
         comment: Comma separated list.
-        description: The role of any individuals, projects, or institutions that contributed to the creation of this data. May be presented as free text, or in a structured format compatible with conversion to ncML (e.g., insensitive to changes in whitespace, including end-of-line characters). Multiple roles should be presented in the same order and number as the names in contributor_names.
+        description: The role of any individuals, projects, or institutions that contributed to the creation of this data. May be presented as free text, or in a structured format compatible with conversion to ncML (e.g., insensitive to changes in whitespace, including end-of-line characters). Multiple roles should be presented in the same order and number as the names in contributor_names. Contributor roles should be defined using elements from the https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#contact-roles[contact role types in the MMD specification].
   name:
     acdd:
       creator_name:
         default: 'Not available'
         separator: ','
         comment: Required. Consistency across comma separated lists for all creator_* attributes is required. Do not use ',' except for separating elements.
-        description: The name of the person (or other creator type specified by the creator_type attribute) principally responsible for creating this data. If multiple persons are involved, please list these as a comma separated list. Anyone that should be listed as dataset creators in DOI landing pages should be added to this item.
+        description: The name of the person (or other creator type specified by the creator_type attribute) principally responsible for creating this data. If multiple persons are involved, please list these as a comma separated list. In such situation please remember to add a comma separated string for creator_institution, creator_email and creator_role as well. Anyone that should be listed as dataset creators in DOI landing pages should be added to this item.
       contributor_name:
         default: 'Not available'
         separator: ','
         comment: Comma separated list.
-        description: The name of any individuals, projects, or institutions that contributed to the creation of this data. May be presented as free text, or in a structured format compatible with conversion to ncML (e.g., insensitive to changes in whitespace, including end-of-line characters).
+        description: The name of any individuals, projects, or institutions that contributed to the creation of this data. May be presented as free text, or in a structured format compatible with conversion to ncML (e.g., insensitive to changes in whitespace, including end-of-line characters). If multiple persons are involved, please list these as a comma separated list.
   creator_type:
     acdd:
       creator_type:
         default: person
         separator: ','
         comment: Required (unless it is "person"). Consistency across comma separated lists for all creator_* attributes is required. Do not use ',' except for separating elements.
-        description: Specifies type of creator (one of 'person', 'group', 'institution', or 'position'). If this attribute is not specified, the creator is assumed to be a person. If multiple persons are involved, please list these as a comma separated string. In such situation please remember to add a comma separated string for creator_institution and creator_email as well. Consistency between these fields are done from left to right.
+        description: Specifies type of creator (one of 'person', 'group', 'institution', or 'position'). If this attribute is not specified, the creator is assumed to be a person. If multiple persons are involved, please list these as a comma separated string. In such situation please remember to add a comma separated string for creator_institution, creator_email and creator_role as well. Consistency between these fields are done from left to right.
   email:
     acdd:
       creator_email:
         default: 'Not available'
         separator: ','
-        comment: Required. Consistency across comma separated lists for all creator_* attributes is required. Do not use ',' except for separating elements.
-        description: The email address of the person (or other creator type specified by the creator_type attribute) principally responsible for creating this data. See description of creator_type.
+        comment: Required.
+        description: The email address of the person (or other creator type specified by the creator_type attribute) principally responsible for creating this data. See description of creator_type. Consistency across comma separated lists for all creator_* attributes is required.
     acdd_ext:
       contributor_email:
         default: 'Not available'
@@ -349,8 +349,8 @@ personnel:
       creator_institution:
         default: 'Not available'
         separator: ','
-        comment: Required. Consistency across comma separated lists for all creator_* attributes is required. Do not use ',' except for separating elements. 
-        description: The institution of the creator; should uniquely identify the creator's institution. This attribute's value should be specified even if it matches the value of publisher_institution, or if creator_type is institution. See description of creator_type.
+        comment: Required.
+        description: The institution of the creator; should uniquely identify the creator's institution. This attribute's value should be specified even if it matches the value of publisher_institution, or if creator_type is institution. See description of creator_type. Consistency across comma separated lists for all creator_* attributes is required.
     acdd_ext: 
       contributor_institution:
         description: The institution of the contributor(s). Consistency across comma separated lists for all contributor_* attributes is required.
