@@ -856,7 +856,9 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[0]['end_date'], '2020-11-27T13:51:24.401505Z')
 
     def test_personnel_multiple_mixed(self):
-        """ToDo: Add docstring"""
+        """Test that an error is raised if the creator_* attributes
+        don't have the same number of comma separated entries.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -868,7 +870,9 @@ class TestNC2MMD(unittest.TestCase):
         md.get_personnel(mmd_yaml['personnel'], ncin)
         self.assertEqual(
             md.missing_attributes['errors'][0],
-            'Attributes must have same number of entries'
+            'ACDD attributes creator_name, creator_role, '
+            'creator_email and creator_institution must have the same'
+            ' number of (comma separated) entries.'
         )
 
     def test_personnel_multiple(self):
@@ -1823,7 +1827,7 @@ class TestNC2MMD(unittest.TestCase):
             md.missing_attributes["errors"][1],
             'The dataset should follow the ACDD convention. '
             'Please provide the ACDD convention version in '
-            'the Conventions attribute.')
+            'the "Conventions" attribute.')
 
     def test_institution_long_name_missing(self):
         mmd_yaml = yaml.load(
