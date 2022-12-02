@@ -225,7 +225,7 @@ class Mmd_to_nc(object):
 
         """
         assert separator == \
-            self.mmd_yaml['personnel']['role']['acdd']['creator_role']['separator']
+            self.mmd_yaml['personnel']['name']['acdd']['creator_name']['separator']
 
         out = {}
         sep = {}
@@ -336,7 +336,7 @@ class Mmd_to_nc(object):
                 <mmd:publisher>John Doe</mmd:publisher>
             </mmd:dataset_citation>
         """
-        for child in ['publisher', 'url', 'other']:
+        for child in ['publisher', 'url']:
             found = element.find(f'mmd:{child}', namespaces=self.namespaces)
             if found is not None:
                 self.update_acdd({

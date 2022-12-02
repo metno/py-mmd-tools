@@ -208,7 +208,6 @@ class TestMMD2NC(unittest.TestCase):
         self.assertRaises(KeyError, lambda: md.acdd_metadata['title'])
         self.assertRaises(KeyError, lambda: md.acdd_metadata['creator_name'])
         self.assertEqual(md.acdd_metadata['metadata_link'], 'http://metadata.eu')
-        self.assertEqual(md.acdd_metadata['references'], 'Processed using my tool.')
 
     def test_process_last_metadata_update(self):
         """

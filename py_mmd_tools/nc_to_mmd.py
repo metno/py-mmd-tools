@@ -110,7 +110,7 @@ def normalize_iso8601_0(s):
 class Nc_to_mmd(object):
 
     # Some constants:
-    VALID_NAMING_AUTHORITIES = ['no.met']   # add others when needed..
+    VALID_NAMING_AUTHORITIES = ['no.met', ]  # 'no.nve']   # add others when needed. See #198
     ACDD_ID = 'id'
     ACDD_NAMING_AUTH = 'naming_authority'
     ACDD_ID_INVALID_CHARS = ['\\', '/', ':', ' ']
@@ -491,6 +491,7 @@ class Nc_to_mmd(object):
         acdd_emails = self.get_attribute_name_list(mmd_element['email'])
         acdd_organisations = self.get_attribute_name_list(mmd_element['organisation'])
 
+        data = []
         for acdd_name in acdd_names.keys():
             # Get names
             if acdd_name in ncin.ncattrs():
@@ -531,8 +532,17 @@ class Nc_to_mmd(object):
                         these_orgs.append(these_orgs[i-1])
             organisations.extend(these_orgs)
 
-        if not len(names) == len(roles) == len(emails) == len(organisations):
-            self.missing_attributes['errors'].append('Attributes must have same number of entries')
+            if not len(names) == len(roles) == len(emails) == len(organisations):
+                acdd_orgs = ''
+                for acdd_org in acdd_organisations_list:
+                    acdd_orgs += '/%s' % acdd_org
+                acdd_orgs = acdd_orgs[1:]
+                self.missing_attributes['errors'].append(
+                    'ACDD attributes %s, %s, %s and %s must have the '
+                    'same number of (comma separated) entries.' % (acdd_name, acdd_role,
+                                                                   acdd_email, acdd_orgs))
+                return data
+
         clean = 0
         if len(names) > 1 and 'Not available' in names:
             clean = 1
@@ -550,7 +560,6 @@ class Nc_to_mmd(object):
                 else:
                     clean = 0
 
-        data = []
         for i in range(len(names)):
             data.append({
                 'role': roles[i],
@@ -615,6 +624,10 @@ class Nc_to_mmd(object):
             for vocabulary in vocabularies:
                 prefix = vocabulary.split(':')[0]
                 resource = [r.replace(prefix+':', '') for r in resources if prefix in r][0]
+                if not valid_url(resource):
+                    self.missing_attributes['errors'].append(
+                        '%s in %s attribute is not a valid url' % (resource, acdd_vocabulary_key))
+                    continue
                 keywords_this = [k.replace(prefix+':', '') for k in keywords if prefix in k]
                 data.append({
                     'resource': resource,
@@ -702,6 +715,12 @@ class Nc_to_mmd(object):
             if resource != '':
                 data_dict['resource'] = resource
 
+            if data_dict['resource'] == '' or not valid_url(data_dict['resource']):
+                self.missing_attributes['warnings'].append(
+                    '"%s" in %s attribute is not a valid url' % (data_dict['resource'],
+                                                                 acdd_resource_key))
+                data_dict.pop('resource')
+
             instrument_dict = {
                 'long_name': instrument_data.get('Long_Name', ''),
                 'short_name': instrument_data.get('Short_Name', ''),
@@ -713,7 +732,15 @@ class Nc_to_mmd(object):
             if iresource != '':
                 instrument_dict['resource'] = iresource
 
-            data_dict['instrument'] = instrument_dict
+            if instrument_dict['resource'] == '' or not valid_url(instrument_dict['resource']):
+                if instrument_dict['resource'] != '':
+                    self.missing_attributes['warnings'].append(
+                        '"%s" in %s attribute is not a valid url' % (instrument_dict['resource'],
+                                                                     acdd_instrument_resource_key))
+                instrument_dict.pop('resource')
+
+            if instrument_dict['long_name'] != '' or instrument_dict['short_name'] != '':
+                data_dict['instrument'] = instrument_dict
 
             data.append(data_dict)
 
@@ -748,11 +775,6 @@ class Nc_to_mmd(object):
         acdd_url_key = list(acdd_url.keys())[0]
         if acdd_url_key in ncin.ncattrs():
             urls = self.separate_repeated(True, getattr(ncin, acdd_url_key))
-        acdd_other = mmd_element['other'].pop('acdd')
-        others = []
-        acdd_other_key = list(acdd_other.keys())[0]
-        if acdd_other_key in ncin.ncattrs():
-            others = self.separate_repeated(True, getattr(ncin, acdd_other_key))
         data = []
         for i in range(len(publication_dates)):
             ndt, reason = normalize_iso8601(publication_dates[i])
@@ -763,22 +785,31 @@ class Nc_to_mmd(object):
                     % (acdd_publication_date_key, publication_dates[i], reason)
                 )
             else:
+                data_dict = {
+                    'author': authors,
+                    'publication_date': ndt,
+                    'title': title,
+                }
                 if len(urls) <= i:
+                    """ not necessary, since metadata_link is not mandatory
+                    # Issue warning
+                    self.missing_attributes['warnings'].append(
+                        '%s attribute is missing' % acdd_url_key)
+                    """
                     url = ''
                 else:
                     url = urls[i]
-                if len(others) <= i:
-                    other = ''
+                # Validate the url
+                if not valid_url(url):
+                    if url != '':
+                        # Issue warning
+                        self.missing_attributes['warnings'].append(
+                            '"%s" in %s attribute is not a valid url' % (url, acdd_url_key))
                 else:
-                    other = others[i]
-                data.append({
-                    'author': authors,
-                    # save as ISO8601, not datetime object..
-                    'publication_date': ndt,
-                    'title': title,
-                    'url': url,
-                    'other': other,
-                })
+                    data_dict['url'] = url
+
+                data.append(data_dict)
+
         return data
 
     @staticmethod
@@ -903,43 +934,76 @@ class Nc_to_mmd(object):
         """Get dataset coverage as a rectangle (north, south, east, west).
         """
         data = {}
-        acdd_north = mmd_element['north']['acdd']
-        acdd_south = mmd_element['south']['acdd']
-        acdd_east = mmd_element['east']['acdd']
-        acdd_west = mmd_element['west']['acdd']
+        directions = ['north', 'south', 'east', 'west']
+
         data['srsName'] = mmd_element['srsName']['default']
+        for dir in directions:
+            acdd = mmd_element[dir]['acdd']
+            acdd_key = list(acdd.keys())[0]
+            if acdd_key not in ncin.ncattrs():
+                self.missing_attributes['errors'].append(
+                    '%s is a required attribute' % acdd_key
+                )
+            else:
+                data[dir] = getattr(ncin, acdd_key)
+                try:
+                    float(data[dir])
+                except ValueError:
+                    self.missing_attributes['errors'].append(
+                        '%s must be convertible to float type.' % acdd_key
+                    )
 
-        acdd_north_key = list(acdd_north.keys())[0]
-        if acdd_north_key not in ncin.ncattrs():
-            self.missing_attributes['errors'].append(
-                '%s is a required attribute' % acdd_north_key
-            )
-        else:
-            data['north'] = getattr(ncin, acdd_north_key)
+        return data
 
-        acdd_south_key = list(acdd_south.keys())[0]
-        if acdd_south_key not in ncin.ncattrs():
-            self.missing_attributes['errors'].append(
-                '%s is a required attribute' % acdd_south_key
-            )
-        else:
-            data['south'] = getattr(ncin, acdd_south_key)
-
-        acdd_east_key = list(acdd_east.keys())[0]
-        if acdd_east_key not in ncin.ncattrs():
-            self.missing_attributes['errors'].append(
-                '%s is a required attribute' % acdd_east_key
-            )
-        else:
-            data['east'] = getattr(ncin, acdd_east_key)
-
-        acdd_west_key = list(acdd_west.keys())[0]
-        if acdd_west_key not in ncin.ncattrs():
-            self.missing_attributes['errors'].append(
-                '%s is a required attribute' % acdd_west_key
-            )
-        else:
-            data['west'] = getattr(ncin, acdd_west_key)
+    def get_related_information(self, mmd_element, ncin):
+        """ Get related information stored in the netcdf attribute
+        references.
+        """
+        VALID_TYPES = [
+            'Project home page',
+            'Users guide',
+            'Dataset landing page',
+            'Scientific publication',
+            'Data paper',
+            'Data management plan',
+            'Software',
+            'Other documentation',
+            'Observation facility',
+            'Extended metadata',
+        ]
+        data = []
+        repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['0', '1']
+        acdd = mmd_element['resource']['acdd']
+        separator = acdd.pop('separator', ',')
+        acdd_key = list(acdd.keys())[0]
+        refs = []
+        if acdd_key in ncin.ncattrs():
+            refs = self.separate_repeated(repetition_allowed, getattr(ncin, acdd_key), separator)
+        for ref in refs:
+            ri = ref.split('(')
+            if len(ri) != 2:
+                self.missing_attributes['errors'].append(
+                    "%s must be formed as <uri>(<type>)." % acdd_key
+                )
+                continue
+            uri = ri[0].strip()
+            if not valid_url(uri):
+                self.missing_attributes['errors'].append(
+                    '%s must contain valid uris' % acdd_key
+                )
+                continue
+            type = ri[1][:-1]
+            if type not in VALID_TYPES:
+                self.missing_attributes['errors'].append(
+                    'Reference types must follow a controlled '
+                    'vocabulary from MMD (see https://htmlpreview.'
+                    'github.io/?https://github.com/metno/mmd/blob/'
+                    'master/doc/mmd-specification.html#related-'
+                    'information-types).')
+                continue
+            ri = {'resource': uri, 'type': type}
+            ri['description'] = ""  # not easily available in acdd - needs to be discussed
+            data.append(ri)
         return data
 
     def check_attributes_not_empty(self, ncin):
@@ -957,7 +1021,9 @@ class Nc_to_mmd(object):
         # Check that the Conventions attribute is present
         if 'Conventions' not in ncin.ncattrs():
             self.missing_attributes['errors'].append(
-                'Required attribute "Conventions" is missing.')
+                'Required attribute "Conventions" is missing. This '
+                'should be provided as a comma-separated string of '
+                'the conventions that are followed by the dataset.')
         else:
             # Check that the conventions attribute contains CF and ACCD
             if 'CF' not in ncin.getncattr('Conventions'):
@@ -970,7 +1036,7 @@ class Nc_to_mmd(object):
                 self.missing_attributes['errors'].append(
                     'The dataset should follow the ACDD convention. '
                     'Please provide the ACDD convention version in '
-                    'the Conventions attribute.')
+                    'the "Conventions" attribute.')
 
     def get_license(self, mmd_element, ncin):
         """ Get ACDD license attribute.
@@ -990,8 +1056,8 @@ class Nc_to_mmd(object):
         old_version = False
         acdd_license = list(mmd_element['resource']['acdd'].keys())[0]
         acdd_license_id = list(mmd_element['identifier']['acdd_ext'].keys())[0]
-        acdd_license = getattr(ncin, acdd_license).split('(')
-        license_url = acdd_license[0]
+        license = getattr(ncin, acdd_license).split('(')
+        license_url = license[0].strip()
         # validate url
         if not valid_url(license_url):
             # Try deprecated attribute name
@@ -999,7 +1065,8 @@ class Nc_to_mmd(object):
                 license_url = ncin.license_resource
             if not valid_url(license_url):
                 self.missing_attributes['errors'].append(
-                    '%s is not a valid url' % license_url)
+                    '"%s" is not a valid url' % license_url)
+                return data
             else:
                 data = {'resource': license_url}
                 old_version = True
@@ -1007,8 +1074,8 @@ class Nc_to_mmd(object):
                     '"license_resource" is a deprecated attribute')
         else:
             data = {'resource': license_url}
-        if len(acdd_license) > 1:
-            data['identifier'] = acdd_license[1][0:-1]
+        if len(license) > 1:
+            data['identifier'] = license[1][0:-1]
         else:
             if acdd_license_id not in ncin.ncattrs():
                 self.missing_attributes['warnings'].append(
@@ -1126,11 +1193,11 @@ class Nc_to_mmd(object):
         self.metadata['project'] = self.get_projects(mmd_yaml.pop('project'), ncin)
         self.metadata['platform'] = self.get_platforms(mmd_yaml.pop('platform'), ncin)
         self.metadata['dataset_citation'] = self.get_dataset_citations(
-            mmd_yaml.pop('dataset_citation'), ncin
-        )
+            mmd_yaml.pop('dataset_citation'), ncin)
         self.metadata['related_dataset'] = self.get_related_dataset(
-            mmd_yaml.pop('related_dataset'), ncin
-        )
+            mmd_yaml.pop('related_dataset'), ncin)
+        self.metadata['related_information'] = self.get_related_information(
+            mmd_yaml.pop('related_information'), ncin)
         # Optionally add geographic extent
         self.metadata['geographic_extent'] = {}
         if geographic_extent_rectangle:
