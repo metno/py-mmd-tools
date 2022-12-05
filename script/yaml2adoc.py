@@ -38,10 +38,8 @@ def create_parser():
     return parser
 
 
-def main():
+def main(args=None):
     """ToDo: Add docstring"""
-
-    args = create_parser().parse_args()
 
     if not args.output_file:
         sys.exit()
@@ -51,5 +49,9 @@ def main():
         fh.write(adoc)
 
 
+def _main():  # pragma: no cover
+    main(create_parser().parse_args())  # entry point in setup.cfg
+
+
 if __name__ == '__main__':  # pragma: no cover
-    main()
+    main(create_parser().parse_args())
