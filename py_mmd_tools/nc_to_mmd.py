@@ -959,7 +959,7 @@ class Nc_to_mmd(object):
         """ Get related information stored in the netcdf attribute
         references.
         """
-        VALID_TYPES = [
+        VALID_REF_TYPES = [
             'Project home page',
             'Users guide',
             'Dataset landing page',
@@ -992,16 +992,23 @@ class Nc_to_mmd(object):
                     '%s must contain valid uris' % acdd_key
                 )
                 continue
-            type = ri[1][:-1]
-            if type not in VALID_TYPES:
+            ref_type = ri[1][:-1]
+            valid_ref_types = [vt.lower() for vt in VALID_REF_TYPES]
+            if ref_type.lower() not in valid_ref_types:
                 self.missing_attributes['errors'].append(
-                    'Reference types must follow a controlled '
-                    'vocabulary from MMD (see https://htmlpreview.'
-                    'github.io/?https://github.com/metno/mmd/blob/'
-                    'master/doc/mmd-specification.html#related-'
-                    'information-types).')
+                    'Reference types must follow a '
+                    'controlled vocabulary from MMD (see '
+                    'https://htmlpreview.github.io/?https://github.'
+                    'com/metno/mmd/blob/master/doc/mmd-specification.'
+                    'html#related-information-types).')
                 continue
-            ri = {'resource': uri, 'type': type}
+            # Need to make a new list of lists to use the filter
+            # function for comparison between ref_type and valid
+            # types from the MMD controlled vocabulary of related
+            # information types:
+            xx = [[ref_type, tt] for tt in VALID_REF_TYPES]
+            x = filter(lambda a: a[0].lower() == a[1].lower(), xx)
+            ri = {'resource': uri, 'type': list(x)[0][1]}
             ri['description'] = ""  # not easily available in acdd - needs to be discussed
             data.append(ri)
         return data
