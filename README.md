@@ -13,6 +13,12 @@ generates an output MMD file called `reference_nc.xml`.
 
 # Tests and syntax checking
 
+Install pytest and pytest-cov
+
+```
+pip install pytest pytest-cov
+```
+
 To run the tests locally:
 ```
 export MMD_PATH=<PATH TO MMD REPO>
