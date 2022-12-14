@@ -11,6 +11,60 @@ Python tools for MMD. The package contains tools for generating MMD files from n
 
 generates an output MMD file called `reference_nc.xml`.
 
+# Installation
+
+To avoid problems with conflicting versions, we recommend using the [Conda](
+https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html) package manager.
+The below steps assume that Conda is installed.
+
+Create a new environment:
+
+```text
+conda create --name testenv python=3.9
+```
+
+Verify that the new environment is registered:
+
+```text
+conda info --envs
+```
+
+Activate (use) the new environment:
+
+```text
+conda activate testenv
+```
+
+Install the Py-MMD-Tools package:
+
+```text
+pip install .
+```
+
+Provided that all dependencies happen to already be installed, the following should work
+(and generate an MMD file):
+
+```text
+PYTHONPATH=. nc2mmd -i tests/data/reference_nc.nc -o .
+```
+
+If the command fails due to missing packages (see `conda list`), these may now be installed like
+this (for a given package P):
+
+```text
+conda install P
+```
+
+**Tip:** Sometimes `pip install P` works if `conda install P` doesn't.
+
+## Installing metvocab
+
+The *metvocab* package can be installed like this:
+
+```text
+pip install metvocab@git+https://github.com/metno/met-vocab-tools@v1.0.1
+```
+
 # Tests and syntax checking
 
 Install pytest and pytest-cov
