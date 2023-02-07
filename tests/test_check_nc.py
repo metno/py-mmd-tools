@@ -13,8 +13,8 @@ import pytest
 import shutil
 import tempfile
 
-from script.check_nc import main
-from script.check_nc import create_parser
+from py_mmd_tools.script.check_nc import main
+from py_mmd_tools.script.check_nc import create_parser
 
 
 @pytest.mark.script
