@@ -3,11 +3,11 @@
 [![pytest](https://github.com/metno/py-mmd-tools/actions/workflows/tests.yml/badge.svg)](https://github.com/metno/py-mmd-tools/actions/workflows/tests.yml)
 [![codecov](https://codecov.io/gh/metno/py-mmd-tools/branch/master/graph/badge.svg)](https://codecov.io/gh/metno/py-mmd-tools)
 
-Python tools for MMD. The package contains tools for generating MMD files from netCDF-CF files with ACDD attributes, for documenting netCDF-CF files from MMD information, and for updating the [Data Management Handbook](https://metno.github.io/data-management-handbook/) with information about the translation from ACDD to MMD. Command line tools are available in the `scripts/` folder. For example,
+Python tools for MMD. The package contains tools for generating MMD files from netCDF-CF files with ACDD attributes, for documenting netCDF-CF files from MMD information, and for updating the [Data Management Handbook](https://metno.github.io/data-management-handbook/) with information about the translation from ACDD to MMD. Command line tools are available in the `py_mmd_tools/scripts/` folder. For example,
 
 See it [here](https://metno.github.io/data-management-handbook/).
 ```
-./script/nc2mmd.py -i tests/data/reference_nc.nc -o .
+./py_mmd_tools/script/nc2mmd.py -i tests/data/reference_nc.nc -o .
 ```
 
 generates an output MMD file called `reference_nc.xml`.
@@ -45,7 +45,7 @@ pip install .
 All dependencies should now be installed, and the following command should generate an MMD file:
 
 ```text
-PYTHONPATH=. nc2mmd -i tests/data/reference_nc.nc -o .
+nc2mmd -i tests/data/reference_nc.nc -o .
 ```
 
 (alternatively use `export PYTHONPATH=$PWD`)

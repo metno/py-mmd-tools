@@ -12,8 +12,8 @@ import tempfile
 
 import pytest
 
-from script.yaml2adoc import create_parser
-from script.yaml2adoc import main
+from py_mmd_tools.script.yaml2adoc import create_parser
+from py_mmd_tools.script.yaml2adoc import main
 
 
 @pytest.mark.script

@@ -13,8 +13,8 @@ import tempfile
 
 import pytest
 
-from script.nc2mmd import create_parser
-from script.nc2mmd import main
+from py_mmd_tools.script.nc2mmd import create_parser
+from py_mmd_tools.script.nc2mmd import main
 
 
 @pytest.mark.script
