@@ -1076,7 +1076,6 @@ class Nc_to_mmd(object):
                     "conventions/cf-conventions-1.10/cf-conventions."
                     "html#_features_and_feature_types should be used." % attr)
 
-
     def get_license(self, mmd_element, ncin):
         """ Get ACDD license attribute.
 
