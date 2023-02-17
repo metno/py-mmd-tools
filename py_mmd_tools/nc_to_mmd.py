@@ -1055,11 +1055,11 @@ class Nc_to_mmd(object):
         # service as well but this should be good enough
         options = [
             "point",
-            "timeSeries",
+            "timeseries",
             "trajectory",
             "profile",
-            "timeSeriesProfile",
-            "trajectoryProfile"]
+            "timeseriesprofile",
+            "trajectoryprofile"]
         if attr not in ncin.ncattrs():
             self.missing_attributes["warnings"].append(
                 "CF attribute %s is missing - one of the "
@@ -1069,7 +1069,7 @@ class Nc_to_mmd(object):
                 "_features_and_feature_types should be used." % attr)
         else:
             ftype = ncin.getncattr(attr)
-            if ftype not in options:
+            if ftype.lower() not in options:
                 self.missing_attributes["errors"].append(
                     "%s seems to be wrong - it should be picked from "
                     "Table 9.1 in https://cfconventions.org/Data/cf-"
