@@ -1045,6 +1045,9 @@ class Nc_to_mmd(object):
                     'Please provide the ACDD convention version in '
                     'the "Conventions" attribute.')
 
+    def check_feature_type(self, ncin):
+        pass
+
     def get_license(self, mmd_element, ncin):
         """ Get ACDD license attribute.
 
