@@ -160,16 +160,14 @@ def nc_attrs_from_yaml():
     attributes['acdd_ext'] = {}
     attributes['acdd_ext']['required'] = []
     attributes['acdd_ext']['not_required'] = []
-    attributes['cf'] = {}
-    attributes['cf']['required'] = []
+    attributes['cf'] = []
 
     for key, val in mmd_yaml.items():
         set_attributes(key, val, attributes)
 
     for key, val in cf_yaml.items():
-        if val["required"]:
-            attributes['cf']['required'].append({
-                'attribute': key, 'mmd_field': val['mmd'], 'description': val['description']})
+        attributes['cf'].append({
+            'attribute': key, 'mmd_field': val['mmd'], 'description': val['description']})
 
     env = jinja2.Environment(
         loader=jinja2.PackageLoader(globals()['__name__'].split('.')[0], 'templates'),

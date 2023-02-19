@@ -1,27 +1,26 @@
 ---
 # CF global attributes that are not in ACDD
-comment:
-  required: 0
-  mmd:
-  description: Miscellaneous information about the data or methods used to produce it. Can be omitted thanks to the summary attribute in ACDD.
-
 Conventions:
   required: 1
   mmd: 
-  description: A comma-separated string with names of the conventions that are followed by the dataset, e.g., "CF-1.10, ACDD-1.3".
-
-external_variables:
-  required: 0
-  mmd:
-  description: Identifies variables which are named by cell_measures attributes in the file but which are not present in the file.
-
-featureType:
-  required: 1
-  mmd:
-  description: Specifies the type of discrete sampling geometry to which the data in the scope of this attribute belongs, and implies that all data variables in the scope of this attribute contain collections of features of that type. All of the data variables contained in a single file must be of the single feature type indicated by the global featureType attribute. The value assigned to the featureType attribute is case-insensitive; it must be one of the string values listed in the left column of Table 9.1 in https://cfconventions.org/Data/cf-conventions/cf-conventions-1.10/cf-conventions.html#_features_and_feature_types[chapter 9, Discrete Sampling Geometries, of the CF convention].
+  description: \*Required\*. A comma-separated string with names of the conventions that are followed by the dataset, e.g., "CF-1.10, ACDD-1.3".
 
 history:
   required: 1
   mmd:
-  description: Provides an audit trail for modifications to the original data. This attribute is also in the NetCDF Users Guide ('This is a character array with a line for each invocation of a program that has modified the dataset. Well-behaved generic netCDF applications should append a line containing date, time of day, user name, program name and command arguments'). To include a more complete description you can append a reference to an ISO Lineage entity; see NOAA EDM ISO Lineage guidance.
+  description: \*Required\*. Provides an audit trail for modifications to the original data. This attribute is also in the NetCDF Users Guide ('This is a character array with a line for each invocation of a program that has modified the dataset. Well-behaved generic netCDF applications should append a line containing date, time of day, user name, program name and command arguments'). To include a more complete description you can append a reference to an ISO Lineage entity; see NOAA EDM ISO Lineage guidance.
 
+featureType:
+  required: 0
+  mmd:
+  description: Specifies the type of discrete sampling geometry to which the data in the scope of this attribute belongs, and implies that all data variables in the scope of this attribute contain collections of features of that type. All of the data variables contained in a single file must be of the single feature type indicated by the global featureType attribute. The value assigned to the featureType attribute is case-insensitive; it must be one of the string values listed in the left column of Table 9.1 in https://cfconventions.org/Data/cf-conventions/cf-conventions-1.10/cf-conventions.html#_features_and_feature_types[chapter 9, Discrete Sampling Geometries, of the CF convention]. \*Recommended\* if the data can be described by the listed feature types. 
+
+comment:
+  required: 0
+  mmd:
+  description: Miscellaneous information about the data or methods used to produce it. \*Not required\*.
+
+external_variables:
+  required: 0
+  mmd:
+  description: Identifies variables which are named by cell_measures attributes in the file but which are not present in the file. \*Not required\*.
