@@ -167,7 +167,10 @@ def nc_attrs_from_yaml():
 
     for key, val in cf_yaml.items():
         attributes['cf'].append({
-            'attribute': key, 'mmd_field': val['mmd'], 'description': val['description']})
+            'attribute': key,
+            'mmd_field': val['mmd'],
+            'required': val['required'],
+            'description': val['description']})
 
     env = jinja2.Environment(
         loader=jinja2.PackageLoader(globals()['__name__'].split('.')[0], 'templates'),

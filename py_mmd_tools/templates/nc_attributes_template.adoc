@@ -54,7 +54,7 @@ The following attributes are required:
 |=======================================================================
 |*CF Attribute* |*MMD equivalent* |*Description*
 {% for elem in data['cf'] %}
-|{{ elem['attribute'] }} |*{{ elem['required'] }}* {{ elem['mmd_field'] }} |{{ elem['description'] }}
+|{{ elem['attribute'] }} |{{ elem['mmd_field'] }} |*{{ elem['required'] }}* {{ elem['description'] }}
 {% endfor %}
 |=======================================================================
 
