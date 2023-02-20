@@ -1017,7 +1017,7 @@ class Nc_to_mmd(object):
         """ Check that no global attributes are empty.
         """
         for attr in ncin.ncattrs():
-            if not ncin.getncattr(attr):
+            if ncin.getncattr(attr) == "":
                 raise ValueError("%s: Global attribute %s is empty - please correct." % (
                     self.netcdf_product, attr))
 

@@ -1802,6 +1802,16 @@ class TestNC2MMD(unittest.TestCase):
         self.assertIn('Global attribute geospatial_bounds is empty - please correct.',
                       str(e.exception))
 
+    def test_check_attributes_not_empty__accepts_0(self):
+        """ Previous versions of py-mmd-tools had a Boolean test on
+        each global attribute. Since 0 evaluates to False, this was
+        a bug. This test checks that 0 is accepted.
+        """
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.subswath = 0
+        self.assertEqual(None, md.check_attributes_not_empty(ncin))
+
     def test_check_conventions__missing(self):
         md = Nc_to_mmd(self.fail_nc, check_only=True)
         ncin = Dataset(md.netcdf_product, "w", diskless=True)
