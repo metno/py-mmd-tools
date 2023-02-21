@@ -33,6 +33,21 @@ def test_main_localfile(dataDir):
 
 
 @pytest.mark.script
+def test_main_localfile_specify_collection(dataDir):
+    parser = create_parser()
+    test_in = os.path.join(dataDir, 'reference_nc.nc')
+    out_dir = tempfile.mkdtemp()
+    parsed = parser.parse_args([
+        '-i', test_in,
+        '-o', out_dir,
+        '--collection', 'ADC'
+    ])
+    main(parsed)
+    assert os.path.isfile(os.path.join(out_dir, 'reference_nc.xml'))
+    shutil.rmtree(out_dir)
+
+
+@pytest.mark.script
 def test_main_thredds(dataDir, monkeypatch):
     """Test nc2mmd.py with a fake OPeNDAP file"""
     parser = create_parser()
