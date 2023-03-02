@@ -1812,6 +1812,36 @@ class TestNC2MMD(unittest.TestCase):
         ncin.subswath = 0
         self.assertEqual(None, md.check_attributes_not_empty(ncin))
 
+    def test_check_feature_type__missing(self):
+        """ Test that the correct warning is issued if the CF
+        attribute featureType is missing.
+        """
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.tull = "tull"
+        md.check_feature_type(ncin)
+        self.assertEqual(
+            md.missing_attributes["warnings"][0],
+            "CF attribute featureType is missing - one of the feature"
+            " types listed in Table 9.1 in https://cfconventions.org/"
+            "Data/cf-conventions/cf-conventions-1.10/cf-conventions."
+            "html#_features_and_feature_types should be used.")
+
+    def test_check_feature_type__wrong(self):
+        """ Test that the correct warning is issued if the CF
+        attribute featureType is wrong.
+        """
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_product, "w", diskless=True)
+        ncin.featureType = "tull"
+        md.check_feature_type(ncin)
+        self.assertEqual(
+            md.missing_attributes["errors"][0],
+            "featureType seems to be wrong - it should be picked from "
+            "Table 9.1 in https://cfconventions.org/Data/cf-"
+            "conventions/cf-conventions-1.10/cf-conventions."
+            "html#_features_and_feature_types should be used.")
+
     def test_check_conventions__missing(self):
         md = Nc_to_mmd(self.fail_nc, check_only=True)
         ncin = Dataset(md.netcdf_product, "w", diskless=True)

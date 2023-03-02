@@ -1045,6 +1045,37 @@ class Nc_to_mmd(object):
                     'Please provide the ACDD convention version in '
                     'the "Conventions" attribute.')
 
+    def check_feature_type(self, ncin):
+        """ Check that the featureType attribute defined in the CF
+        conventions is present in the netcdf file. Issue a warning
+        if it is not present.
+        """
+        attr = "featureType"
+        # the options could perhaps be picked up from a vocabulary
+        # service as well but this should be good enough
+        options = [
+            "point",
+            "timeseries",
+            "trajectory",
+            "profile",
+            "timeseriesprofile",
+            "trajectoryprofile"]
+        if attr not in ncin.ncattrs():
+            self.missing_attributes["warnings"].append(
+                "CF attribute %s is missing - one of the "
+                "feature types listed in Table 9.1 in https://"
+                "cfconventions.org/Data/cf-conventions/cf-conventions"
+                "-1.10/cf-conventions.html#"
+                "_features_and_feature_types should be used." % attr)
+        else:
+            ftype = ncin.getncattr(attr)
+            if ftype.lower() not in options:
+                self.missing_attributes["errors"].append(
+                    "%s seems to be wrong - it should be picked from "
+                    "Table 9.1 in https://cfconventions.org/Data/cf-"
+                    "conventions/cf-conventions-1.10/cf-conventions."
+                    "html#_features_and_feature_types should be used." % attr)
+
     def get_license(self, mmd_element, ncin):
         """ Get ACDD license attribute.
 
@@ -1277,6 +1308,7 @@ class Nc_to_mmd(object):
             os.remove(file_for_checksum_calculation)
 
         self.check_conventions(ncin)
+        self.check_feature_type(ncin)
 
         if len(self.missing_attributes['warnings']) > 0:
             warnings.warn('\n\t'+'\n\t'.join(self.missing_attributes['warnings']))
