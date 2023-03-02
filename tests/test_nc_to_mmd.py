@@ -531,7 +531,7 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd('tests/data/reference_nc_missing_attrs.nc', check_only=True)
         with self.assertRaises(ValueError) as e:
             md.to_mmd(collection=2)
-        self.assertEqual(str(e.exception), 'collection must be of type str or list')
+        self.assertEqual(str(e.exception), 'collection must be of type str')
 
     def test_collection_not_set(self):
         """ToDo: Add docstring"""
