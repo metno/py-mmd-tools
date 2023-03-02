@@ -1105,7 +1105,7 @@ class Nc_to_mmd(object):
 
         Parameters
         ----------
-        collection : list or str, default 'METNCS'
+        collection : str, default 'METNCS'
             Specify the MMD collection for which you are harvesting to.
         checksum_calculation : bool, default False
             True if the file checksum should be calculated.
