@@ -1134,7 +1134,7 @@ class Nc_to_mmd(object):
         This list can be extended but requires some new code...
         """
         if collection is not None and type(collection) is not str:
-            raise ValueError('collection must be of type str or list')
+            raise ValueError('collection must be of type str')
 
         # kwargs that were not added in the function def:
         time_coverage_start = kwargs.pop('time_coverage_start', '')
