@@ -48,7 +48,7 @@ def create_parser():
     )
     parser.add_argument(
         '--collection', default=None,
-        help="Specify MMD collection field (default is [ADC, METNCS])"
+        help="Specify MMD collection field (default is METNCS)"
     )
 
     return parser
@@ -66,7 +66,6 @@ def main(args=None):
     elif pathlib.Path(args.input).is_file():
         # Single nc file
         inputfiles = [args.input]
-
     else:
         raise ValueError(f'Invalid input: {args.input}')
 

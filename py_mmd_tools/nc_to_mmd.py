@@ -1105,18 +1105,18 @@ class Nc_to_mmd(object):
 
         Parameters
         ----------
-        collection : list or str, default ['ADC', 'METNCS']
+        collection : list or str, default 'METNCS'
             Specify the MMD collection for which you are harvesting to.
         checksum_calculation : bool, default False
             True if the file checksum should be calculated.
         mmd_yaml : str, optional
             The yaml file to use for translation from ACDD to MMS.
         time_coverage_start : str, optional
-            The start date and time, in iso8601 format, for data
-            collection or model coverage.
+            The start date and time, in iso8601 format, for the
+            dataset coverage.
         time_coverage_end   : str, optional
-            The end date and time, in iso8601 format, for data
-            collection or model coverage.
+            The end date and time, in iso8601 format, for the dataset
+            coverage.
         geographic_extent_rectangle : dict, optional
             The geographic extent of the datasets defined as a rectangle
             in lat/lon projection. The extent is defined using the
@@ -1133,7 +1133,7 @@ class Nc_to_mmd(object):
 
         This list can be extended but requires some new code...
         """
-        if collection is not None and type(collection) not in [list, str]:
+        if collection is not None and type(collection) is not str:
             raise ValueError('collection must be of type str or list')
 
         # kwargs that were not added in the function def:
@@ -1155,13 +1155,13 @@ class Nc_to_mmd(object):
 
         mmd_docs = 'https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/' \
                    'doc/mmd-specification.html#collection-keywords'
-        default_collections = ['ADC', 'METNCS']
+        default_collection = 'METNCS'
         if collection is None:
-            logging.warning('Using default values [%s, %s] for the MMD collection field. '
+            logging.warning('Using default values %s for the MMD collection field. '
                             'Please, specify other collection(s) if this is wrong. Valid '
                             'collections are provided in the MMD documentation (%s)'
-                            % (default_collections[0], default_collections[1], mmd_docs))
-            self.metadata['collection'] = default_collections
+                            % (default_collection, mmd_docs))
+            self.metadata['collection'] = [default_collection]
         else:
             self.metadata['collection'] = [collection]
 

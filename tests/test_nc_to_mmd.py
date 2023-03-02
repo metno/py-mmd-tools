@@ -538,7 +538,7 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd('tests/data/reference_nc_missing_collection.nc', check_only=True)
         req_ok, msg = md.to_mmd()
         self.assertTrue(req_ok)
-        self.assertEqual(md.metadata['collection'], ['ADC', 'METNCS'])
+        self.assertEqual(md.metadata['collection'], ['METNCS'])
 
     def test_collection_set(self):
         """ToDo: Add docstring"""
