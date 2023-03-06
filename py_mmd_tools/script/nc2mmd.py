@@ -46,6 +46,10 @@ def create_parser():
         '-c', '--checksum_calculation',  action='store_true',
         help="Toggle wether to calculate the checksum of the file"
     )
+    parser.add_argument(
+        '--collection', default=None,
+        help="Specify MMD collection field (default is METNCS)"
+    )
 
     return parser
 
@@ -62,7 +66,6 @@ def main(args=None):
     elif pathlib.Path(args.input).is_file():
         # Single nc file
         inputfiles = [args.input]
-
     else:
         raise ValueError(f'Invalid input: {args.input}')
 
@@ -71,7 +74,8 @@ def main(args=None):
         md = nc_to_mmd.Nc_to_mmd(str(file), output_file=outfile)
         md.to_mmd(
             add_wms_data_access=args.add_wms_data_access,
-            checksum_calculation=args.checksum_calculation
+            checksum_calculation=args.checksum_calculation,
+            collection=args.collection
         )
 
 
