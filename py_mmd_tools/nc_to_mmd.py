@@ -115,21 +115,27 @@ class Nc_to_mmd(object):
     ACDD_NAMING_AUTH = 'naming_authority'
     ACDD_ID_INVALID_CHARS = ['\\', '/', ':', ' ']
 
-    def __init__(self, netcdf_product, output_file=None, check_only=False):
+    def __init__(self, netcdf_file, opendap_url=None, output_file=None, check_only=False):
         """Class for creating an MMD XML file based on the discovery
         metadata provided in the global attributes of NetCDF files that
         are compliant with the CF-conventions and ACDD.
 
         Args:
-            output_file (pathlib): Output path for mmd.
-            netcdf_product (str): Input NetCDF file (nc file or OPeNDAP
-                url).
+            output_file : str
+                Output path for the resulting mmd xml file
+            netcdf_file : str
+                Input NetCDF file
+            opendap_url : str
+                OPeNDAP url
         """
-        if output_file is None and check_only is False:
-            raise ValueError('output_filename must be provided if check_only is False')
+        if (output_file is None or opendap_url is None) and check_only is False:
+            raise ValueError(
+                "The opendap_url and output_file input parameters "
+                "must be provided if check_only is False")
         super(Nc_to_mmd, self).__init__()
         self.output_file = output_file
-        self.netcdf_product = netcdf_product
+        self.netcdf_file = netcdf_file
+        self.opendap_url = opendap_url
         self.check_only = check_only
         self.missing_attributes = {
             'errors': [],
@@ -147,7 +153,7 @@ class Nc_to_mmd(object):
             raise ValueError('Instrument or Platform group were not initialised')
 
         # Open netcdf file for reading
-        with self.read_nc_file(self.netcdf_product) as ncin:
+        with self.read_nc_file(self.netcdf_file) as ncin:
             self.check_attributes_not_empty(ncin)
 
         return
@@ -156,9 +162,9 @@ class Nc_to_mmd(object):
         """ Open netcdf dataset, appending #fillmismatch if necessary
         """
         try:
-            ncin = Dataset(self.netcdf_product)
+            ncin = Dataset(self.netcdf_file)
         except OSError:
-            ncin = Dataset(self.netcdf_product+'#fillmismatch')
+            ncin = Dataset(self.netcdf_file+'#fillmismatch')
 
         return ncin
 
@@ -1019,7 +1025,7 @@ class Nc_to_mmd(object):
         for attr in ncin.ncattrs():
             if ncin.getncattr(attr) == "":
                 raise ValueError("%s: Global attribute %s is empty - please correct." % (
-                    self.netcdf_product, attr))
+                    self.netcdf_file, attr))
 
     def check_conventions(self, ncin):
         """ Check that the Conventions attribute is present, and
@@ -1173,7 +1179,7 @@ class Nc_to_mmd(object):
         geographic_extent_rectangle = kwargs.pop('geographic_extent_rectangle', '')
 
         # Open netcdf file for reading
-        ncin = self.read_nc_file(self.netcdf_product)
+        ncin = self.read_nc_file(self.netcdf_file)
 
         self.check_attributes_not_empty(ncin)
 
@@ -1264,33 +1270,23 @@ class Nc_to_mmd(object):
 
         # Data access should not be read from the netCDF-CF file
         mmd_yaml.pop('data_access')
-        # Add OPeNDAP data_access if "netcdf_product" is OPeNDAP url
-        rm_file_for_checksum_calculation = False
-        if 'dodsC' in self.netcdf_product:
+        # Add OPeNDAP data_access if opendap_url is not None
+        if self.opendap_url is not None:
             self.metadata['data_access'] = self.get_data_access_dict(ncin, **kwargs)
-            resource = ''
-            for access in self.metadata['data_access']:
-                if access['type'] == 'HTTP':
-                    resource = access['resource']
-            logging.info('Downloading NetCDF file to calculate checksum...')
-            file_for_checksum_calculation = wget.download(resource)
-            rm_file_for_checksum_calculation = True
         else:
             self.metadata['data_access'] = []
-            file_for_checksum_calculation = self.netcdf_product
 
-        file_size = pathlib.Path(file_for_checksum_calculation).stat().st_size / (1024 * 1024)
+        file_size = pathlib.Path(self.netcdf_file).stat().st_size / (1024 * 1024)
 
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
 
         # Set storage_information
-
-        file_location = self.netcdf_product
+        file_location = self.netcdf_file
 
         self.metadata['storage_information'] = {
-            'file_name': os.path.basename(self.netcdf_product),
-            'file_location': file_location,
+            'file_name': os.path.basename(self.netcdf_file),
+            'file_location': os.path.dirname(self.netcdf_file),
             'file_format': 'NetCDF-CF',
             'file_size': '%.2f'%file_size,
             'file_size_unit': 'MB',
@@ -1298,14 +1294,11 @@ class Nc_to_mmd(object):
 
         if checksum_calculation:
             hasher = FileHash('md5', chunk_size=1048576)
-            fchecksum = hasher.hash_file(file_for_checksum_calculation)
+            fchecksum = hasher.hash_file(self.netcdf_file)
 
             self.metadata['storage_information']['checksum'] = fchecksum
             self.metadata['storage_information']['checksum_type'] = '%ssum' % \
                                                                     hasher.hash_algorithm
-
-        if rm_file_for_checksum_calculation:
-            os.remove(file_for_checksum_calculation)
 
         self.check_conventions(ncin)
         self.check_feature_type(ncin)
@@ -1329,13 +1322,26 @@ class Nc_to_mmd(object):
         req_ok = True
         # If running in check only mode, exit now
         # and return whether the required elements are present
-        if self.check_only:
-            return req_ok, msg
-
-        with open(self.output_file, 'w') as fh:
-            fh.write(out_doc)
+        if not self.check_only:
+            with open(self.output_file, 'w') as fh:
+                fh.write(out_doc)
+        
+        return req_ok, msg
 
     def get_data_access_dict(self, ncin, add_wms_data_access=False, add_http_data_access=True):
+        """ Return a dictionary with data access information. OGC WMS
+        urls can only be provided for gridded datasets.
+
+        Parameters
+        ----------
+        ncin : netCDF4._netCDF4.Dataset
+            An open NetCDF dataset
+        add_wms_data_access : Boolean
+            Adds OGC WMS data access if True. This is False by
+            default, since only gridded datasets can have WMS access.
+        add_http_data_access : Boolean
+            Adds HTTP data access link if True (default).
+        """
         all_netcdf_variables = []
         for var in ncin.variables:
             if 'standard_name' in ncin.variables[var].ncattrs():
@@ -1343,7 +1349,7 @@ class Nc_to_mmd(object):
         data_accesses = [{
             'type': 'OPeNDAP',
             'description': 'Open-source Project for a Network Data Access Protocol',
-            'resource': self.netcdf_product,
+            'resource': self.opendap_url,
         }]
 
         access_list = []
@@ -1352,11 +1358,11 @@ class Nc_to_mmd(object):
         if add_wms_data_access:  # and 2D dataset...?
             access_list.append('OGC WMS')
             _desc.append('OGC Web Mapping Service, URI to GetCapabilities Document.')
-            _res.append(self.netcdf_product.replace('dodsC', 'wms'))
+            _res.append(self.opendap_url.replace('dodsC', 'wms'))
         if add_http_data_access:
             access_list.append('HTTP')
             _desc.append('Direct download of file')
-            _res.append(self.netcdf_product.replace('dodsC', 'fileServer'))
+            _res.append(self.opendap_url.replace('dodsC', 'fileServer'))
 
         for prot_type, desc, res in zip(access_list, _desc, _res):
             data_access = {
