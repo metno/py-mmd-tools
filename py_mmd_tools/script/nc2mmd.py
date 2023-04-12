@@ -41,8 +41,8 @@ def create_parser():
     )
     parser.add_argument(
         '-u', '--url', type=str,
-        help = 'OPeNDAP url. If multiple files shall be processed, '
-               'this should be their base url.'
+        help='OPeNDAP url. If multiple files shall be processed, '
+             'this should be their base url.'
     )
     parser.add_argument(
         '-o', '--output_dir', type=pathlib.Path,

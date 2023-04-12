@@ -51,10 +51,9 @@ def test_main_localfile_missing_opendap(dataDir):
 def test_main_localfile_missing_output_dir(dataDir):
     parser = create_parser()
     test_in = os.path.join(dataDir, 'reference_nc.nc')
-    out_dir = tempfile.mkdtemp()
     parsed = parser.parse_args([
         '-i', test_in,
-        '-u', 'https://thredds.met.no/thredds/dodsC/reference_nc.nc', 
+        '-u', 'https://thredds.met.no/thredds/dodsC/reference_nc.nc',
     ])
     with pytest.raises(ValueError) as ve:
         main(parsed)
@@ -68,7 +67,7 @@ def test_main_localfile_specify_collection(dataDir):
     out_dir = tempfile.mkdtemp()
     parsed = parser.parse_args([
         '-i', test_in,
-        '-u', 'https://thredds.met.no/thredds/dodsC/reference_nc.nc', 
+        '-u', 'https://thredds.met.no/thredds/dodsC/reference_nc.nc',
         '-o', out_dir,
         '--collection', 'ADC'
     ])
@@ -85,12 +84,11 @@ def test_main_thredds(dataDir, monkeypatch):
     out_dir = tempfile.mkdtemp()
     parsed = parser.parse_args([
         '-i', test_in,
-        '-u', 'https://thredds.met.no/thredds/dodsC/reference_nc.nc', 
+        '-u', 'https://thredds.met.no/thredds/dodsC/reference_nc.nc',
         '-o', out_dir,
         '-w'
     ])
     with monkeypatch.context() as mp:
-        mp.setattr('py_mmd_tools.nc_to_mmd.wget.download', lambda *a: test_in)
         mp.setattr('py_mmd_tools.nc_to_mmd.os.remove', lambda *a: None)
         main(parsed)
     assert os.path.isfile(os.path.join(out_dir, 'reference_nc.xml'))
@@ -135,7 +133,6 @@ def test_dry_run(dataDir):
     """Test running the script with the dry-run option."""
     parser = create_parser()
     test_in = os.path.join(dataDir, 'reference_nc.nc')
-    out_dir = tempfile.mkdtemp()
     parsed = parser.parse_args([
         '-i', test_in,
         '--dry-run'

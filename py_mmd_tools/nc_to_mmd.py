@@ -20,7 +20,6 @@ import warnings
 import yaml
 import jinja2
 import logging
-import wget
 import shapely.wkt
 
 from filehash import FileHash
@@ -1282,8 +1281,6 @@ class Nc_to_mmd(object):
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
 
         # Set storage_information
-        file_location = self.netcdf_file
-
         self.metadata['storage_information'] = {
             'file_name': os.path.basename(self.netcdf_file),
             'file_location': os.path.dirname(self.netcdf_file),
@@ -1325,7 +1322,7 @@ class Nc_to_mmd(object):
         if not self.check_only:
             with open(self.output_file, 'w') as fh:
                 fh.write(out_doc)
-        
+
         return req_ok, msg
 
     def get_data_access_dict(self, ncin, add_wms_data_access=False, add_http_data_access=True):

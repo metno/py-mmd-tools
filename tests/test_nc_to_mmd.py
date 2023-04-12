@@ -1775,19 +1775,6 @@ class TestNC2MMD(unittest.TestCase):
             'geospatial_lat_max is a required attribute'
         )
 
-    @patch('py_mmd_tools.nc_to_mmd.wget.download')
-    @patch('py_mmd_tools.nc_to_mmd.os.remove')
-    def test_file_on_thredds(self, mock_remove, mock_download):
-        """Check that file is downloaded for checksum calculation and then removed"""
-        fn = 'tests/data/dodsC/reference_nc.nc'
-        mock_download.return_value = fn
-        md = Nc_to_mmd(fn, check_only=True)
-        md.to_mmd()
-        self.assertEqual(
-            md.metadata['storage_information']['file_name'],
-            'reference_nc.nc'
-        )
-
     def test_access_constraint(self):
         """ToDo: Add docstring"""
         tempfile.mkstemp()[1]
