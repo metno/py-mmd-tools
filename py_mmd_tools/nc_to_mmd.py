@@ -1339,6 +1339,14 @@ class Nc_to_mmd(object):
         add_http_data_access : Boolean
             Adds HTTP data access link if True (default).
         """
+        # Check that the OPeNDAP url is accessible
+        try:
+            ds = Dataset(self.opendap_url)
+        except OSError as oe:
+            self.missing_attributes['errors'].append(str(oe))
+            return []
+        else:
+            ds.close()
         all_netcdf_variables = []
         for var in ncin.variables:
             if 'standard_name' in ncin.variables[var].ncattrs():

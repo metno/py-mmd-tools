@@ -14,6 +14,7 @@ import tempfile
 import yaml
 import warnings
 import unittest
+import pytest
 
 from dateutil.parser import isoparse
 from filehash import FileHash
@@ -30,7 +31,94 @@ from py_mmd_tools.yaml_to_adoc import repetition_allowed
 from py_mmd_tools.yaml_to_adoc import set_attribute
 from py_mmd_tools.yaml_to_adoc import set_attributes
 
+from tests.test_nc2mmd_script import MockDataset
+from tests.test_nc2mmd_script import patchedDataset
+
 warnings.simplefilter("ignore", ResourceWarning)
+
+
+@pytest.mark.py_mmd_tools
+def test_checksum(monkeypatch):
+    """Verify that the checksum created in nc_to_mmd.py is correct"""
+    tested = tempfile.mkstemp()[1]
+    fn = 'tests/data/reference_nc.nc'
+    url = os.path.join('https://thredds.met.no/thredds/dodsC/', os.path.basename(fn))
+    with monkeypatch.context() as mp:
+        mp.setattr("py_mmd_tools.nc_to_mmd.Dataset",
+                   lambda *args, **kwargs: patchedDataset(url, *args, **kwargs))
+        md = Nc_to_mmd(fn, url, check_only=True)
+        md.to_mmd(checksum_calculation=True)
+    checksum = md.metadata['storage_information']['checksum']
+    with open(tested, 'w') as tt:
+        tt.write('%s *%s'%(checksum, fn))
+    md5hasher = FileHash('md5')
+    assert md5hasher.verify_checksums(tested)[0].hashes_match is True
+
+
+@pytest.mark.py_mmd_tools
+def test_create_mmd_1(monkeypatch):
+    """Test MMD creation from a valid netcdf file, validation
+    with the mmd_strict.xsd, and that some fields are as expected.
+    Please add new fields to test as needed..
+    """
+    tested = tempfile.mkstemp()[1]
+    fn = 'tests/data/reference_nc_with_altID_multiple.nc'
+    url = 'https://thredds.met.no/thredds/dodsC/reference_nc_with_altID_multiple.nc'
+    with monkeypatch.context() as mp:
+        mp.setattr("py_mmd_tools.nc_to_mmd.Dataset",
+                   lambda *args, **kwargs: patchedDataset(url, *args, **kwargs))
+        md = Nc_to_mmd(fn, url, output_file=tested)
+        md.to_mmd(checksum_calculation=True)
+    reference_xsd = os.path.join(os.environ['MMD_PATH'], 'xsd/mmd_strict.xsd')
+    xsd_obj = etree.XMLSchema(etree.parse(reference_xsd))
+    xml_doc = etree.ElementTree(file=tested)
+    valid = xsd_obj.validate(xml_doc)
+    assert valid is True
+    """ Check content of the xml_doc """
+    # alternate_identifier
+    assert xml_doc.getroot().find(
+            "{http://www.met.no/schema/mmd}alternate_identifier[@type='dummy_type']"
+        ).text == "dummy_id_no1"
+    assert xml_doc.getroot().find(
+            "{http://www.met.no/schema/mmd}alternate_identifier[@type='other_type']"
+        ).text == "dummy_id_no2"
+
+
+@pytest.mark.py_mmd_tools
+def test_get_data_access_dict_with_wms(monkeypatch):
+    """ToDo: Add docstring"""
+    netcdf_file = 'tests/data/reference_nc.nc'
+    opendap_url = (
+        'https://thredds.met.no/thredds/dodsC/arcticdata/'
+        'S2S_drift_TCD/SIDRIFT_S2S_SH/2019/07/31/'
+    ) + netcdf_file
+    with monkeypatch.context() as mp:
+        mp.setattr("py_mmd_tools.nc_to_mmd.Dataset",
+                   lambda *args, **kwargs: patchedDataset(opendap_url, *args, **kwargs))
+        md = Nc_to_mmd(netcdf_file, opendap_url, check_only=True)
+        ncin = Dataset(md.netcdf_file)
+        data = md.get_data_access_dict(ncin, add_wms_data_access=True)
+    assert data[0]['type'] == 'OPeNDAP'
+    assert data[1]['type'] == 'OGC WMS'
+    assert data[2]['type'] == 'HTTP'
+
+
+@pytest.mark.py_mmd_tools
+def test_get_data_access_dict(monkeypatch):
+    """ToDo: Add docstring"""
+    netcdf_file = 'tests/data/reference_nc.nc'
+    opendap_url = (
+        'https://thredds.met.no/thredds/dodsC/arcticdata/'
+        'S2S_drift_TCD/SIDRIFT_S2S_SH/2019/07/31/'
+    ) + netcdf_file
+    with monkeypatch.context() as mp:
+        mp.setattr("py_mmd_tools.nc_to_mmd.Dataset",
+                   lambda *args, **kwargs: patchedDataset(opendap_url, *args, **kwargs))
+        md = Nc_to_mmd(netcdf_file, opendap_url, check_only=True)
+        ncin = Dataset(md.netcdf_file)
+        data = md.get_data_access_dict(ncin)
+    assert data[0]['type'] == 'OPeNDAP'
+    assert data[1]['type'] == 'HTTP'
 
 
 class TestNCAttrsFromYaml(unittest.TestCase):
@@ -1271,33 +1359,6 @@ class TestNC2MMD(unittest.TestCase):
             pass
         mock_nc_dataset.assert_called_with(fn+'#fillmismatch')
 
-    def test_get_data_access_dict_with_wms(self):
-        """ToDo: Add docstring"""
-        netcdf_file = 'tests/data/reference_nc.nc'
-        opendap_url = (
-            'https://thredds.met.no/thredds/dodsC/arcticdata/'
-            'S2S_drift_TCD/SIDRIFT_S2S_SH/2019/07/31/'
-        ) + netcdf_file
-        md = Nc_to_mmd(netcdf_file, opendap_url, check_only=True)
-        ncin = Dataset(md.netcdf_file)
-        data = md.get_data_access_dict(ncin, add_wms_data_access=True)
-        self.assertEqual(data[0]['type'], 'OPeNDAP')
-        self.assertEqual(data[1]['type'], 'OGC WMS')
-        self.assertEqual(data[2]['type'], 'HTTP')
-
-    def test_get_data_access_dict(self):
-        """ToDo: Add docstring"""
-        netcdf_file = 'tests/data/reference_nc.nc'
-        opendap_url = (
-            'https://thredds.met.no/thredds/dodsC/arcticdata/'
-            'S2S_drift_TCD/SIDRIFT_S2S_SH/2019/07/31/'
-        ) + netcdf_file
-        md = Nc_to_mmd(netcdf_file, opendap_url, check_only=True)
-        ncin = Dataset(md.netcdf_file)
-        data = md.get_data_access_dict(ncin)
-        self.assertEqual(data[0]['type'], 'OPeNDAP')
-        self.assertEqual(data[1]['type'], 'HTTP')
-
     def test_related_dataset(self):
         """ToDo: Add docstring"""
         md = Nc_to_mmd('tests/data/reference_nc_id_missing.nc', check_only=True)
@@ -1482,36 +1543,6 @@ class TestNC2MMD(unittest.TestCase):
         id = ncin.getncattr('id')
         self.assertEqual(md.missing_attributes['errors'], [])
         self.assertTrue(id in md.metadata['metadata_identifier'])
-
-    def test_create_mmd_1(self):
-        """Test MMD creation from a valid netcdf file, validation
-        with the mmd_strict.xsd, and that some fields are as expected.
-        Please add new fields to test as needed..
-        """
-        tested = tempfile.mkstemp()[1]
-        md = Nc_to_mmd(
-            'tests/data/reference_nc_with_altID_multiple.nc',
-            'https://thredds.met.no/thredds/dodsC/reference_nc_with_altID_multiple.nc',
-            output_file=tested)
-        md.to_mmd(checksum_calculation=True)
-        xsd_obj = etree.XMLSchema(etree.parse(self.reference_xsd))
-        xml_doc = etree.ElementTree(file=tested)
-        valid = xsd_obj.validate(xml_doc)
-        self.assertTrue(valid)
-        """ Check content of the xml_doc """
-        # alternate_identifier
-        self.assertEqual(
-            xml_doc.getroot().find(
-                "{http://www.met.no/schema/mmd}alternate_identifier[@type='dummy_type']"
-            ).text,
-            "dummy_id_no1"
-        )
-        self.assertEqual(
-            xml_doc.getroot().find(
-                "{http://www.met.no/schema/mmd}alternate_identifier[@type='other_type']"
-            ).text,
-            "dummy_id_no2"
-        )
 
     def test_get_acdd_metadata_sets_warning_msg(self):
         """Check that a warning is issued by the get_acdd_metadata
@@ -1727,19 +1758,6 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(
             value[0]['title'], 'Direct Broadcast data processed in satellite swath to L1C.'
         )
-
-    def test_checksum(self):
-        """ToDo: Add docstring"""
-        tested = tempfile.mkstemp()[1]
-        fn = 'tests/data/reference_nc.nc'
-        md = Nc_to_mmd(fn, os.path.join('https://thredds.met.no/thredds/dodsC/',
-                       os.path.basename(fn)), check_only=True)
-        md.to_mmd(checksum_calculation=True)
-        checksum = md.metadata['storage_information']['checksum']
-        with open(tested, 'w') as tt:
-            tt.write('%s *%s'%(checksum, fn))
-        md5hasher = FileHash('md5')
-        self.assertTrue(md5hasher.verify_checksums(tested)[0].hashes_match)
 
     def test_checksum_off(self):
         """ToDo: Add docstring"""
