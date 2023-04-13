@@ -31,7 +31,6 @@ from py_mmd_tools.yaml_to_adoc import repetition_allowed
 from py_mmd_tools.yaml_to_adoc import set_attribute
 from py_mmd_tools.yaml_to_adoc import set_attributes
 
-from tests.test_nc2mmd_script import MockDataset
 from tests.test_nc2mmd_script import patchedDataset
 
 warnings.simplefilter("ignore", ResourceWarning)
@@ -77,11 +76,11 @@ def test_create_mmd_1(monkeypatch):
     """ Check content of the xml_doc """
     # alternate_identifier
     assert xml_doc.getroot().find(
-            "{http://www.met.no/schema/mmd}alternate_identifier[@type='dummy_type']"
-        ).text == "dummy_id_no1"
+        "{http://www.met.no/schema/mmd}alternate_identifier[@type='dummy_type']"
+    ).text == "dummy_id_no1"
     assert xml_doc.getroot().find(
-            "{http://www.met.no/schema/mmd}alternate_identifier[@type='other_type']"
-        ).text == "dummy_id_no2"
+        "{http://www.met.no/schema/mmd}alternate_identifier[@type='other_type']"
+    ).text == "dummy_id_no2"
 
 
 @pytest.mark.py_mmd_tools
