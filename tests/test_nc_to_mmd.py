@@ -138,7 +138,7 @@ class TestNCAttrsFromYaml(unittest.TestCase):
             'comment': 'Optional',
             'default': '',
             'description':
-                'A textual description of the processing (or quality control) '
+                'A textual description of the processing '
                 'level of the data. Valid keywords are listed in '
                 'https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/'
                 'master/doc/mmd-specification.html#operational-status[Section '
