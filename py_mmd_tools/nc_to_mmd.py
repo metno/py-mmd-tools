@@ -955,6 +955,45 @@ class Nc_to_mmd(object):
 
         return data
 
+    def get_operational_status(self, mmd_element, ncin):
+        """ Get the operational_status from the processing_level ACDD
+        attribute.
+        """
+        VALID = [
+            "Operational",
+            "Pre-Operational",
+            "Experimental",
+            "Scientific",
+            "Not available"
+        ]
+        repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['0', '1']
+        if repetition_allowed:
+            raise ValueError("This is not expected...")
+        acdd = mmd_element["acdd"]
+        acdd_key = list(acdd.keys())[0]
+        if acdd_key in ncin.ncattrs():
+            ostatus = ncin.getncattr(acdd_key)
+        else:
+            ostatus = "Not available"
+
+        operational_status = ""
+        valid_statuses = [v.lower() for v in VALID]
+        if ostatus.lower() not in valid_statuses:
+            self.missing_attributes['errors'].append(
+                    "The ACDD attribute 'operational_status' must "
+                    "follow a controlled vocabulary from MMD (see "
+                    "https://htmlpreview.github.io/?https://github."
+                    "com/metno/mmd/blob/master/doc/mmd-specification."
+                    "html#operational-status).")
+        else:
+            # Need to make a new list of lists to use the filter
+            # function for comparison between ostatus and valid
+            # operational_status'es from the controlled vocabulary
+            xx = [[ostatus, tt] for tt in VALID]
+            x = filter(lambda a: a[0].lower() == a[1].lower(), xx)
+            operational_status = list(x)[0][1]
+        return operational_status
+
     def get_related_information(self, mmd_element, ncin):
         """ Get related information stored in the netcdf attribute
         references.
@@ -1280,6 +1319,11 @@ class Nc_to_mmd(object):
             file_for_checksum_calculation = self.netcdf_product
 
         file_size = pathlib.Path(file_for_checksum_calculation).stat().st_size / (1024 * 1024)
+
+        # ACDD processing_level follows a controlled vocabulary, so
+        # it must be handled separately
+        self.metadata['operational_status'] = self.get_operational_status(
+            mmd_yaml.pop('operational_status'), ncin)
 
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
