@@ -175,7 +175,7 @@ def test_invalid_opendap_url(dataDir):
     ])
     with pytest.raises(AttributeError) as ae:
         main(parsed)
-    assert 'Malformed' in str(ae.value)
+    assert 'NetCDF:' in str(ae.value)
 
 
 @pytest.mark.script
