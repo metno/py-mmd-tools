@@ -980,11 +980,11 @@ class Nc_to_mmd(object):
         valid_statuses = [v.lower() for v in VALID]
         if ostatus.lower() not in valid_statuses:
             self.missing_attributes['errors'].append(
-                    "The ACDD attribute 'operational_status' must "
-                    "follow a controlled vocabulary from MMD (see "
-                    "https://htmlpreview.github.io/?https://github."
-                    "com/metno/mmd/blob/master/doc/mmd-specification."
-                    "html#operational-status).")
+                "The ACDD attribute 'operational_status' must "
+                "follow a controlled vocabulary from MMD (see "
+                "https://htmlpreview.github.io/?https://github."
+                "com/metno/mmd/blob/master/doc/mmd-specification."
+                "html#operational-status).")
         else:
             # Need to make a new list of lists to use the filter
             # function for comparison between ostatus and valid

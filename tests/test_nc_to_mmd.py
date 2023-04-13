@@ -59,7 +59,6 @@ def test_get_operational_status(dataDir, monkeypatch):
     with pytest.raises(ValueError) as ve:
         value = md.get_operational_status(mmd_element, ncin)
     assert str(ve.value) == "This is not expected..."
-    
 
 
 class TestNCAttrsFromYaml(unittest.TestCase):
