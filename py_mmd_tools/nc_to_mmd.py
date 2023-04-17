@@ -34,7 +34,7 @@ from metvocab.mmdgroup import MMDGroup
 import pathlib
 from netCDF4 import Dataset
 
-from shapely.errors import WKTReadingError
+from shapely.errors import ShapelyError
 
 
 def valid_url(url):
@@ -917,7 +917,7 @@ class Nc_to_mmd(object):
         wkt = eval('ncin.%s'%acdd_key)
         try:
             pp = shapely.wkt.loads(wkt)
-        except WKTReadingError:
+        except ShapelyError:
             self.missing_attributes['errors'].append(
                 '%s must be formatted as a WKT string' % acdd_key
             )
