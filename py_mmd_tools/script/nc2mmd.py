@@ -72,11 +72,13 @@ def main(args=None):
         if args.output_dir is None:
             raise ValueError('MMD XML output directory must be provided')
 
-    assume_base_url = False
+    assume_same_url_basename = False
     if pathlib.Path(args.input).is_dir():
         # Directory containing nc files
         inputfiles = pathlib.Path(args.input).glob('*.nc')
-        assume_base_url = True
+        # If the input is a directory, we need to assume that the
+        # file and url basenames are the same
+        assume_same_url_basename = True
     elif pathlib.Path(args.input).is_file():
         # Single nc file
         inputfiles = [args.input]
@@ -86,7 +88,7 @@ def main(args=None):
     url = None  # dry-run option
     for file in inputfiles:
         if not args.dry_run:
-            if assume_base_url:
+            if assume_same_url_basename:
                 url = os.path.join(args.url, file)
             else:
                 url = args.url
