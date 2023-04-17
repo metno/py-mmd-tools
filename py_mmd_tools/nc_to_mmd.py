@@ -143,6 +143,9 @@ class Nc_to_mmd(object):
         self.instrument_group = MMDGroup('mmd', 'https://vocab.met.no/mmd/Instrument')
         self.instrument_group.init_vocab()
 
+        self.operational_status = MMDGroup('mmd', 'https://vocab.met.no/mmd/Operational_Status')
+        self.operational_status.init_vocab()
+
         if not (self.platform_group.is_initialised and self.instrument_group.is_initialised):
             raise ValueError('Instrument or Platform group were not initialised')
 
@@ -959,16 +962,11 @@ class Nc_to_mmd(object):
         """ Get the operational_status from the processing_level ACDD
         attribute.
         """
-        VALID = [
-            "Operational",
-            "Pre-Operational",
-            "Experimental",
-            "Scientific",
-            "Not available"
-        ]
+
         repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['0', '1']
         if repetition_allowed:
             raise ValueError("This is not expected...")
+
         acdd = mmd_element["acdd"]
         acdd_key = list(acdd.keys())[0]
         if acdd_key in ncin.ncattrs():
@@ -976,22 +974,18 @@ class Nc_to_mmd(object):
         else:
             ostatus = "Not available"
 
-        operational_status = ""
-        valid_statuses = [v.lower() for v in VALID]
-        if ostatus.lower() not in valid_statuses:
+        # If not given, search for Not available will return Not available
+        ostatus_result = self.operational_status.search(ostatus)
+        operational_status = ostatus_result.get("Short_Name", "")
+
+        if operational_status == "":
             self.missing_attributes['errors'].append(
                 "The ACDD attribute 'operational_status' must "
                 "follow a controlled vocabulary from MMD (see "
                 "https://htmlpreview.github.io/?https://github."
                 "com/metno/mmd/blob/master/doc/mmd-specification."
                 "html#operational-status).")
-        else:
-            # Need to make a new list of lists to use the filter
-            # function for comparison between ostatus and valid
-            # operational_status'es from the controlled vocabulary
-            xx = [[ostatus, tt] for tt in VALID]
-            x = filter(lambda a: a[0].lower() == a[1].lower(), xx)
-            operational_status = list(x)[0][1]
+
         return operational_status
 
     def get_related_information(self, mmd_element, ncin):
