@@ -128,6 +128,33 @@ def test_not_absolute_path():
     assert str(ve.value) == "The path to the NetCDF-CF file must be absolute."
 
 
+@pytest.mark.script
+def test_get_operational_status(dataDir, monkeypatch):
+    mmd_yaml = yaml.load(
+        resource_string("py_mmd_tools", "mmd_elements.yaml"), Loader=yaml.FullLoader
+    )
+    mmd_element = mmd_yaml["operational_status"]
+    test_in = os.path.join(dataDir, "reference_nc.nc")
+    md = Nc_to_mmd(test_in, check_only=True)
+    ncin = Dataset(test_in, "w", diskless=True)
+
+    # processing_level is not present
+    value = md.get_operational_status(mmd_element, ncin)
+    assert value == "Not available"
+
+    # processing_level is not valid
+    ncin.processing_level = "kjhhas"
+    mmd_element["maxOccurs"] = "1"
+    value = md.get_operational_status(mmd_element, ncin)
+    assert "The ACDD attribute 'operational_status' must " in md.missing_attributes['errors'][0]
+
+    # repetition of processing_level is allowed
+    mmd_element["maxOccurs"] = "unbounded"
+    with pytest.raises(ValueError) as ve:
+        value = md.get_operational_status(mmd_element, ncin)
+    assert str(ve.value) == "This is not expected..."
+
+
 class TestNCAttrsFromYaml(unittest.TestCase):
 
     def setUp(self):
@@ -205,7 +232,7 @@ class TestNCAttrsFromYaml(unittest.TestCase):
             'comment': 'Optional',
             'default': '',
             'description':
-                'A textual description of the processing (or quality control) '
+                'A textual description of the processing '
                 'level of the data. Valid keywords are listed in '
                 'https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/'
                 'master/doc/mmd-specification.html#operational-status[Section '

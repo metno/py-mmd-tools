@@ -33,7 +33,7 @@ from metvocab.mmdgroup import MMDGroup
 import pathlib
 from netCDF4 import Dataset
 
-from shapely.errors import WKTReadingError
+from shapely.errors import ShapelyError
 
 
 def valid_url(url):
@@ -149,6 +149,9 @@ class Nc_to_mmd(object):
 
         self.instrument_group = MMDGroup('mmd', 'https://vocab.met.no/mmd/Instrument')
         self.instrument_group.init_vocab()
+
+        self.operational_status = MMDGroup('mmd', 'https://vocab.met.no/mmd/Operational_Status')
+        self.operational_status.init_vocab()
 
         if not (self.platform_group.is_initialised and self.instrument_group.is_initialised):
             raise ValueError('Instrument or Platform group were not initialised')
@@ -921,7 +924,7 @@ class Nc_to_mmd(object):
         wkt = eval('ncin.%s'%acdd_key)
         try:
             pp = shapely.wkt.loads(wkt)
-        except WKTReadingError:
+        except ShapelyError:
             self.missing_attributes['errors'].append(
                 '%s must be formatted as a WKT string' % acdd_key
             )
@@ -961,6 +964,36 @@ class Nc_to_mmd(object):
                     )
 
         return data
+
+    def get_operational_status(self, mmd_element, ncin):
+        """ Get the operational_status from the processing_level ACDD
+        attribute.
+        """
+
+        repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['0', '1']
+        if repetition_allowed:
+            raise ValueError("This is not expected...")
+
+        acdd = mmd_element["acdd"]
+        acdd_key = list(acdd.keys())[0]
+        if acdd_key in ncin.ncattrs():
+            ostatus = ncin.getncattr(acdd_key)
+        else:
+            ostatus = "Not available"
+
+        # If not given, search for Not available will return Not available
+        ostatus_result = self.operational_status.search(ostatus)
+        operational_status = ostatus_result.get("Short_Name", "")
+
+        if operational_status == "":
+            self.missing_attributes['errors'].append(
+                "The ACDD attribute 'operational_status' must "
+                "follow a controlled vocabulary from MMD (see "
+                "https://htmlpreview.github.io/?https://github."
+                "com/metno/mmd/blob/master/doc/mmd-specification."
+                "html#operational-status).")
+
+        return operational_status
 
     def get_related_information(self, mmd_element, ncin):
         """ Get related information stored in the netcdf attribute
@@ -1278,6 +1311,11 @@ class Nc_to_mmd(object):
             self.metadata['data_access'] = []
 
         file_size = pathlib.Path(self.netcdf_file).stat().st_size / (1024 * 1024)
+
+        # ACDD processing_level follows a controlled vocabulary, so
+        # it must be handled separately
+        self.metadata['operational_status'] = self.get_operational_status(
+            mmd_yaml.pop('operational_status'), ncin)
 
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
