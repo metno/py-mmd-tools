@@ -975,7 +975,7 @@ class Nc_to_mmd(object):
             ostatus = "Not available"
 
         # If not given, search for Not available will return Not available
-        ostatus_result = self.operational_status.search(ostatus)
+        ostatus_result = self.operational_status.search_lowercase(ostatus)
         operational_status = ostatus_result.get("Short_Name", "")
 
         if operational_status == "":
