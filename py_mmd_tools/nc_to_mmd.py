@@ -1378,6 +1378,11 @@ class Nc_to_mmd(object):
         add_wms_data_access : Boolean
             Adds OGC WMS data access if True. This is False by
             default, since only gridded datasets can have WMS access.
+        wms_link: String
+            Set OGC WMS url provided by user. Defaults to ncwms.
+        wms_layer_names: List
+            Set OGC WMS layer names as provided by user.
+            Defaults to netcdf variable names.
         add_http_data_access : Boolean
             Adds HTTP data access link if True (default).
         """

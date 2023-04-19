@@ -104,7 +104,7 @@ def test_get_data_access_dict_with_wms(monkeypatch):
 
 @pytest.mark.py_mmd_tools
 def test_get_data_access_dict_with_custom_wms(monkeypatch):
-    """ToDo: Add docstring"""
+    """WMS link is set."""
     netcdf_file = os.path.abspath('tests/data/reference_nc.nc')
     opendap_url = (
         'https://thredds.met.no/thredds/dodsC/arcticdata/'
@@ -124,7 +124,7 @@ def test_get_data_access_dict_with_custom_wms(monkeypatch):
 
 @pytest.mark.py_mmd_tools
 def test_get_data_access_dict_with_custom_wms_and_layer_names(monkeypatch):
-    """ToDo: Add docstring"""
+    """WMS link and layer names are set."""
     netcdf_file = os.path.abspath('tests/data/reference_nc.nc')
     opendap_url = (
         'https://thredds.met.no/thredds/dodsC/arcticdata/'
