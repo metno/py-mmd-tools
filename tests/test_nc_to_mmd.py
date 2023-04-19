@@ -116,7 +116,7 @@ def test_get_data_access_dict_with_custom_wms(monkeypatch):
         md = Nc_to_mmd(netcdf_file, opendap_url, check_only=True)
         ncin = Dataset(md.netcdf_file)
         data = md.get_data_access_dict(ncin, add_wms_data_access=True,
-                                       custom_wms_link='http://test-link')
+                                       wms_link='http://test-link')
     assert data[1]['type'] == 'OGC WMS'
     assert 'http://test-link' in str(data[1]['resource'])
     assert data[1]['wms_layers'] == ['toa_bidirectional_reflectance']
@@ -136,8 +136,8 @@ def test_get_data_access_dict_with_custom_wms_and_layer_names(monkeypatch):
         md = Nc_to_mmd(netcdf_file, opendap_url, check_only=True)
         ncin = Dataset(md.netcdf_file)
         data = md.get_data_access_dict(ncin, add_wms_data_access=True,
-                                       custom_wms_link='http://test-link',
-                                       custom_wms_layer_names=['layer_name_1', 'layer_name_2'])
+                                       wms_link='http://test-link',
+                                       wms_layer_names=['layer_name_1', 'layer_name_2'])
     assert data[1]['type'] == 'OGC WMS'
     assert 'http://test-link' in str(data[1]['resource'])
     assert data[1]['wms_layers'] == ['layer_name_1', 'layer_name_2']

@@ -1366,7 +1366,7 @@ class Nc_to_mmd(object):
         return req_ok, msg
 
     def get_data_access_dict(self, ncin, add_wms_data_access=False,
-                             custom_wms_link=None, custom_wms_layer_names=[],
+                             wms_link=None, wms_layer_names=[],
                              add_http_data_access=True):
         """ Return a dictionary with data access information. OGC WMS
         urls can only be provided for gridded datasets.
@@ -1410,8 +1410,8 @@ class Nc_to_mmd(object):
         if add_wms_data_access:  # and 2D dataset...?
             access_list.append('OGC WMS')
             _desc.append('OGC Web Mapping Service, URI to GetCapabilities Document.')
-            if custom_wms_link:
-                _res.append(custom_wms_link)
+            if wms_link:
+                _res.append(wms_link)
             else:
                 _res.append(self.opendap_url.replace('dodsC', 'wms'))
         if add_http_data_access:
@@ -1437,9 +1437,9 @@ class Nc_to_mmd(object):
                 ]
                 # Default the layer names to netcdf variable names
                 _layer_names = all_netcdf_variables
-                if custom_wms_link and custom_wms_layer_names:
+                if wms_link and wms_layer_names:
                     # Set custom layer names
-                    _layer_names = custom_wms_layer_names
+                    _layer_names = wms_layer_names
                 for w_layer in _layer_names:
                     if any(skip_layer in w_layer for skip_layer in skip_layers):
                         continue
