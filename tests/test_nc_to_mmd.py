@@ -1420,7 +1420,7 @@ class TestNC2MMD(unittest.TestCase):
     def test_get_data_access_dict_with_custom_wms(self):
         """ToDo: Add docstring"""
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc.nc'), check_only=True)
-        ncin = Dataset(md.netcdf_product)
+        ncin = Dataset(md.netcdf_file)
         md.netcdf_product = (
             'https://thredds.met.no/thredds/dodsC/arcticdata/'
             'S2S_drift_TCD/SIDRIFT_S2S_SH/2019/07/31/'
@@ -1434,7 +1434,7 @@ class TestNC2MMD(unittest.TestCase):
     def test_get_data_access_dict_with_custom_wms_and_layer_names(self):
         """ToDo: Add docstring"""
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc.nc'), check_only=True)
-        ncin = Dataset(md.netcdf_product)
+        ncin = Dataset(md.netcdf_file)
         md.netcdf_product = (
             'https://thredds.met.no/thredds/dodsC/arcticdata/'
             'S2S_drift_TCD/SIDRIFT_S2S_SH/2019/07/31/'
