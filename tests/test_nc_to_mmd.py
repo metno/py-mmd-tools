@@ -1284,6 +1284,35 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(data[1]['type'], 'OGC WMS')
         self.assertEqual(data[2]['type'], 'HTTP')
 
+    def test_get_data_access_dict_with_custom_wms(self):
+        """ToDo: Add docstring"""
+        md = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
+        ncin = Dataset(md.netcdf_product)
+        md.netcdf_product = (
+            'https://thredds.met.no/thredds/dodsC/arcticdata/'
+            'S2S_drift_TCD/SIDRIFT_S2S_SH/2019/07/31/'
+        ) + md.netcdf_product
+        data = md.get_data_access_dict(ncin, add_wms_data_access=True,
+                                       custom_wms_link='http://test-link')
+        self.assertEqual(data[1]['type'], 'OGC WMS')
+        self.assertTrue('http://test-link' in str(data[1]['resource']))
+        self.assertListEqual(data[1]['wms_layers'], ['toa_bidirectional_reflectance'])
+
+    def test_get_data_access_dict_with_custom_wms_and_layer_names(self):
+        """ToDo: Add docstring"""
+        md = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
+        ncin = Dataset(md.netcdf_product)
+        md.netcdf_product = (
+            'https://thredds.met.no/thredds/dodsC/arcticdata/'
+            'S2S_drift_TCD/SIDRIFT_S2S_SH/2019/07/31/'
+        ) + md.netcdf_product
+        data = md.get_data_access_dict(ncin, add_wms_data_access=True,
+                                       custom_wms_link='http://test-link',
+                                       custom_wms_layer_names=['layer_name_1', 'layer_name_2'])
+        self.assertEqual(data[1]['type'], 'OGC WMS')
+        self.assertTrue('http://test-link' in str(data[1]['resource']))
+        self.assertListEqual(data[1]['wms_layers'], ['layer_name_1', 'layer_name_2'])
+
     def test_get_data_access_dict(self):
         """ToDo: Add docstring"""
         md = Nc_to_mmd('tests/data/reference_nc.nc', check_only=True)
