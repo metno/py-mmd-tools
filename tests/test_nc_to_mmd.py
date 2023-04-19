@@ -121,6 +121,7 @@ def test_get_data_access_dict_with_custom_wms(monkeypatch):
     assert 'http://test-link' in str(data[1]['resource'])
     assert data[1]['wms_layers'] == ['toa_bidirectional_reflectance']
 
+
 @pytest.mark.py_mmd_tools
 def test_get_data_access_dict_with_custom_wms_and_layer_names(monkeypatch):
     """ToDo: Add docstring"""
@@ -140,6 +141,7 @@ def test_get_data_access_dict_with_custom_wms_and_layer_names(monkeypatch):
     assert data[1]['type'] == 'OGC WMS'
     assert 'http://test-link' in str(data[1]['resource'])
     assert data[1]['wms_layers'] == ['layer_name_1', 'layer_name_2']
+
 
 @pytest.mark.py_mmd_tools
 def test_get_data_access_dict(monkeypatch):
