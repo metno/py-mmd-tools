@@ -1421,10 +1421,10 @@ class TestNC2MMD(unittest.TestCase):
         """ToDo: Add docstring"""
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc.nc'), check_only=True)
         ncin = Dataset(md.netcdf_file)
-        md.netcdf_product = (
+        md.netcdf_file = (
             'https://thredds.met.no/thredds/dodsC/arcticdata/'
             'S2S_drift_TCD/SIDRIFT_S2S_SH/2019/07/31/'
-        ) + md.netcdf_product
+        ) + md.netcdf_file
         data = md.get_data_access_dict(ncin, add_wms_data_access=True,
                                        custom_wms_link='http://test-link')
         self.assertEqual(data[1]['type'], 'OGC WMS')
@@ -1435,10 +1435,10 @@ class TestNC2MMD(unittest.TestCase):
         """ToDo: Add docstring"""
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc.nc'), check_only=True)
         ncin = Dataset(md.netcdf_file)
-        md.netcdf_product = (
+        md.netcdf_file = (
             'https://thredds.met.no/thredds/dodsC/arcticdata/'
             'S2S_drift_TCD/SIDRIFT_S2S_SH/2019/07/31/'
-        ) + md.netcdf_product
+        ) + md.netcdf_file
         data = md.get_data_access_dict(ncin, add_wms_data_access=True,
                                        custom_wms_link='http://test-link',
                                        custom_wms_layer_names=['layer_name_1', 'layer_name_2'])
