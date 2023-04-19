@@ -18,6 +18,7 @@ Example:
 """
 
 import argparse
+import os
 import pathlib
 
 from py_mmd_tools import nc_to_mmd
@@ -32,7 +33,16 @@ def create_parser():
     # Add to parse a whole server?
     parser.add_argument(
         '-i', '--input', type=str,
-        help='Input file, folder or OPeNDAP url.'
+        help='Input file or folder.'
+    )
+    parser.add_argument(
+        '--dry-run', action='store_true',
+        help='Dry-run to check the netcdf metadata content.'
+    )
+    parser.add_argument(
+        '-u', '--url', type=str,
+        help='OPeNDAP url. If multiple files shall be processed, '
+             'this should be their base url.'
     )
     parser.add_argument(
         '-o', '--output_dir', type=pathlib.Path,
@@ -40,7 +50,7 @@ def create_parser():
     )
     parser.add_argument(
         '-w', '--add_wms_data_access', action='store_true',
-        help='Optional add wms in data_access.'
+        help='Add wms data access (optional).'
     )
     parser.add_argument(
         '-c', '--checksum_calculation',  action='store_true',
@@ -56,23 +66,37 @@ def create_parser():
 
 def main(args=None):
     """Run tool to create MMD xml file from input netCDF-CF file(s)"""
+    if not args.dry_run:
+        if args.url is None:
+            raise ValueError('OPeNDAP url must be provided')
+        if args.output_dir is None:
+            raise ValueError('MMD XML output directory must be provided')
 
+    assume_same_url_basename = False
     if pathlib.Path(args.input).is_dir():
         # Directory containing nc files
         inputfiles = pathlib.Path(args.input).glob('*.nc')
-    elif 'dodsC' in args.input:
-        # A remote OPeNDAP url
-        inputfiles = [args.input]
+        # If the input is a directory, we need to assume that the
+        # file and url basenames are the same
+        assume_same_url_basename = True
     elif pathlib.Path(args.input).is_file():
         # Single nc file
         inputfiles = [args.input]
     else:
         raise ValueError(f'Invalid input: {args.input}')
 
+    url = None  # dry-run option
     for file in inputfiles:
-        outfile = (args.output_dir / pathlib.Path(file).stem).with_suffix('.xml')
-        md = nc_to_mmd.Nc_to_mmd(str(file), output_file=outfile)
-        md.to_mmd(
+        if not args.dry_run:
+            if assume_same_url_basename:
+                url = os.path.join(args.url, file)
+            else:
+                url = args.url
+            outfile = (args.output_dir / pathlib.Path(file).stem).with_suffix('.xml')
+            md = nc_to_mmd.Nc_to_mmd(str(file), opendap_url=url, output_file=outfile)
+        else:
+            md = nc_to_mmd.Nc_to_mmd(str(file), check_only=True)
+        req_ok, msg = md.to_mmd(
             add_wms_data_access=args.add_wms_data_access,
             checksum_calculation=args.checksum_calculation,
             collection=args.collection
