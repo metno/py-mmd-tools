@@ -44,13 +44,16 @@ def create_parser():
     )
     parser.add_argument(
         '-l', '--custom_wms_link', default=None,
-        help=('Specify a custom WMS link. Default will generate a link to ncwms based on the input data. '
+        help=('Specify a custom WMS link. '
+              'Default will generate a link to ncwms based on the input data. '
               'Should be use together with custom_wms_layer_names. '
-              'Please note \'?service=WMS&version=1.3.0&request=GetCapabilities\' will be added to the link automatically.')
+              'Please note \'?service=WMS&version=1.3.0&request=GetCapabilities\' '
+              'will be added to the link automatically.')
     )
     parser.add_argument(
         '-n', '--custom_wms_layer_names', default=[], nargs='*',
-        help='Specify a custom WMS layer names. Default will use the netcdf variable names as lauer names. Only applied if custom_wms_link also is given'
+        help=('Specify a custom WMS layer names. Default will use the netcdf variable names as '
+              'layer names. Only applied if custom_wms_link also is given')
     )
     parser.add_argument(
         '-c', '--checksum_calculation',  action='store_true',

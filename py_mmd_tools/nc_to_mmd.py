@@ -1335,7 +1335,9 @@ class Nc_to_mmd(object):
         with open(self.output_file, 'w') as fh:
             fh.write(out_doc)
 
-    def get_data_access_dict(self, ncin, add_wms_data_access=False, custom_wms_link=None, custom_wms_layer_names=[], add_http_data_access=True):
+    def get_data_access_dict(self, ncin, add_wms_data_access=False, 
+                             custom_wms_link=None, custom_wms_layer_names=[],
+                             add_http_data_access=True):
         all_netcdf_variables = []
         for var in ncin.variables:
             if 'standard_name' in ncin.variables[var].ncattrs():
