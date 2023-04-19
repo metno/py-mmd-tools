@@ -240,7 +240,7 @@ operational_status:
     processing_level:
       maxOccurs: '1'
       comment: Optional
-      description: A textual description of the processing (or quality control) level of the data. Valid keywords are listed in https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#operational-status[Section 4.5 of the MMD specification].
+      description: A textual description of the processing level of the data. Valid keywords are listed in https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#operational-status[Section 4.5 of the MMD specification].
 
 access_constraint:
   maxOccurs: '1'

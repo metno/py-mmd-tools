@@ -14,6 +14,7 @@ import tempfile
 import yaml
 import warnings
 import unittest
+import pytest
 
 from dateutil.parser import isoparse
 from filehash import FileHash
@@ -31,6 +32,33 @@ from py_mmd_tools.yaml_to_adoc import set_attribute
 from py_mmd_tools.yaml_to_adoc import set_attributes
 
 warnings.simplefilter("ignore", ResourceWarning)
+
+
+@pytest.mark.script
+def test_get_operational_status(dataDir, monkeypatch):
+    mmd_yaml = yaml.load(
+        resource_string("py_mmd_tools", "mmd_elements.yaml"), Loader=yaml.FullLoader
+    )
+    mmd_element = mmd_yaml["operational_status"]
+    test_in = os.path.join(dataDir, "reference_nc.nc")
+    md = Nc_to_mmd(test_in, check_only=True)
+    ncin = Dataset(test_in, "w", diskless=True)
+
+    # processing_level is not present
+    value = md.get_operational_status(mmd_element, ncin)
+    assert value == "Not available"
+
+    # processing_level is not valid
+    ncin.processing_level = "kjhhas"
+    mmd_element["maxOccurs"] = "1"
+    value = md.get_operational_status(mmd_element, ncin)
+    assert "The ACDD attribute 'operational_status' must " in md.missing_attributes['errors'][0]
+
+    # repetition of processing_level is allowed
+    mmd_element["maxOccurs"] = "unbounded"
+    with pytest.raises(ValueError) as ve:
+        value = md.get_operational_status(mmd_element, ncin)
+    assert str(ve.value) == "This is not expected..."
 
 
 class TestNCAttrsFromYaml(unittest.TestCase):
@@ -110,7 +138,7 @@ class TestNCAttrsFromYaml(unittest.TestCase):
             'comment': 'Optional',
             'default': '',
             'description':
-                'A textual description of the processing (or quality control) '
+                'A textual description of the processing '
                 'level of the data. Valid keywords are listed in '
                 'https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/'
                 'master/doc/mmd-specification.html#operational-status[Section '
