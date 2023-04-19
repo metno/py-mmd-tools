@@ -68,7 +68,6 @@ def test_main_thredds(dataDir, monkeypatch):
         '-i', test_in,
     ])
     with monkeypatch.context() as mp:
-        mp.setattr('py_mmd_tools.nc_to_mmd.wget.download', lambda *a: test_in)
         mp.setattr('py_mmd_tools.nc_to_mmd.os.remove', lambda *a: None)
         res = main(parsed)
     assert res is None
