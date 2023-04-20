@@ -103,6 +103,47 @@ def test_get_data_access_dict_with_wms(monkeypatch):
 
 
 @pytest.mark.py_mmd_tools
+def test_get_data_access_dict_with_custom_wms(monkeypatch):
+    """WMS link is set."""
+    netcdf_file = os.path.abspath('tests/data/reference_nc.nc')
+    opendap_url = (
+        'https://thredds.met.no/thredds/dodsC/arcticdata/'
+        'S2S_drift_TCD/SIDRIFT_S2S_SH/2019/07/31/'
+    ) + netcdf_file
+    with monkeypatch.context() as mp:
+        mp.setattr("py_mmd_tools.nc_to_mmd.Dataset",
+                   lambda *args, **kwargs: patchedDataset(opendap_url, *args, **kwargs))
+        md = Nc_to_mmd(netcdf_file, opendap_url, check_only=True)
+        ncin = Dataset(md.netcdf_file)
+        data = md.get_data_access_dict(ncin, add_wms_data_access=True,
+                                       wms_link='http://test-link')
+    assert data[1]['type'] == 'OGC WMS'
+    assert 'http://test-link' in str(data[1]['resource'])
+    assert data[1]['wms_layers'] == ['toa_bidirectional_reflectance']
+
+
+@pytest.mark.py_mmd_tools
+def test_get_data_access_dict_with_custom_wms_and_layer_names(monkeypatch):
+    """WMS link and layer names are set."""
+    netcdf_file = os.path.abspath('tests/data/reference_nc.nc')
+    opendap_url = (
+        'https://thredds.met.no/thredds/dodsC/arcticdata/'
+        'S2S_drift_TCD/SIDRIFT_S2S_SH/2019/07/31/'
+    ) + netcdf_file
+    with monkeypatch.context() as mp:
+        mp.setattr("py_mmd_tools.nc_to_mmd.Dataset",
+                   lambda *args, **kwargs: patchedDataset(opendap_url, *args, **kwargs))
+        md = Nc_to_mmd(netcdf_file, opendap_url, check_only=True)
+        ncin = Dataset(md.netcdf_file)
+        data = md.get_data_access_dict(ncin, add_wms_data_access=True,
+                                       wms_link='http://test-link',
+                                       wms_layer_names=['layer_name_1', 'layer_name_2'])
+    assert data[1]['type'] == 'OGC WMS'
+    assert 'http://test-link' in str(data[1]['resource'])
+    assert data[1]['wms_layers'] == ['layer_name_1', 'layer_name_2']
+
+
+@pytest.mark.py_mmd_tools
 def test_get_data_access_dict(monkeypatch):
     """ToDo: Add docstring"""
     netcdf_file = os.path.abspath('tests/data/reference_nc.nc')

@@ -53,6 +53,19 @@ def create_parser():
         help='Add wms data access (optional).'
     )
     parser.add_argument(
+        '-l', '--wms_link', default=None,
+        help=('Specify a custom WMS link. '
+              'Default will generate a link to ncwms based on the input data. '
+              'Should be use together with wms_layer_names. '
+              'Please note \'?service=WMS&version=1.3.0&request=GetCapabilities\' '
+              'will be added to the link automatically.')
+    )
+    parser.add_argument(
+        '-n', '--wms_layer_names', default=[], nargs='*',
+        help=('Specify a custom WMS layer names. Default will use the netcdf variable names as '
+              'layer names. Only applied if wms_link also is given')
+    )
+    parser.add_argument(
         '-c', '--checksum_calculation',  action='store_true',
         help="Toggle wether to calculate the checksum of the file"
     )
@@ -98,6 +111,8 @@ def main(args=None):
             md = nc_to_mmd.Nc_to_mmd(str(file), check_only=True)
         req_ok, msg = md.to_mmd(
             add_wms_data_access=args.add_wms_data_access,
+            wms_link=args.wms_link,
+            wms_layer_names=args.wms_layer_names,
             checksum_calculation=args.checksum_calculation,
             collection=args.collection
         )

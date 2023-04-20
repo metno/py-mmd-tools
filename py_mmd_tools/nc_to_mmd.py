@@ -1365,7 +1365,9 @@ class Nc_to_mmd(object):
 
         return req_ok, msg
 
-    def get_data_access_dict(self, ncin, add_wms_data_access=False, add_http_data_access=True):
+    def get_data_access_dict(self, ncin, add_wms_data_access=False,
+                             wms_link=None, wms_layer_names=None,
+                             add_http_data_access=True):
         """ Return a dictionary with data access information. OGC WMS
         urls can only be provided for gridded datasets.
 
@@ -1376,6 +1378,11 @@ class Nc_to_mmd(object):
         add_wms_data_access : Boolean
             Adds OGC WMS data access if True. This is False by
             default, since only gridded datasets can have WMS access.
+        wms_link: String
+            Set OGC WMS url provided by user. Defaults to ncwms.
+        wms_layer_names: list
+            Set OGC WMS layer names as provided by user.
+            Defaults to netcdf variable names.
         add_http_data_access : Boolean
             Adds HTTP data access link if True (default).
         """
@@ -1403,7 +1410,10 @@ class Nc_to_mmd(object):
         if add_wms_data_access:  # and 2D dataset...?
             access_list.append('OGC WMS')
             _desc.append('OGC Web Mapping Service, URI to GetCapabilities Document.')
-            _res.append(self.opendap_url.replace('dodsC', 'wms'))
+            if wms_link:
+                _res.append(wms_link)
+            else:
+                _res.append(self.opendap_url.replace('dodsC', 'wms'))
         if add_http_data_access:
             access_list.append('HTTP')
             _desc.append('Direct download of file')
@@ -1425,7 +1435,12 @@ class Nc_to_mmd(object):
                     'projection_x_coordinate',
                     'projection_y_coordinate',
                 ]
-                for w_layer in all_netcdf_variables:
+                # Default the layer names to netcdf variable names
+                _layer_names = all_netcdf_variables
+                if wms_link and wms_layer_names:
+                    # Set custom layer names
+                    _layer_names = wms_layer_names
+                for w_layer in _layer_names:
                     if any(skip_layer in w_layer for skip_layer in skip_layers):
                         continue
                     data_access['wms_layers'].append(w_layer)
