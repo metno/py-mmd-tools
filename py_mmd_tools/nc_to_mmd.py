@@ -1366,7 +1366,7 @@ class Nc_to_mmd(object):
         return req_ok, msg
 
     def get_data_access_dict(self, ncin, add_wms_data_access=False,
-                             wms_link=None, wms_layer_names=[],
+                             wms_link=None, wms_layer_names=None,
                              add_http_data_access=True):
         """ Return a dictionary with data access information. OGC WMS
         urls can only be provided for gridded datasets.
