@@ -913,7 +913,8 @@ class Nc_to_mmd(object):
             identifier = ids[i]
             if re.search(ns_re_pattern, identifier) is None:
                 self.missing_attributes['errors'].append(
-                    '%s ACDD attribute is missing naming_authority in the identifier, relation %s.' % (acdd_ext_id_key, relation_types[i])
+                    '%s ACDD attribute is missing naming_authority in the identifier, relation %s.'
+                    % (acdd_ext_id_key, relation_types[i])
                 )
                 # NOTE: Should we return the data here, or let the data append the wrong id?
             data.append({
