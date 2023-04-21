@@ -647,27 +647,26 @@ class Nc_to_mmd(object):
         return data
 
     def get_projects(self, mmd_element, ncin):
-        """ToDo: Add docstring"""
+        """Get project long and short name from global acdd attribute"""
         acdd = mmd_element['long_name'].pop('acdd')
         projects = []
 
         acdd_key = list(acdd.keys())[0]
         if acdd_key in ncin.ncattrs():
             projects = self.separate_repeated(True, getattr(ncin, acdd_key))
-
-        acdd_short = mmd_element['short_name'].pop('acdd_ext')
-        projects_short = []
-        acdd_short_key = list(acdd_short.keys())[0]
-        if acdd_short_key in ncin.ncattrs():
-            projects_short = self.separate_repeated(True, getattr(ncin, acdd_short_key))
         data = []
-        for i in range(len(projects)):
+        for project in projects:
             tmp = {}
-            tmp['long_name'] = projects[i]
             # project is not required, so project short name should
             # not be required either
-            if len(projects) == len(projects_short):
-                tmp['short_name'] = projects_short[i]
+            ri = project.split('(')
+            if len(ri) != 2:
+                self.missing_attributes['errors'].append(
+                    "%s must be formed as <project long name>(<project short name>)." % acdd_key
+                )
+                continue
+            tmp['long_name'] = ri[0].strip()
+            tmp['short_name'] = ri[1][:-1]
             data.append(tmp)
         return data
 

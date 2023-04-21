@@ -1356,6 +1356,7 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(md.netcdf_file)
         value = md.get_projects(mmd_yaml['project'], ncin)
         self.assertEqual(value[0]['long_name'], 'MET Norway core services')
+        self.assertEqual(value[0]['short_name'], 'METNCS')
 
     def test_dataset_citation_missing_attrs(self):
         """Test that missing url and other is accepted"""
