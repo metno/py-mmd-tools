@@ -36,6 +36,18 @@ from tests.test_nc2mmd_script import patchedDataset
 warnings.simplefilter("ignore", ResourceWarning)
 
 
+@pytest.mark.script
+def test_invalid_opendap_url(dataDir):
+    """Test that a warning is issued if the opendap url is not
+    accessible.
+    """
+    test_in = os.path.join(dataDir, 'reference_nc.nc')
+    url = 'https://thredds.met.no/thredds/dodsC/reference_nc.nc'
+    md = Nc_to_mmd(test_in, url, check_only=True)
+    req, msg = md.to_mmd()
+    assert "Cannot access OPeNDAP stream" in md.missing_attributes['warnings'][2]
+
+
 @pytest.mark.py_mmd_tools
 def test_checksum(monkeypatch):
     """Verify that the checksum created in nc_to_mmd.py is correct"""
