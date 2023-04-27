@@ -1369,6 +1369,28 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[0]['long_name'], 'MET Norway core services')
         self.assertEqual(value[0]['short_name'], 'METNCS')
 
+    def test_projects_missing(self):
+        """Test getting project information when this is missing"""
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_missing_project.nc'),
+                       check_only=True)
+        ncin = Dataset(md.netcdf_file)
+        value = md.get_projects(mmd_yaml['project'], ncin)
+        self.assertEqual(len(value), 0)
+
+    def test_projects_malformed(self):
+        """Test getting project information when this is malformed"""
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_malformed_project.nc'),
+                       check_only=True)
+        ncin = Dataset(md.netcdf_file)
+        md.get_projects(mmd_yaml['project'], ncin)
+        self.assertEqual(md.missing_attributes['errors'][0], "project must be formed as <project long name>(<project short name>). Project short name is optional")
+
     def test_dataset_citation_missing_attrs(self):
         """Test that missing url and other is accepted"""
         mmd_yaml = yaml.load(
