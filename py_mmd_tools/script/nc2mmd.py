@@ -119,8 +119,17 @@ def main(args=None):
 
 
 def _main():  # pragma: no cover
-    main(create_parser().parse_args())  # entry point in setup.cfg
-
+    try:
+        main(create_parser().parse_args())  # entry point in setup.cfg
+    except ValueError as e:
+        print(e)
+    except AttributeError as e:
+        print(e)
 
 if __name__ == '__main__':  # pragma: no cover
-    main(create_parser().parse_args())
+    try:
+        main(create_parser().parse_args())
+    except ValueError as e:
+        print(e)
+    except AttributeError as e:
+        print(e)
