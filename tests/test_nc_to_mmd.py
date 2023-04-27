@@ -1389,7 +1389,9 @@ class TestNC2MMD(unittest.TestCase):
                        check_only=True)
         ncin = Dataset(md.netcdf_file)
         md.get_projects(mmd_yaml['project'], ncin)
-        self.assertEqual(md.missing_attributes['errors'][0], "project must be formed as <project long name>(<project short name>). Project short name is optional")
+        self.assertEqual(md.missing_attributes['errors'][0],
+                         ("project must be formed as <project long name>(<project short name>). "
+                          "Project short name is optional"))
 
     def test_dataset_citation_missing_attrs(self):
         """Test that missing url and other is accepted"""
