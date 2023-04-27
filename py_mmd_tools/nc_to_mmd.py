@@ -1389,7 +1389,7 @@ class Nc_to_mmd(object):
         # Check that the OPeNDAP url is accessible
         try:
             ds = Dataset(self.opendap_url)
-        except OSError as oe:
+        except OSError:
             msg = "Cannot access OPeNDAP stream: %s" % self.opendap_url
             self.missing_attributes['warnings'].append(msg)
         else:
