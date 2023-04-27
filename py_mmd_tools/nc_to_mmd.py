@@ -909,7 +909,16 @@ class Nc_to_mmd(object):
         # TODO: use if-test and raise exception instead:
         assert len(relation_types) == len(ids)
         data = []
+        ns_re_pattern = re.compile(r"\w+\..+:")
+
         for i in range(len(ids)):
+            identifier = ids[i]
+            if re.search(ns_re_pattern, identifier) is None:
+                self.missing_attributes['errors'].append(
+                    '%s ACDD attribute is missing naming_authority in the identifier, relation %s.'
+                    % (acdd_ext_id_key, relation_types[i])
+                )
+                # NOTE: Should we return the data here, or let the data append the wrong id?
             data.append({
                 'id': ids[i],
                 'relation_type': relation_types[i],
@@ -1391,9 +1400,9 @@ class Nc_to_mmd(object):
         # Check that the OPeNDAP url is accessible
         try:
             ds = Dataset(self.opendap_url)
-        except OSError as oe:
-            self.missing_attributes['errors'].append(str(oe))
-            return []
+        except OSError:
+            msg = "Cannot access OPeNDAP stream: %s" % self.opendap_url
+            self.missing_attributes['warnings'].append(msg)
         else:
             ds.close()
         all_netcdf_variables = []
