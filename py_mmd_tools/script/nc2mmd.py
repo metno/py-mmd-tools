@@ -126,6 +126,7 @@ def _main():  # pragma: no cover
     except AttributeError as e:
         print(e)
 
+
 if __name__ == '__main__':  # pragma: no cover
     try:
         main(create_parser().parse_args())
