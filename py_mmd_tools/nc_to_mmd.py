@@ -660,13 +660,16 @@ class Nc_to_mmd(object):
             # project is not required, so project short name should
             # not be required either
             ri = project.split('(')
-            if len(ri) != 2:
+            if 1 <= len(ri) <= 2:
+                tmp['long_name'] = ri[0].strip()
+                if len(ri) == 2:
+                    tmp['short_name'] = ri[1][:-1]
+            else:
                 self.missing_attributes['errors'].append(
-                    "%s must be formed as <project long name>(<project short name>)." % acdd_key
+                    "%s must be formed as <project long name>(<project short name>). "
+                    "Project short name is optional" % acdd_key
                 )
                 continue
-            tmp['long_name'] = ri[0].strip()
-            tmp['short_name'] = ri[1][:-1]
             data.append(tmp)
         return data
 

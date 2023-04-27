@@ -1356,6 +1356,16 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(md.netcdf_file)
         value = md.get_projects(mmd_yaml['project'], ncin)
         self.assertEqual(value[0]['long_name'], 'MET Norway core services')
+
+    def test_projects_with_short_name(self):
+        """Test getting project information with short name from nc-file"""
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_project_with_short_name.nc'), check_only=True)
+        ncin = Dataset(md.netcdf_file)
+        value = md.get_projects(mmd_yaml['project'], ncin)
+        self.assertEqual(value[0]['long_name'], 'MET Norway core services')
         self.assertEqual(value[0]['short_name'], 'METNCS')
 
     def test_dataset_citation_missing_attrs(self):
