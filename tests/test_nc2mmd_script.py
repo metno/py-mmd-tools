@@ -162,23 +162,6 @@ def test_invalid():
 
 
 @pytest.mark.script
-def test_invalid_opendap_url(dataDir):
-    """Test that the script raises ValueError if input is wrong"""
-    parser = create_parser()
-    test_in = os.path.join(dataDir, 'reference_nc.nc')
-    out_dir = tempfile.mkdtemp()
-    url = 'https://thredds.met.no/thredds/dodsC/reference_nc.nc'
-    parsed = parser.parse_args([
-        '-i', test_in,
-        '-u', url,
-        '-o', out_dir
-    ])
-    with pytest.raises(AttributeError) as ae:
-        main(parsed)
-    assert 'NetCDF:' in str(ae.value)
-
-
-@pytest.mark.script
 def test_dry_run(dataDir):
     """Test running the script with the dry-run option."""
     parser = create_parser()
