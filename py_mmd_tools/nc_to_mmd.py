@@ -153,6 +153,8 @@ class Nc_to_mmd(object):
         self.operational_status = MMDGroup('mmd', 'https://vocab.met.no/mmd/Operational_Status')
         self.operational_status.init_vocab()
 
+        self.iso_topic_category = MMDGroup('mmd', 'https://vocab.met.no/mmd/ISO_Topic_Category')
+        self.iso_topic_category.init_vocab()
         if not (self.platform_group.is_initialised and self.instrument_group.is_initialised):
             raise ValueError('Instrument or Platform group were not initialised')
 
@@ -978,7 +980,6 @@ class Nc_to_mmd(object):
         """ Get the operational_status from the processing_level ACDD
         attribute.
         """
-
         repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['0', '1']
         if repetition_allowed:
             raise ValueError("This is not expected...")
@@ -1003,6 +1004,34 @@ class Nc_to_mmd(object):
                 "html#operational-status).")
 
         return operational_status
+
+    def get_iso_topic_category(self, mmd_element, ncin):
+        """ Get the iso_topic_category from the processing_level ACDD
+        attribute.
+        """
+        categories = []
+        acdd_ext = mmd_element.pop('acdd_ext')
+        acdd_ext_key = list(acdd_ext.keys())[0]
+        if acdd_ext_key in ncin.ncattrs():
+            categories = self.separate_repeated(True, getattr(ncin, acdd_ext_key))
+        else:
+            categories.append("Not available")
+        data = []
+        for category in categories:
+            # If not given, search for Not available will return Not available
+            categories_search_result = self.iso_topic_category.search_lowercase(category)
+            iso_topic_category = categories_search_result.get("Short_Name", "")
+
+            if iso_topic_category == "":
+                self.missing_attributes['errors'].append(
+                    "The ACDD attribute 'iso_topic_category' must "
+                    "follow a controlled vocabulary from MMD (see "
+                    "https://htmlpreview.github.io/?https://github."
+                    "com/metno/mmd/blob/master/doc/mmd-specification."
+                    "html##iso_topic_category).")
+            else:
+                data.append(iso_topic_category)
+        return data
 
     def get_related_information(self, mmd_element, ncin):
         """ Get related information stored in the netcdf attribute
@@ -1326,6 +1355,10 @@ class Nc_to_mmd(object):
         self.metadata['operational_status'] = self.get_operational_status(
             mmd_yaml.pop('operational_status'), ncin)
 
+        # Set ISO_Topic_Category
+        self.metadata['iso_topic_category'] = self.get_iso_topic_category(
+            mmd_yaml.pop('iso_topic_category'), ncin)
+        
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
 
