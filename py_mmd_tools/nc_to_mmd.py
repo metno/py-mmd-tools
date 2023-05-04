@@ -155,6 +155,10 @@ class Nc_to_mmd(object):
 
         self.iso_topic_category = MMDGroup('mmd', 'https://vocab.met.no/mmd/ISO_Topic_Category')
         self.iso_topic_category.init_vocab()
+
+        self.contact_roles = MMDGroup('mmd', 'https://vocab.met.no/mmd/Contact_Roles')
+        self.contact_roles.init_vocab()
+
         if not (self.platform_group.is_initialised and self.instrument_group.is_initialised):
             raise ValueError('Instrument or Platform group were not initialised')
 
@@ -519,6 +523,7 @@ class Nc_to_mmd(object):
                 roles.extend(self.separate_repeated(True, getattr(ncin, acdd_role)))
             else:
                 roles.extend([acdd_roles[acdd_role]['default']])
+
             # Get emails
             acdd_email = [email for email in acdd_emails.keys() if acdd_main in email][0]
             if acdd_email and acdd_email in ncin.ncattrs():
@@ -554,6 +559,19 @@ class Nc_to_mmd(object):
                     'same number of (comma separated) entries.' % (acdd_name, acdd_role,
                                                                    acdd_email, acdd_orgs))
                 return data
+
+        #  Verify roles with the met-vocab contact_role
+        for role in roles:
+            roles_search_result = self.contact_roles.search_lowercase(role)
+            contact_role = roles_search_result.get("Short_Name", "")
+
+            if contact_role == "":
+                self.missing_attributes['errors'].append(
+                    "The ACDD attribute 'contact_roles' must "
+                    "follow a controlled vocabulary from MMD (see "
+                    "https://htmlpreview.github.io/?https://github."
+                    "com/metno/mmd/blob/master/doc/mmd-specification."
+                    "html##contact_roles).")
 
         clean = 0
         if len(names) > 1 and 'Not available' in names:
@@ -1358,7 +1376,7 @@ class Nc_to_mmd(object):
         # Set ISO_Topic_Category
         self.metadata['iso_topic_category'] = self.get_iso_topic_category(
             mmd_yaml.pop('iso_topic_category'), ncin)
-        
+
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
 
