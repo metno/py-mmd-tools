@@ -916,11 +916,11 @@ class Nc_to_mmd(object):
                     '%s ACDD attribute is missing naming_authority in the identifier, relation %s.'
                     % (acdd_ext_id_key, relation_types[i])
                 )
-                # NOTE: Should we return the data here, or let the data append the wrong id?
-            data.append({
-                'id': ids[i],
-                'relation_type': relation_types[i],
-            })
+            else:
+                data.append({
+                    'id': ids[i],
+                    'relation_type': relation_types[i],
+                })
         return data
 
     def get_geographic_extent_polygon(self, mmd_element, ncin):
