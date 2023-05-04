@@ -448,8 +448,6 @@ project:
   maxOccurs: unbounded
   minOccurs: '0'
   short_name:
-    separator: ','
-    comment: Comma separated list.
   long_name:
     acdd:
       project:
