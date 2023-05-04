@@ -448,10 +448,10 @@ project:
   maxOccurs: unbounded
   minOccurs: '0'
   acdd: 
-      project:
-          separator: ','
-          comment: Comma separated list.
-          description: The name of the project(s) principally responsible for originating this data in the format <long projectname> (<short project name>). Multiple projects can be separated by commas, as described under Attribute Content Guidelines. Examples; 'PATMOS-X', 'Extended Continental Shelf Project' becomes 'Extended Continental Shelf Project (PATMOS-X)'. I.e., if each substring includes a keyword in parantheses, the content within the paranthesis is interpreted as the short name for the project while the rest is the long name, e.g., 'Nansen Legacy (NLEG)'.
+    project:
+      separator: ','
+      comment: Comma separated list.
+      description: The name of the project(s) principally responsible for originating this data in the format <long projectname> (<short project name>). Multiple projects can be separated by commas, as described under Attribute Content Guidelines. Examples; 'PATMOS-X', 'Extended Continental Shelf Project' becomes 'Extended Continental Shelf Project (PATMOS-X)'. I.e., if each substring includes a keyword in parantheses, the content within the paranthesis is interpreted as the short name for the project while the rest is the long name, e.g., 'Nansen Legacy (NLEG)'.
   short_name:
   long_name:
 

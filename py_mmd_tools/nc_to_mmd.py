@@ -648,7 +648,7 @@ class Nc_to_mmd(object):
 
     def get_projects(self, mmd_element, ncin):
         """Get project long and short name from global acdd attribute"""
-        acdd = mmd_element['long_name'].pop('acdd')
+        acdd = mmd_element.pop('acdd')
         projects = []
 
         acdd_key = list(acdd.keys())[0]
