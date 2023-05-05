@@ -159,6 +159,9 @@ class Nc_to_mmd(object):
         self.contact_roles = MMDGroup('mmd', 'https://vocab.met.no/mmd/Contact_Roles')
         self.contact_roles.init_vocab()
 
+        self.activity_type = MMDGroup('mmd', 'https://vocab.met.no/mmd/Activity_Type')
+        self.activity_type.init_vocab()
+
         if not (self.platform_group.is_initialised and self.instrument_group.is_initialised):
             raise ValueError('Instrument or Platform group were not initialised')
 
@@ -1051,6 +1054,34 @@ class Nc_to_mmd(object):
                 data.append(iso_topic_category)
         return data
 
+    def get_activity_type(self, mmd_element, ncin):
+        """Get the activity_type from the processing_level ACDD
+        attribute. """
+        types = []
+        acdd = mmd_element.pop('acdd')
+        acdd_key = list(acdd.keys())[0]
+        if acdd_key in ncin.ncattrs():
+            types = self.separate_repeated(True, getattr(ncin, acdd_key))
+        else:
+            types.append("Not available")
+        data = []
+        for type in types:
+            # If not given, search for Not available will return Not available
+            activity_type_search_result = self.activity_type.search_lowercase(type)
+            activity_type = activity_type_search_result.get("Short_Name", "")
+
+            if activity_type == "":
+                self.missing_attributes['errors'].append(
+                    "The ACDD attribute 'iso_topic_category' must "
+                    "follow a controlled vocabulary from MMD (see "
+                    "https://htmlpreview.github.io/?https://github."
+                    "com/metno/mmd/blob/master/doc/mmd-specification."
+                    "html##iso_topic_category).")
+            else:
+                data.append(activity_type)
+
+        return data
+
     def get_related_information(self, mmd_element, ncin):
         """ Get related information stored in the netcdf attribute
         references.
@@ -1376,6 +1407,10 @@ class Nc_to_mmd(object):
         # Set ISO_Topic_Category
         self.metadata['iso_topic_category'] = self.get_iso_topic_category(
             mmd_yaml.pop('iso_topic_category'), ncin)
+
+        # Set Activity_Type
+        self.metadata['activity_type'] = self.get_activity_type(
+            mmd_yaml.pop('activity_type'), ncin)
 
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
