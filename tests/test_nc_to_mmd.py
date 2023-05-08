@@ -93,6 +93,29 @@ def test_create_mmd_1(monkeypatch):
     assert xml_doc.getroot().find(
         "{http://www.met.no/schema/mmd}alternate_identifier[@type='other_type']"
     ).text == "dummy_id_no2"
+    # platform
+    platform = xml_doc.getroot().find("{http://www.met.no/schema/mmd}platform")
+    assert platform.getchildren()[0].text == "SNPP"
+    assert platform.getchildren()[1].text == "Suomi National Polar-orbiting Partnership"
+
+
+def test_create_and_validate_mmd_platform(monkeypatch):
+    """ Test that an MMD file for a netcdf with missing platform
+    short_name and long_name validates as long as the vocabulary
+    is given."""
+    tested = tempfile.mkstemp()[1]
+    fn = os.path.abspath('tests/data/reference_nc_platform_names_missing.nc')
+    url = 'https://thredds.met.no/thredds/dodsC/reference_nc_platform_names_missing.nc'
+    with monkeypatch.context() as mp:
+        mp.setattr("py_mmd_tools.nc_to_mmd.Dataset",
+                   lambda *args, **kwargs: patchedDataset(url, *args, **kwargs))
+        md = Nc_to_mmd(fn, url, output_file=tested)
+        md.to_mmd(checksum_calculation=True)
+    reference_xsd = os.path.join(os.environ['MMD_PATH'], 'xsd/mmd_strict.xsd')
+    xsd_obj = etree.XMLSchema(etree.parse(reference_xsd))
+    xml_doc = etree.ElementTree(file=tested)
+    valid = xsd_obj.validate(xml_doc)
+    assert valid is True
 
 
 @pytest.mark.py_mmd_tools

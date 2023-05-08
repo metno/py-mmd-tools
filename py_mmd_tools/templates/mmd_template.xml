@@ -184,9 +184,13 @@
   <mmd:platform>
         {% if platform['short_name'] %}
     <mmd:short_name>{{ platform['short_name'] }}</mmd:short_name>
+        {% else %}
+    <mmd:short_name></mmd:short_name>
         {% endif %}
         {% if platform['long_name'] %}
     <mmd:long_name>{{ platform['long_name'] }}</mmd:long_name>
+        {% else %}
+    <mmd:long_name></mmd:long_name>
         {% endif %}
         {% if platform['resource'] %}
     <mmd:resource>{{ platform['resource'] }}</mmd:resource>
