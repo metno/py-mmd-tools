@@ -172,6 +172,8 @@
   <mmd:project>
       {% if project['short_name'] %}
     <mmd:short_name>{{ project['short_name'] }}</mmd:short_name>
+      {% else %}
+    <mmd:short_name></mmd:short_name>
       {% endif %}
       {% if project['long_name'] %}
     <mmd:long_name>{{ project['long_name'] }}</mmd:long_name>
