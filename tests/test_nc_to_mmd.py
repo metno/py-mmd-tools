@@ -1478,7 +1478,7 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         data = md.get_related_dataset(mmd_yaml['related_dataset'], ncin)
-        self.assertEqual(data[0]['id'], 'b7cb7934-77ca-4439-812e-f560df3fe7eb')
+        self.assertEqual(data[0]['id'], 'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb')
         self.assertEqual(data[0]['relation_type'], 'parent')
 
     def test_get_metadata_identifier(self):

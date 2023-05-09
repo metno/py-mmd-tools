@@ -891,7 +891,19 @@ class Nc_to_mmd(object):
         return naming_authority + ':' + ncid
 
     def get_related_dataset(self, mmd_element, ncin):
-        """Get id and relation type for a related dataset"""
+        """Get id and relation type for related dataset(s)
+
+        Parameters
+        ----------
+        mmd_element : dict
+        ncin : netCDF4.Dataset
+
+        Returns
+        -------
+        data : list
+            List of dicts with keys "id" and "relation_type" for each
+            related dataset.
+        """
         acdd_ext_relation_type = mmd_element['relation_type']['acdd_ext']
         relation_types = []
         acdd_ext_relation_type_key = list(acdd_ext_relation_type.keys())[0]
@@ -904,9 +916,18 @@ class Nc_to_mmd(object):
         acdd_ext_id_key = list(acdd_ext_id.keys())[0]
         if acdd_ext_id_key in ncin.ncattrs():
             ids = self.separate_repeated(True, getattr(ncin, acdd_ext_id_key))
-        # TODO: use if-test and raise exception instead:
-        assert len(relation_types) == len(ids)
+
+        # Initialise returned list
         data = []
+
+        # Check that the lengths of related_dataset_id and
+        # related_dataset_relation_type are the same
+        if len(relation_types) != len(ids):
+            self.missing_attributes['errors'].append(
+                '%s and %s must contain the same number of comma-separated elements.'
+                % (acdd_ext_relation_type_key, acdd_ext_id_key)
+            )
+
         ns_re_pattern = re.compile(r"\w+\..+:")
 
         for i in range(len(ids)):
