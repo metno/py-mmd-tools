@@ -892,30 +892,16 @@ class Nc_to_mmd(object):
                 )
         return naming_authority + ':' + ncid
 
-    def get_related_dataset(self, mmd_element, ncin):
+    def get_related_dataset_OLD(self, mmd_element, ncin):
         """Get id and relation type for related dataset(s)
-
-        Parameters
-        ----------
-        mmd_element : dict
-        ncin : netCDF4.Dataset
-
-        Returns
-        -------
-        data : list
-            List of dicts with keys "id" and "relation_type" for each
-            related dataset.
+        - OLD VERSION
         """
-        acdd_ext_relation_type = mmd_element['relation_type']['acdd_ext']
-        relation_types = []
-        acdd_ext_relation_type_key = list(acdd_ext_relation_type.keys())[0]
+        acdd_ext_relation_type_key = 'related_dataset_relation_type'
         if acdd_ext_relation_type_key in ncin.ncattrs():
             relation_types = self.separate_repeated(
                 True, getattr(ncin, acdd_ext_relation_type_key)
             )
-        acdd_ext_id = mmd_element['related_dataset']['acdd_ext']
-        ids = []
-        acdd_ext_id_key = list(acdd_ext_id.keys())[0]
+        acdd_ext_id_key = 'related_dataset_id'
         if acdd_ext_id_key in ncin.ncattrs():
             ids = self.separate_repeated(True, getattr(ncin, acdd_ext_id_key))
 
@@ -936,14 +922,82 @@ class Nc_to_mmd(object):
             identifier = ids[i]
             if re.search(ns_re_pattern, identifier) is None:
                 self.missing_attributes['errors'].append(
-                    '%s ACDD attribute is missing naming_authority in the identifier, relation %s.'
-                    % (acdd_ext_id_key, relation_types[i])
-                )
+                    '%s ACDD attribute is missing naming_authority in the identifier.'
+                    % acdd_ext_id_key)
             else:
                 data.append({
                     'id': ids[i],
                     'relation_type': relation_types[i],
                 })
+        return data
+
+    def get_related_dataset(self, mmd_element, ncin):
+        """Get id and relation type for related dataset(s)
+
+        Parameters
+        ----------
+        mmd_element : dict
+        ncin : netCDF4.Dataset
+
+        Returns
+        -------
+        data : list
+            List of dicts with keys "id" and "relation_type" for each
+            related dataset.
+        """
+        acdd_ext_relation = mmd_element['acdd_ext']
+        relations = []
+        acdd_ext_relation_key = list(acdd_ext_relation.keys())[0]
+        if acdd_ext_relation_key in ncin.ncattrs():
+            relations = self.separate_repeated(
+                True, getattr(ncin, acdd_ext_relation_key)
+            )
+
+        # Initialise returned list
+        data = []
+
+        # Name space search pattern
+        ns_re_pattern = re.compile(r"\w+\..+:")
+
+        for relation in relations:
+            try:
+                id, type = relation.split('(')
+            except ValueError:
+                self.missing_attributes['errors'].append(
+                    'The global attribute "%s" is malformed. Please '
+                    'provide the relation between this dataset and '
+                    'another dataset in the form '
+                    '"<naming_authority:uuid> (relation type)". The '
+                    'type of relationship must be either "parent" '
+                    '(this dataset is a child dataset of the '
+                    'referenced dataset) or "auxiliary" (this dataset'
+                    'is auxiliary data for the referenced dataset).'
+                    % acdd_ext_relation_key)
+            else:
+                # Get rid of remaining empty space(s)
+                identifier = id.strip()
+                # Get rid of remaining ending paranthesis
+                relation_type = type.strip(')')
+                # Check the relation type (the options are not available
+                # in https://vocab.met.no/mmd/en/groups
+                valid_rel_types = ['parent', 'auxiliary']
+                if relation_type not in valid_rel_types:
+                    self.missing_attributes['errors'].append(
+                        'The dataset relation type must be either %s or %s. You provided %s.'
+                        % (valid_rel_types[0], valid_rel_types[1], relation_type))
+                else:
+                    # Check the identifier pattern
+                    if re.search(ns_re_pattern, identifier) is None:
+                        self.missing_attributes['errors'].append(
+                            '%s ACDD attribute is missing '
+                            'naming_authority in the identifier.'
+                            % acdd_ext_relation_key)
+                    else:
+                        # If everything is ok, append the relation id and type
+                        data.append({
+                            'id': identifier,
+                            'relation_type': relation_type,
+                        })
         return data
 
     def get_geographic_extent_polygon(self, mmd_element, ncin):
@@ -1306,6 +1360,11 @@ class Nc_to_mmd(object):
             mmd_yaml.pop('dataset_citation'), ncin)
         self.metadata['related_dataset'] = self.get_related_dataset(
             mmd_yaml.pop('related_dataset'), ncin)
+        # QUESTION: should we allow the use of get_related_dataset_OLD as well? The new
+        # function breaks backward compatibility, but that's the case for many other
+        # previous updates as well.. Maybe we should change to using 0.* versions until
+        # we can have better stability?
+
         self.metadata['related_information'] = self.get_related_information(
             mmd_yaml.pop('related_information'), ncin)
         # Optionally add geographic extent
