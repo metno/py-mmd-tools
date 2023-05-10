@@ -37,6 +37,60 @@ warnings.simplefilter("ignore", ResourceWarning)
 
 
 @pytest.mark.script
+def test_get_related_dataset(dataDir):
+    """ Test get_related_dataset function.
+    """
+    mmd_yaml = yaml.load(
+        resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+    )
+    # One related dataset
+    md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
+    ncin = Dataset(md.netcdf_file, "w", diskless=True)
+    ncin.related_dataset = 'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb (parent)'
+    data = md.get_related_dataset(mmd_yaml['related_dataset'], ncin)
+    assert data[0]['id'] == 'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb'
+    ncin.close()
+
+    # Two related datasets
+    md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
+    ncin = Dataset(md.netcdf_file, "w", diskless=True)
+    ncin.related_dataset = (
+        'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb (parent), '
+        'no.met:b7cb7934-78ca-4439-812e-f560df3fe7eb (auxiliary)')
+    data = md.get_related_dataset(mmd_yaml['related_dataset'], ncin)
+    assert data[0]['id'] == 'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb'
+    assert data[1]['id'] == 'no.met:b7cb7934-78ca-4439-812e-f560df3fe7eb'
+    ncin.close()
+
+    # Malformed relation
+    md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
+    ncin = Dataset(md.netcdf_file, "w", diskless=True)
+    ncin.related_dataset = 'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb'
+    data = md.get_related_dataset(mmd_yaml['related_dataset'], ncin)
+    assert 'The global attribute "related_dataset" is malformed' in \
+        md.missing_attributes['errors'][0]
+    ncin.close()
+
+    # Invalid relation type
+    md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
+    ncin = Dataset(md.netcdf_file, "w", diskless=True)
+    ncin.related_dataset = 'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb (child)'
+    data = md.get_related_dataset(mmd_yaml['related_dataset'], ncin)
+    assert 'The dataset relation type must be either' in \
+        md.missing_attributes['errors'][0]
+    ncin.close()
+
+    # Invalid identifier pattern
+    md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
+    ncin = Dataset(md.netcdf_file, "w", diskless=True)
+    ncin.related_dataset = 'b7cb7934-77ca-4439-812e-f560df3fe7eb (parent)'
+    data = md.get_related_dataset(mmd_yaml['related_dataset'], ncin)
+    assert 'missing naming_authority in the identifier' in \
+        md.missing_attributes['errors'][0]
+    ncin.close()
+
+
+@pytest.mark.script
 def test_invalid_opendap_url(dataDir):
     """Test that a warning is issued if the opendap url is not
     accessible.
@@ -1528,17 +1582,6 @@ class TestNC2MMD(unittest.TestCase):
         except OSError:
             pass
         mock_nc_dataset.assert_called_with(fn+'#fillmismatch')
-
-    def test_related_dataset(self):
-        """ToDo: Add docstring"""
-        md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_id_missing.nc'), check_only=True)
-        ncin = Dataset(os.path.abspath('tests/data/reference_nc_id_missing.nc'))
-        mmd_yaml = yaml.load(
-            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-        )
-        data = md.get_related_dataset(mmd_yaml['related_dataset'], ncin)
-        self.assertEqual(data[0]['id'], 'b7cb7934-77ca-4439-812e-f560df3fe7eb')
-        self.assertEqual(data[0]['relation_type'], 'parent')
 
     def test_get_metadata_identifier(self):
         """Test that an AttributeError is raised if there are
