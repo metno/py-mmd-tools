@@ -959,6 +959,10 @@ class Nc_to_mmd(object):
         # Name space search pattern
         ns_re_pattern = re.compile(r"\w+\..+:")
 
+        # Valid relation types
+        valid_rel_types = ['parent', 'auxiliary']
+
+        # Loop the list of relations
         for relation in relations:
             try:
                 id, type = relation.split('(')
@@ -980,7 +984,6 @@ class Nc_to_mmd(object):
                 relation_type = type.strip(')')
                 # Check the relation type (the options are not available
                 # in https://vocab.met.no/mmd/en/groups
-                valid_rel_types = ['parent', 'auxiliary']
                 if relation_type not in valid_rel_types:
                     self.missing_attributes['errors'].append(
                         'The dataset relation type must be either %s or %s. You provided %s.'

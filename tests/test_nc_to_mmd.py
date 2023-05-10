@@ -40,10 +40,10 @@ warnings.simplefilter("ignore", ResourceWarning)
 def test_get_related_dataset(dataDir):
     """ Test get_related_dataset function.
     """
-    # One related dataset
     mmd_yaml = yaml.load(
         resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
     )
+    # One related dataset
     md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
     ncin = Dataset(md.netcdf_file, "w", diskless=True)
     ncin.related_dataset = 'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb (parent)'
@@ -52,9 +52,6 @@ def test_get_related_dataset(dataDir):
     ncin.close()
 
     # Two related datasets
-    mmd_yaml = yaml.load(
-        resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-    )
     md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
     ncin = Dataset(md.netcdf_file, "w", diskless=True)
     ncin.related_dataset = (
@@ -66,9 +63,6 @@ def test_get_related_dataset(dataDir):
     ncin.close()
 
     # Malformed relation
-    mmd_yaml = yaml.load(
-        resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-    )
     md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
     ncin = Dataset(md.netcdf_file, "w", diskless=True)
     ncin.related_dataset = 'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb'
@@ -78,9 +72,6 @@ def test_get_related_dataset(dataDir):
     ncin.close()
 
     # Invalid relation type
-    mmd_yaml = yaml.load(
-        resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-    )
     md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
     ncin = Dataset(md.netcdf_file, "w", diskless=True)
     ncin.related_dataset = 'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb (child)'
@@ -90,9 +81,6 @@ def test_get_related_dataset(dataDir):
     ncin.close()
 
     # Invalid identifier pattern
-    mmd_yaml = yaml.load(
-        resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-    )
     md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
     ncin = Dataset(md.netcdf_file, "w", diskless=True)
     ncin.related_dataset = 'b7cb7934-77ca-4439-812e-f560df3fe7eb (parent)'
@@ -106,10 +94,10 @@ def test_get_related_dataset(dataDir):
 def test_get_related_dataset_OLD(dataDir):
     """ Test get_related_dataset_OLD function.
     """
-    # Relation is correctly defined according to old standard
     mmd_yaml = yaml.load(
         resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
     )
+    # Relation is correctly defined according to old standard
     md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_id_missing.nc'), check_only=True)
     ncin = Dataset(os.path.abspath('tests/data/reference_nc_id_missing.nc'))
     data = md.get_related_dataset_OLD(mmd_yaml['related_dataset'], ncin)
@@ -118,9 +106,6 @@ def test_get_related_dataset_OLD(dataDir):
     ncin.close()
 
     # The number of dataset relation types and ids are different
-    mmd_yaml = yaml.load(
-        resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-    )
     md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
     ncin = Dataset(md.netcdf_file, "w", diskless=True)
     ncin.related_dataset_id = 'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb'
@@ -132,9 +117,6 @@ def test_get_related_dataset_OLD(dataDir):
 
     # Missing namespace in the id
     # The number of dataset relation types and ids are different
-    mmd_yaml = yaml.load(
-        resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-    )
     md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
     ncin = Dataset(md.netcdf_file, "w", diskless=True)
     ncin.related_dataset_id = 'b7cb7934-77ca-4439-812e-f560df3fe7eb'
