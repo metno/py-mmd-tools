@@ -892,45 +892,6 @@ class Nc_to_mmd(object):
                 )
         return naming_authority + ':' + ncid
 
-    def get_related_dataset_OLD(self, mmd_element, ncin):
-        """Get id and relation type for related dataset(s)
-        - OLD VERSION
-        """
-        acdd_ext_relation_type_key = 'related_dataset_relation_type'
-        if acdd_ext_relation_type_key in ncin.ncattrs():
-            relation_types = self.separate_repeated(
-                True, getattr(ncin, acdd_ext_relation_type_key)
-            )
-        acdd_ext_id_key = 'related_dataset_id'
-        if acdd_ext_id_key in ncin.ncattrs():
-            ids = self.separate_repeated(True, getattr(ncin, acdd_ext_id_key))
-
-        # Initialise returned list
-        data = []
-
-        # Check that the lengths of related_dataset_id and
-        # related_dataset_relation_type are the same
-        if len(relation_types) != len(ids):
-            self.missing_attributes['errors'].append(
-                '%s and %s must contain the same number of comma-separated elements.'
-                % (acdd_ext_relation_type_key, acdd_ext_id_key)
-            )
-
-        ns_re_pattern = re.compile(r"\w+\..+:")
-
-        for i in range(len(ids)):
-            identifier = ids[i]
-            if re.search(ns_re_pattern, identifier) is None:
-                self.missing_attributes['errors'].append(
-                    '%s ACDD attribute is missing naming_authority in the identifier.'
-                    % acdd_ext_id_key)
-            else:
-                data.append({
-                    'id': ids[i],
-                    'relation_type': relation_types[i],
-                })
-        return data
-
     def get_related_dataset(self, mmd_element, ncin):
         """Get id and relation type for related dataset(s)
 
