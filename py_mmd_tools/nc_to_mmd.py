@@ -1027,7 +1027,7 @@ class Nc_to_mmd(object):
         return operational_status
 
     def get_iso_topic_category(self, mmd_element, ncin):
-        """ Get the iso_topic_category from the processing_level ACDD
+        """ Get the iso_topic_category from the iso_topic_category ACDD-EXT
         attribute.
         """
         categories = []
@@ -1055,7 +1055,7 @@ class Nc_to_mmd(object):
         return data
 
     def get_activity_type(self, mmd_element, ncin):
-        """Get the activity_type from the processing_level ACDD
+        """Get the activity_type from the source ACDD
         attribute. """
         types = []
         acdd = mmd_element.pop('acdd')
@@ -1072,11 +1072,11 @@ class Nc_to_mmd(object):
 
             if activity_type == "":
                 self.missing_attributes['errors'].append(
-                    "The ACDD attribute 'iso_topic_category' must "
+                    "The ACDD attribute 'activity_type' must "
                     "follow a controlled vocabulary from MMD (see "
                     "https://htmlpreview.github.io/?https://github."
                     "com/metno/mmd/blob/master/doc/mmd-specification."
-                    "html##iso_topic_category).")
+                    "html##activity_type).")
             else:
                 data.append(activity_type)
 

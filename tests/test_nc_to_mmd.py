@@ -1125,6 +1125,20 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[0]['organisation'], 'Norwegian Meteorological Institute')
         self.assertEqual(value[1]['organisation'], 'Norwegian Meteorological Institute')
 
+    def test_get_personnel_role_invalid(self):
+        mmd_yaml = yaml.load(
+            resource_string("py_mmd_tools", "mmd_elements.yaml"), Loader=yaml.FullLoader
+        )
+        mmd_element = mmd_yaml["personnel"]
+        test_in = os.path.abspath('tests/data/reference_nc.nc')
+        md = Nc_to_mmd(test_in, check_only=True)
+        ncin = Dataset(test_in, "w", diskless=True)
+
+        # iso_topic_category is not valid
+        ncin.creator_role = "abcd"
+        md.get_personnel(mmd_element, ncin)
+        assert "The ACDD attribute 'contact_roles' must" in md.missing_attributes['errors'][0]
+
     def test_personnel(self):
         """Test reading of personnel from nc file into MMD"""
         mmd_yaml = yaml.load(
@@ -1148,6 +1162,47 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[0], 'climatologyMeteorologyAtmosphere')
         self.assertEqual(value[1], 'environment')
         self.assertEqual(value[2], 'oceans')
+
+    def test_get_iso_topic_category_invalid(self):
+        mmd_yaml = yaml.load(
+            resource_string("py_mmd_tools", "mmd_elements.yaml"), Loader=yaml.FullLoader
+        )
+        mmd_element = mmd_yaml["iso_topic_category"]
+        test_in = os.path.abspath('tests/data/reference_nc.nc')
+        md = Nc_to_mmd(test_in, check_only=True)
+        ncin = Dataset(test_in, "w", diskless=True)
+
+        # iso_topic_category is not valid
+        ncin.iso_topic_category = "abcd"
+        md.get_iso_topic_category(mmd_element, ncin)
+        assert "The ACDD attribute 'iso_topic_category' must" in md.missing_attributes['errors'][0]
+
+    def test_get_iso_topic_category_not_available(self):
+        mmd_yaml = yaml.load(
+            resource_string("py_mmd_tools", "mmd_elements.yaml"), Loader=yaml.FullLoader
+        )
+        mmd_element = mmd_yaml["iso_topic_category"]
+        test_in = os.path.abspath('tests/data/reference_nc.nc')
+        md = Nc_to_mmd(test_in, check_only=True)
+        ncin = Dataset(test_in, "w", diskless=True)
+
+        # iso_topic_category is not present
+        value = md.get_iso_topic_category(mmd_element, ncin)
+        assert value == ["Not available"]
+
+    def test_get_activity_type_invalid(self):
+        mmd_yaml = yaml.load(
+            resource_string("py_mmd_tools", "mmd_elements.yaml"), Loader=yaml.FullLoader
+        )
+        mmd_element = mmd_yaml["activity_type"]
+        test_in = os.path.abspath('tests/data/reference_nc.nc')
+        md = Nc_to_mmd(test_in, check_only=True)
+        ncin = Dataset(test_in, "w", diskless=True)
+
+        # activity_type is not valid
+        ncin.source = "abcd"
+        md.get_activity_type(mmd_element, ncin)
+        assert "The ACDD attribute 'activity_type' must" in md.missing_attributes['errors'][0]
 
     def test_missing_vocabulary_platform_instrument_short_name(self):
         """Test that a platform is picked up but the instrument is
