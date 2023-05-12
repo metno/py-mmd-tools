@@ -379,18 +379,11 @@ data_access:
 related_dataset:
   maxOccurs: unbounded
   minOccurs: '0'
-  related_dataset:
-    acdd_ext:
-      related_dataset_id:
-        separator: ','
-        comment: Comma separated list.
-        description: Specifies the relation between this dataset and another dataset. The type of relationship is determined by the related_dataset_relation_type attribute. The content of the element is a valid identifier.
-  relation_type:
-    acdd_ext:
-      related_dataset_relation_type:
-        separator: ','
-        comment: Comma separated list.
-        description: Valid content is either "parent" (this dataset is a child dataset of the referenced dataset) or "auxiliary" (this dataset is auxiliary data for the referenced dataset).
+  acdd_ext: 
+    related_dataset:
+      separator: ','
+      comment: Comma separated list.
+      description: Specifies the relation between this dataset and another dataset in the form "<naming_authority:id> (relation type)". The type of relationship must be either "parent" (this dataset is a child dataset of the referenced dataset) or "auxiliary" (this dataset is auxiliary data for the referenced dataset).
 
 storage_information:
   maxOccurs: '1'
@@ -447,18 +440,13 @@ keywords:
 project:
   maxOccurs: unbounded
   minOccurs: '0'
+  acdd: 
+    project:
+      separator: ','
+      comment: Comma separated list.
+      description: The name of the project(s) principally responsible for originating this data in the format <long projectname> (<short project name>). Multiple projects can be separated by commas, as described under Attribute Content Guidelines. Examples; 'PATMOS-X', 'Extended Continental Shelf Project' becomes 'Extended Continental Shelf Project (PATMOS-X)'. I.e., if each substring includes a keyword in parantheses, the content within the paranthesis is interpreted as the short name for the project while the rest is the long name, e.g., 'Nansen Legacy (NLEG)'.
   short_name:
-    acdd_ext:
-      project_short_name:
-        separator: ';'
-        comment: Semicolon separated list.
-        description: Short version of the project name.
   long_name:
-    acdd:
-      project:
-        separator: ';'
-        comment: Semicolon separated list.
-        description: The name of the project(s) principally responsible for originating this data. Multiple projects can be separated by commas, as described under Attribute Content Guidelines. Examples; 'PATMOS-X', 'Extended Continental Shelf Project'. # If each substring includes a keyword in parantheses, the content within the paranthesis is interpreted as the short name for the project while the rest is the long name, e.g., 'Nansen Legacy (NLEG)'. --- this requires a modification of nc_to_mmd.py...
 
 platform:
   maxOccurs: unbounded
