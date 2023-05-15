@@ -286,7 +286,7 @@ def test_get_operational_status(dataDir, monkeypatch):
 
 
 @pytest.mark.script
-def test_dataset_production_status(dataDir, monkeypatch):
+def test_dataset_production_status(dataDir):
     mmd_yaml = yaml.load(
         resource_string("py_mmd_tools", "mmd_elements.yaml"), Loader=yaml.FullLoader
     )
@@ -310,6 +310,29 @@ def test_dataset_production_status(dataDir, monkeypatch):
     mmd_element["maxOccurs"] = "unbounded"
     with pytest.raises(ValueError) as ve:
         value = md.get_dataset_production_status(mmd_element, ncin)
+    assert str(ve.value) == "This is not expected..."
+
+
+@pytest.mark.script
+def test_get_quality_control(dataDir):
+    mmd_yaml = yaml.load(
+        resource_string("py_mmd_tools", "mmd_elements.yaml"), Loader=yaml.FullLoader
+    )
+    mmd_element = mmd_yaml["quality_control"]
+    test_in = os.path.join(dataDir, "reference_nc.nc")
+    md = Nc_to_mmd(test_in, check_only=True)
+    ncin = Dataset(test_in, "w", diskless=True)
+
+    # processing_level is not valid
+    ncin.quality_control = "kjhhas"
+    mmd_element["maxOccurs"] = "1"
+    md.get_quality_control(mmd_element, ncin)
+    assert "The ACDD attribute 'quality_control' must " in md.missing_attributes['errors'][0]
+
+    # repetition of processing_level is allowed
+    mmd_element["maxOccurs"] = "unbounded"
+    with pytest.raises(ValueError) as ve:
+        md.get_quality_control(mmd_element, ncin)
     assert str(ve.value) == "This is not expected..."
 
 

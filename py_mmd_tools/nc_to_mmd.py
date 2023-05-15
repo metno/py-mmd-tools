@@ -166,6 +166,9 @@ class Nc_to_mmd(object):
                                                   '/Dataset_Production_Status')
         self.dataset_production_status.init_vocab()
 
+        self.quality_control = MMDGroup('mmd', 'https://vocab.met.no/mmd/Quality_Control')
+        self.quality_control.init_vocab()
+
         if not (self.platform_group.is_initialised and self.instrument_group.is_initialised):
             raise ValueError('Instrument or Platform group were not initialised')
 
@@ -1153,6 +1156,30 @@ class Nc_to_mmd(object):
 
         return dataset_production_status
 
+    def get_quality_control(self, mmd_element, ncin):
+        """ Get the quality_control from the quality_control ACDD-EXT
+        attribute.
+        """
+        repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['0', '1']
+        if repetition_allowed:
+            raise ValueError("This is not expected...")
+
+        acdd_ext = mmd_element["acdd_ext"]
+        acdd_ext_key = list(acdd_ext.keys())[0]
+        quality_control = ""
+        if acdd_ext_key in ncin.ncattrs():
+            qcontrol = ncin.getncattr(acdd_ext_key)
+            qcontrol_result = self.quality_control.search_lowercase(qcontrol)
+            quality_control = qcontrol_result.get("Short_Name", "")
+            if quality_control == "":
+                self.missing_attributes['errors'].append(
+                    "The ACDD attribute 'quality_control' must "
+                    "follow a controlled vocabulary from MMD (see "
+                    "https://htmlpreview.github.io/?https://github."
+                    "com/metno/mmd/blob/master/doc/mmd-specification."
+                    "html#quality_control).")
+        return quality_control
+
     def get_related_information(self, mmd_element, ncin):
         """ Get related information stored in the netcdf attribute
         references.
@@ -1491,6 +1518,10 @@ class Nc_to_mmd(object):
         # Set dataset_production_status
         self.metadata['dataset_production_status'] = self.get_dataset_production_status(
             mmd_yaml.pop('dataset_production_status'), ncin)
+
+        # Set dataset_production_status
+        self.metadata['quality_control'] = self.get_quality_control(
+            mmd_yaml.pop('quality_control'), ncin)
 
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
