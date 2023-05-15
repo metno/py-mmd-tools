@@ -285,6 +285,34 @@ def test_get_operational_status(dataDir, monkeypatch):
     assert str(ve.value) == "This is not expected..."
 
 
+@pytest.mark.script
+def test_dataset_production_status(dataDir, monkeypatch):
+    mmd_yaml = yaml.load(
+        resource_string("py_mmd_tools", "mmd_elements.yaml"), Loader=yaml.FullLoader
+    )
+    mmd_element = mmd_yaml["dataset_production_status"]
+    test_in = os.path.join(dataDir, "reference_nc.nc")
+    md = Nc_to_mmd(test_in, check_only=True)
+    ncin = Dataset(test_in, "w", diskless=True)
+
+    # dataset_production_status is not present
+    value = md.get_dataset_production_status(mmd_element, ncin)
+    assert value == "Not available"
+
+    # dataset_production_status is not valid
+    ncin.dataset_production_status = "kjhhas"
+    mmd_element["maxOccurs"] = "1"
+    value = md.get_dataset_production_status(mmd_element, ncin)
+    assert "The ACDD attribute 'dataset_production_status'"
+    "must " in md.missing_attributes['errors'][0]
+
+    # repetition of processing_level is allowed
+    mmd_element["maxOccurs"] = "unbounded"
+    with pytest.raises(ValueError) as ve:
+        value = md.get_dataset_production_status(mmd_element, ncin)
+    assert str(ve.value) == "This is not expected..."
+
+
 class TestNCAttrsFromYaml(unittest.TestCase):
 
     def setUp(self):

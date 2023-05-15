@@ -162,6 +162,10 @@ class Nc_to_mmd(object):
         self.activity_type = MMDGroup('mmd', 'https://vocab.met.no/mmd/Activity_Type')
         self.activity_type.init_vocab()
 
+        self.dataset_production_status = MMDGroup('mmd', 'https://vocab.met.no/mmd'
+                                                  '/Dataset_Production_Status')
+        self.dataset_production_status.init_vocab()
+
         if not (self.platform_group.is_initialised and self.instrument_group.is_initialised):
             raise ValueError('Instrument or Platform group were not initialised')
 
@@ -228,8 +232,6 @@ class Nc_to_mmd(object):
                     )
                 elif default:
                     data = default
-                elif 'default' in acdd_ext[acdd_ext_key].keys():
-                    data = acdd_ext[acdd_ext_key]['default']
                 elif required:
                     self.missing_attributes['errors'].append(
                         '%s is a required attribute' % acdd_ext_key
@@ -1123,6 +1125,34 @@ class Nc_to_mmd(object):
 
         return data
 
+    def get_dataset_production_status(self, mmd_element, ncin):
+        """ Get the dataset_production_status from the dataset_production_status ACDD
+        attribute.
+        """
+        repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['0', '1']
+        if repetition_allowed:
+            raise ValueError("This is not expected...")
+
+        acdd_ext = mmd_element["acdd_ext"]
+        acdd_ext_key = list(acdd_ext.keys())[0]
+        if acdd_ext_key in ncin.ncattrs():
+            pstatus = ncin.getncattr(acdd_ext_key)
+        else:
+            pstatus = "Not available"
+        # If not given, search for Not available will return Not available
+        pstatus_result = self.dataset_production_status.search_lowercase(pstatus)
+        dataset_production_status = pstatus_result.get("Short_Name", "")
+
+        if dataset_production_status == "":
+            self.missing_attributes['errors'].append(
+                "The ACDD attribute 'dataset_production_status' must "
+                "follow a controlled vocabulary from MMD (see "
+                "https://htmlpreview.github.io/?https://github."
+                "com/metno/mmd/blob/master/doc/mmd-specification."
+                "html#dataset_production_status).")
+
+        return dataset_production_status
+
     def get_related_information(self, mmd_element, ncin):
         """ Get related information stored in the netcdf attribute
         references.
@@ -1457,6 +1487,10 @@ class Nc_to_mmd(object):
         # Set Activity_Type
         self.metadata['activity_type'] = self.get_activity_type(
             mmd_yaml.pop('activity_type'), ncin)
+
+        # Set dataset_production_status
+        self.metadata['dataset_production_status'] = self.get_dataset_production_status(
+            mmd_yaml.pop('dataset_production_status'), ncin)
 
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
