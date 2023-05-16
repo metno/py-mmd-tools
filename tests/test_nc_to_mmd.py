@@ -253,9 +253,8 @@ def test_get_data_access_dict(monkeypatch):
 @pytest.mark.py_mmd_tools
 def test_not_absolute_path():
     fn = 'tests/data/reference_nc.nc'
-    with pytest.raises(ValueError) as ve:
-        Nc_to_mmd(fn, check_only=True)
-    assert str(ve.value) == "The path to the NetCDF-CF file must be absolute."
+    md = Nc_to_mmd(fn, check_only=True)
+    assert os.path.isabs(md.netcdf_file) is True
 
 
 @pytest.mark.script
