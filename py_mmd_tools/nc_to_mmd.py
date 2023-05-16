@@ -235,6 +235,8 @@ class Nc_to_mmd(object):
                     )
                 elif default:
                     data = default
+                elif 'default' in acdd_ext[acdd_ext_key].keys():
+                    data = acdd_ext[acdd_ext_key]['default']
                 elif required:
                     self.missing_attributes['errors'].append(
                         '%s is a required attribute' % acdd_ext_key

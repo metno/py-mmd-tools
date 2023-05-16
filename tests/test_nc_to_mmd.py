@@ -103,6 +103,24 @@ def test_invalid_opendap_url(dataDir):
 
 
 @pytest.mark.py_mmd_tools
+def testNc_to_mmd_Get_acdd_metadata(dataDir):
+    """ Test that the if-check
+
+    'default' in acdd_ext[acdd_ext_key].keys()
+
+    is covered for the boolean True case.
+    """
+    mmd_yaml = yaml.load(
+        resource_string("py_mmd_tools", "mmd_elements.yaml"), Loader=yaml.FullLoader
+    )
+    key = "dataset_production_status"
+    test_in = os.path.join(dataDir, "reference_nc.nc")
+    md = Nc_to_mmd(test_in, check_only=True)
+    ncin = Dataset(test_in, "w", diskless=True)
+    assert md.get_acdd_metadata(mmd_yaml[key], ncin, key) == "Complete"
+
+
+@pytest.mark.py_mmd_tools
 def test_checksum(monkeypatch):
     """Verify that the checksum created in nc_to_mmd.py is correct"""
     tested = tempfile.mkstemp()[1]
