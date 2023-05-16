@@ -162,8 +162,8 @@ class Nc_to_mmd(object):
         self.activity_type = MMDGroup('mmd', 'https://vocab.met.no/mmd/Activity_Type')
         self.activity_type.init_vocab()
 
-        self.dataset_production_status = MMDGroup('mmd', 'https://vocab.met.no/mmd'
-                                                  '/Dataset_Production_Status')
+        self.dataset_production_status = MMDGroup('mmd',
+            'https://vocab.met.no/mmd/Dataset_Production_Status')
         self.dataset_production_status.init_vocab()
 
         self.quality_control = MMDGroup('mmd', 'https://vocab.met.no/mmd/Quality_Control')
