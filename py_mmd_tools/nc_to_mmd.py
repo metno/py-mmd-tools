@@ -582,6 +582,7 @@ class Nc_to_mmd(object):
                     "https://htmlpreview.github.io/?https://github."
                     "com/metno/mmd/blob/master/doc/mmd-specification."
                     "html##contact_roles).")
+                return data
 
         clean = 0
         if len(names) > 1 and 'Not available' in names:
