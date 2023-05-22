@@ -151,6 +151,23 @@ class Nc_to_mmd(object):
         self.operational_status = MMDGroup('mmd', 'https://vocab.met.no/mmd/Operational_Status')
         self.operational_status.init_vocab()
 
+        self.iso_topic_category = MMDGroup('mmd', 'https://vocab.met.no/mmd/ISO_Topic_Category')
+        self.iso_topic_category.init_vocab()
+
+        self.contact_roles = MMDGroup('mmd', 'https://vocab.met.no/mmd/Contact_Roles')
+        self.contact_roles.init_vocab()
+
+        self.activity_type = MMDGroup('mmd', 'https://vocab.met.no/mmd/Activity_Type')
+        self.activity_type.init_vocab()
+
+        self.dataset_production_status = MMDGroup(
+            'mmd',
+            'https://vocab.met.no/mmd/Dataset_Production_Status')
+        self.dataset_production_status.init_vocab()
+
+        self.quality_control = MMDGroup('mmd', 'https://vocab.met.no/mmd/Quality_Control')
+        self.quality_control.init_vocab()
+
         if not (self.platform_group.is_initialised and self.instrument_group.is_initialised):
             raise ValueError('Instrument or Platform group were not initialised')
 
@@ -515,6 +532,7 @@ class Nc_to_mmd(object):
                 roles.extend(self.separate_repeated(True, getattr(ncin, acdd_role)))
             else:
                 roles.extend([acdd_roles[acdd_role]['default']])
+
             # Get emails
             acdd_email = [email for email in acdd_emails.keys() if acdd_main in email][0]
             if acdd_email and acdd_email in ncin.ncattrs():
@@ -549,6 +567,20 @@ class Nc_to_mmd(object):
                     'ACDD attributes %s, %s, %s and %s must have the '
                     'same number of (comma separated) entries.' % (acdd_name, acdd_role,
                                                                    acdd_email, acdd_orgs))
+                return data
+
+        #  Verify roles with the met-vocab contact_role
+        for role in roles:
+            roles_search_result = self.contact_roles.search_lowercase(role)
+            contact_role = roles_search_result.get("Short_Name", "")
+
+            if contact_role == "":
+                self.missing_attributes['errors'].append(
+                    "The ACDD attribute 'contact_roles' must "
+                    "follow a controlled vocabulary from MMD (see "
+                    "https://htmlpreview.github.io/?https://github."
+                    "com/metno/mmd/blob/master/doc/mmd-specification."
+                    "html##contact_roles).")
                 return data
 
         clean = 0
@@ -1017,7 +1049,6 @@ class Nc_to_mmd(object):
         """ Get the operational_status from the processing_level ACDD
         attribute.
         """
-
         repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['0', '1']
         if repetition_allowed:
             raise ValueError("This is not expected...")
@@ -1042,6 +1073,114 @@ class Nc_to_mmd(object):
                 "html#operational-status).")
 
         return operational_status
+
+    def get_iso_topic_category(self, mmd_element, ncin):
+        """ Get the iso_topic_category from the iso_topic_category ACDD-EXT
+        attribute.
+        """
+        categories = []
+        acdd_ext = mmd_element.pop('acdd_ext')
+        acdd_ext_key = list(acdd_ext.keys())[0]
+        if acdd_ext_key in ncin.ncattrs():
+            categories = self.separate_repeated(True, getattr(ncin, acdd_ext_key))
+        else:
+            categories.append("Not available")
+        data = []
+        for category in categories:
+            # If not given, search for Not available will return Not available
+            categories_search_result = self.iso_topic_category.search_lowercase(category)
+            iso_topic_category = categories_search_result.get("Short_Name", "")
+
+            if iso_topic_category == "":
+                self.missing_attributes['errors'].append(
+                    "The ACDD attribute 'iso_topic_category' must "
+                    "follow a controlled vocabulary from MMD (see "
+                    "https://htmlpreview.github.io/?https://github."
+                    "com/metno/mmd/blob/master/doc/mmd-specification."
+                    "html##iso_topic_category).")
+            else:
+                data.append(iso_topic_category)
+        return data
+
+    def get_activity_type(self, mmd_element, ncin):
+        """Get the activity_type from the source ACDD
+        attribute. """
+        types = []
+        acdd = mmd_element.pop('acdd')
+        acdd_key = list(acdd.keys())[0]
+        if acdd_key in ncin.ncattrs():
+            types = self.separate_repeated(True, getattr(ncin, acdd_key))
+        else:
+            types.append("Not available")
+        data = []
+        for type in types:
+            # If not given, search for Not available will return Not available
+            activity_type_search_result = self.activity_type.search_lowercase(type)
+            activity_type = activity_type_search_result.get("Short_Name", "")
+
+            if activity_type == "":
+                self.missing_attributes['errors'].append(
+                    "The ACDD attribute 'activity_type' must "
+                    "follow a controlled vocabulary from MMD (see "
+                    "https://htmlpreview.github.io/?https://github."
+                    "com/metno/mmd/blob/master/doc/mmd-specification."
+                    "html##activity_type).")
+            else:
+                data.append(activity_type)
+
+        return data
+
+    def get_dataset_production_status(self, mmd_element, ncin):
+        """ Get the dataset_production_status from the dataset_production_status ACDD
+        attribute.
+        """
+        repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['0', '1']
+        if repetition_allowed:
+            raise ValueError("This is not expected...")
+
+        acdd_ext = mmd_element["acdd_ext"]
+        acdd_ext_key = list(acdd_ext.keys())[0]
+        if acdd_ext_key in ncin.ncattrs():
+            pstatus = ncin.getncattr(acdd_ext_key)
+        else:
+            pstatus = "Not available"
+        # If not given, search for Not available will return Not available
+        pstatus_result = self.dataset_production_status.search_lowercase(pstatus)
+        dataset_production_status = pstatus_result.get("Short_Name", "")
+
+        if dataset_production_status == "":
+            self.missing_attributes['errors'].append(
+                "The ACDD attribute 'dataset_production_status' must "
+                "follow a controlled vocabulary from MMD (see "
+                "https://htmlpreview.github.io/?https://github."
+                "com/metno/mmd/blob/master/doc/mmd-specification."
+                "html#dataset_production_status).")
+
+        return dataset_production_status
+
+    def get_quality_control(self, mmd_element, ncin):
+        """ Get the quality_control from the quality_control ACDD-EXT
+        attribute.
+        """
+        repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['0', '1']
+        if repetition_allowed:
+            raise ValueError("This is not expected...")
+
+        acdd_ext = mmd_element["acdd_ext"]
+        acdd_ext_key = list(acdd_ext.keys())[0]
+        quality_control = ""
+        if acdd_ext_key in ncin.ncattrs():
+            qcontrol = ncin.getncattr(acdd_ext_key)
+            qcontrol_result = self.quality_control.search_lowercase(qcontrol)
+            quality_control = qcontrol_result.get("Short_Name", "")
+            if quality_control == "":
+                self.missing_attributes['errors'].append(
+                    "The ACDD attribute 'quality_control' must "
+                    "follow a controlled vocabulary from MMD (see "
+                    "https://htmlpreview.github.io/?https://github."
+                    "com/metno/mmd/blob/master/doc/mmd-specification."
+                    "html#quality_control).")
+        return quality_control
 
     def get_related_information(self, mmd_element, ncin):
         """ Get related information stored in the netcdf attribute
@@ -1369,6 +1508,22 @@ class Nc_to_mmd(object):
         # it must be handled separately
         self.metadata['operational_status'] = self.get_operational_status(
             mmd_yaml.pop('operational_status'), ncin)
+
+        # Set ISO_Topic_Category
+        self.metadata['iso_topic_category'] = self.get_iso_topic_category(
+            mmd_yaml.pop('iso_topic_category'), ncin)
+
+        # Set Activity_Type
+        self.metadata['activity_type'] = self.get_activity_type(
+            mmd_yaml.pop('activity_type'), ncin)
+
+        # Set dataset_production_status
+        self.metadata['dataset_production_status'] = self.get_dataset_production_status(
+            mmd_yaml.pop('dataset_production_status'), ncin)
+
+        # Set dataset_production_status
+        self.metadata['quality_control'] = self.get_quality_control(
+            mmd_yaml.pop('quality_control'), ncin)
 
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
