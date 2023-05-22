@@ -131,11 +131,9 @@ class Nc_to_mmd(object):
             raise ValueError(
                 "The opendap_url and output_file input parameters "
                 "must be provided if check_only is False")
-        if not os.path.isabs(netcdf_file):
-            raise ValueError("The path to the NetCDF-CF file must be absolute.")
         super(Nc_to_mmd, self).__init__()
         self.output_file = output_file
-        self.netcdf_file = netcdf_file
+        self.netcdf_file = os.path.abspath(netcdf_file)
         self.opendap_url = opendap_url
         self.check_only = check_only
         self.missing_attributes = {
