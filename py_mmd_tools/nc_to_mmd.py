@@ -710,19 +710,17 @@ class Nc_to_mmd(object):
         NOTE: This function should be rewritten according to a solution
         to https://github.com/metno/py-mmd-tools/issues/107
         """
-        long_names = []
-        acdd_long_name = mmd_element['long_name'].pop('acdd')
-        acdd_long_name_key = list(acdd_long_name.keys())[0]
-        if acdd_long_name_key in ncin.ncattrs():
-            long_names = self.separate_repeated(True, getattr(ncin, acdd_long_name_key))
+        acdd = mmd_element.pop('acdd')
+        platforms = []
+        acdd_key = list(acdd.keys())[0]
+        if acdd_key in ncin.ncattrs():
+            platforms = self.separate_repeated(True, getattr(ncin, acdd_key))
 
-        ilong_names = []
-        acdd_instrument_long_name = mmd_element['instrument']['long_name'].pop('acdd')
-        acdd_instrument_long_name_key = list(acdd_instrument_long_name.keys())[0]
-        if acdd_instrument_long_name_key in ncin.ncattrs():
-            ilong_names = self.separate_repeated(
-                True, getattr(ncin, acdd_instrument_long_name_key)
-            )
+        acdd_instrument = mmd_element['instrument'].pop('acdd')
+        instruments = []
+        acdd_instrument_key = list(acdd_instrument.keys())[0]
+        if acdd_instrument_key in ncin.ncattrs():
+            instruments = self.separate_repeated(True, getattr(ncin, acdd_instrument_key))
 
         resources = []
         acdd_resource = mmd_element['resource'].pop('acdd')
@@ -738,21 +736,37 @@ class Nc_to_mmd(object):
                 True, getattr(ncin, acdd_instrument_resource_key))
 
         data = []
-        for long_name, ilong_name, resource, iresource in zip_longest(
-            long_names, ilong_names, resources, iresources, fillvalue=''
+
+        for platform, instrument, resource, iresource in zip_longest(
+            platforms, instruments, resources, iresources, fillvalue=''
         ):
-            long_name = long_name.split('>')[-1].strip()
-            ilong_name = ilong_name.split('>')[-1].strip()
+            data_dict = {}
+            instrument_dict = {}
+            ri = platform.split('(')
+            if 1 <= len(ri) <= 2:
+                data_dict['long_name'] = ri[0].strip()
+                if len(ri) == 2:
+                    data_dict['short_name'] = ri[1][:-1]
+            else:
+                self.missing_attributes['errors'].append(
+                    "%s must be formed as <platform long name>(<platform short name>). "
+                    "Platform short name is optional" % acdd_key
+                )
+                continue
+            iri = instrument.split('(')
+            if 1 <= len(iri) <= 2:
+                instrument_dict['long_name'] = iri[0].strip()
+                if len(iri) == 2:
+                    instrument_dict['short_name'] = iri[1][:-1]
+            else:
+                self.missing_attributes['errors'].append(
+                    "%s must be formed as <instrument long name>(<instrument short name>). "
+                    "Instrument short name is optional" % acdd_instrument_key
+                )
+                continue
 
-            # Searches with '' is safe
-            platform_data = self.platform_group.search(long_name)
-            instrument_data = self.instrument_group.search(ilong_name)
-
-            data_dict = {
-                'long_name': long_name,
-                'short_name': platform_data.get('Short_Name', ''),
-                'resource': platform_data.get('Resource', ''),
-            }
+            data_dict['long_name'] = data_dict['long_name'].split('>')[-1].strip()
+            instrument_dict['long_name'] = instrument_dict['long_name'].split('>')[-1].strip()
 
             if resource != '':
                 data_dict['resource'] = resource
@@ -763,19 +777,9 @@ class Nc_to_mmd(object):
                                                                  acdd_resource_key))
                 data_dict.pop('resource')
 
-            instrument_dict = {
-                'long_name': instrument_data.get('Long_Name', ''),
-                'short_name': instrument_data.get('Short_Name', ''),
-                'resource': instrument_data.get('Resource', '')
-            }
-
-            if ilong_name != '':
-                instrument_dict['long_name'] = ilong_name
             if iresource != '':
                 instrument_dict['resource'] = iresource
-
-            if instrument_dict['resource'] == '' or not valid_url(instrument_dict['resource']):
-                if instrument_dict['resource'] != '':
+                if not valid_url(instrument_dict['resource']):
                     self.missing_attributes['warnings'].append(
                         '"%s" in %s attribute is not a valid url' % (instrument_dict['resource'],
                                                                      acdd_instrument_resource_key))

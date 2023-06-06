@@ -1359,7 +1359,7 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_missing_keywords_vocab.nc'),
                        check_only=True)
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.platform = 'Suomi National Polar-orbiting Partnership'
+        ncin.platform = 'Suomi National Polar-orbiting Partnership (SNPP)'
         ncin.instrument = 'ASAR'
         ncin.instrument_vocabulary = 'not a valid vocab url'
         value = md.get_platforms(mmd_yaml['platform'], ncin)
@@ -1555,9 +1555,9 @@ class TestNC2MMD(unittest.TestCase):
                        check_only=True)
         ncin = Dataset(md.netcdf_file)
         value = md.get_platforms(mmd_yaml['platform'], ncin)
-        self.assertEqual(value[0]['short_name'], 'Sentinel-1B')
         self.assertEqual(value[0]['long_name'], 'Sentinel-1B')
-        self.assertEqual(value[0]['instrument']['long_name'], 'Synthetic Aperture Radar (C-band)')
+        self.assertEqual(value[0]['instrument']['long_name'], 'Synthetic Aperture Radar')
+        self.assertEqual(value[0]['instrument']['short_name'], 'C-band')
 
     def test_projects(self):
         """Test getting project information from nc-file"""
