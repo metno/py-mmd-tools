@@ -1378,7 +1378,7 @@ class TestNC2MMD(unittest.TestCase):
         ncin.platform = 'Envisat'
         ncin.platform_vocabulary = 'invalid_url'
         value = md.get_platforms(mmd_yaml['platform'], ncin)
-        self.assertEqual(value, [{'long_name': 'Envisat', 'short_name': ''}])
+        self.assertEqual(value, [{'long_name': 'Envisat'}])
         self.assertEqual(md.missing_attributes['warnings'][0],
                          '"invalid_url" in platform_vocabulary attribute is not a valid url')
 
@@ -1393,7 +1393,7 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
         ncin.platform = 'Envisat'
         value = md.get_platforms(mmd_yaml['platform'], ncin)
-        self.assertEqual(value, [{'long_name': 'Envisat', 'short_name': ''}])
+        self.assertEqual(value, [{'long_name': 'Envisat'}])
         self.assertEqual(md.missing_attributes['warnings'][0],
                          '"" in platform_vocabulary attribute is not a valid url')
 
