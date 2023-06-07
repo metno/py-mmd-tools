@@ -449,6 +449,8 @@ project:
   long_name:
 
 platform:
+  short_name:
+  long_name:
   maxOccurs: unbounded
   minOccurs: '0'
   acdd:
@@ -456,8 +458,6 @@ platform:
       separator: ','
       comment: Recommended. Comma separated list.
       description: Name of the platform(s) that supported the sensor used to create this dataset in the format <long platform name> (<short platform name>). Platforms can be of any type, including satellite, ship, station, aircraft or other. Both https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#platform-1[MMD] and https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/platforms[GCMD] has controlled vocabularies for platform names (the GCMD one is a large xml file in which the data producer must search for the correct platform name [use prefLabel], e.g. like <ctrl>-f "models</skos:prefLabel"). Indicate which controlled vocabulary that is used in the platform_vocabulary attribute.
-  short_name:
-  long_name:
   resource:
     acdd:
       platform_vocabulary:
@@ -468,13 +468,13 @@ platform:
   orbit_absolute:
   orbit_direction:
   instrument:
+    short_name:
+    long_name:
     acdd:
       instrument:
         separator: ','
         comment: Optional. Comma separated list.
         description: Name of the instrument(s) or sensor(s) used to create this dataset in the format <long name> (<short name>). Both https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#instruments[MMD] and https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/instruments[GCMD] has controlled vocabularies for instrument names (the GCMD one is a large xml file in which the data producer must search for the correct instrument name [use prefLabel], e.g. like <ctrl>-f "thermometers</skos:prefLabel"). Indicate which controlled vocabulary that is used in the instrument_vocabulary attribute.
-    short_name:
-    long_name:
     resource:
       acdd:
         instrument_vocabulary:

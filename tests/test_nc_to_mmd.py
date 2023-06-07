@@ -1406,6 +1406,7 @@ class TestNC2MMD(unittest.TestCase):
                        check_only=True)
         ncin = Dataset(md.netcdf_file)
         value = md.get_platforms(mmd_yaml['platform'], ncin)
+        print(value)
         resource_link = 'https://www.wmo-sat.info/oscar/satellites/view/snpp'
         self.assertEqual(value[0]['resource'], resource_link)
 

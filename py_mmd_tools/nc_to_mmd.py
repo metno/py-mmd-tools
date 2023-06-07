@@ -735,13 +735,22 @@ class Nc_to_mmd(object):
             iresources = self.separate_repeated(
                 True, getattr(ncin, acdd_instrument_resource_key))
 
+        print("DEBUG ", platforms, instruments, resources, iresources)
+
         data = []
 
         for platform, instrument, resource, iresource in zip_longest(
             platforms, instruments, resources, iresources, fillvalue=''
         ):
-            data_dict = {}
-            instrument_dict = {}
+        
+            print("DEBUG 2 ", platform, instrument, resource, iresource)
+
+            platform_data = self.platform_group.search(platform)
+            instrument_data = self.instrument_group.search(instrument)
+
+            data_dict = {'resource': platform_data.get('Resource', '')}
+            instrument_dict = {'resource': instrument_data.get('Resource', '')}
+  
             ri = platform.split('(')
             if 1 <= len(ri) <= 2:
                 data_dict['long_name'] = ri[0].strip()
@@ -770,15 +779,18 @@ class Nc_to_mmd(object):
 
             if resource != '':
                 data_dict['resource'] = resource
-                if not valid_url(data_dict['resource']):
-                    self.missing_attributes['warnings'].append(
-                        '"%s" in %s attribute is not a valid url' % (data_dict['resource'],
+
+            if data_dict['resource'] == '' or not valid_url(data_dict['resource']):
+                self.missing_attributes['warnings'].append(
+                    '"%s" in %s attribute is not a valid url' % (data_dict['resource'],
                                                                  acdd_resource_key))
                 data_dict.pop('resource')
 
             if iresource != '':
                 instrument_dict['resource'] = iresource
-                if not valid_url(instrument_dict['resource']):
+
+            if instrument_dict['resource'] == '' or not valid_url(instrument_dict['resource']):
+                if instrument_dict['resource'] != '':
                     self.missing_attributes['warnings'].append(
                         '"%s" in %s attribute is not a valid url' % (instrument_dict['resource'],
                                                                      acdd_instrument_resource_key))
