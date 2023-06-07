@@ -742,7 +742,6 @@ class Nc_to_mmd(object):
         for platform, instrument, resource, iresource in zip_longest(
             platforms, instruments, resources, iresources, fillvalue=''
         ):
-        
             print("DEBUG 2 ", platform, instrument, resource, iresource)
 
             platform_data = self.platform_group.search(platform)
@@ -750,7 +749,7 @@ class Nc_to_mmd(object):
 
             data_dict = {'resource': platform_data.get('Resource', '')}
             instrument_dict = {'resource': instrument_data.get('Resource', '')}
-  
+
             ri = platform.split('(')
             if 1 <= len(ri) <= 2:
                 data_dict['long_name'] = ri[0].strip()

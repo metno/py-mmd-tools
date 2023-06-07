@@ -1362,6 +1362,7 @@ class TestNC2MMD(unittest.TestCase):
         ncin.platform = 'Suomi National Polar-orbiting Partnership (SNPP)'
         ncin.instrument = 'ASAR'
         ncin.instrument_vocabulary = 'not a valid vocab url'
+        ncin.platform_vocabulary = 'https://www.wmo-sat.info/oscar/satellites/view/342'
         value = md.get_platforms(mmd_yaml['platform'], ncin)
         self.assertEqual(value[0]['short_name'], 'SNPP')
         self.assertEqual(md.missing_attributes['warnings'][0],
