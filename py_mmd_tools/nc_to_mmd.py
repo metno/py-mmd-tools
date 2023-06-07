@@ -735,14 +735,11 @@ class Nc_to_mmd(object):
             iresources = self.separate_repeated(
                 True, getattr(ncin, acdd_instrument_resource_key))
 
-        print("DEBUG ", platforms, instruments, resources, iresources)
-
         data = []
 
         for platform, instrument, resource, iresource in zip_longest(
             platforms, instruments, resources, iresources, fillvalue=''
         ):
-            print("DEBUG 2 ", platform, instrument, resource, iresource)
 
             platform_data = self.platform_group.search(platform)
             instrument_data = self.instrument_group.search(instrument)
