@@ -1383,6 +1383,21 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(md.missing_attributes['warnings'][0],
                          '"invalid_url" in platform_vocabulary attribute is not a valid url')
 
+    def test_wrong_platform_name(self):
+        """ Test that an error is issued if plaform field is
+            not in the format <platform long name>(<platform short name>).
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        ncin.platform = 'Envisat (Environmental Satellite) (EV)'
+        md.get_platforms(mmd_yaml['platform'], ncin)
+        self.assertEqual(md.missing_attributes['errors'][0],
+                         'platform must be formed as <platform long name>(<platform short name>). '
+                         'Platform short name is optional')
+
     def test_missing_platform_vocabulary(self):
         """ Test that a warning is issued if the platform vocabulary
         is missing.

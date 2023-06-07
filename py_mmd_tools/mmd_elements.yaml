@@ -449,8 +449,6 @@ project:
   long_name:
 
 platform:
-  short_name:
-  long_name:
   maxOccurs: unbounded
   minOccurs: '0'
   acdd:
@@ -467,9 +465,9 @@ platform:
   orbit_relative:
   orbit_absolute:
   orbit_direction:
+  short_name:
+  long_name:
   instrument:
-    short_name:
-    long_name:
     acdd:
       instrument:
         separator: ','
@@ -481,6 +479,8 @@ platform:
           separator: ','
           comment: Comma separated list.
           description: Controlled vocabulary for the names used in the "instrument" attribute, e.g., https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#instruments[MMD] or https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/instruments[GCMD]. Should be provided as urls in a comma separated list.
+    short_name:
+    long_name:    
     mode:
     polarisation:
     product_type:
