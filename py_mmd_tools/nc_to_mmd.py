@@ -741,11 +741,8 @@ class Nc_to_mmd(object):
             platforms, instruments, resources, iresources, fillvalue=''
         ):
 
-            platform_data = self.platform_group.search(platform)
-            instrument_data = self.instrument_group.search(instrument)
-
-            data_dict = {'resource': platform_data.get('Resource', '')}
-            instrument_dict = {'resource': instrument_data.get('Resource', '')}
+            data_dict = {}
+            instrument_dict = {}
 
             ri = platform.split('(')
             if 1 <= len(ri) <= 2:
@@ -772,6 +769,12 @@ class Nc_to_mmd(object):
 
             data_dict['long_name'] = data_dict['long_name'].split('>')[-1].strip()
             instrument_dict['long_name'] = instrument_dict['long_name'].split('>')[-1].strip()
+
+            platform_data = self.platform_group.search(data_dict['long_name'])
+            instrument_data = self.instrument_group.search(instrument_dict['long_name'])
+
+            data_dict['resource'] = platform_data.get('Resource', '')
+            instrument_dict['resource'] = instrument_data.get('Resource', '')
 
             if resource != '':
                 data_dict['resource'] = resource

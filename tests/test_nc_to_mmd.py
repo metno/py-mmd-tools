@@ -1384,7 +1384,7 @@ class TestNC2MMD(unittest.TestCase):
                          '"invalid_url" in platform_vocabulary attribute is not a valid url')
 
     def test_wrong_platform_name(self):
-        """ Test that an error is issued if plaform field is
+        """ Test that an error is issued if the platform field is
             not in the format <platform long name>(<platform short name>).
         """
         mmd_yaml = yaml.load(
@@ -1397,6 +1397,23 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(md.missing_attributes['errors'][0],
                          'platform must be formed as <platform long name>(<platform short name>). '
                          'Platform short name is optional')
+
+    def test_wrong_instrument_name(self):
+        """ Test that an error is issued if the instrument field is
+            not in the format <instrument long name>(<instrument short name>).
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        ncin.platform = "Platform Name (PN)"
+        ncin.instrument = 'InstrName (Instrument Name) (IN)'
+        md.get_platforms(mmd_yaml['platform'], ncin)
+        self.assertEqual(md.missing_attributes['errors'][0],
+                         'instrument must be formed as '
+                         '<instrument long name>(<instrument short name>). '
+                         'Instrument short name is optional')
 
     def test_missing_platform_vocabulary(self):
         """ Test that a warning is issued if the platform vocabulary
@@ -1422,7 +1439,6 @@ class TestNC2MMD(unittest.TestCase):
                        check_only=True)
         ncin = Dataset(md.netcdf_file)
         value = md.get_platforms(mmd_yaml['platform'], ncin)
-        print(value)
         resource_link = 'https://www.wmo-sat.info/oscar/satellites/view/snpp'
         self.assertEqual(value[0]['resource'], resource_link)
 
