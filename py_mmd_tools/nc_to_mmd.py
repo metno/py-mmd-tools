@@ -109,7 +109,8 @@ def normalize_iso8601_0(s):
 class Nc_to_mmd(object):
 
     # Some constants:
-    VALID_NAMING_AUTHORITIES = ['no.met', 'no.nve']   # add others when needed. See #198
+    # add others when needed. See #198
+    VALID_NAMING_AUTHORITIES = ['no.met', 'no.nve', 'no.nilu', 'no.niva']
     ACDD_ID = 'id'
     ACDD_NAMING_AUTH = 'naming_authority'
     ACDD_ID_INVALID_CHARS = ['\\', '/', ':', ' ']
