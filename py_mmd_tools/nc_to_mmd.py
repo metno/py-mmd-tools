@@ -1067,7 +1067,7 @@ class Nc_to_mmd(object):
 
         if operational_status == "":
             self.missing_attributes['errors'].append(
-                "The ACDD attribute 'operational_status' must "
+                "The ACDD attribute 'processing_level' in MMD attribute 'operational_status' must "
                 "follow a controlled vocabulary from MMD (see "
                 "https://htmlpreview.github.io/?https://github."
                 "com/metno/mmd/blob/master/doc/mmd-specification."
@@ -1121,7 +1121,7 @@ class Nc_to_mmd(object):
 
             if activity_type == "":
                 self.missing_attributes['errors'].append(
-                    "The ACDD attribute 'activity_type' must "
+                    "The ACDD attribute 'source' in MMD attribute 'activity_type' must "
                     "follow a controlled vocabulary from MMD (see "
                     "https://htmlpreview.github.io/?https://github."
                     "com/metno/mmd/blob/master/doc/mmd-specification."
