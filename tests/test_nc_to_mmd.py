@@ -293,7 +293,8 @@ def test_get_operational_status(dataDir, monkeypatch):
     ncin.processing_level = "kjhhas"
     mmd_element["maxOccurs"] = "1"
     value = md.get_operational_status(mmd_element, ncin)
-    assert "The ACDD attribute 'operational_status' must " in md.missing_attributes['errors'][0]
+    assert ("The ACDD attribute 'processing_level' in MMD attribute 'operational_status'"
+            in md.missing_attributes['errors'][0])
 
     # repetition of processing_level is allowed
     mmd_element["maxOccurs"] = "unbounded"
@@ -1347,7 +1348,8 @@ class TestNC2MMD(unittest.TestCase):
         # activity_type is not valid
         ncin.source = "abcd"
         md.get_activity_type(mmd_element, ncin)
-        assert "The ACDD attribute 'activity_type' must" in md.missing_attributes['errors'][0]
+        assert ("The ACDD attribute 'source' in MMD attribute 'activity_type'"
+                in md.missing_attributes['errors'][0])
 
     def test_missing_vocabulary_platform_instrument_short_name(self):
         """Test that a platform is picked up but the instrument is

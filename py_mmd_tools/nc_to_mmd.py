@@ -109,7 +109,8 @@ def normalize_iso8601_0(s):
 class Nc_to_mmd(object):
 
     # Some constants:
-    VALID_NAMING_AUTHORITIES = ['no.met', 'no.nve']   # add others when needed. See #198
+    # add others when needed. See #198
+    VALID_NAMING_AUTHORITIES = ['no.met', 'no.nve', 'no.nilu', 'no.niva']
     ACDD_ID = 'id'
     ACDD_NAMING_AUTH = 'naming_authority'
     ACDD_ID_INVALID_CHARS = ['\\', '/', ':', ' ']
@@ -1081,7 +1082,7 @@ class Nc_to_mmd(object):
 
         if operational_status == "":
             self.missing_attributes['errors'].append(
-                "The ACDD attribute 'operational_status' must "
+                "The ACDD attribute 'processing_level' in MMD attribute 'operational_status' must "
                 "follow a controlled vocabulary from MMD (see "
                 "https://htmlpreview.github.io/?https://github."
                 "com/metno/mmd/blob/master/doc/mmd-specification."
@@ -1135,7 +1136,7 @@ class Nc_to_mmd(object):
 
             if activity_type == "":
                 self.missing_attributes['errors'].append(
-                    "The ACDD attribute 'activity_type' must "
+                    "The ACDD attribute 'source' in MMD attribute 'activity_type' must "
                     "follow a controlled vocabulary from MMD (see "
                     "https://htmlpreview.github.io/?https://github."
                     "com/metno/mmd/blob/master/doc/mmd-specification."
