@@ -707,9 +707,6 @@ class Nc_to_mmd(object):
     def get_platforms(self, mmd_element, ncin):
         """Get dicts with MMD entries for the observation platform and
         its instruments.
-
-        NOTE: This function should be rewritten according to a solution
-        to https://github.com/metno/py-mmd-tools/issues/107
         """
         acdd = mmd_element.pop('acdd')
         platforms = []
