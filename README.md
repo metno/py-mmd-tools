@@ -50,6 +50,10 @@ nc2mmd -i tests/data/reference_nc.nc -o .
 
 (alternatively use `export PYTHONPATH=$PWD`)
 
+## Known issue: 'Error:curl error: Problem with the SSL CA cert (path? access rights?)'
+
+If this problem is encountered please add a file in your home directory named `.ncrc` and add this line: `HTTP.SSL.CAINFO=/etc/ssl/certs/ca-certificates.crt`
+
 # Tests and syntax checking
 
 Install pytest and pytest-cov
