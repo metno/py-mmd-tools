@@ -742,14 +742,14 @@ class Nc_to_mmd(object):
             platforms, instruments, resources, iresources, fillvalue=''
         ):
 
-            data_dict = {}
+            platform_dict = {}
             instrument_dict = {}
 
             ri = platform.split('(')
             if 1 <= len(ri) <= 2:
-                data_dict['long_name'] = ri[0].strip()
+                platform_dict['long_name'] = ri[0].strip()
                 if len(ri) == 2:
-                    data_dict['short_name'] = ri[1][:-1]
+                    platform_dict['short_name'] = ri[1][:-1]
             else:
                 self.missing_attributes['errors'].append(
                     "%s must be formed as <platform long name>(<platform short name>). "
@@ -768,23 +768,23 @@ class Nc_to_mmd(object):
                 )
                 continue
 
-            data_dict['long_name'] = data_dict['long_name'].split('>')[-1].strip()
+            platform_dict['long_name'] = platform_dict['long_name'].split('>')[-1].strip()
             instrument_dict['long_name'] = instrument_dict['long_name'].split('>')[-1].strip()
 
-            platform_data = self.platform_group.search(data_dict['long_name'])
+            platform_data = self.platform_group.search(platform_dict['long_name'])
             instrument_data = self.instrument_group.search(instrument_dict['long_name'])
 
-            data_dict['resource'] = platform_data.get('Resource', '')
+            platform_dict['resource'] = platform_data.get('Resource', '')
             instrument_dict['resource'] = instrument_data.get('Resource', '')
 
             if resource != '':
-                data_dict['resource'] = resource
+                platform_dict['resource'] = resource
 
-            if data_dict['resource'] == '' or not valid_url(data_dict['resource']):
+            if platform_dict['resource'] == '' or not valid_url(platform_dict['resource']):
                 self.missing_attributes['warnings'].append(
-                    '"%s" in %s attribute is not a valid url' % (data_dict['resource'],
+                    '"%s" in %s attribute is not a valid url' % (platform_dict['resource'],
                                                                  acdd_resource_key))
-                data_dict.pop('resource')
+                platform_dict.pop('resource')
 
             if iresource != '':
                 instrument_dict['resource'] = iresource
@@ -798,9 +798,9 @@ class Nc_to_mmd(object):
 
             if len(instrument_dict) != 0:
                 if instrument_dict['long_name'] != '':
-                    data_dict['instrument'] = instrument_dict
+                    platform_dict['instrument'] = instrument_dict
 
-            data.append(data_dict)
+            data.append(platform_dict)
 
         return data
 
