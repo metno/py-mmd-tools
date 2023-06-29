@@ -1362,10 +1362,11 @@ class TestNC2MMD(unittest.TestCase):
                        check_only=True)
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
         ncin.platform = 'Suomi National Polar-orbiting Partnership (SNPP)'
-        ncin.instrument = 'ASAR'
+        ncin.instrument = 'VIIRS'
         ncin.instrument_vocabulary = 'not a valid vocab url'
         ncin.platform_vocabulary = 'https://www.wmo-sat.info/oscar/satellites/view/342'
         value = md.get_platforms(mmd_yaml['platform'], ncin)
+        self.assertEqual(value[0]['resource'], 'https://www.wmo-sat.info/oscar/satellites/view/342')
         self.assertEqual(value[0]['short_name'], 'SNPP')
         self.assertEqual(md.missing_attributes['warnings'][0],
                          '"not a valid vocab url" in '
