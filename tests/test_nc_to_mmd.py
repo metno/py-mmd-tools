@@ -1366,7 +1366,8 @@ class TestNC2MMD(unittest.TestCase):
         ncin.instrument_vocabulary = 'not a valid vocab url'
         ncin.platform_vocabulary = 'https://www.wmo-sat.info/oscar/satellites/view/342'
         value = md.get_platforms(mmd_yaml['platform'], ncin)
-        self.assertEqual(value[0]['resource'], 'https://www.wmo-sat.info/oscar/satellites/view/342')
+        self.assertEqual(value[0]['resource'],
+                         'https://www.wmo-sat.info/oscar/satellites/view/342')
         self.assertEqual(value[0]['short_name'], 'SNPP')
         self.assertEqual(md.missing_attributes['warnings'][0],
                          '"not a valid vocab url" in '
@@ -1428,7 +1429,8 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
         ncin.platform = 'Suomi National Polar-orbiting Partnership (Suomi NPP)(SNPP)'
         value = md.get_platforms(mmd_yaml['platform'], ncin)
-        self.assertEqual(value[0]['long_name'], 'Suomi National Polar-orbiting Partnership (Suomi NPP)')
+        self.assertEqual(value[0]['long_name'],
+                         'Suomi National Polar-orbiting Partnership (Suomi NPP)')
         self.assertEqual(value[0]['short_name'], 'SNPP')
 
     def test_instrument_name_extra_parentheses(self):
