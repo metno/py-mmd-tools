@@ -746,7 +746,10 @@ class Nc_to_mmd(object):
             if 1 <= len(ri) <= 2:
                 platform_dict['long_name'] = ri[0].strip()
                 if len(ri) == 2:
-                    platform_dict['short_name'] = ri[1][:-1]
+                    platform_dict['short_name'] = ri[-1][:-1]
+            elif len(ri) == 3:
+                platform_dict['long_name'] = ri[0]+'('+ri[1]
+                platform_dict['short_name'] = ri[2][:-1]
             else:
                 self.missing_attributes['errors'].append(
                     "%s must be formed as <platform long name>(<platform short name>). "
@@ -758,6 +761,9 @@ class Nc_to_mmd(object):
                 instrument_dict['long_name'] = iri[0].strip()
                 if len(iri) == 2:
                     instrument_dict['short_name'] = iri[1][:-1]
+            elif len(iri) == 3:
+                instrument_dict['long_name'] = iri[0]+'('+iri[1]
+                instrument_dict['short_name'] = iri[2][:-1]
             else:
                 self.missing_attributes['errors'].append(
                     "%s must be formed as <instrument long name>(<instrument short name>). "

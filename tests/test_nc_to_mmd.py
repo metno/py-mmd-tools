@@ -1395,7 +1395,7 @@ class TestNC2MMD(unittest.TestCase):
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.platform = 'Envisat (Environmental Satellite) (EV)'
+        ncin.platform = 'Suomi National Polar-orbiting Partnership (Suomi NPP)(Too Many)(SNPP)'
         md.get_platforms(mmd_yaml['platform'], ncin)
         self.assertEqual(md.missing_attributes['errors'][0],
                          'platform must be formed as <platform long name>(<platform short name>). '
@@ -1411,12 +1411,39 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(self.fail_nc, check_only=True)
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
         ncin.platform = "Platform Name (PN)"
-        ncin.instrument = 'InstrName (Instrument Name) (IN)'
+        ncin.instrument = 'InstrName (Instrument Name)(Too Many)(IN)'
         md.get_platforms(mmd_yaml['platform'], ncin)
         self.assertEqual(md.missing_attributes['errors'][0],
                          'instrument must be formed as '
                          '<instrument long name>(<instrument short name>). '
                          'Instrument short name is optional')
+
+    def test_platform_name_extra_parentheses(self):
+        """ Test that parentheses in the long name are allowed
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        ncin.platform = 'Suomi National Polar-orbiting Partnership (Suomi NPP)(SNPP)'
+        value = md.get_platforms(mmd_yaml['platform'], ncin)
+        self.assertEqual(value[0]['long_name'], 'Suomi National Polar-orbiting Partnership (Suomi NPP)')
+        self.assertEqual(value[0]['short_name'], 'SNPP')
+
+    def test_instrument_name_extra_parentheses(self):
+        """ Test that parentheses in the long name are allowed
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        ncin.platform = "Platform Name (PN)"
+        ncin.instrument = 'InstrName (Instrument Name)(IN)'
+        value = md.get_platforms(mmd_yaml['platform'], ncin)
+        self.assertEqual(value[0]['instrument']['short_name'], 'IN')
+        self.assertEqual(value[0]['instrument']['long_name'], 'InstrName (Instrument Name)')
 
     def test_missing_platform_vocabulary(self):
         """ Test that a warning is issued if the platform vocabulary
