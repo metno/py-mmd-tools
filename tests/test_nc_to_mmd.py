@@ -1352,8 +1352,9 @@ class TestNC2MMD(unittest.TestCase):
                 in md.missing_attributes['errors'][0])
 
     def test_missing_vocabulary_platform_instrument_short_name(self):
-        """Test that a platform is picked up but the instrument is
-        ignored if it does not have a valid vocabulary url.
+        """Test that if the instrument does not have a valid vocabulary url
+           but the name matches with the MD vocabulary, the resource is
+           added correctly
         """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
@@ -1367,12 +1368,11 @@ class TestNC2MMD(unittest.TestCase):
         ncin.platform_vocabulary = 'https://www.wmo-sat.info/oscar/satellites/view/342'
         value = md.get_platforms(mmd_yaml['platform'], ncin)
         self.assertEqual(value[0]['resource'],
-                         'https://www.wmo-sat.info/oscar/satellites/view/342')
+                         'https://www.wmo-sat.info/oscar/satellites/view/snpp')
         self.assertEqual(value[0]['short_name'], 'SNPP')
-        self.assertEqual(md.missing_attributes['warnings'][0],
-                         '"not a valid vocab url" in '
-                         'instrument_vocabulary attribute is not a '
-                         'valid url')
+
+        self.assertEqual(value[0]['instrument']['resource'],
+                         'https://www.wmo-sat.info/oscar/instruments/view/viirs')
 
     def test_platform_vocabulary_invalid_url(self):
         mmd_yaml = yaml.load(
@@ -1383,7 +1383,7 @@ class TestNC2MMD(unittest.TestCase):
         ncin.platform = 'Environmental Satellite'
         ncin.platform_vocabulary = 'invalid_url'
         value = md.get_platforms(mmd_yaml['platform'], ncin)
-        self.assertEqual(value, [{'long_name': 'Environmental Satellite'}])
+        self.assertEqual(value, [{'long_name': 'Environmental Satellite', 'short_name': ''}])
         self.assertEqual(md.missing_attributes['warnings'][0],
                          '"invalid_url" in platform_vocabulary attribute is not a valid url')
 
@@ -1458,7 +1458,7 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
         ncin.platform = 'Envisat'
         value = md.get_platforms(mmd_yaml['platform'], ncin)
-        self.assertEqual(value, [{'long_name': 'Envisat'}])
+        self.assertEqual(value, [{'long_name': 'Envisat', 'short_name': ''}])
         self.assertEqual(md.missing_attributes['warnings'][0],
                          '"" in platform_vocabulary attribute is not a valid url')
 
@@ -1620,9 +1620,10 @@ class TestNC2MMD(unittest.TestCase):
                        check_only=True)
         ncin = Dataset(md.netcdf_file)
         value = md.get_platforms(mmd_yaml['platform'], ncin)
+        print(value)
         self.assertEqual(value[0]['long_name'], 'Sentinel-1B')
-        self.assertEqual(value[0]['instrument']['long_name'], 'Synthetic Aperture Radar')
-        self.assertEqual(value[0]['instrument']['short_name'], 'C-band')
+        self.assertEqual(value[0]['instrument']['long_name'], 'Synthetic Aperture Radar (C-band)')
+        self.assertEqual(value[0]['instrument']['short_name'], 'SAR-C')
 
     def test_projects(self):
         """Test getting project information from nc-file"""
