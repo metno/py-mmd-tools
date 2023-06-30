@@ -742,20 +742,24 @@ class Nc_to_mmd(object):
             platform_dict = {}
             instrument_dict = {}
 
-            ri = platform.split('(')
-            if 1 <= len(ri) <= 2:
-                platform_dict['long_name'] = ri[0].strip()
-                if len(ri) == 2:
-                    platform_dict['short_name'] = ri[-1][:-1]
-            elif len(ri) == 3:
-                platform_dict['long_name'] = ri[0]+'('+ri[1]
-                platform_dict['short_name'] = ri[2][:-1]
-            else:
-                self.missing_attributes['errors'].append(
-                    "%s must be formed as <platform long name>(<platform short name>). "
-                    "Platform short name is optional" % acdd_key
-                )
-                continue
+            #PUT THIS IN A FUNCTION "get_short_and_long_names" THAT CAN BE REUSED ELSEWHERE:
+            def get_short_and_long_names(platform):
+                ri = platform.split('(')
+                if 1 <= len(ri) <= 2:
+                    platform_dict['long_name'] = ri[0].strip()
+                    if len(ri) == 2:
+                        platform_dict['short_name'] = ri[-1][:-1]
+                elif len(ri) == 3:
+                    platform_dict['long_name'] = ri[0]+'('+ri[1]
+                    platform_dict['short_name'] = ri[2][:-1]
+                else:
+                    self.missing_attributes['errors'].append(
+                        "%s must be formed as <platform long name>(<platform short name>). "
+                        "Platform short name is optional" % acdd_key
+                    )
+                return long_name, short_name
+                    continue
+            ###
             iri = instrument.split('(')
             if 1 <= len(iri) <= 2:
                 instrument_dict['long_name'] = iri[0].strip()
@@ -770,27 +774,35 @@ class Nc_to_mmd(object):
                     "Instrument short name is optional" % acdd_instrument_key
                 )
                 continue
+            ###
+            # Try to naively match the full platform string with the MMD vocab
+            platform_data = self.platform_group.search(platform)
+            if not bool(platform_data):
+                # If no match, split into short and long names
+                platform_dict = get_short_and_long_names(platform)
+                # Try to match with MMD again
+                platform_data = self.platform_group.search(platform_dict['long_name'])
+                if bool(platform_data):
+                    platform_dict['resource'] = platform_data.get('Resource', '')
+                else:
+                    platform_dict['resource'] = resource
+            else:
+                platform_dict = ...
 
-            platform_dict['long_name'] = platform_dict['long_name'].split('>')[-1].strip()
-            instrument_dict['long_name'] = instrument_dict['long_name'].split('>')[-1].strip()
+            instrument_dict = get_short_and_long_names(instrument)
 
-            platform_data = self.platform_group.search(platform_dict['long_name'])
+
             instrument_data = self.instrument_group.search(instrument_dict['long_name'])
-
-            platform_dict['resource'] = platform_data.get('Resource', '')
-            instrument_dict['resource'] = instrument_data.get('Resource', '')
-
-            if resource != '':
-                platform_dict['resource'] = resource
+            if bool(instrument_data):
+                instrument_dict['resource'] = instrument_data.get('Resource', '')
+            else:
+                instrument_dict['resource'] = iresource
 
             if platform_dict['resource'] == '' or not valid_url(platform_dict['resource']):
                 self.missing_attributes['warnings'].append(
                     '"%s" in %s attribute is not a valid url' % (platform_dict['resource'],
                                                                  acdd_resource_key))
                 platform_dict.pop('resource')
-
-            if iresource != '':
-                instrument_dict['resource'] = iresource
 
             if instrument_dict['resource'] == '' or not valid_url(instrument_dict['resource']):
                 if instrument_dict['resource'] != '':
