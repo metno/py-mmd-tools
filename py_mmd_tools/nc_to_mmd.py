@@ -794,6 +794,17 @@ class Nc_to_mmd(object):
         problems with associating the different elements to each other.
         In practice, most datasets will only have one citation, so will
         handle that eventuality if it arrives.
+
+        Parameters
+        ----------
+        mmd_element : dict
+            The dictionary of the dataset_citation field in
+            mmd_elements.yaml
+        ncin : netCDF4.Dataset
+            An open netCDF4 dataset
+        dataset_citation : dict (Optional)
+            An alternative dataset citation. This can be useful if the
+            citation refers to a parent dataset or a DOI.
         """
         if type(dataset_citation) == dict:
             return [dataset_citation]
