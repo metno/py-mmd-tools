@@ -1414,7 +1414,8 @@ class TestNC2MMD(unittest.TestCase):
         ncin.platform_vocabulary = 'invalid_url'
         value = md.get_platforms(mmd_yaml['platform'], ncin)
         self.assertEqual(value, [])
-        self.assertEqual(md.missing_attributes['errors'][0],
+        self.assertEqual(
+            md.missing_attributes['errors'][0],
             "platform must be formed as <platform long name>(<platform short name>). "
             "Platform short name is optional. The platform must either be present in "
             "https://vocab.met.no/mmd/Platform, or in another controlled vocabulary "
@@ -1433,7 +1434,9 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
         ncin.platform = 'Suomi National Polar-orbiting Partnership (Suomi NPP)(Too Many)(SNPP)'
         value = md.get_platforms(mmd_yaml['platform'], ncin)
-        self.assertEqual(md.missing_attributes['errors'][0],
+        self.assertEqual(value, [])
+        self.assertEqual(
+            md.missing_attributes['errors'][0],
             "platform must be formed as <platform long name>(<platform short name>). "
             "Platform short name is optional. The platform must either be present in "
             "https://vocab.met.no/mmd/Platform, or in another controlled vocabulary "
@@ -1452,7 +1455,9 @@ class TestNC2MMD(unittest.TestCase):
         ncin.platform = "Suomi National Polar-orbiting Partnership (SNPP)"
         ncin.instrument = 'InstrName (Instrument Name)(Too Many)(IN)'
         value = md.get_platforms(mmd_yaml['platform'], ncin)
-        self.assertEqual(md.missing_attributes['warnings'][0],
+        self.assertEqual(value[0]['short_name'], "SNPP")
+        self.assertEqual(
+            md.missing_attributes['warnings'][0],
             "instrument must be formed as <instrument long name>(<instrument short name>). "
             "Instrument is optional. The instrument must either be present in "
             "https://vocab.met.no/mmd/Instrument, or in another controlled vocabulary "
@@ -1461,7 +1466,7 @@ class TestNC2MMD(unittest.TestCase):
     def test_platform_name_extra_parentheses(self):
         """ Test that parentheses in the platform long name are
         allowed, as long as a velid vocabulary url is provided.
-        
+
         TODO: Find a platform where this is actually the case...
         """
         mmd_yaml = yaml.load(
@@ -1507,7 +1512,8 @@ class TestNC2MMD(unittest.TestCase):
         ncin.platform = 'Envisat'
         value = md.get_platforms(mmd_yaml['platform'], ncin)
         self.assertEqual(value, [])
-        self.assertEqual(md.missing_attributes['errors'][0],
+        self.assertEqual(
+            md.missing_attributes['errors'][0],
             "platform must be formed as "
             "<platform long name>(<platform short name>). Platform "
             "short name is optional. The platform must either be "
@@ -1705,7 +1711,8 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[0]['long_name'], 'Sentinel-1B')
         self.assertEqual(value[0]['instrument']['long_name'], 'Synthetic Aperture Radar')
         self.assertEqual(value[0]['instrument']['short_name'], 'C-band')
-        self.assertEqual(value[0]['instrument']['resource'],
+        self.assertEqual(
+            value[0]['instrument']['resource'],
             'https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/instruments/')
 
     def test_projects(self):

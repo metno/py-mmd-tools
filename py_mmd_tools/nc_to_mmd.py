@@ -799,16 +799,16 @@ class Nc_to_mmd(object):
 
         data = []
 
-        for platform, instrument, resource, iresource in zip_longest(platforms, instruments,
-                resources, iresources, fillvalue=''):
+        for platform, instrument, resource, iresource in \
+                zip_longest(platforms, instruments, resources, iresources, fillvalue=''):
 
             platform_dict = get_vocab_dict(platform, self.platform_group, resource, False)
             if not bool(platform_dict):
                 self.missing_attributes['errors'].append(
-                     "%s must be formed as <platform long name>(<platform short name>). "
-                     "Platform short name is optional. The platform must either be present "
-                     "in https://vocab.met.no/mmd/Platform, or in another controlled "
-                     "vocabulary referenced by a valid url." % acdd_key
+                    "%s must be formed as <platform long name>(<platform short name>). "
+                    "Platform short name is optional. The platform must either be present "
+                    "in https://vocab.met.no/mmd/Platform, or in another controlled "
+                    "vocabulary referenced by a valid url." % acdd_key
                 )
                 continue
 
@@ -817,8 +817,8 @@ class Nc_to_mmd(object):
                 self.missing_attributes['warnings'].append(
                     "%s must be formed as <instrument long name>(<instrument short name>). "
                     "Instrument is optional. The instrument must either be present "
-                     "in https://vocab.met.no/mmd/Instrument, or in another controlled "
-                     "vocabulary referenced by a valid url." % acdd_instrument_key
+                    "in https://vocab.met.no/mmd/Instrument, or in another controlled "
+                    "vocabulary referenced by a valid url." % acdd_instrument_key
                 )
             else:
                 platform_dict['instrument'] = instrument_dict
