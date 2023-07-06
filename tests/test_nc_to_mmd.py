@@ -25,6 +25,7 @@ from unittest.mock import patch
 
 from py_mmd_tools.nc_to_mmd import Nc_to_mmd, normalize_iso8601, normalize_iso8601_0
 from py_mmd_tools.nc_to_mmd import valid_url
+from py_mmd_tools.nc_to_mmd import get_short_and_long_names
 from py_mmd_tools.yaml_to_adoc import nc_attrs_from_yaml
 from py_mmd_tools.yaml_to_adoc import required
 from py_mmd_tools.yaml_to_adoc import repetition_allowed
@@ -619,6 +620,7 @@ class TestNC2MMD(unittest.TestCase):
         self.assertTrue(valid_url('http://www.google.com'))
         self.assertTrue(valid_url('http://spdx.org/licenses/CC-BY-4.0'))
         self.assertFalse(valid_url('www.google.com'))
+        self.assertFalse(valid_url(None))
 
     def test_license__deprecated_attrs(self):
         mmd_yaml = yaml.load(
@@ -1337,6 +1339,7 @@ class TestNC2MMD(unittest.TestCase):
         assert value == ["Not available"]
 
     def test_get_activity_type_invalid(self):
+        """TODO: add docstring"""
         mmd_yaml = yaml.load(
             resource_string("py_mmd_tools", "mmd_elements.yaml"), Loader=yaml.FullLoader
         )
@@ -1351,30 +1354,57 @@ class TestNC2MMD(unittest.TestCase):
         assert ("The ACDD attribute 'source' in MMD attribute 'activity_type'"
                 in md.missing_attributes['errors'][0])
 
-    def test_missing_vocabulary_platform_instrument_short_name(self):
-        """Test that if the instrument does not have a valid vocabulary url
-           but the name matches with the MD vocabulary, the resource is
-           added correctly
+    def test_platform_resource_not_MMD(self):
+        """Check that the provided resource remains when a platform
+        has the same name in GCMD and MMD but the resource provided
+        in the netcdf file is GCMD.
         """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_missing_keywords_vocab.nc'),
                        check_only=True)
+        # The GCMD resource url
+        resource = "https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/platforms"
+        # Define dataset
+        ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        ncin.platform = "Sentinel-1A"
+        ncin.platform_vocabulary = resource
+
+        # Get the platform dict
+        value = md.get_platforms(mmd_yaml['platform'], ncin)
+        self.assertEqual(value[0]['resource'], resource)
+
+    def test_missing_vocabulary_platform_instrument_short_name(self):
+        """Test that the resource is added if the name matches with
+        the MMD vocabulary, but the instrument does not have a valid
+        vocabulary url.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_missing_keywords_vocab.nc'),
+                       check_only=True)
+        # Define dataset
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
         ncin.platform = 'Suomi National Polar-orbiting Partnership (SNPP)'
         ncin.instrument = 'VIIRS'
         ncin.instrument_vocabulary = 'not a valid vocab url'
         ncin.platform_vocabulary = 'https://www.wmo-sat.info/oscar/satellites/view/342'
+
         value = md.get_platforms(mmd_yaml['platform'], ncin)
         self.assertEqual(value[0]['resource'],
-                         'https://www.wmo-sat.info/oscar/satellites/view/snpp')
+                         'https://www.wmo-sat.info/oscar/satellites/view/342')
         self.assertEqual(value[0]['short_name'], 'SNPP')
 
         self.assertEqual(value[0]['instrument']['resource'],
-                         'https://www.wmo-sat.info/oscar/instruments/view/viirs')
+                         'https://vocab.met.no/mmd/Instrument/VIIRS')
 
     def test_platform_vocabulary_invalid_url(self):
+        """ Check that a platform not listed in the MMD controlled
+        vocabulary for platforms is not registered if there is no
+        other valid resource url.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -1383,13 +1413,18 @@ class TestNC2MMD(unittest.TestCase):
         ncin.platform = 'Environmental Satellite'
         ncin.platform_vocabulary = 'invalid_url'
         value = md.get_platforms(mmd_yaml['platform'], ncin)
-        self.assertEqual(value, [{'long_name': 'Environmental Satellite', 'short_name': ''}])
-        self.assertEqual(md.missing_attributes['warnings'][0],
-                         '"invalid_url" in platform_vocabulary attribute is not a valid url')
+        self.assertEqual(value, [])
+        self.assertEqual(md.missing_attributes['errors'][0],
+            "platform must be formed as <platform long name>(<platform short name>). "
+            "Platform short name is optional. The platform must either be present in "
+            "https://vocab.met.no/mmd/Platform, or in another controlled vocabulary "
+            "referenced by a valid url.")
 
     def test_wrong_platform_name(self):
-        """ Test that an error is issued if the platform field is
-            not in the format <platform long name>(<platform short name>).
+        """ Test that an error is issued if the platform field is not
+        in the format <platform long name>(<platform short name>).
+        However, note that one pair of parentheses is allowed in the
+        long name.
         """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
@@ -1397,30 +1432,37 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(self.fail_nc, check_only=True)
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
         ncin.platform = 'Suomi National Polar-orbiting Partnership (Suomi NPP)(Too Many)(SNPP)'
-        md.get_platforms(mmd_yaml['platform'], ncin)
+        value = md.get_platforms(mmd_yaml['platform'], ncin)
         self.assertEqual(md.missing_attributes['errors'][0],
-                         'platform must be formed as <platform long name>(<platform short name>). '
-                         'Platform short name is optional')
+            "platform must be formed as <platform long name>(<platform short name>). "
+            "Platform short name is optional. The platform must either be present in "
+            "https://vocab.met.no/mmd/Platform, or in another controlled vocabulary "
+            "referenced by a valid url.")
 
     def test_wrong_instrument_name(self):
         """ Test that an error is issued if the instrument field is
-            not in the format <instrument long name>(<instrument short name>).
+        not in the format
+        <instrument long name>(<instrument short name>).
         """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.platform = "Platform Name (PN)"
+        ncin.platform = "Suomi National Polar-orbiting Partnership (SNPP)"
         ncin.instrument = 'InstrName (Instrument Name)(Too Many)(IN)'
-        md.get_platforms(mmd_yaml['platform'], ncin)
-        self.assertEqual(md.missing_attributes['errors'][0],
-                         'instrument must be formed as '
-                         '<instrument long name>(<instrument short name>). '
-                         'Instrument short name is optional')
+        value = md.get_platforms(mmd_yaml['platform'], ncin)
+        self.assertEqual(md.missing_attributes['warnings'][0],
+            "instrument must be formed as <instrument long name>(<instrument short name>). "
+            "Instrument is optional. The instrument must either be present in "
+            "https://vocab.met.no/mmd/Instrument, or in another controlled vocabulary "
+            "referenced by a valid url.")
 
     def test_platform_name_extra_parentheses(self):
-        """ Test that parentheses in the long name are allowed
+        """ Test that parentheses in the platform long name are
+        allowed, as long as a velid vocabulary url is provided.
+        
+        TODO: Find a platform where this is actually the case...
         """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
@@ -1428,6 +1470,8 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(self.fail_nc, check_only=True)
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
         ncin.platform = 'Suomi National Polar-orbiting Partnership (Suomi NPP)(SNPP)'
+        # A valid url is required
+        ncin.platform_vocabulary = "https://www.validurl.no"
         value = md.get_platforms(mmd_yaml['platform'], ncin)
         self.assertEqual(value[0]['long_name'],
                          'Suomi National Polar-orbiting Partnership (Suomi NPP)')
@@ -1442,28 +1486,41 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(self.fail_nc, check_only=True)
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
         ncin.platform = "Platform Name (PN)"
-        ncin.instrument = 'InstrName (Instrument Name)(IN)'
+        ncin.platform_vocabulary = "https://www.validurl.no"
+        # This is an entry in MMD:
+        ncin.instrument = 'Synthetic Aperture Radar (C-band) (SAR-C)'
         value = md.get_platforms(mmd_yaml['platform'], ncin)
-        self.assertEqual(value[0]['instrument']['short_name'], 'IN')
-        self.assertEqual(value[0]['instrument']['long_name'], 'InstrName (Instrument Name)')
+        self.assertEqual(value[0]['instrument']['short_name'], 'SAR-C')
+        self.assertEqual(value[0]['instrument']['long_name'], 'Synthetic Aperture Radar (C-band)')
 
     def test_missing_platform_vocabulary(self):
-        """ Test that a warning is issued if the platform vocabulary
-        is missing.
+        """ Test that an error is issued if the platform vocabulary
+        is missing and the platform is not in
+        https://vocab.met.no/mmd/en/page/Platform.
         """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        # Note that Envisat is not in the MMD vocabulary
         ncin.platform = 'Envisat'
         value = md.get_platforms(mmd_yaml['platform'], ncin)
-        self.assertEqual(value, [{'long_name': 'Envisat', 'short_name': ''}])
-        self.assertEqual(md.missing_attributes['warnings'][0],
-                         '"" in platform_vocabulary attribute is not a valid url')
+        self.assertEqual(value, [])
+        self.assertEqual(md.missing_attributes['errors'][0],
+            "platform must be formed as "
+            "<platform long name>(<platform short name>). Platform "
+            "short name is optional. The platform must either be "
+            "present in https://vocab.met.no/mmd/Platform, or in "
+            "another controlled vocabulary referenced by a valid "
+            "url.")
 
     def test_missing_vocabulary_platform(self):
-        """ToDo: Add docstring"""
+        """Check that a platform which is in the MMD vocabulary but
+        where the netcdf file does not provide a platform_resource,
+        is found in MMD and that the MMD vocabulary resource is
+        provided.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -1471,8 +1528,25 @@ class TestNC2MMD(unittest.TestCase):
                        check_only=True)
         ncin = Dataset(md.netcdf_file)
         value = md.get_platforms(mmd_yaml['platform'], ncin)
-        resource_link = 'https://www.wmo-sat.info/oscar/satellites/view/snpp'
+        # ncin.platform = 'Suomi National Polar-orbiting Partnership (SNPP)'
+        resource_link = 'https://vocab.met.no/mmd/Platform/SNPP'
         self.assertEqual(value[0]['resource'], resource_link)
+
+    def test_get_short_and_long_names(self):
+        """Check that get_short_and_long_names method returns the
+        correct tuples in different cases.
+        """
+        field = ""
+        self.assertEqual(get_short_and_long_names(field)[0], None)
+        self.assertEqual(get_short_and_long_names(field)[1], None)
+
+        field = "long name (short name)"
+        self.assertEqual(get_short_and_long_names(field)[0], "long name")
+        self.assertEqual(get_short_and_long_names(field)[1], "short name")
+
+        field = "long name (with more) (short name)"
+        self.assertEqual(get_short_and_long_names(field)[0], "long name (with more)")
+        self.assertEqual(get_short_and_long_names(field)[1], "short name")
 
     def test_keywords_missing(self):
         """ToDo: Add docstring"""
@@ -1612,7 +1686,9 @@ class TestNC2MMD(unittest.TestCase):
         )
 
     def test_platform_with_gcmd_vocabulary(self):
-        """ToDo: Add docstring"""
+        """Check that the general rules are followed when a
+        vocabulary different from MMD is used, and that we use what
+        we get."""
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -1620,10 +1696,17 @@ class TestNC2MMD(unittest.TestCase):
                        check_only=True)
         ncin = Dataset(md.netcdf_file)
         value = md.get_platforms(mmd_yaml['platform'], ncin)
-        print(value)
+        """ The following assertions should fail when we have code to
+        check the provided instrument vocabulary (see
+        https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/instruments
+        and
+        https://gcmd.earthdata.nasa.gov/kms/concept/ed400e7c-229e-48be-9a93-84f2fc864448).
+        """
         self.assertEqual(value[0]['long_name'], 'Sentinel-1B')
-        self.assertEqual(value[0]['instrument']['long_name'], 'Synthetic Aperture Radar (C-band)')
-        self.assertEqual(value[0]['instrument']['short_name'], 'SAR-C')
+        self.assertEqual(value[0]['instrument']['long_name'], 'Synthetic Aperture Radar')
+        self.assertEqual(value[0]['instrument']['short_name'], 'C-band')
+        self.assertEqual(value[0]['instrument']['resource'],
+            'https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/instruments/')
 
     def test_projects(self):
         """Test getting project information from nc-file"""

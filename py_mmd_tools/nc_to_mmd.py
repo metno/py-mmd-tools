@@ -39,6 +39,8 @@ from shapely.errors import ShapelyError
 def valid_url(url):
     """ Validate a url pattern (not its existence).
     """
+    if url is None:
+        return False
     regex = re.compile(
         r'^(?:http|ftp)s?://'  # http:// or https://
         r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'
@@ -107,18 +109,65 @@ def normalize_iso8601_0(s):
 
 
 def get_short_and_long_names(field):
-    long_name = "error"
-    short_name = "error"
+    """Split the provided field data into long and short names. We
+    allow three versions:
+
+    Long name only:
+        <some long name>
+
+    Long name with an extra parenthesis and a short name in
+    parenthesis:
+        <some long name (with parenthesis)> (<short name>)
+
+    Long name with short name in parenthesis:
+        <some long name> (<short name>)
+    """
+    long_name = None
+    short_name = None
+    if field == "":
+        return long_name, short_name
+
     ri = field.split('(')
-    if 1 <= len(ri) <= 2:
+    if len(ri) == 1:
+        # Set the same for both, since we don't know what is correct
         long_name = ri[0].strip()
-        short_name = ''
-        if len(ri) == 2:
-            short_name = ri[-1][:-1]
+        short_name = long_name
+    elif len(ri) == 2:
+        long_name = ri[0].strip()
+        short_name = ri[-1][:-1].strip()
     elif len(ri) == 3:
-        long_name = ri[0]+'('+ri[1]
-        short_name = ri[2][:-1]
+        long_name = (ri[0] + '(' + ri[1]).strip()
+        short_name = (ri[2][:-1]).strip()
+
     return long_name, short_name
+
+
+def get_vocab_dict(field, controlled_vocabulary, resource="", mmd_required_vocab=True):
+    """ Check the controlled vocabulary for the given field, and
+    return long name, short name and resource in a dict.
+    """
+    field_data = {}
+    # Require a valid resource url for other vocabularies than MMD
+    if valid_url(resource) and not mmd_required_vocab:
+        long_name, short_name = get_short_and_long_names(field)
+        # Use what we get..
+        field_data['long_name'] = long_name
+        field_data['short_name'] = short_name
+        field_data['resource'] = resource
+    else:
+        # Try to match the full field string with the MMD
+        # vocabulary (this will work if only a long name is
+        # provided, and it is present in the MMD vocabulary)
+        field_data = controlled_vocabulary.search_lowercase(field.lower())
+        if not bool(field_data):
+            # If no match, expect field metadata on the form
+            # "long name (short name)", and split the string
+            # accordingly
+            long_name, short_name = get_short_and_long_names(field)
+            if long_name is not None:
+                field_data = controlled_vocabulary.search_lowercase(long_name.lower())
+
+    return field_data
 
 
 class Nc_to_mmd(object):
@@ -750,81 +799,29 @@ class Nc_to_mmd(object):
 
         data = []
 
-        for platform, instrument, resource, iresource in zip_longest(
-            platforms, instruments, resources, iresources, fillvalue=''
-        ):
+        for platform, instrument, resource, iresource in zip_longest(platforms, instruments,
+                resources, iresources, fillvalue=''):
 
-            platform_dict = {}
-            instrument_dict = {}
+            platform_dict = get_vocab_dict(platform, self.platform_group, resource, False)
+            if not bool(platform_dict):
+                self.missing_attributes['errors'].append(
+                     "%s must be formed as <platform long name>(<platform short name>). "
+                     "Platform short name is optional. The platform must either be present "
+                     "in https://vocab.met.no/mmd/Platform, or in another controlled "
+                     "vocabulary referenced by a valid url." % acdd_key
+                )
+                continue
 
-            # Try to naively match the full platform string with the MMD vocab
-            platform_data = self.platform_group.search(platform)
-            if not bool(platform_data):
-                # If no match, split into short and long names
-                platform_dict['long_name'], platform_dict['short_name'] = \
-                    get_short_and_long_names(platform)
-                if platform_dict['long_name'] != "error":
-                    platform_data = self.platform_group.search(platform_dict['long_name'])
-                    if bool(platform_data):
-                        platform_dict['resource'] = platform_data.get('Resource', '')
-                    else:
-                        platform_dict['resource'] = resource
-                else:
-                    self.missing_attributes['errors'].append(
-                        "%s must be formed as <platform long name>(<platform short name>). "
-                        "Platform short name is optional" % acdd_key
-                    )
-                    continue
-            else:
-                # get_short_and_long_names should not give an error so the check is redundant
-                platform_dict['long_name'] = platform_data.get('Long_Name', '')
-                platform_dict['short_name'] = platform_data.get('Short_Name', '')
-                platform_dict['resource'] = resource
-                if (res := platform_data.get('Resource', '')) is not None:
-                    platform_dict['resource'] = res
-
-            # Try to naively match the full instrument string with the MMD vocab
-            instrument_data = self.instrument_group.search(instrument)
-            if not bool(instrument_data):
-                # If no match, split into short and long names
-                instrument_dict['long_name'], instrument_dict['short_name'] = \
-                    get_short_and_long_names(instrument)
-                if instrument_dict['long_name'] != "error":
-                    instrument_data = self.instrument_group.search(instrument_dict['long_name'])
-                    if bool(instrument_data):
-                        instrument_dict['resource'] = instrument_data.get('Resource', '')
-                    else:
-                        instrument_dict['resource'] = resource
-                else:
-                    self.missing_attributes['errors'].append(
-                        "%s must be formed as <instrument long name>(<instrument short name>). "
-                        "Instrument short name is optional" % acdd_instrument_key
-                    )
-                    continue
-            else:
-                # get_short_and_long_names should not give an error so the check is redundant
-                instrument_dict['long_name'] = instrument_data.get('Long_Name', '')
-                instrument_dict['short_name'] = instrument_data.get('Short_Name', '')
-                instrument_dict['resource'] = resource
-                if (ires := instrument_data.get('Resource', '')) is not None:
-                    instrument_dict['resource'] = ires
-
-            if platform_dict['resource'] == '' or not valid_url(platform_dict['resource']):
+            instrument_dict = get_vocab_dict(instrument, self.instrument_group, iresource, False)
+            if not bool(instrument_dict):
                 self.missing_attributes['warnings'].append(
-                    '"%s" in %s attribute is not a valid url' % (platform_dict['resource'],
-                                                                 acdd_resource_key))
-                platform_dict.pop('resource')
-
-            if instrument_dict['resource'] == '' or not valid_url(instrument_dict['resource']):
-                if instrument_dict['resource'] != '':
-                    self.missing_attributes['warnings'].append(
-                        '"%s" in %s attribute is not a valid url' % (instrument_dict['resource'],
-                                                                     acdd_instrument_resource_key))
-                instrument_dict.pop('resource')
-
-            if len(instrument_dict) != 0:
-                if instrument_dict['long_name'] != '':
-                    platform_dict['instrument'] = instrument_dict
+                    "%s must be formed as <instrument long name>(<instrument short name>). "
+                    "Instrument is optional. The instrument must either be present "
+                     "in https://vocab.met.no/mmd/Instrument, or in another controlled "
+                     "vocabulary referenced by a valid url." % acdd_instrument_key
+                )
+            else:
+                platform_dict['instrument'] = instrument_dict
 
             data.append(platform_dict)
 
@@ -1108,11 +1105,12 @@ class Nc_to_mmd(object):
 
         if operational_status == "":
             self.missing_attributes['errors'].append(
-                "The ACDD attribute 'processing_level' in MMD attribute 'operational_status' must "
-                "follow a controlled vocabulary from MMD (see "
-                "https://htmlpreview.github.io/?https://github."
-                "com/metno/mmd/blob/master/doc/mmd-specification."
-                "html#operational-status).")
+                "The ACDD attribute 'processing_level' in MMD "
+                "attribute 'operational_status' must follow a "
+                "controlled vocabulary from MMD (see https://"
+                "htmlpreview.github.io/?https://github.com/metno/mmd"
+                "/blob/master/doc/mmd-specification.html#operational-"
+                "status).")
 
         return operational_status
 
