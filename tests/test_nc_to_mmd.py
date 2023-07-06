@@ -198,12 +198,19 @@ def test_get_data_access_dict_with_wms(monkeypatch):
         'https://thredds.met.no/thredds/dodsC/arcticdata/'
         'S2S_drift_TCD/SIDRIFT_S2S_SH/2019/07/31/'
     ) + netcdf_file
+    kwargs = {
+        "dataset_citation": {
+            "author": "Some name to ensure that kwargs not required "
+                      "by get_data_access_dict are allowed"
+        },
+        "add_wms_data_access": True,
+    }
     with monkeypatch.context() as mp:
         mp.setattr("py_mmd_tools.nc_to_mmd.Dataset",
                    lambda *args, **kwargs: patchedDataset(opendap_url, *args, **kwargs))
         md = Nc_to_mmd(netcdf_file, opendap_url, check_only=True)
         ncin = Dataset(md.netcdf_file)
-        data = md.get_data_access_dict(ncin, add_wms_data_access=True)
+        data = md.get_data_access_dict(ncin, **kwargs)
     assert data[0]['type'] == 'OPeNDAP'
     assert data[1]['type'] == 'OGC WMS'
     assert data[2]['type'] == 'HTTP'
