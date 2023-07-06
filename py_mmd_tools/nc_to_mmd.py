@@ -789,7 +789,7 @@ class Nc_to_mmd(object):
 
         return data
 
-    def get_dataset_citations(self, mmd_element, ncin, dataset_citation=None):
+    def get_dataset_citations(self, mmd_element, ncin, dataset_citation=None, **kwargs):
         """MMD allows several dataset citations. This will lead to
         problems with associating the different elements to each other.
         In practice, most datasets will only have one citation, so will
