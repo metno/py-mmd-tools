@@ -1642,6 +1642,26 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(md.missing_attributes['warnings'][0],
                          '"invalid_url" in metadata_link attribute is not a valid url')
 
+    def test_dataset_citation_as_kwarg(self):
+        """Test that the user can provide a custom dataset citation.
+        """
+        dc = {
+            "author": "No Name",
+            "publication_date": "2023-07-06",
+            "title": "Some random title"}
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        ncin.creator_name = "Tester Test"
+        ncin.date_created = "2022-11-04T11:06:10Z"
+        ncin.title = "Test dataset"
+        ncin.publisher_name = "Norwegian Meteorological Institute"
+        ncin.metadata_link = "invalid_url"
+        value = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin, dataset_citation=dc)
+        self.assertEqual(value[0]['author'], 'No Name')
+
     def test_check_only(self):
         """Run netCDF attributes to MMD translation with check_only
         flag.
@@ -1650,6 +1670,15 @@ class TestNC2MMD(unittest.TestCase):
         req_ok, msg = md.to_mmd()
         self.assertTrue(req_ok)
         self.assertEqual(msg, '')
+
+        # Create custom dataset citation
+        dc = {
+            "author": "No Name",
+            "publication_date": "2023-07-06",
+            "title": "Some random title"}
+        md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc.nc'), check_only=True)
+        req_ok, msg = md.to_mmd(dataset_citation=dc)
+        self.assertEqual(md.metadata['dataset_citation'][0]['author'], 'No Name')
 
     def test_dataset_citation(self):
         """ToDo: Add docstring"""
