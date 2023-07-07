@@ -789,12 +789,26 @@ class Nc_to_mmd(object):
 
         return data
 
-    def get_dataset_citations(self, mmd_element, ncin):
+    def get_dataset_citations(self, mmd_element, ncin, dataset_citation=None, **kwargs):
         """MMD allows several dataset citations. This will lead to
         problems with associating the different elements to each other.
         In practice, most datasets will only have one citation, so will
         handle that eventuality if it arrives.
+
+        Parameters
+        ----------
+        mmd_element : dict
+            The dictionary of the dataset_citation field in
+            mmd_elements.yaml
+        ncin : netCDF4.Dataset
+            An open netCDF4 dataset
+        dataset_citation : dict (Optional)
+            An alternative dataset citation. This can be useful if the
+            citation refers to a parent dataset or a DOI.
         """
+        if type(dataset_citation) == dict:
+            return [dataset_citation]
+
         acdd_author = mmd_element['author'].pop('acdd')
         authors = []
         acdd_author_key = list(acdd_author.keys())[0]
@@ -1459,7 +1473,7 @@ class Nc_to_mmd(object):
         self.metadata['project'] = self.get_projects(mmd_yaml.pop('project'), ncin)
         self.metadata['platform'] = self.get_platforms(mmd_yaml.pop('platform'), ncin)
         self.metadata['dataset_citation'] = self.get_dataset_citations(
-            mmd_yaml.pop('dataset_citation'), ncin)
+            mmd_yaml.pop('dataset_citation'), ncin, **kwargs)
         self.metadata['related_dataset'] = self.get_related_dataset(
             mmd_yaml.pop('related_dataset'), ncin)
         # QUESTION: should we allow the use of get_related_dataset_OLD as well? The new
@@ -1576,7 +1590,7 @@ class Nc_to_mmd(object):
 
     def get_data_access_dict(self, ncin, add_wms_data_access=False,
                              wms_link=None, wms_layer_names=None,
-                             add_http_data_access=True):
+                             add_http_data_access=True, **kwargs):
         """ Return a dictionary with data access information. OGC WMS
         urls can only be provided for gridded datasets.
 
