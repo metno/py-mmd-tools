@@ -1567,7 +1567,7 @@ class Nc_to_mmd(object):
             warnings.warn('\n\t'+'\n\t'.join(self.missing_attributes['warnings']))
         if len(self.missing_attributes['errors']) > 0:
             raise AttributeError(
-                "\n\t%s" % self.netcdf_file +
+                "%s:\n\t" % self.netcdf_file +
                 "\n\t".join(self.missing_attributes['errors']))
 
         env = jinja2.Environment(
