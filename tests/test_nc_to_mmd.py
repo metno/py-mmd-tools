@@ -1415,7 +1415,7 @@ class TestNC2MMD(unittest.TestCase):
                        check_only=True)
         ncin = Dataset(md.netcdf_file)
         value = md.get_platforms(mmd_yaml['platform'], ncin)
-        resource_link = 'https://www.wmo-sat.info/oscar/satellites/view/snpp'
+        resource_link = "https://vocab.met.no/mmd/Platform/SNPP"
         self.assertEqual(value[0]['resource'], resource_link)
 
     def test_keywords_missing(self):
