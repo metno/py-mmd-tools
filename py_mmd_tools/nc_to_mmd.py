@@ -19,7 +19,6 @@ import re
 import warnings
 import yaml
 import jinja2
-import logging
 import shapely.wkt
 
 from filehash import FileHash
@@ -1430,7 +1429,8 @@ class Nc_to_mmd(object):
                    'doc/mmd-specification.html#collection-keywords'
         default_collection = 'METNCS'
         if collection is None or collection == "":
-            logging.warning('Using default values %s for the MMD collection field. '
+            self.missing_attributes['warnings'].append(
+                            'Using default values %s for the MMD collection field. '
                             'Please, specify other collection(s) if this is wrong. Valid '
                             'collections are provided in the MMD documentation (%s)'
                             % (default_collection, mmd_docs))

@@ -18,8 +18,12 @@ Example:
 """
 
 import argparse
+import netCDF4
 import os
 import pathlib
+import yaml
+
+from pkg_resources import resource_string
 
 from py_mmd_tools import nc_to_mmd
 
@@ -67,11 +71,15 @@ def create_parser():
     )
     parser.add_argument(
         '-c', '--checksum_calculation',  action='store_true',
-        help="Toggle wether to calculate the checksum of the file"
+        help="Toggle whether to calculate the checksum of the file"
     )
     parser.add_argument(
         '--collection', default=None,
         help="Specify MMD collection field (default is METNCS)"
+    )
+    parser.add_argument(
+        '--log-ids', action='store_true',
+        help='Toggle whether to store the metadata IDs in a yaml file'
     )
 
     return parser
@@ -99,6 +107,7 @@ def main(args=None):
         raise ValueError(f'Invalid input: {args.input}')
 
     url = None  # dry-run option
+    ids = []
     for file in inputfiles:
         if not args.dry_run:
             if assume_same_url_basename:
@@ -109,6 +118,16 @@ def main(args=None):
             md = nc_to_mmd.Nc_to_mmd(str(file), opendap_url=url, output_file=outfile)
         else:
             md = nc_to_mmd.Nc_to_mmd(str(file), check_only=True)
+        mmd_yaml = yaml.load(
+            resource_string(md.__module__.split('.')[0], 'mmd_elements.yaml'),
+            Loader=yaml.FullLoader
+        )
+        metadata_id = md.get_metadata_identifier(mmd_yaml['metadata_identifier'],
+                                                 netCDF4.Dataset(file))
+        if metadata_id in ids:
+            raise ValueError("Unique ID repetition. Please check your ID's.")
+        else:
+            ids.append(metadata_id)
         req_ok, msg = md.to_mmd(
             add_wms_data_access=args.add_wms_data_access,
             wms_link=args.wms_link,
@@ -116,6 +135,10 @@ def main(args=None):
             checksum_calculation=args.checksum_calculation,
             collection=args.collection
         )
+    if args.log_ids:
+        with open('metadata_ids.txt', 'a') as f:
+            for mid in ids:
+                f.write(mid+'\n')
 
 
 def _main():  # pragma: no cover
