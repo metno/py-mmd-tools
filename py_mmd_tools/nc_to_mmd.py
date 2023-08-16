@@ -1157,7 +1157,7 @@ class Nc_to_mmd(object):
         if acdd_ext_key in ncin.ncattrs():
             pstatus = ncin.getncattr(acdd_ext_key)
         else:
-            pstatus = "Not available"
+            pstatus = "Complete"
         # If not given, search for Not available will return Not available
         pstatus_result = self.dataset_production_status.search_lowercase(pstatus)
         dataset_production_status = pstatus_result.get("Short_Name", "")
@@ -1367,7 +1367,7 @@ class Nc_to_mmd(object):
         return data
 
     def to_mmd(self, collection=None, checksum_calculation=False, mmd_yaml=None,
-               *args, **kwargs):
+               parent=None, *args, **kwargs):
         """Method for parsing and mapping NetCDF attributes to MMD.
 
         Some times the data producers have missed some required elements
@@ -1476,10 +1476,14 @@ class Nc_to_mmd(object):
             mmd_yaml.pop('dataset_citation'), ncin, **kwargs)
         self.metadata['related_dataset'] = self.get_related_dataset(
             mmd_yaml.pop('related_dataset'), ncin)
-        # QUESTION: should we allow the use of get_related_dataset_OLD as well? The new
-        # function breaks backward compatibility, but that's the case for many other
-        # previous updates as well.. Maybe we should change to using 0.* versions until
-        # we can have better stability?
+        # Add parent from function kwarg
+        if parent is not None:
+            if not Nc_to_mmd.is_valid_uuid(parent.split(":")[1]):
+                raise ValueError("parent must be a valid uuid")
+            self.metadata['related_dataset'].append({
+                'id': parent,
+                'relation_type': "parent",
+            })
 
         self.metadata['related_information'] = self.get_related_information(
             mmd_yaml.pop('related_information'), ncin)

@@ -78,6 +78,10 @@ def create_parser():
         help="Specify MMD collection field (default is METNCS)"
     )
     parser.add_argument(
+        '--parent', default=None,
+        help="Metadata ID of a parent dataset"
+    )
+    parser.add_argument(
         '--log-ids', action='store_true',
         help='Toggle whether to store the metadata IDs in a yaml file'
     )
@@ -133,7 +137,8 @@ def main(args=None):
             wms_link=args.wms_link,
             wms_layer_names=args.wms_layer_names,
             checksum_calculation=args.checksum_calculation,
-            collection=args.collection
+            collection=args.collection,
+            parent=args.parent
         )
     if args.log_ids:
         with open('metadata_ids.txt', 'a') as f:
