@@ -805,7 +805,7 @@ class Nc_to_mmd(object):
             An alternative dataset citation. This can be useful if the
             citation refers to a parent dataset or a DOI.
         """
-        if type(dataset_citation) == dict:
+        if type(dataset_citation) is dict:
             return [dataset_citation]
 
         acdd_author = mmd_element['author'].pop('acdd')
