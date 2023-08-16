@@ -10,7 +10,6 @@ py-mmd-tools is licensed under the Apache License 2.0
 import os
 import shutil
 import tempfile
-import uuid
 
 import pytest
 
@@ -131,8 +130,8 @@ def test_with_folder(dataDir, monkeypatch):
     parser = create_parser()
     in_dir = tempfile.mkdtemp()
     shutil.copy(os.path.join(dataDir, 'reference_nc.nc'), in_dir)
-    shutil.copy(os.path.join(dataDir, 'reference_nc.nc'), os.path.join(in_dir,
-        'reference_nc_copy.nc'))
+    shutil.copy(os.path.join(dataDir, 'reference_nc.nc'),
+                os.path.join(in_dir, 'reference_nc_copy.nc'))
     assert os.path.isfile(os.path.join(in_dir, 'reference_nc_copy.nc'))
 
     out_dir = tempfile.mkdtemp()

@@ -42,13 +42,10 @@ def test_parent_keyword_arg(dataDir):
     function, and that it is verified that the uuid part of the ID is
     a UUID.
     """
-    mmd_yaml = yaml.load(
-        resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-    )
     # UUID is UUID
     md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
     req, msg = md.to_mmd(parent="no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb")
-    assert req == True
+    assert req is True
 
     # ID is not correctly composed
     md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)

@@ -1430,10 +1430,10 @@ class Nc_to_mmd(object):
         default_collection = 'METNCS'
         if collection is None or collection == "":
             self.missing_attributes['warnings'].append(
-                            'Using default values %s for the MMD collection field. '
-                            'Please, specify other collection(s) if this is wrong. Valid '
-                            'collections are provided in the MMD documentation (%s)'
-                            % (default_collection, mmd_docs))
+                'Using default values %s for the MMD collection field. '
+                'Please, specify other collection(s) if this is wrong. Valid '
+                'collections are provided in the MMD documentation (%s)'
+                % (default_collection, mmd_docs))
             self.metadata['collection'] = [default_collection]
         else:
             self.metadata['collection'] = [collection]
@@ -1578,8 +1578,7 @@ class Nc_to_mmd(object):
             warnings.warn('\n\t'+'\n\t'.join(self.missing_attributes['warnings']))
         if len(self.missing_attributes['errors']) > 0:
             raise AttributeError(
-                "%s:\n\t" % self.netcdf_file +
-                "\n\t".join(self.missing_attributes['errors']))
+                "%s:\n\t" % self.netcdf_file + "\n\t".join(self.missing_attributes['errors']))
 
         env = jinja2.Environment(
             loader=jinja2.PackageLoader(self.__module__.split('.')[0], 'templates'),
