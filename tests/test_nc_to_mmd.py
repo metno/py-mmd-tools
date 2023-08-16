@@ -322,7 +322,7 @@ def test_dataset_production_status(dataDir):
 
     # dataset_production_status is not present
     value = md.get_dataset_production_status(mmd_element, ncin)
-    assert value == "Not available"
+    assert value == "Complete"
 
     # dataset_production_status is not valid
     ncin.dataset_production_status = "kjhhas"
