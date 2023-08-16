@@ -10,6 +10,7 @@ py-mmd-tools is licensed under the Apache License 2.0
 import os
 import shutil
 import tempfile
+import uuid
 
 import pytest
 
@@ -130,18 +131,36 @@ def test_with_folder(dataDir, monkeypatch):
     parser = create_parser()
     in_dir = tempfile.mkdtemp()
     shutil.copy(os.path.join(dataDir, 'reference_nc.nc'), in_dir)
+    shutil.copy(os.path.join(dataDir, 'reference_nc.nc'), os.path.join(in_dir,
+        'reference_nc_copy.nc'))
+    assert os.path.isfile(os.path.join(in_dir, 'reference_nc_copy.nc'))
+
     out_dir = tempfile.mkdtemp()
     url = 'https://thredds.met.no/thredds/dodsC'
     parsed = parser.parse_args([
         '-i', in_dir,
         '-u', url,
-        '-o', out_dir
+        '-o', out_dir,
+        '--log-ids', os.path.join(out_dir, "dataset_ids.txt"),
     ])
+
+    # Repetion of IDs
+    with monkeypatch.context() as mp:
+        mp.setattr("py_mmd_tools.nc_to_mmd.Dataset",
+                   lambda *args, **kwargs: patchedDataset(url, *args, **kwargs))
+        with pytest.raises(ValueError) as ve:
+            main(parsed)
+    assert os.path.isfile(os.path.join(out_dir, 'reference_nc.xml'))
+    assert "Unique ID repetition" in str(ve.value)
+    os.unlink(os.path.join(in_dir, 'reference_nc_copy.nc'))
+
+    # Check that an file with dataset IDs is written
     with monkeypatch.context() as mp:
         mp.setattr("py_mmd_tools.nc_to_mmd.Dataset",
                    lambda *args, **kwargs: patchedDataset(url, *args, **kwargs))
         main(parsed)
-    assert os.path.isfile(os.path.join(out_dir, 'reference_nc.xml'))
+    assert os.path.isfile(os.path.join(out_dir, "dataset_ids.txt"))
+
     shutil.rmtree(out_dir)
     shutil.rmtree(in_dir)
 

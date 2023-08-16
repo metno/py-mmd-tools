@@ -82,8 +82,8 @@ def create_parser():
         help="Metadata ID of a parent dataset"
     )
     parser.add_argument(
-        '--log-ids', action='store_true',
-        help='Toggle whether to store the metadata IDs in a yaml file'
+        '--log-ids', default=None,
+        help='Store the metadata IDs in a file'
     )
 
     return parser
@@ -141,7 +141,7 @@ def main(args=None):
             parent=args.parent
         )
     if args.log_ids:
-        with open('metadata_ids.txt', 'a') as f:
+        with open(args.log_ids, 'a') as f:
             for mid in ids:
                 f.write(mid+'\n')
 
