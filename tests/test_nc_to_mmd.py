@@ -99,7 +99,7 @@ def test_invalid_opendap_url(dataDir):
     url = 'https://thredds.met.no/thredds/dodsC/reference_nc.nc'
     md = Nc_to_mmd(test_in, url, check_only=True)
     req, msg = md.to_mmd()
-    assert "Cannot access OPeNDAP stream" in md.missing_attributes['warnings'][2]
+    assert "Cannot access OPeNDAP stream" in md.missing_attributes['warnings'][3]
 
 
 @pytest.mark.py_mmd_tools
