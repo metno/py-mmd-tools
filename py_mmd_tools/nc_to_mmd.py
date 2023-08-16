@@ -1478,8 +1478,15 @@ class Nc_to_mmd(object):
             mmd_yaml.pop('related_dataset'), ncin)
         # Add parent from function kwarg
         if parent is not None:
-            if not Nc_to_mmd.is_valid_uuid(parent.split(":")[1]):
-                raise ValueError("parent must be a valid uuid")
+            if ":" not in parent:
+                raise ValueError("parent must be composed as <%s>:<uuid>" %
+                                 self.ACDD_NAMING_AUTH)
+            nauth, uuid = parent.split(":")
+            if nauth not in self.VALID_NAMING_AUTHORITIES:
+                raise ValueError('%s ACDD attribute %s is not valid' %
+                                 (self.ACDD_NAMING_AUTH, nauth))
+            if not Nc_to_mmd.is_valid_uuid(uuid):
+                raise ValueError("UUID part of the parent ID is not valid")
             self.metadata['related_dataset'].append({
                 'id': parent,
                 'relation_type': "parent",

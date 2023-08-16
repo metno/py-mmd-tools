@@ -36,7 +36,40 @@ from tests.test_nc2mmd_script import patchedDataset
 warnings.simplefilter("ignore", ResourceWarning)
 
 
-@pytest.mark.script
+@pytest.mark.py_mmd_tools
+def test_parent_keyword_arg(dataDir):
+    """ Test that a parent uuid can be provided to the to_mmd
+    function, and that it is verified that the uuid part of the ID is
+    a UUID.
+    """
+    mmd_yaml = yaml.load(
+        resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+    )
+    # UUID is UUID
+    md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
+    req, msg = md.to_mmd(parent="no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb")
+    assert req == True
+
+    # ID is not correctly composed
+    md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
+    with pytest.raises(ValueError) as ve:
+        req, msg = md.to_mmd(parent="not-a-uuid")
+    assert str(ve.value) == "parent must be composed as <naming_authority>:<uuid>"
+
+    # naming_authority is not valid
+    md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
+    with pytest.raises(ValueError) as ve:
+        req, msg = md.to_mmd(parent="no.kvet:not-a-uuid")
+    assert str(ve.value) == "naming_authority ACDD attribute no.kvet is not valid"
+
+    # UUID is not UUID
+    md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
+    with pytest.raises(ValueError) as ve:
+        req, msg = md.to_mmd(parent="no.met:not-a-uuid")
+    assert str(ve.value) == "UUID part of the parent ID is not valid"
+
+
+@pytest.mark.py_mmd_tools
 def test_get_related_dataset(dataDir):
     """ Test get_related_dataset function.
     """
@@ -90,7 +123,7 @@ def test_get_related_dataset(dataDir):
     ncin.close()
 
 
-@pytest.mark.script
+@pytest.mark.py_mmd_tools
 def test_invalid_opendap_url(dataDir):
     """Test that a warning is issued if the opendap url is not
     accessible.
@@ -282,7 +315,7 @@ def test_not_absolute_path():
     assert os.path.isabs(md.netcdf_file) is True
 
 
-@pytest.mark.script
+@pytest.mark.py_mmd_tools
 def test_get_operational_status(dataDir, monkeypatch):
     mmd_yaml = yaml.load(
         resource_string("py_mmd_tools", "mmd_elements.yaml"), Loader=yaml.FullLoader
@@ -310,7 +343,7 @@ def test_get_operational_status(dataDir, monkeypatch):
     assert str(ve.value) == "This is not expected..."
 
 
-@pytest.mark.script
+@pytest.mark.py_mmd_tools
 def test_dataset_production_status(dataDir):
     mmd_yaml = yaml.load(
         resource_string("py_mmd_tools", "mmd_elements.yaml"), Loader=yaml.FullLoader
@@ -338,7 +371,7 @@ def test_dataset_production_status(dataDir):
     assert str(ve.value) == "This is not expected..."
 
 
-@pytest.mark.script
+@pytest.mark.py_mmd_tools
 def test_get_quality_control(dataDir):
     mmd_yaml = yaml.load(
         resource_string("py_mmd_tools", "mmd_elements.yaml"), Loader=yaml.FullLoader
@@ -1808,7 +1841,7 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc.nc'), check_only=True)
         md.to_mmd(mmd_yaml=mmd_yaml)
         self.assertEqual(
-            md.missing_attributes['warnings'][2],
+            md.missing_attributes['warnings'][3],
             'Using default value test for dummy_field'
         )
 
