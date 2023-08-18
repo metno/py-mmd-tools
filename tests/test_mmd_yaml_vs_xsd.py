@@ -81,7 +81,7 @@ class TestMDDElementsInYAMLAndXSD(unittest.TestCase):
                 continue
 
             elements = ll['xs:sequence']['xs:element']
-            if not type(elements) == list:
+            if type(elements) is not list:
                 elements = [elements]
 
             sub_type_defs = {}
