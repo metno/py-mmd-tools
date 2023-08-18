@@ -153,6 +153,7 @@ def test_create_mmd_1(monkeypatch):
                    lambda *args, **kwargs: patchedDataset(url, *args, **kwargs))
         md = Nc_to_mmd(fn, url, output_file=tested)
         md.to_mmd(checksum_calculation=True)
+
     reference_xsd = os.path.join(os.environ['MMD_PATH'], 'xsd/mmd_strict.xsd')
     xsd_obj = etree.XMLSchema(etree.parse(reference_xsd))
     xml_doc = etree.ElementTree(file=tested)
@@ -160,6 +161,7 @@ def test_create_mmd_1(monkeypatch):
     assert valid is True
     """ Check content of the xml_doc """
     # alternate_identifier
+    print(xml_doc.getroot().find("{http://www.met.no/schema/mmd}alternate_identifier"))
     assert xml_doc.getroot().find(
         "{http://www.met.no/schema/mmd}alternate_identifier[@type='dummy_type']"
     ).text == "dummy_id_no1"
@@ -812,8 +814,6 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(
             md.missing_attributes['errors'][4], 'institution is a required attribute'
         )
-        self.assertEqual(md.missing_attributes['warnings'][0],
-                         'institution_short_name is a recommended attribute')
 
     def test_geographic_extent_rectangle_is_floatable(self):
         """ Test that the provided geospatial coordinates can be
@@ -965,11 +965,11 @@ class TestNC2MMD(unittest.TestCase):
         )
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc.nc'), check_only=True)
         ncin = Dataset(md.netcdf_file)
+        print(mmd_yaml['alternate_identifier'])
         value = md.get_acdd_metadata(
             mmd_yaml['alternate_identifier'], ncin, 'alternate_identifier'
         )
         self.assertEqual(value['alternate_identifier'], None)
-        self.assertEqual(value['type'], None)
 
     def test_alternate_identifier(self):
         """Test that MMD alternate_identifier is equal to the one
@@ -980,11 +980,11 @@ class TestNC2MMD(unittest.TestCase):
         )
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_with_altID.nc'), check_only=True)
         ncin = Dataset(md.netcdf_file)
-        value = md.get_acdd_metadata(
-            mmd_yaml['alternate_identifier'], ncin, 'alternate_identifier'
+        value = md.get_alternate_identifier(
+            mmd_yaml['alternate_identifier'], ncin
         )
-        self.assertEqual(value['alternate_identifier'][0], 'dummy_id_no1')
-        self.assertEqual(value['type'][0], 'dummy_type')
+        self.assertEqual(value[0]['alternate_identifier'], 'dummy_id_no1')
+        self.assertEqual(value[0]['alternate_identifier_type'], 'dummy_type')
 
     def test_alternate_identifier_multiple(self):
         """Test that MMD alternate_identifier is equal to the ones
@@ -996,12 +996,13 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_with_altID_multiple.nc'),
                        check_only=True)
         ncin = Dataset(md.netcdf_file)
-        value = md.get_acdd_metadata(
-            mmd_yaml['alternate_identifier'], ncin, 'alternate_identifier'
+        value = md.get_alternate_identifier(
+            mmd_yaml['alternate_identifier'], ncin
         )
-        self.assertEqual(value['alternate_identifier'][0], 'dummy_id_no1')
-        self.assertEqual(value['type'][0], 'dummy_type')
-        self.assertEqual(value['type'][1], 'other_type')
+        print(value)
+        self.assertEqual(value[0]['alternate_identifier'], 'dummy_id_no1')
+        self.assertEqual(value[0]['alternate_identifier_type'], 'dummy_type')
+        self.assertEqual(value[1]['alternate_identifier_type'], 'other_type')
 
     def test_metadata_status_is_active(self):
         """ToDo: Add docstring"""
@@ -2370,17 +2371,17 @@ class TestNC2MMD(unittest.TestCase):
             'Please provide the ACDD convention version in '
             'the "Conventions" attribute.')
 
-    def test_institution_long_name_missing(self):
+    def test_institution_name_parsing(self):
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.institution_short_name = "NO/MPE/NVE"
-        md.get_data_centers(mmd_yaml['data_center'], ncin)
-        self.assertEqual(
-            md.missing_attributes['errors'][0],
-            'institution is a required attribute')
+        ncin.institution = "Norwegian Meteorological Institute (NO/MET)"
+        data = md.get_data_centers(mmd_yaml['data_center'], ncin)
+        self.assertEqual(data[0]['data_center_name']['long_name'],
+                         'Norwegian Meteorological Institute')
+        self.assertEqual(data[0]['data_center_name']['short_name'], 'NO/MET')
 
     def test_institution_short_name_missing(self):
         mmd_yaml = yaml.load(
@@ -2390,9 +2391,11 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
         ncin.institution = "Norwegian Meteorological Institute"
         md.get_data_centers(mmd_yaml['data_center'], ncin)
+        print(md.missing_attributes)
         self.assertEqual(
-            md.missing_attributes['warnings'][0],
-            'institution_short_name is a recommended attribute')
+            md.missing_attributes['errors'][0],
+            "institution must be formed as <institution long name> (<institution short name>). "
+            "Both are required attributes.")
 
     def test_acdd_references_as_related_information1(self):
         """ Test that references (doi/uri) are correctly retrieved."""

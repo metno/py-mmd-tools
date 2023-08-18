@@ -173,6 +173,52 @@ class Mmd_to_nc(object):
             'naming_authority': naming_authority
         })
 
+    def process_institution(self, element):
+        """ long and short names need to be recomposed.
+        """
+        # Corresponding ACDD element name
+        print(element)
+        acdd_name, comments, sep = Mmd_to_nc.get_acdd(
+            self.mmd_yaml['data_center']['data_center_name'])
+        assert 'institution' in acdd_name
+        inst_name = '%s (%s)' % (element.find('mmd:data_center_name/mmd:long_name',
+                                              namespaces=self.namespaces).text,
+                                 element.find('mmd:data_center_name/mmd:short_name',
+                                              namespaces=self.namespaces).text)
+        self.update_acdd({
+            'institution': inst_name
+        })
+
+    def process_platforminstrument_name(self, element):
+        """ long and short names need to be recomposed.
+        """
+        # Corresponding ACDD element name
+        print(element)
+        acdd_name, comments, sep = Mmd_to_nc.get_acdd(self.mmd_yaml['platform'])
+        assert 'platform' in acdd_name
+        platf_name = '%s (%s)' % (element.find('mmd:long_name', namespaces=self.namespaces).text,
+                                  element.find('mmd:short_name', namespaces=self.namespaces).text)
+        instr_name = '%s (%s)' % (element.find('mmd:instrument/mmd:long_name',
+                                               namespaces=self.namespaces).text,
+                                  element.find('mmd:instrument/mmd:short_name',
+                                               namespaces=self.namespaces).text)
+        self.update_acdd({
+            'platform': platf_name,
+            'instrument': instr_name
+        })
+
+    def process_project(self, element):
+        """ long and short names need to be recomposed.
+        """
+        # Corresponding ACDD element name
+        acdd_name, comments, sep = Mmd_to_nc.get_acdd(self.mmd_yaml['project'])
+        assert 'project' in acdd_name
+        proj_name = '%s (%s)' % (element.find('mmd:long_name', namespaces=self.namespaces).text,
+                                 element.find('mmd:short_name', namespaces=self.namespaces).text)
+        self.update_acdd({
+            'project': proj_name
+        })
+
     def process_last_metadata_update(self, element):
         """ Special case for MMD element "last_metadata_update".
         This element has two ACDD translations: date_created and
@@ -417,6 +463,12 @@ class Mmd_to_nc(object):
                 elif mmd_element == 'dataset_citation':
                     self.process_citation(element)
 
+                elif mmd_element == 'data_center':
+                    self.process_institution(element)
+
+                elif mmd_element == 'project':
+                    self.process_project(element)
+
                 # Last case: the XML element has child elements
                 else:
 
@@ -425,6 +477,8 @@ class Mmd_to_nc(object):
                     # Extract of mmd_yaml for this element and its children
                     mmd_yaml_extract = self.mmd_yaml[parent_name]
 
+                    if mmd_element == 'platform':
+                        self.process_platforminstrument_name(element)
                     # Loop on child elements
                     for child_element in list(element):
 

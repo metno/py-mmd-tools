@@ -2,7 +2,7 @@
   <mmd:metadata_identifier>{{ data['metadata_identifier'] }}</mmd:metadata_identifier>
   {% if data['alternate_identifier']['alternate_identifier'] %}
     {% for ai in data['alternate_identifier']['alternate_identifier'] %}
-      {% set type=data['alternate_identifier']['type'][loop.index-1] %}
+      {% set type=data['alternate_identifier']['alternate_identifier_type'][loop.index-1] %}
   <mmd:alternate_identifier type="{{ type }}">{{ ai }}</mmd:alternate_identifier>
     {% endfor %}
   {% endif %}

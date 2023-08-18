@@ -63,7 +63,8 @@ class TestMMD2NC(unittest.TestCase):
             """ Check some fields"""
             self.assertEqual(f.getncattr('id'), 'b7cb7934-77ca-4439-812e-f560df3fe7eb')
             self.assertEqual(f.getncattr('naming_authority'), 'no.met')
-            self.assertEqual(f.getncattr('institution'), 'Norwegian Meteorological Institute')
+            self.assertEqual(f.getncattr('institution'),
+                             'Norwegian Meteorological Institute (NO/MET)')
 
     def test_update_nc_2(self):
         """

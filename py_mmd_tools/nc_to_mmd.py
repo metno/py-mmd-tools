@@ -334,26 +334,40 @@ class Nc_to_mmd(object):
             )
         return data
 
+    def get_alternate_identifier(self, mmd_element, ncin):
+        """Look up ACDD and ACDD extensions to populate MMD elements"""
+
+        acdd_altid = mmd_element['alternate_identifier'].pop('acdd_ext')
+        acdd_altid_key = list(acdd_altid.keys())[0]
+        altids = self.separate_repeated(True, getattr(ncin, acdd_altid_key))
+
+        data = []
+        for id in altids:
+            tmp = {}
+            ri = id.split('(')
+            if len(ri) == 2:
+                tmp['alternate_identifier'] = (ri[0].strip())
+                tmp['alternate_identifier_type'] = (ri[1][:-1])
+            else:
+                self.missing_attributes['errors'].append(
+                    "alternate_identifier must be formed as <url> (<type>)."
+                )
+                continue
+            data.append(tmp)
+        return data
+
     def get_data_centers(self, mmd_element, ncin):
         """Look up ACDD and ACDD extensions to populate MMD elements"""
-        acdd_short_name = mmd_element['data_center_name']['short_name'].pop('acdd_ext')
-        short_names = []
 
-        acdd_short_name_key = list(acdd_short_name.keys())[0]
-        try:
-            short_names = self.separate_repeated(True, getattr(ncin, acdd_short_name_key))
-        except AttributeError:
-            self.missing_attributes['warnings'].append(
-                '%s is a recommended attribute' % acdd_short_name_key)
+        acdd_institution = mmd_element['data_center_name'].pop('acdd')
+        acdd_institution_key = list(acdd_institution.keys())[0]
 
-        acdd_long_name = mmd_element['data_center_name']['long_name'].pop('acdd')
-        acdd_long_name_key = list(acdd_long_name.keys())[0]
-        long_names = []
+        institutions = []
         try:
-            long_names = self.separate_repeated(True, getattr(ncin, acdd_long_name_key))
+            institutions = self.separate_repeated(True, getattr(ncin, acdd_institution_key))
         except AttributeError:
-            self.missing_attributes['errors'].append('%s is a required attribute'
-                                                     % acdd_long_name_key)
+            self.missing_attributes['errors'].append(
+                '%s is a required attribute' % acdd_institution_key)
 
         acdd_url = mmd_element['data_center_url'].pop('acdd')
         acdd_url_key = list(acdd_url.keys())[0]
@@ -363,17 +377,26 @@ class Nc_to_mmd(object):
             urls = ''
 
         data = []
-        for i in range(len(long_names)):
+
+        for i in range(len(institutions)):
             if len(urls) <= i:
                 url = ''
             else:
                 url = urls[i]
             dc = {
-                'data_center_name': {'long_name': long_names[i]},
+                'data_center_name': {},
                 'data_center_url': url,
             }
-            if len(short_names) == len(long_names):
-                dc['data_center_name']['short_name'] = short_names[i]
+            ri = institutions[i].split('(')
+            if len(ri) == 2:
+                dc['data_center_name']['long_name'] = ri[0].strip()
+                dc['data_center_name']['short_name'] = ri[1][:-1]
+            else:
+                self.missing_attributes['errors'].append(
+                    "%s must be formed as <institution long name> (<institution short name>). "
+                    "Both are required attributes." % acdd_institution_key
+                )
+                continue
             data.append(dc)
         return data
 
@@ -1497,10 +1520,12 @@ class Nc_to_mmd(object):
         self.metadata['keywords'] = self.get_keywords(mmd_yaml.pop('keywords'), ncin)
         self.metadata['project'] = self.get_projects(mmd_yaml.pop('project'), ncin)
         self.metadata['platform'] = self.get_platforms(mmd_yaml.pop('platform'), ncin)
+
         self.metadata['dataset_citation'] = self.get_dataset_citations(
             mmd_yaml.pop('dataset_citation'), ncin)
         self.metadata['related_dataset'] = self.get_related_dataset(
             mmd_yaml.pop('related_dataset'), ncin)
+
         # QUESTION: should we allow the use of get_related_dataset_OLD as well? The new
         # function breaks backward compatibility, but that's the case for many other
         # previous updates as well.. Maybe we should change to using 0.* versions until
@@ -1564,6 +1589,10 @@ class Nc_to_mmd(object):
         # Set dataset_production_status
         self.metadata['quality_control'] = self.get_quality_control(
             mmd_yaml.pop('quality_control'), ncin)
+
+        if ('alternate_identifier' in ncin.ncattrs()):
+            self.metadata['alternate_identifier'] = self.get_alternate_identifier(
+                mmd_yaml.pop('alternate_identifier'), ncin)
 
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
