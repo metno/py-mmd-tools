@@ -161,7 +161,6 @@ def test_create_mmd_1(monkeypatch):
     assert valid is True
     """ Check content of the xml_doc """
     # alternate_identifier
-    print(xml_doc.getroot().find("{http://www.met.no/schema/mmd}alternate_identifier"))
     assert xml_doc.getroot().find(
         "{http://www.met.no/schema/mmd}alternate_identifier[@type='dummy_type']"
     ).text == "dummy_id_no1"
@@ -965,7 +964,6 @@ class TestNC2MMD(unittest.TestCase):
         )
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc.nc'), check_only=True)
         ncin = Dataset(md.netcdf_file)
-        print(mmd_yaml['alternate_identifier'])
         value = md.get_acdd_metadata(
             mmd_yaml['alternate_identifier'], ncin, 'alternate_identifier'
         )
@@ -999,7 +997,6 @@ class TestNC2MMD(unittest.TestCase):
         value = md.get_alternate_identifier(
             mmd_yaml['alternate_identifier'], ncin
         )
-        print(value)
         self.assertEqual(value[0]['alternate_identifier'], 'dummy_id_no1')
         self.assertEqual(value[0]['alternate_identifier_type'], 'dummy_type')
         self.assertEqual(value[1]['alternate_identifier_type'], 'other_type')
