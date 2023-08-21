@@ -133,6 +133,7 @@ def test_with_folder(dataDir, monkeypatch):
     shutil.copy(os.path.join(dataDir, 'reference_nc.nc'),
                 os.path.join(in_dir, 'reference_nc_copy.nc'))
     assert os.path.isfile(os.path.join(in_dir, 'reference_nc_copy.nc'))
+    assert os.path.isfile(os.path.join(in_dir, 'reference_nc.nc'))
 
     out_dir = tempfile.mkdtemp()
     url = 'https://thredds.met.no/thredds/dodsC'
