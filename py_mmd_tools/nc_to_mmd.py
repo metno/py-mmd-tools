@@ -19,7 +19,6 @@ import re
 import warnings
 import yaml
 import jinja2
-import logging
 import shapely.wkt
 
 from filehash import FileHash
@@ -850,12 +849,26 @@ class Nc_to_mmd(object):
 
         return data
 
-    def get_dataset_citations(self, mmd_element, ncin):
+    def get_dataset_citations(self, mmd_element, ncin, dataset_citation=None, **kwargs):
         """MMD allows several dataset citations. This will lead to
         problems with associating the different elements to each other.
         In practice, most datasets will only have one citation, so will
         handle that eventuality if it arrives.
+
+        Parameters
+        ----------
+        mmd_element : dict
+            The dictionary of the dataset_citation field in
+            mmd_elements.yaml
+        ncin : netCDF4.Dataset
+            An open netCDF4 dataset
+        dataset_citation : dict (Optional)
+            An alternative dataset citation. This can be useful if the
+            citation refers to a parent dataset or a DOI.
         """
+        if type(dataset_citation) is dict:
+            return [dataset_citation]
+
         acdd_author = mmd_element['author'].pop('acdd')
         authors = []
         acdd_author_key = list(acdd_author.keys())[0]
@@ -1206,7 +1219,7 @@ class Nc_to_mmd(object):
         if acdd_ext_key in ncin.ncattrs():
             pstatus = ncin.getncattr(acdd_ext_key)
         else:
-            pstatus = "Not available"
+            pstatus = "Complete"
         # If not given, search for Not available will return Not available
         pstatus_result = self.dataset_production_status.search_lowercase(pstatus)
         dataset_production_status = pstatus_result.get("Short_Name", "")
@@ -1416,7 +1429,7 @@ class Nc_to_mmd(object):
         return data
 
     def to_mmd(self, collection=None, checksum_calculation=False, mmd_yaml=None,
-               *args, **kwargs):
+               parent=None, *args, **kwargs):
         """Method for parsing and mapping NetCDF attributes to MMD.
 
         Some times the data producers have missed some required elements
@@ -1478,10 +1491,11 @@ class Nc_to_mmd(object):
                    'doc/mmd-specification.html#collection-keywords'
         default_collection = 'METNCS'
         if collection is None or collection == "":
-            logging.warning('Using default values %s for the MMD collection field. '
-                            'Please, specify other collection(s) if this is wrong. Valid '
-                            'collections are provided in the MMD documentation (%s)'
-                            % (default_collection, mmd_docs))
+            self.missing_attributes['warnings'].append(
+                'Using default values %s for the MMD collection field. '
+                'Please, specify other collection(s) if this is wrong. Valid '
+                'collections are provided in the MMD documentation (%s)'
+                % (default_collection, mmd_docs))
             self.metadata['collection'] = [default_collection]
         else:
             self.metadata['collection'] = [collection]
@@ -1522,14 +1536,24 @@ class Nc_to_mmd(object):
         self.metadata['platform'] = self.get_platforms(mmd_yaml.pop('platform'), ncin)
 
         self.metadata['dataset_citation'] = self.get_dataset_citations(
-            mmd_yaml.pop('dataset_citation'), ncin)
+            mmd_yaml.pop('dataset_citation'), ncin, **kwargs)
         self.metadata['related_dataset'] = self.get_related_dataset(
             mmd_yaml.pop('related_dataset'), ncin)
-
-        # QUESTION: should we allow the use of get_related_dataset_OLD as well? The new
-        # function breaks backward compatibility, but that's the case for many other
-        # previous updates as well.. Maybe we should change to using 0.* versions until
-        # we can have better stability?
+        # Add parent from function kwarg
+        if parent is not None:
+            if ":" not in parent:
+                raise ValueError("parent must be composed as <%s>:<uuid>" %
+                                 self.ACDD_NAMING_AUTH)
+            nauth, uuid = parent.split(":")
+            if nauth not in self.VALID_NAMING_AUTHORITIES:
+                raise ValueError('%s ACDD attribute %s is not valid' %
+                                 (self.ACDD_NAMING_AUTH, nauth))
+            if not Nc_to_mmd.is_valid_uuid(uuid):
+                raise ValueError("UUID part of the parent ID is not valid")
+            self.metadata['related_dataset'].append({
+                'id': parent,
+                'relation_type': "parent",
+            })
 
         self.metadata['related_information'] = self.get_related_information(
             mmd_yaml.pop('related_information'), ncin)
@@ -1620,7 +1644,8 @@ class Nc_to_mmd(object):
         if len(self.missing_attributes['warnings']) > 0:
             warnings.warn('\n\t'+'\n\t'.join(self.missing_attributes['warnings']))
         if len(self.missing_attributes['errors']) > 0:
-            raise AttributeError('\n\t'+'\n\t'.join(self.missing_attributes['errors']))
+            raise AttributeError(
+                "%s:\n\t" % self.netcdf_file + "\n\t".join(self.missing_attributes['errors']))
 
         env = jinja2.Environment(
             loader=jinja2.PackageLoader(self.__module__.split('.')[0], 'templates'),
@@ -1644,7 +1669,7 @@ class Nc_to_mmd(object):
 
     def get_data_access_dict(self, ncin, add_wms_data_access=False,
                              wms_link=None, wms_layer_names=None,
-                             add_http_data_access=True):
+                             add_http_data_access=True, **kwargs):
         """ Return a dictionary with data access information. OGC WMS
         urls can only be provided for gridded datasets.
 

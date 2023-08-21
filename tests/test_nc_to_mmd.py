@@ -37,7 +37,37 @@ from tests.test_nc2mmd_script import patchedDataset
 warnings.simplefilter("ignore", ResourceWarning)
 
 
-@pytest.mark.script
+@pytest.mark.py_mmd_tools
+def test_parent_keyword_arg(dataDir):
+    """ Test that a parent uuid can be provided to the to_mmd
+    function, and that it is verified that the uuid part of the ID is
+    a UUID.
+    """
+    # UUID is UUID
+    md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
+    req, msg = md.to_mmd(parent="no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb")
+    assert req is True
+
+    # ID is not correctly composed
+    md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
+    with pytest.raises(ValueError) as ve:
+        req, msg = md.to_mmd(parent="not-a-uuid")
+    assert str(ve.value) == "parent must be composed as <naming_authority>:<uuid>"
+
+    # naming_authority is not valid
+    md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
+    with pytest.raises(ValueError) as ve:
+        req, msg = md.to_mmd(parent="no.kvet:not-a-uuid")
+    assert str(ve.value) == "naming_authority ACDD attribute no.kvet is not valid"
+
+    # UUID is not UUID
+    md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
+    with pytest.raises(ValueError) as ve:
+        req, msg = md.to_mmd(parent="no.met:not-a-uuid")
+    assert str(ve.value) == "UUID part of the parent ID is not valid"
+
+
+@pytest.mark.py_mmd_tools
 def test_get_related_dataset(dataDir):
     """ Test get_related_dataset function.
     """
@@ -91,7 +121,7 @@ def test_get_related_dataset(dataDir):
     ncin.close()
 
 
-@pytest.mark.script
+@pytest.mark.py_mmd_tools
 def test_invalid_opendap_url(dataDir):
     """Test that a warning is issued if the opendap url is not
     accessible.
@@ -100,7 +130,7 @@ def test_invalid_opendap_url(dataDir):
     url = 'https://thredds.met.no/thredds/dodsC/reference_nc.nc'
     md = Nc_to_mmd(test_in, url, check_only=True)
     req, msg = md.to_mmd()
-    assert "Cannot access OPeNDAP stream" in md.missing_attributes['warnings'][2]
+    assert "Cannot access OPeNDAP stream" in md.missing_attributes['warnings'][3]
 
 
 @pytest.mark.py_mmd_tools
@@ -200,12 +230,19 @@ def test_get_data_access_dict_with_wms(monkeypatch):
         'https://thredds.met.no/thredds/dodsC/arcticdata/'
         'S2S_drift_TCD/SIDRIFT_S2S_SH/2019/07/31/'
     ) + netcdf_file
+    kwargs = {
+        "dataset_citation": {
+            "author": "Some name to ensure that kwargs not required "
+                      "by get_data_access_dict are allowed"
+        },
+        "add_wms_data_access": True,
+    }
     with monkeypatch.context() as mp:
         mp.setattr("py_mmd_tools.nc_to_mmd.Dataset",
                    lambda *args, **kwargs: patchedDataset(opendap_url, *args, **kwargs))
         md = Nc_to_mmd(netcdf_file, opendap_url, check_only=True)
         ncin = Dataset(md.netcdf_file)
-        data = md.get_data_access_dict(ncin, add_wms_data_access=True)
+        data = md.get_data_access_dict(ncin, **kwargs)
     assert data[0]['type'] == 'OPeNDAP'
     assert data[1]['type'] == 'OGC WMS'
     assert data[2]['type'] == 'HTTP'
@@ -277,7 +314,7 @@ def test_not_absolute_path():
     assert os.path.isabs(md.netcdf_file) is True
 
 
-@pytest.mark.script
+@pytest.mark.py_mmd_tools
 def test_get_operational_status(dataDir, monkeypatch):
     mmd_yaml = yaml.load(
         resource_string("py_mmd_tools", "mmd_elements.yaml"), Loader=yaml.FullLoader
@@ -305,7 +342,7 @@ def test_get_operational_status(dataDir, monkeypatch):
     assert str(ve.value) == "This is not expected..."
 
 
-@pytest.mark.script
+@pytest.mark.py_mmd_tools
 def test_dataset_production_status(dataDir):
     mmd_yaml = yaml.load(
         resource_string("py_mmd_tools", "mmd_elements.yaml"), Loader=yaml.FullLoader
@@ -317,7 +354,7 @@ def test_dataset_production_status(dataDir):
 
     # dataset_production_status is not present
     value = md.get_dataset_production_status(mmd_element, ncin)
-    assert value == "Not available"
+    assert value == "Complete"
 
     # dataset_production_status is not valid
     ncin.dataset_production_status = "kjhhas"
@@ -333,7 +370,7 @@ def test_dataset_production_status(dataDir):
     assert str(ve.value) == "This is not expected..."
 
 
-@pytest.mark.script
+@pytest.mark.py_mmd_tools
 def test_get_quality_control(dataDir):
     mmd_yaml = yaml.load(
         resource_string("py_mmd_tools", "mmd_elements.yaml"), Loader=yaml.FullLoader
@@ -1548,8 +1585,7 @@ class TestNC2MMD(unittest.TestCase):
                        check_only=True)
         ncin = Dataset(md.netcdf_file)
         value = md.get_platforms(mmd_yaml['platform'], ncin)
-        # ncin.platform = 'Suomi National Polar-orbiting Partnership (SNPP)'
-        resource_link = 'https://vocab.met.no/mmd/Platform/SNPP'
+        resource_link = "https://vocab.met.no/mmd/Platform/SNPP"
         self.assertEqual(value[0]['resource'], resource_link)
 
     def test_get_short_and_long_names(self):
@@ -1810,6 +1846,26 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(md.missing_attributes['warnings'][0],
                          '"invalid_url" in metadata_link attribute is not a valid url')
 
+    def test_dataset_citation_as_kwarg(self):
+        """Test that the user can provide a custom dataset citation.
+        """
+        dc = {
+            "author": "No Name",
+            "publication_date": "2023-07-06",
+            "title": "Some random title"}
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        ncin.creator_name = "Tester Test"
+        ncin.date_created = "2022-11-04T11:06:10Z"
+        ncin.title = "Test dataset"
+        ncin.publisher_name = "Norwegian Meteorological Institute"
+        ncin.metadata_link = "invalid_url"
+        value = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin, dataset_citation=dc)
+        self.assertEqual(value[0]['author'], 'No Name')
+
     def test_check_only(self):
         """Run netCDF attributes to MMD translation with check_only
         flag.
@@ -1818,6 +1874,15 @@ class TestNC2MMD(unittest.TestCase):
         req_ok, msg = md.to_mmd()
         self.assertTrue(req_ok)
         self.assertEqual(msg, '')
+
+        # Create custom dataset citation
+        dc = {
+            "author": "No Name",
+            "publication_date": "2023-07-06",
+            "title": "Some random title"}
+        md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc.nc'), check_only=True)
+        req_ok, msg = md.to_mmd(dataset_citation=dc)
+        self.assertEqual(md.metadata['dataset_citation'][0]['author'], 'No Name')
 
     def test_dataset_citation(self):
         """ToDo: Add docstring"""
@@ -1940,7 +2005,7 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc.nc'), check_only=True)
         md.to_mmd(mmd_yaml=mmd_yaml)
         self.assertEqual(
-            md.missing_attributes['warnings'][2],
+            md.missing_attributes['warnings'][3],
             'Using default value test for dummy_field'
         )
 
