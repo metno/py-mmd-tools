@@ -1396,7 +1396,6 @@ class Nc_to_mmd(object):
         data = None
         old_version = False
         acdd_license = list(mmd_element['resource']['acdd'].keys())[0]
-        acdd_license_id = list(mmd_element['identifier']['acdd_ext'].keys())[0]
         license = getattr(ncin, acdd_license).split('(')
         license_url = license[0].strip()
         # validate url
@@ -1418,14 +1417,11 @@ class Nc_to_mmd(object):
         if len(license) > 1:
             data['identifier'] = license[1][0:-1]
         else:
-            if acdd_license_id not in ncin.ncattrs():
-                self.missing_attributes['warnings'].append(
-                    '%s is a recommended attribute' % acdd_license_id
-                )
-                if old_version:
-                    data['identifier'] = ncin.license
+            if old_version:
+                data['identifier'] = ncin.license
             else:
-                data['identifier'] = getattr(ncin, acdd_license_id)
+                self.missing_attributes['errors'].append(
+                    'license should be provided as <url> (<Identifier>)')
         return data
 
     def to_mmd(self, collection=None, checksum_calculation=False, mmd_yaml=None,

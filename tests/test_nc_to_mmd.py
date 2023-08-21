@@ -130,7 +130,8 @@ def test_invalid_opendap_url(dataDir):
     url = 'https://thredds.met.no/thredds/dodsC/reference_nc.nc'
     md = Nc_to_mmd(test_in, url, check_only=True)
     req, msg = md.to_mmd()
-    assert "Cannot access OPeNDAP stream" in md.missing_attributes['warnings'][3]
+    print(md.missing_attributes['warnings'])
+    assert "Cannot access OPeNDAP stream" in md.missing_attributes['warnings'][2]
 
 
 @pytest.mark.py_mmd_tools
@@ -674,9 +675,6 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(
             md.missing_attributes["warnings"][0],
             '"license_resource" is a deprecated attribute')
-        self.assertEqual(
-            md.missing_attributes["warnings"][1],
-            'license_identifier is a recommended attribute')
 
     def test_license__invalid_url(self):
         mmd_yaml = yaml.load(
@@ -692,14 +690,13 @@ class TestNC2MMD(unittest.TestCase):
             '"spdx.org/licenses/CC-BY-4.0" is not a valid url'
         )
 
-    def test_license__with_acdd_ext(self):
+    def test_license__basic(self):
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.reference_nc, check_only=True)
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.license = "http://spdx.org/licenses/CC-BY-4.0"
-        ncin.license_identifier = "CC-BY-4.0"
+        ncin.license = "http://spdx.org/licenses/CC-BY-4.0 (CC-BY-4.0)"
         value = md.get_license(mmd_yaml['use_constraint'], ncin)
         self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
         self.assertEqual(value['identifier'], 'CC-BY-4.0')
@@ -712,11 +709,9 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
         ncin.license = "http://spdx.org/licenses/CC-BY-4.0"
         value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        print(value)
         self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
         self.assertEqual(len(list(value.keys())), 1)
-        self.assertEqual(
-            md.missing_attributes['warnings'][0],
-            'license_identifier is a recommended attribute')
 
     def test_license__according_to_adc1(self):
         mmd_yaml = yaml.load(
@@ -2005,7 +2000,7 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc.nc'), check_only=True)
         md.to_mmd(mmd_yaml=mmd_yaml)
         self.assertEqual(
-            md.missing_attributes['warnings'][3],
+            md.missing_attributes['warnings'][2],
             'Using default value test for dummy_field'
         )
 

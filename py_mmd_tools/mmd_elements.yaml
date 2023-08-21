@@ -252,11 +252,6 @@ use_constraint:
   minOccurs: '1'
   identifier:
     maxOccurs: '1'
-    acdd_ext:
-      license_identifier:
-        minOccurs: '0'
-        maxOccurs: '1'
-        description: Referring to the spdx licenseId. If the identifier is specified in the license attribute as <URL>(<Identifier>), license_identifier is not needed.
   resource:
     maxOccurs: '1'
     acdd:
