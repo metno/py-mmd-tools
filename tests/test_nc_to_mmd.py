@@ -969,6 +969,22 @@ class TestNC2MMD(unittest.TestCase):
         )
         self.assertEqual(value['alternate_identifier'], None)
 
+    def test_alternate_identifier_wrong_format(self):
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_with_altID.nc'), check_only=True)
+        ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        ncin.alternate_identifier = 'wrong format, missing type'
+        value = md.get_alternate_identifier(
+            mmd_yaml['alternate_identifier'], ncin
+        )
+        print(value)
+        self.assertEqual(
+            md.missing_attributes['errors'][0],
+            'alternate_identifier must be formed as <url> (<type>).'
+        )
+
     def test_alternate_identifier(self):
         """Test that MMD alternate_identifier is equal to the one
         provided in the nc-file.
