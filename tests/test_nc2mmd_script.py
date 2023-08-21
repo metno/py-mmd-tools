@@ -149,7 +149,7 @@ def test_with_folder(dataDir, monkeypatch):
                    lambda *args, **kwargs: patchedDataset(url, *args, **kwargs))
         with pytest.raises(ValueError) as ve:
             main(parsed)
-    assert os.path.isfile(os.path.join(out_dir, 'reference_nc.xml'))
+    assert os.path.isfile(os.path.join(out_dir, 'reference_nc_copy.xml'))
     assert "Unique ID repetition" in str(ve.value)
     os.unlink(os.path.join(in_dir, 'reference_nc_copy.nc'))
 
