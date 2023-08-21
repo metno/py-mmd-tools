@@ -412,7 +412,6 @@ class Nc_to_mmd(object):
         function agree with the ones in the yaml file.
         """
         acdd_time = mmd_element['update']['datetime'].pop('acdd', '')
-        acdd_type = mmd_element['update']['type'].pop('acdd_ext', '')
 
         DATE_CREATED = 'date_created'
         # Check that DATE_CREATED attribute is present
@@ -427,9 +426,6 @@ class Nc_to_mmd(object):
         received_time = ''
         for tt in acdd_time.keys():
             received_time += '%s, ' % tt
-        received_type = ''
-        for ty in acdd_type.keys():
-            received_type += '%s, ' % ty
 
         if DATE_CREATED not in acdd_time.keys():
             raise AttributeError(
@@ -437,31 +433,11 @@ class Nc_to_mmd(object):
                 % (DATE_CREATED, received_time)
             )
 
-        if 'date_metadata_modified' not in acdd_time.keys():
-            raise AttributeError(
-                'ACDD attribute inconsistency in mmd_elements.yaml. Expected %s but received %s.'
-                % ('date_metadata_modified', received_type)
-            )
-
         for field_name in acdd_time.keys():
             # Already checked if part of ncin
             if field_name == DATE_CREATED:
                 times.append(ncin.date_created)
-                types.append(mmd_element['update']['type'].pop('default', 'Created'))
-            else:
-                if field_name in ncin.ncattrs():
-                    times.extend(self.separate_repeated(True, getattr(ncin, field_name)))
-                    mtypename = 'date_metadata_modified_type'
-                    if mtypename in ncin.ncattrs():
-                        modified_type = ncin.date_metadata_modified_type
-                    else:
-                        # set this to avoid a lot of failing datasets
-                        # - this should be a minor issue..
-                        modified_type = 'Minor modification'
-                        self.missing_attributes['warnings'].append(
-                            "Using default value '%s' for %s" % (modified_type, mtypename)
-                        )
-                    types.extend(self.separate_repeated(True, modified_type))
+                types.append('Created')
 
         data = {}
         data['update'] = []

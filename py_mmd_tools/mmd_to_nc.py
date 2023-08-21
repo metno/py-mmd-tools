@@ -221,10 +221,7 @@ class Mmd_to_nc(object):
 
     def process_last_metadata_update(self, element):
         """ Special case for MMD element "last_metadata_update".
-        This element has two ACDD translations: date_created and
-        date_metadata_modified. As the appropriate translation in
-        this case is 'date_metadata_modified' only, it has do be done
-        via a special case.
+
 
         Note: It might be possible to not use a special case for this
         element if the order of acdd translations in mmd_elements.yaml
@@ -243,12 +240,12 @@ class Mmd_to_nc(object):
         """
 
         self.update_acdd({
-            'date_metadata_modified': element.find('mmd:update/mmd:datetime',
-                                                   namespaces=self.namespaces).text
+            'date_created': element.find('mmd:update/mmd:datetime',
+                                         namespaces=self.namespaces).text
         }, {
-            'date_metadata_modified': self.mmd_yaml['last_metadata_update']['update']
-                                                   ['datetime']['acdd']['date_metadata_modified']
-                                                   ['separator']
+            'date_created': self.mmd_yaml['last_metadata_update']['update']
+                                         ['datetime']['acdd']['date_created']
+                                         ['separator']
         })
 
     def process_personnel(self, element, separator=','):
