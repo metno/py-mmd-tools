@@ -436,7 +436,7 @@ class Nc_to_mmd(object):
         for field_name in acdd_time.keys():
             # Already checked if part of ncin
             if field_name == DATE_CREATED:
-                times.append(ncin.date_created)
+                times.append(ncin.getncattr(DATE_CREATED))
                 types.append('Created')
 
         data = {}
