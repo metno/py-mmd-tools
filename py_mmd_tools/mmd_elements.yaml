@@ -63,7 +63,6 @@ last_metadata_update:
           description: The date on which this version of the data was created (modification of variable values implies a new version, hence this would be assigned the date of the most recent modification of variable values). Metadata changes are not considered when assigning the date_created. The ISO 8601:2004 extended date format is recommended, e.g., 2020-10-20T12:35:00Z.
     type:
       minOccurs: '1'
-          
     note:
 
 metadata_status:
