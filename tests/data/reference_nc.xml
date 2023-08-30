@@ -121,7 +121,7 @@
   </mmd:personnel>
   <mmd:data_center>
     <mmd:data_center_name>
-      <mmd:short_name>NO/MET</mmd:short_name>
+      <mmd:short_name>MET Norway</mmd:short_name>
       <mmd:long_name>Norwegian Meteorological Institute</mmd:long_name>
     </mmd:data_center_name>
     <mmd:data_center_url>met.no</mmd:data_center_url>

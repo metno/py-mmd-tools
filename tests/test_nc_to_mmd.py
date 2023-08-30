@@ -962,7 +962,7 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value, [{
             'data_center_name': {
                 'long_name': 'Norwegian Meteorological Institute',
-                'short_name': 'NO/MET'
+                'short_name': 'MET Norway'
             },
             'data_center_url': 'met.no',
         }])
@@ -2168,7 +2168,7 @@ class TestNC2MMD(unittest.TestCase):
         value = md.get_data_centers(mmd_yaml['data_center'], ncin)
         self.assertEqual(value, [{
             'data_center_name': {
-                'short_name': 'NO/MET',
+                'short_name': 'MET Norway',
                 'long_name': 'Norwegian Meteorological Institute'
             },
             'data_center_url': ''
@@ -2419,11 +2419,11 @@ class TestNC2MMD(unittest.TestCase):
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.institution = "Norwegian Meteorological Institute (NO/MET)"
+        ncin.institution = "Norwegian Meteorological Institute (MET Norway)"
         data = md.get_data_centers(mmd_yaml['data_center'], ncin)
         self.assertEqual(data[0]['data_center_name']['long_name'],
                          'Norwegian Meteorological Institute')
-        self.assertEqual(data[0]['data_center_name']['short_name'], 'NO/MET')
+        self.assertEqual(data[0]['data_center_name']['short_name'], 'MET Norway')
 
     def test_institution_short_name_missing(self):
         mmd_yaml = yaml.load(
