@@ -130,7 +130,6 @@ def test_invalid_opendap_url(dataDir):
     url = 'https://thredds.met.no/thredds/dodsC/reference_nc.nc'
     md = Nc_to_mmd(test_in, url, check_only=True)
     req, msg = md.to_mmd()
-    print(md.missing_attributes['warnings'])
     assert "Cannot access OPeNDAP stream" in md.missing_attributes['warnings'][2]
 
 
@@ -709,7 +708,6 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
         ncin.license = "http://spdx.org/licenses/CC-BY-4.0"
         value = md.get_license(mmd_yaml['use_constraint'], ncin)
-        print(value)
         self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
         self.assertEqual(len(list(value.keys())), 1)
 
@@ -2234,7 +2232,6 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
         ncin.date_created = '2019-01-01T00:00:00Z'
         data = md.get_metadata_updates(mmd_yaml['last_metadata_update'], ncin)
-        print(data)
         self.assertIn(
             {'datetime':  ncin.date_created, 'type': 'Created'},
             data['update']
@@ -2433,7 +2430,6 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
         ncin.institution = "Norwegian Meteorological Institute"
         md.get_data_centers(mmd_yaml['data_center'], ncin)
-        print(md.missing_attributes)
         self.assertEqual(
             md.missing_attributes['errors'][0],
             "institution must be formed as <institution long name> (<institution short name>). "
