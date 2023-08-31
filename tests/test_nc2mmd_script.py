@@ -131,7 +131,7 @@ def test_with_folder(dataDir, monkeypatch):
        (defined in nc2mmd.py) parses the input folder for .nc files via glob
        [i.e. inputfiles = pathlib.Path(args.input).glob('*.nc') ],
        whether reference_nc_copy.nc or reference_nc_copy.nc gets parsed first,
-       resulting in the corresponding .xml file being in out_dir, 
+       resulting in the corresponding .xml file being in out_dir,
        depends on the filesystem (see glob.glob in here
        https://docs.python.org/3/library/glob.html).
        this is the reason why we use nn 'or' condition to assert
