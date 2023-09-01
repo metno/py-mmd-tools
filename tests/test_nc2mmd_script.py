@@ -134,7 +134,7 @@ def test_with_folder(dataDir, monkeypatch):
        resulting in the corresponding .xml file being in out_dir,
        depends on the filesystem (see glob.glob in here
        https://docs.python.org/3/library/glob.html).
-       this is the reason why we use nn 'or' condition to assert
+       this is the reason why we use an 'or' condition to assert
        the presence of the .xml file in the output
 """
     parser = create_parser()
