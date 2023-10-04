@@ -83,8 +83,15 @@
   {% endif %}
   {% if data['use_constraint'] %}
   <mmd:use_constraint>
+    {% if data['use_constraint']['identifier'] %}
     <mmd:identifier>{{ data['use_constraint']['identifier'] }}</mmd:identifier>
+    {% endif %}
+    {% if data['use_constraint']['resource'] %}
     <mmd:resource>{{ data['use_constraint']['resource'] }}</mmd:resource>
+    {% endif %}
+    {% if data['use_constraint']['license_text'] %}
+    <mmd:license_text>{{ data['use_constraint']['license_text'] }}</mmd:license_text>
+    {% endif %}
   </mmd:use_constraint>
   {% endif %}
   {% for personnel in data['personnel'] %}
