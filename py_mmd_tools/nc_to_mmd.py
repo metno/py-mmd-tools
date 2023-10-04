@@ -1369,6 +1369,9 @@ class Nc_to_mmd(object):
         the SPDX source listed above.
 
         """
+        license_group = MMDGroup("mmd", "https://vocab.met.no/mmd/Use_Constraint")
+        license_group.init_vocab()
+
         data = None
         old_version = False
         acdd_license = list(mmd_element['resource']['acdd'].keys())[0]
@@ -1390,6 +1393,8 @@ class Nc_to_mmd(object):
                     '"license_resource" is a deprecated attribute')
         else:
             data = {'resource': license_url}
+
+        # If ncin.license = '<identifier> (<resource>)'
         if len(license) > 1:
             data['identifier'] = license[1][0:-1]
         else:
@@ -1402,8 +1407,10 @@ class Nc_to_mmd(object):
         # Check if the license is in the MMD controlled vocabulary,
         # and rewrite data dict if necessary
         if data is not None:
-            license_group = MMDGroup("mmd", "https://vocab.met.no/mmd/Use_Constraint")
-            license_group.init_vocab()
+            if "identifier" in data.keys():
+                license_dict = get_vocab_dict(data['identifier'], license_group, data['resource'])
+                if not bool(license_dict):
+                    data = {'license_text': ncin.license}
 
         return data
 

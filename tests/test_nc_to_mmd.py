@@ -708,6 +708,9 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
         ncin.license = "http://spdx.org/licenses/CC-BY-4.0"
         value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        # met-vocab-tools should be able to find the license by
+        # searching a url (see issue https://github.com/metno/met-vocab-tools/issues/25):
+        # self.assertEqual(value['identifier'], 'CC-BY-4.0')
         self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
         self.assertEqual(len(list(value.keys())), 1)
 
