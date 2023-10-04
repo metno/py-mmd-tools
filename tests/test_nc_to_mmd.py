@@ -733,6 +733,23 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
         self.assertEqual(value['identifier'], 'CC-BY-4.0')
 
+    def test_license__not_standard(self):
+        """ Test that a license string that is not standard is added
+        as license_text.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.reference_nc, check_only=True)
+        ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        ncin.license = "https://earth.esa.int/eogateway/documents/20142/1564626/" \
+                       "ESA-Data-Policy-ESA-PB-EO-2010-54.pdf (ESA earth observation data policy)"
+        value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        self.assertEqual(
+            value['license_text'],
+            "https://earth.esa.int/eogateway/documents/20142/1564626/" \
+                "ESA-Data-Policy-ESA-PB-EO-2010-54.pdf (ESA earth observation data policy)")
+
     def test_init_raises_error(self):
         """Nc_to_mmd.__init__ should raise error if check_only=False,
         but output_file is None. Test that this is the case.

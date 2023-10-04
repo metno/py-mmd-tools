@@ -1398,6 +1398,13 @@ class Nc_to_mmd(object):
             else:
                 self.missing_attributes['errors'].append(
                     'license should be provided as <url> (<Identifier>)')
+
+        # Check if the license is in the MMD controlled vocabulary,
+        # and rewrite data dict if necessary
+        if data is not None:
+            license_group = MMDGroup("mmd", "https://vocab.met.no/mmd/Use_Constraint")
+            license_group.init_vocab()
+
         return data
 
     def to_mmd(self, collection=None, checksum_calculation=False, mmd_yaml=None,
