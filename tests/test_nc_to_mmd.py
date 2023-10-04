@@ -750,8 +750,8 @@ class TestNC2MMD(unittest.TestCase):
         value = md.get_license(mmd_yaml['use_constraint'], ncin)
         self.assertEqual(
             value['license_text'],
-            "https://earth.esa.int/eogateway/documents/20142/1564626/" \
-                "ESA-Data-Policy-ESA-PB-EO-2010-54.pdf (ESA earth observation data policy)")
+            "https://earth.esa.int/eogateway/documents/20142/1564626/"
+            "ESA-Data-Policy-ESA-PB-EO-2010-54.pdf (ESA earth observation data policy)")
 
     def test_init_raises_error(self):
         """Nc_to_mmd.__init__ should raise error if check_only=False,
