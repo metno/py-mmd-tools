@@ -720,6 +720,8 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(len(list(value.keys())), 1)
 
     def test_license__according_to_adc1(self):
+        """Test that a license passed as url(identifier) is accepted and parsed correctly.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -731,6 +733,8 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value['identifier'], 'CC-BY-4.0')
 
     def test_license__according_to_adc2(self):
+        """Test that a license passed as url (identifier) is accepted and parsed correctly.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
