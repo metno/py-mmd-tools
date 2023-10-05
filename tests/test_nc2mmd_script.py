@@ -126,13 +126,24 @@ def test_main_thredds(dataDir, monkeypatch):
 
 @pytest.mark.script
 def test_with_folder(dataDir, monkeypatch):
-    """Test nc2mmd.py with a folder as input"""
+    """Test nc2mmd.py with a folder as input
+       Note: since the function main() in the monkeypatch.context() below
+       (defined in nc2mmd.py) parses the input folder for .nc files via glob
+       [i.e. inputfiles = pathlib.Path(args.input).glob('*.nc') ],
+       whether reference_nc_copy.nc or reference_nc_copy.nc gets parsed first,
+       resulting in the corresponding .xml file being in out_dir,
+       depends on the filesystem (see glob.glob in here
+       https://docs.python.org/3/library/glob.html).
+       this is the reason why we use an 'or' condition to assert
+       the presence of the .xml file in the output
+"""
     parser = create_parser()
     in_dir = tempfile.mkdtemp()
     shutil.copy(os.path.join(dataDir, 'reference_nc.nc'), in_dir)
     shutil.copy(os.path.join(dataDir, 'reference_nc.nc'),
                 os.path.join(in_dir, 'reference_nc_copy.nc'))
     assert os.path.isfile(os.path.join(in_dir, 'reference_nc_copy.nc'))
+    assert os.path.isfile(os.path.join(in_dir, 'reference_nc.nc'))
 
     out_dir = tempfile.mkdtemp()
     url = 'https://thredds.met.no/thredds/dodsC'
@@ -149,7 +160,9 @@ def test_with_folder(dataDir, monkeypatch):
                    lambda *args, **kwargs: patchedDataset(url, *args, **kwargs))
         with pytest.raises(ValueError) as ve:
             main(parsed)
-    assert os.path.isfile(os.path.join(out_dir, 'reference_nc.xml'))
+    filcheckopt1 = os.path.isfile(os.path.join(out_dir, 'reference_nc.xml'))
+    filcheckopt2 = os.path.isfile(os.path.join(out_dir, 'reference_nc_copy.xml'))
+    assert filcheckopt1 or filcheckopt2
     assert "Unique ID repetition" in str(ve.value)
     os.unlink(os.path.join(in_dir, 'reference_nc_copy.nc'))
 

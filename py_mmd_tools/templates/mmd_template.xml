@@ -1,9 +1,10 @@
 <mmd:mmd xmlns:mmd="http://www.met.no/schema/mmd" xmlns:gml="http://www.opengis.net/gml">
   <mmd:metadata_identifier>{{ data['metadata_identifier'] }}</mmd:metadata_identifier>
-  {% if data['alternate_identifier']['alternate_identifier'] %}
-    {% for ai in data['alternate_identifier']['alternate_identifier'] %}
-      {% set type=data['alternate_identifier']['type'][loop.index-1] %}
-  <mmd:alternate_identifier type="{{ type }}">{{ ai }}</mmd:alternate_identifier>
+  {% if data['alternate_identifier'] %}
+    {% for item in data['alternate_identifier'] %}
+      {% set ai=item['alternate_identifier'] %}
+      {% set type=item['alternate_identifier_type'] %}
+      <mmd:alternate_identifier type="{{ type }}">{{ ai }}</mmd:alternate_identifier>
     {% endfor %}
   {% endif %}
   {% for title in data['title'] %}
@@ -82,8 +83,15 @@
   {% endif %}
   {% if data['use_constraint'] %}
   <mmd:use_constraint>
+    {% if data['use_constraint']['identifier'] %}
     <mmd:identifier>{{ data['use_constraint']['identifier'] }}</mmd:identifier>
+    {% endif %}
+    {% if data['use_constraint']['resource'] %}
     <mmd:resource>{{ data['use_constraint']['resource'] }}</mmd:resource>
+    {% endif %}
+    {% if data['use_constraint']['license_text'] %}
+    <mmd:license_text>{{ data['use_constraint']['license_text'] }}</mmd:license_text>
+    {% endif %}
   </mmd:use_constraint>
   {% endif %}
   {% for personnel in data['personnel'] %}

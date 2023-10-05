@@ -63,7 +63,8 @@ class TestMMD2NC(unittest.TestCase):
             """ Check some fields"""
             self.assertEqual(f.getncattr('id'), 'b7cb7934-77ca-4439-812e-f560df3fe7eb')
             self.assertEqual(f.getncattr('naming_authority'), 'no.met')
-            self.assertEqual(f.getncattr('institution'), 'Norwegian Meteorological Institute')
+            self.assertEqual(f.getncattr('institution'),
+                             'Norwegian Meteorological Institute (MET Norway)')
 
     def test_update_nc_2(self):
         """
@@ -226,8 +227,7 @@ class TestMMD2NC(unittest.TestCase):
         ET.SubElement(update, MMD+'type').text = 'Created'
         # Run and test
         md.process_last_metadata_update(last_metadata_update)
-        self.assertRaises(KeyError, lambda: md.acdd_metadata['date_metadata_modified_type'])
-        self.assertEqual(md.acdd_metadata['date_metadata_modified'],
+        self.assertEqual(md.acdd_metadata['date_created'],
                          '2022-02-18T13:09:44.299926+00:00')
 
     def test_process_keywords_1(self):

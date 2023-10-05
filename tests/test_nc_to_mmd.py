@@ -25,6 +25,7 @@ from unittest.mock import patch
 
 from py_mmd_tools.nc_to_mmd import Nc_to_mmd, normalize_iso8601, normalize_iso8601_0
 from py_mmd_tools.nc_to_mmd import valid_url
+from py_mmd_tools.nc_to_mmd import get_short_and_long_names
 from py_mmd_tools.yaml_to_adoc import nc_attrs_from_yaml
 from py_mmd_tools.yaml_to_adoc import required
 from py_mmd_tools.yaml_to_adoc import repetition_allowed
@@ -129,7 +130,7 @@ def test_invalid_opendap_url(dataDir):
     url = 'https://thredds.met.no/thredds/dodsC/reference_nc.nc'
     md = Nc_to_mmd(test_in, url, check_only=True)
     req, msg = md.to_mmd()
-    assert "Cannot access OPeNDAP stream" in md.missing_attributes['warnings'][3]
+    assert "Cannot access OPeNDAP stream" in md.missing_attributes['warnings'][2]
 
 
 @pytest.mark.py_mmd_tools
@@ -182,6 +183,7 @@ def test_create_mmd_1(monkeypatch):
                    lambda *args, **kwargs: patchedDataset(url, *args, **kwargs))
         md = Nc_to_mmd(fn, url, output_file=tested)
         md.to_mmd(checksum_calculation=True)
+
     reference_xsd = os.path.join(os.environ['MMD_PATH'], 'xsd/mmd_strict.xsd')
     xsd_obj = etree.XMLSchema(etree.parse(reference_xsd))
     xml_doc = etree.ElementTree(file=tested)
@@ -656,6 +658,7 @@ class TestNC2MMD(unittest.TestCase):
         self.assertTrue(valid_url('http://www.google.com'))
         self.assertTrue(valid_url('http://spdx.org/licenses/CC-BY-4.0'))
         self.assertFalse(valid_url('www.google.com'))
+        self.assertFalse(valid_url(None))
 
     def test_license__deprecated_attrs(self):
         mmd_yaml = yaml.load(
@@ -671,9 +674,6 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(
             md.missing_attributes["warnings"][0],
             '"license_resource" is a deprecated attribute')
-        self.assertEqual(
-            md.missing_attributes["warnings"][1],
-            'license_identifier is a recommended attribute')
 
     def test_license__invalid_url(self):
         mmd_yaml = yaml.load(
@@ -689,19 +689,23 @@ class TestNC2MMD(unittest.TestCase):
             '"spdx.org/licenses/CC-BY-4.0" is not a valid url'
         )
 
-    def test_license__with_acdd_ext(self):
+    def test_license__basic(self):
+        """Test that a valid full license with both url and
+        identifier is accepted and parsed correctly.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.reference_nc, check_only=True)
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.license = "http://spdx.org/licenses/CC-BY-4.0"
-        ncin.license_identifier = "CC-BY-4.0"
+        ncin.license = "http://spdx.org/licenses/CC-BY-4.0 (CC-BY-4.0)"
         value = md.get_license(mmd_yaml['use_constraint'], ncin)
         self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
         self.assertEqual(value['identifier'], 'CC-BY-4.0')
 
     def test_license__simple(self):
+        """Test that a license with valid url only is accepted and parsed correctly.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -709,13 +713,15 @@ class TestNC2MMD(unittest.TestCase):
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
         ncin.license = "http://spdx.org/licenses/CC-BY-4.0"
         value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        # met-vocab-tools should be able to find the license by
+        # searching a url (see issue https://github.com/metno/met-vocab-tools/issues/25):
+        # self.assertEqual(value['identifier'], 'CC-BY-4.0')
         self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
         self.assertEqual(len(list(value.keys())), 1)
-        self.assertEqual(
-            md.missing_attributes['warnings'][0],
-            'license_identifier is a recommended attribute')
 
     def test_license__according_to_adc1(self):
+        """Test that a license passed as url(identifier) is accepted and parsed correctly.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -727,6 +733,8 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value['identifier'], 'CC-BY-4.0')
 
     def test_license__according_to_adc2(self):
+        """Test that a license passed as url (identifier) is accepted and parsed correctly.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -736,6 +744,23 @@ class TestNC2MMD(unittest.TestCase):
         value = md.get_license(mmd_yaml['use_constraint'], ncin)
         self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
         self.assertEqual(value['identifier'], 'CC-BY-4.0')
+
+    def test_license__not_standard(self):
+        """ Test that a license string that is not standard is added
+        as license_text.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.reference_nc, check_only=True)
+        ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        ncin.license = "https://earth.esa.int/eogateway/documents/20142/1564626/" \
+                       "ESA-Data-Policy-ESA-PB-EO-2010-54.pdf (ESA earth observation data policy)"
+        value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        self.assertEqual(
+            value['license_text'],
+            "https://earth.esa.int/eogateway/documents/20142/1564626/"
+            "ESA-Data-Policy-ESA-PB-EO-2010-54.pdf (ESA earth observation data policy)")
 
     def test_init_raises_error(self):
         """Nc_to_mmd.__init__ should raise error if check_only=False,
@@ -847,8 +872,6 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(
             md.missing_attributes['errors'][4], 'institution is a required attribute'
         )
-        self.assertEqual(md.missing_attributes['warnings'][0],
-                         'institution_short_name is a recommended attribute')
 
     def test_geographic_extent_rectangle_is_floatable(self):
         """ Test that the provided geospatial coordinates can be
@@ -966,7 +989,7 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value, [{
             'data_center_name': {
                 'long_name': 'Norwegian Meteorological Institute',
-                'short_name': 'NO/MET'
+                'short_name': 'MET Norway'
             },
             'data_center_url': 'met.no',
         }])
@@ -1004,7 +1027,25 @@ class TestNC2MMD(unittest.TestCase):
             mmd_yaml['alternate_identifier'], ncin, 'alternate_identifier'
         )
         self.assertEqual(value['alternate_identifier'], None)
-        self.assertEqual(value['type'], None)
+
+    def test_alternate_identifier_wrong_format(self):
+        """Test that an error is raised when the alternate_identifier
+        is missing the type between parentheses.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_with_altID.nc'), check_only=True)
+        ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        ncin.alternate_identifier = 'wrong format, missing type'
+        value = md.get_alternate_identifier(
+            mmd_yaml['alternate_identifier'], ncin
+        )
+        print(value)
+        self.assertEqual(
+            md.missing_attributes['errors'][0],
+            'alternate_identifier must be formed as <url> (<type>).'
+        )
 
     def test_alternate_identifier(self):
         """Test that MMD alternate_identifier is equal to the one
@@ -1015,11 +1056,11 @@ class TestNC2MMD(unittest.TestCase):
         )
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_with_altID.nc'), check_only=True)
         ncin = Dataset(md.netcdf_file)
-        value = md.get_acdd_metadata(
-            mmd_yaml['alternate_identifier'], ncin, 'alternate_identifier'
+        value = md.get_alternate_identifier(
+            mmd_yaml['alternate_identifier'], ncin
         )
-        self.assertEqual(value['alternate_identifier'][0], 'dummy_id_no1')
-        self.assertEqual(value['type'][0], 'dummy_type')
+        self.assertEqual(value[0]['alternate_identifier'], 'dummy_id_no1')
+        self.assertEqual(value[0]['alternate_identifier_type'], 'dummy_type')
 
     def test_alternate_identifier_multiple(self):
         """Test that MMD alternate_identifier is equal to the ones
@@ -1031,12 +1072,12 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_with_altID_multiple.nc'),
                        check_only=True)
         ncin = Dataset(md.netcdf_file)
-        value = md.get_acdd_metadata(
-            mmd_yaml['alternate_identifier'], ncin, 'alternate_identifier'
+        value = md.get_alternate_identifier(
+            mmd_yaml['alternate_identifier'], ncin
         )
-        self.assertEqual(value['alternate_identifier'][0], 'dummy_id_no1')
-        self.assertEqual(value['type'][0], 'dummy_type')
-        self.assertEqual(value['type'][1], 'other_type')
+        self.assertEqual(value[0]['alternate_identifier'], 'dummy_id_no1')
+        self.assertEqual(value[0]['alternate_identifier_type'], 'dummy_type')
+        self.assertEqual(value[1]['alternate_identifier_type'], 'other_type')
 
     def test_metadata_status_is_active(self):
         """ToDo: Add docstring"""
@@ -1374,6 +1415,9 @@ class TestNC2MMD(unittest.TestCase):
         assert value == ["Not available"]
 
     def test_get_activity_type_invalid(self):
+        """Test that an error is raised if activity_type is not a valid one, e.g. not in
+        the list https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/
+        master/doc/mmd-specification.html#activity-type"""
         mmd_yaml = yaml.load(
             resource_string("py_mmd_tools", "mmd_elements.yaml"), Loader=yaml.FullLoader
         )
@@ -1388,56 +1432,179 @@ class TestNC2MMD(unittest.TestCase):
         assert ("The ACDD attribute 'source' in MMD attribute 'activity_type'"
                 in md.missing_attributes['errors'][0])
 
-    def test_missing_vocabulary_platform_instrument_short_name(self):
-        """Test that a platform is picked up but the instrument is
-        ignored if it does not have a valid vocabulary url.
+    def test_platform_resource_not_MMD(self):
+        """Check that the provided resource remains when a platform
+        has the same name in GCMD and MMD but the resource provided
+        in the netcdf file is GCMD.
         """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_missing_keywords_vocab.nc'),
                        check_only=True)
+        # The GCMD resource url
+        resource = "https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/platforms"
+        # Define dataset
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.platform = 'Suomi National Polar-orbiting Partnership'
-        ncin.instrument = 'ASAR'
-        ncin.instrument_vocabulary = 'not a valid vocab url'
-        value = md.get_platforms(mmd_yaml['platform'], ncin)
-        self.assertEqual(value[0]['short_name'], 'SNPP')
-        self.assertEqual(md.missing_attributes['warnings'][0],
-                         '"not a valid vocab url" in '
-                         'instrument_vocabulary attribute is not a '
-                         'valid url')
+        ncin.platform = "Sentinel-1A"
+        ncin.platform_vocabulary = resource
 
-    def test_platform_vocabulary_invalid_url(self):
+        # Get the platform dict
+        value = md.get_platforms(mmd_yaml['platform'], ncin)
+        self.assertEqual(value[0]['resource'], resource)
+
+    def test_missing_vocabulary_platform_instrument_short_name(self):
+        """Test that the resource is added if the name matches with
+        the MMD vocabulary, but the instrument does not have a valid
+        vocabulary url.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
-        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_missing_keywords_vocab.nc'),
+                       check_only=True)
+        # Define dataset
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.platform = 'Envisat'
-        ncin.platform_vocabulary = 'invalid_url'
-        value = md.get_platforms(mmd_yaml['platform'], ncin)
-        self.assertEqual(value, [{'long_name': 'Envisat', 'short_name': ''}])
-        self.assertEqual(md.missing_attributes['warnings'][0],
-                         '"invalid_url" in platform_vocabulary attribute is not a valid url')
+        ncin.platform = 'Suomi National Polar-orbiting Partnership (SNPP)'
+        ncin.instrument = 'VIIRS'
+        ncin.instrument_vocabulary = 'not a valid vocab url'
+        ncin.platform_vocabulary = 'https://www.wmo-sat.info/oscar/satellites/view/342'
 
-    def test_missing_platform_vocabulary(self):
-        """ Test that a warning is issued if the platform vocabulary
-        is missing.
+        value = md.get_platforms(mmd_yaml['platform'], ncin)
+        self.assertEqual(value[0]['resource'],
+                         'https://www.wmo-sat.info/oscar/satellites/view/342')
+        self.assertEqual(value[0]['short_name'], 'SNPP')
+
+        self.assertEqual(value[0]['instrument']['resource'],
+                         'https://vocab.met.no/mmd/Instrument/VIIRS')
+
+    def test_platform_vocabulary_invalid_url(self):
+        """ Check that a platform not listed in the MMD controlled
+        vocabulary for platforms is not registered if there is no
+        other valid resource url.
         """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        ncin.platform = 'Environmental Satellite'
+        ncin.platform_vocabulary = 'invalid_url'
+        value = md.get_platforms(mmd_yaml['platform'], ncin)
+        self.assertEqual(value, [])
+        self.assertEqual(
+            md.missing_attributes['errors'][0],
+            "platform must be formed as <platform long name>(<platform short name>). "
+            "Platform short name is optional. The platform must either be present in "
+            "https://vocab.met.no/mmd/Platform, or in another controlled vocabulary "
+            "referenced by a valid url.")
+
+    def test_wrong_platform_name(self):
+        """ Test that an error is issued if the platform field is not
+        in the format <platform long name>(<platform short name>).
+        However, note that one pair of parentheses is allowed in the
+        long name.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        ncin.platform = 'Suomi National Polar-orbiting Partnership (Suomi NPP)(Too Many)(SNPP)'
+        value = md.get_platforms(mmd_yaml['platform'], ncin)
+        self.assertEqual(value, [])
+        self.assertEqual(
+            md.missing_attributes['errors'][0],
+            "platform must be formed as <platform long name>(<platform short name>). "
+            "Platform short name is optional. The platform must either be present in "
+            "https://vocab.met.no/mmd/Platform, or in another controlled vocabulary "
+            "referenced by a valid url.")
+
+    def test_wrong_instrument_name(self):
+        """ Test that an error is issued if the instrument field is
+        not in the format
+        <instrument long name>(<instrument short name>).
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        ncin.platform = "Suomi National Polar-orbiting Partnership (SNPP)"
+        ncin.instrument = 'InstrName (Instrument Name)(Too Many)(IN)'
+        value = md.get_platforms(mmd_yaml['platform'], ncin)
+        self.assertEqual(value[0]['short_name'], "SNPP")
+        self.assertEqual(
+            md.missing_attributes['warnings'][0],
+            "instrument must be formed as <instrument long name>(<instrument short name>). "
+            "Instrument is optional. The instrument must either be present in "
+            "https://vocab.met.no/mmd/Instrument, or in another controlled vocabulary "
+            "referenced by a valid url.")
+
+    def test_platform_name_extra_parentheses(self):
+        """ Test that parentheses in the platform long name are
+        allowed, as long as a velid vocabulary url is provided.
+
+        TODO: Find a platform where this is actually the case...
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        ncin.platform = 'Suomi National Polar-orbiting Partnership (Suomi NPP)(SNPP)'
+        # A valid url is required
+        ncin.platform_vocabulary = "https://www.validurl.no"
+        value = md.get_platforms(mmd_yaml['platform'], ncin)
+        self.assertEqual(value[0]['long_name'],
+                         'Suomi National Polar-orbiting Partnership (Suomi NPP)')
+        self.assertEqual(value[0]['short_name'], 'SNPP')
+
+    def test_instrument_name_extra_parentheses(self):
+        """ Test that parentheses in the long name are allowed
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        ncin.platform = "Platform Name (PN)"
+        ncin.platform_vocabulary = "https://www.validurl.no"
+        # This is an entry in MMD:
+        ncin.instrument = 'Synthetic Aperture Radar (C-band) (SAR-C)'
+        value = md.get_platforms(mmd_yaml['platform'], ncin)
+        self.assertEqual(value[0]['instrument']['short_name'], 'SAR-C')
+        self.assertEqual(value[0]['instrument']['long_name'], 'Synthetic Aperture Radar (C-band)')
+
+    def test_missing_platform_vocabulary(self):
+        """ Test that an error is issued if the platform vocabulary
+        is missing and the platform is not in
+        https://vocab.met.no/mmd/en/page/Platform.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        # Note that Envisat is not in the MMD vocabulary
         ncin.platform = 'Envisat'
         value = md.get_platforms(mmd_yaml['platform'], ncin)
-        self.assertEqual(value, [{'long_name': 'Envisat', 'short_name': ''}])
-        self.assertEqual(md.missing_attributes['warnings'][0],
-                         '"" in platform_vocabulary attribute is not a valid url')
+        self.assertEqual(value, [])
+        self.assertEqual(
+            md.missing_attributes['errors'][0],
+            "platform must be formed as "
+            "<platform long name>(<platform short name>). Platform "
+            "short name is optional. The platform must either be "
+            "present in https://vocab.met.no/mmd/Platform, or in "
+            "another controlled vocabulary referenced by a valid "
+            "url.")
 
     def test_missing_vocabulary_platform(self):
-        """ToDo: Add docstring"""
+        """Check that a platform which is in the MMD vocabulary but
+        where the netcdf file does not provide a platform_resource,
+        is found in MMD and that the MMD vocabulary resource is
+        provided.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -1447,6 +1614,22 @@ class TestNC2MMD(unittest.TestCase):
         value = md.get_platforms(mmd_yaml['platform'], ncin)
         resource_link = "https://vocab.met.no/mmd/Platform/SNPP"
         self.assertEqual(value[0]['resource'], resource_link)
+
+    def test_get_short_and_long_names(self):
+        """Check that get_short_and_long_names method returns the
+        correct tuples in different cases.
+        """
+        field = ""
+        self.assertEqual(get_short_and_long_names(field)[0], None)
+        self.assertEqual(get_short_and_long_names(field)[1], None)
+
+        field = "long name (short name)"
+        self.assertEqual(get_short_and_long_names(field)[0], "long name")
+        self.assertEqual(get_short_and_long_names(field)[1], "short name")
+
+        field = "long name (with more) (short name)"
+        self.assertEqual(get_short_and_long_names(field)[0], "long name (with more)")
+        self.assertEqual(get_short_and_long_names(field)[1], "short name")
 
     def test_keywords_missing(self):
         """ToDo: Add docstring"""
@@ -1586,7 +1769,9 @@ class TestNC2MMD(unittest.TestCase):
         )
 
     def test_platform_with_gcmd_vocabulary(self):
-        """ToDo: Add docstring"""
+        """Check that the general rules are followed when a
+        vocabulary different from MMD is used, and that we use what
+        we get."""
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -1594,9 +1779,18 @@ class TestNC2MMD(unittest.TestCase):
                        check_only=True)
         ncin = Dataset(md.netcdf_file)
         value = md.get_platforms(mmd_yaml['platform'], ncin)
-        self.assertEqual(value[0]['short_name'], 'Sentinel-1B')
+        """ The following assertions should fail when we have code to
+        check the provided instrument vocabulary (see
+        https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/instruments
+        and
+        https://gcmd.earthdata.nasa.gov/kms/concept/ed400e7c-229e-48be-9a93-84f2fc864448).
+        """
         self.assertEqual(value[0]['long_name'], 'Sentinel-1B')
-        self.assertEqual(value[0]['instrument']['long_name'], 'Synthetic Aperture Radar (C-band)')
+        self.assertEqual(value[0]['instrument']['long_name'], 'Synthetic Aperture Radar')
+        self.assertEqual(value[0]['instrument']['short_name'], 'C-band')
+        self.assertEqual(
+            value[0]['instrument']['resource'],
+            'https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/instruments/')
 
     def test_projects(self):
         """Test getting project information from nc-file"""
@@ -1838,7 +2032,7 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc.nc'), check_only=True)
         md.to_mmd(mmd_yaml=mmd_yaml)
         self.assertEqual(
-            md.missing_attributes['warnings'][3],
+            md.missing_attributes['warnings'][2],
             'Using default value test for dummy_field'
         )
 
@@ -2006,7 +2200,7 @@ class TestNC2MMD(unittest.TestCase):
         value = md.get_data_centers(mmd_yaml['data_center'], ncin)
         self.assertEqual(value, [{
             'data_center_name': {
-                'short_name': 'NO/MET',
+                'short_name': 'MET Norway',
                 'long_name': 'Norwegian Meteorological Institute'
             },
             'data_center_url': ''
@@ -2055,20 +2249,14 @@ class TestNC2MMD(unittest.TestCase):
         # To overwrite date_created, wihtout saving it to file we use diskless
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
         ncin.date_created = '2019/01/01 00:00:00'
-        ncin.date_metadata_modified = '2020/01/01 00:00:00'
         md.get_metadata_updates(mmd_yaml['last_metadata_update'], ncin)
         self.assertEqual(
             md.missing_attributes['errors'][0],
             "Datetime element must be in ISO8601 format: "
             "YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.")
-        self.assertEqual(
-            md.missing_attributes['errors'][1],
-            "Datetime element must be in ISO8601 format: "
-            "YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.")
 
-    def test_ACDD_attr__date_metadata_modified_type___missing(self):
-        """Test that the correct error is raised when date_created
-        is missing from the nc-file.
+    def test_ACDD_attr__date_created(self):
+        """Test date_created is handled as it should
         """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
@@ -2077,30 +2265,13 @@ class TestNC2MMD(unittest.TestCase):
         # To overwrite date_created, wihtout saving it to file we use diskless
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
         ncin.date_created = '2019-01-01T00:00:00Z'
-        ncin.date_metadata_modified = '2020-01-01T00:00:00Z'
-        md.get_metadata_updates(mmd_yaml['last_metadata_update'], ncin)
-        self.assertEqual(
-            md.missing_attributes['warnings'][0],
-            "Using default value 'Minor modification' for date_metadata_modified_type"
-        )
-
-    def test_ACDD_attr_date_metadata_modified_not_required(self):
-        """Ensure that only date_created is required, and that
-        date_metadata_modified is optional.
-        """
-        mmd_yaml = yaml.load(
-            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-        )
-        md = Nc_to_mmd(self.fail_nc, check_only=True)
-        # To overwrite date_created, wihtout saving it to file we use diskless
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.date_created = '2020-01-01T00:00:00Z'
         data = md.get_metadata_updates(mmd_yaml['last_metadata_update'], ncin)
         self.assertIn(
             {'datetime':  ncin.date_created, 'type': 'Created'},
             data['update']
         )
         assert (len(data['update']) == 1)
+        self.assertEqual(data['update'][0]['type'], 'Created')
 
     def test_get_metadata_updates_wrong_input_dict(self):
         """Test that an error is raised if there is inconsistency
@@ -2113,7 +2284,7 @@ class TestNC2MMD(unittest.TestCase):
         in_dict = mmd_yaml['last_metadata_update']
         in_dict['update']['datetime']['acdd'] = {
             'new_name_for_date_created': {},  # this will cause an error
-            'date_metadata_modified': {}}
+        }
         md = Nc_to_mmd(self.reference_nc, check_only=True)
         ncin = Dataset(md.netcdf_file)
         with self.assertRaises(AttributeError) as context1:
@@ -2123,15 +2294,6 @@ class TestNC2MMD(unittest.TestCase):
         )
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-        )
-        in_dict = mmd_yaml['last_metadata_update']
-        in_dict['update']['datetime']['acdd'] = {
-            'date_created': {},
-            'new_name_for_date_metadata_modified': {}}  # this will cause an error
-        with self.assertRaises(AttributeError) as context2:
-            md.get_metadata_updates(in_dict, ncin)
-        self.assertTrue(
-            'ACDD attribute inconsistency in mmd_elements.yaml' in str(context2.exception)
         )
 
     def test_create_mmd_missing_abstract(self):
@@ -2282,19 +2444,23 @@ class TestNC2MMD(unittest.TestCase):
             'Please provide the ACDD convention version in '
             'the "Conventions" attribute.')
 
-    def test_institution_long_name_missing(self):
+    def test_institution_name_parsing(self):
+        """Test that a valid institution string passed as longname (shortname)
+        is parsed correctly.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.institution_short_name = "NO/MPE/NVE"
-        md.get_data_centers(mmd_yaml['data_center'], ncin)
-        self.assertEqual(
-            md.missing_attributes['errors'][0],
-            'institution is a required attribute')
+        ncin.institution = "Norwegian Meteorological Institute (MET Norway)"
+        data = md.get_data_centers(mmd_yaml['data_center'], ncin)
+        self.assertEqual(data[0]['data_center_name']['long_name'],
+                         'Norwegian Meteorological Institute')
+        self.assertEqual(data[0]['data_center_name']['short_name'], 'MET Norway')
 
     def test_institution_short_name_missing(self):
+        """Test that if shortname is missing from institution an error is raised."""
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -2303,8 +2469,9 @@ class TestNC2MMD(unittest.TestCase):
         ncin.institution = "Norwegian Meteorological Institute"
         md.get_data_centers(mmd_yaml['data_center'], ncin)
         self.assertEqual(
-            md.missing_attributes['warnings'][0],
-            'institution_short_name is a recommended attribute')
+            md.missing_attributes['errors'][0],
+            "institution must be formed as <institution long name> (<institution short name>). "
+            "Both are required attributes.")
 
     def test_acdd_references_as_related_information1(self):
         """ Test that references (doi/uri) are correctly retrieved."""

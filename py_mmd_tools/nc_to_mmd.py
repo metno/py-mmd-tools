@@ -38,6 +38,8 @@ from shapely.errors import ShapelyError
 def valid_url(url):
     """ Validate a url pattern (not its existence).
     """
+    if url is None:
+        return False
     regex = re.compile(
         r'^(?:http|ftp)s?://'  # http:// or https://
         r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'
@@ -103,6 +105,68 @@ def normalize_iso8601_0(s):
     if ndt is None:
         return s
     return ndt
+
+
+def get_short_and_long_names(field):
+    """Split the provided field data into long and short names. We
+    allow three versions:
+
+    Long name only:
+        <some long name>
+
+    Long name with an extra parenthesis and a short name in
+    parenthesis:
+        <some long name (with parenthesis)> (<short name>)
+
+    Long name with short name in parenthesis:
+        <some long name> (<short name>)
+    """
+    long_name = None
+    short_name = None
+    if field == "":
+        return long_name, short_name
+
+    ri = field.split('(')
+    if len(ri) == 1:
+        # Set the same for both, since we don't know what is correct
+        long_name = ri[0].strip()
+        short_name = long_name
+    elif len(ri) == 2:
+        long_name = ri[0].strip()
+        short_name = ri[-1][:-1].strip()
+    elif len(ri) == 3:
+        long_name = (ri[0] + '(' + ri[1]).strip()
+        short_name = (ri[2][:-1]).strip()
+
+    return long_name, short_name
+
+
+def get_vocab_dict(field, controlled_vocabulary, resource="", mmd_required_vocab=True):
+    """ Check the controlled vocabulary for the given field, and
+    return long name, short name and resource in a dict.
+    """
+    field_data = {}
+    # Require a valid resource url for other vocabularies than MMD
+    if valid_url(resource) and not mmd_required_vocab:
+        long_name, short_name = get_short_and_long_names(field)
+        # Use what we get..
+        field_data['long_name'] = long_name
+        field_data['short_name'] = short_name
+        field_data['resource'] = resource
+    else:
+        # Try to match the full field string with the MMD
+        # vocabulary (this will work if only a long name is
+        # provided, and it is present in the MMD vocabulary)
+        field_data = controlled_vocabulary.search_lowercase(field.lower())
+        if not bool(field_data):
+            # If no match, expect field metadata on the form
+            # "long name (short name)", and split the string
+            # accordingly
+            long_name, short_name = get_short_and_long_names(field)
+            if long_name is not None:
+                field_data = controlled_vocabulary.search_lowercase(long_name.lower())
+
+    return field_data
 
 
 class Nc_to_mmd(object):
@@ -269,26 +333,40 @@ class Nc_to_mmd(object):
             )
         return data
 
+    def get_alternate_identifier(self, mmd_element, ncin):
+        """Look up ACDD and ACDD extensions to populate MMD elements"""
+
+        acdd_altid = mmd_element['alternate_identifier'].pop('acdd_ext')
+        acdd_altid_key = list(acdd_altid.keys())[0]
+        altids = self.separate_repeated(True, getattr(ncin, acdd_altid_key))
+
+        data = []
+        for id in altids:
+            tmp = {}
+            ri = id.split('(')
+            if len(ri) == 2:
+                tmp['alternate_identifier'] = (ri[0].strip())
+                tmp['alternate_identifier_type'] = (ri[1][:-1])
+            else:
+                self.missing_attributes['errors'].append(
+                    "alternate_identifier must be formed as <url> (<type>)."
+                )
+                continue
+            data.append(tmp)
+        return data
+
     def get_data_centers(self, mmd_element, ncin):
         """Look up ACDD and ACDD extensions to populate MMD elements"""
-        acdd_short_name = mmd_element['data_center_name']['short_name'].pop('acdd_ext')
-        short_names = []
 
-        acdd_short_name_key = list(acdd_short_name.keys())[0]
-        try:
-            short_names = self.separate_repeated(True, getattr(ncin, acdd_short_name_key))
-        except AttributeError:
-            self.missing_attributes['warnings'].append(
-                '%s is a recommended attribute' % acdd_short_name_key)
+        acdd_institution = mmd_element['data_center_name'].pop('acdd')
+        acdd_institution_key = list(acdd_institution.keys())[0]
 
-        acdd_long_name = mmd_element['data_center_name']['long_name'].pop('acdd')
-        acdd_long_name_key = list(acdd_long_name.keys())[0]
-        long_names = []
+        institutions = []
         try:
-            long_names = self.separate_repeated(True, getattr(ncin, acdd_long_name_key))
+            institutions = self.separate_repeated(True, getattr(ncin, acdd_institution_key))
         except AttributeError:
-            self.missing_attributes['errors'].append('%s is a required attribute'
-                                                     % acdd_long_name_key)
+            self.missing_attributes['errors'].append(
+                '%s is a required attribute' % acdd_institution_key)
 
         acdd_url = mmd_element['data_center_url'].pop('acdd')
         acdd_url_key = list(acdd_url.keys())[0]
@@ -298,17 +376,26 @@ class Nc_to_mmd(object):
             urls = ''
 
         data = []
-        for i in range(len(long_names)):
+
+        for i in range(len(institutions)):
             if len(urls) <= i:
                 url = ''
             else:
                 url = urls[i]
             dc = {
-                'data_center_name': {'long_name': long_names[i]},
+                'data_center_name': {},
                 'data_center_url': url,
             }
-            if len(short_names) == len(long_names):
-                dc['data_center_name']['short_name'] = short_names[i]
+            ri = institutions[i].split('(')
+            if len(ri) == 2:
+                dc['data_center_name']['long_name'] = ri[0].strip()
+                dc['data_center_name']['short_name'] = ri[1][:-1]
+            else:
+                self.missing_attributes['errors'].append(
+                    "%s must be formed as <institution long name> (<institution short name>). "
+                    "Both are required attributes." % acdd_institution_key
+                )
+                continue
             data.append(dc)
         return data
 
@@ -325,7 +412,6 @@ class Nc_to_mmd(object):
         function agree with the ones in the yaml file.
         """
         acdd_time = mmd_element['update']['datetime'].pop('acdd', '')
-        acdd_type = mmd_element['update']['type'].pop('acdd_ext', '')
 
         DATE_CREATED = 'date_created'
         # Check that DATE_CREATED attribute is present
@@ -340,9 +426,6 @@ class Nc_to_mmd(object):
         received_time = ''
         for tt in acdd_time.keys():
             received_time += '%s, ' % tt
-        received_type = ''
-        for ty in acdd_type.keys():
-            received_type += '%s, ' % ty
 
         if DATE_CREATED not in acdd_time.keys():
             raise AttributeError(
@@ -350,31 +433,11 @@ class Nc_to_mmd(object):
                 % (DATE_CREATED, received_time)
             )
 
-        if 'date_metadata_modified' not in acdd_time.keys():
-            raise AttributeError(
-                'ACDD attribute inconsistency in mmd_elements.yaml. Expected %s but received %s.'
-                % ('date_metadata_modified', received_type)
-            )
-
         for field_name in acdd_time.keys():
             # Already checked if part of ncin
             if field_name == DATE_CREATED:
-                times.append(ncin.date_created)
-                types.append(mmd_element['update']['type'].pop('default', 'Created'))
-            else:
-                if field_name in ncin.ncattrs():
-                    times.extend(self.separate_repeated(True, getattr(ncin, field_name)))
-                    mtypename = 'date_metadata_modified_type'
-                    if mtypename in ncin.ncattrs():
-                        modified_type = ncin.date_metadata_modified_type
-                    else:
-                        # set this to avoid a lot of failing datasets
-                        # - this should be a minor issue..
-                        modified_type = 'Minor modification'
-                        self.missing_attributes['warnings'].append(
-                            "Using default value '%s' for %s" % (modified_type, mtypename)
-                        )
-                    types.extend(self.separate_repeated(True, modified_type))
+                times.append(ncin.getncattr(DATE_CREATED))
+                types.append('Created')
 
         data = {}
         data['update'] = []
@@ -706,23 +769,18 @@ class Nc_to_mmd(object):
     def get_platforms(self, mmd_element, ncin):
         """Get dicts with MMD entries for the observation platform and
         its instruments.
-
-        NOTE: This function should be rewritten according to a solution
-        to https://github.com/metno/py-mmd-tools/issues/107
         """
-        long_names = []
-        acdd_long_name = mmd_element['long_name'].pop('acdd')
-        acdd_long_name_key = list(acdd_long_name.keys())[0]
-        if acdd_long_name_key in ncin.ncattrs():
-            long_names = self.separate_repeated(True, getattr(ncin, acdd_long_name_key))
+        acdd = mmd_element.pop('acdd')
+        platforms = []
+        acdd_key = list(acdd.keys())[0]
+        if acdd_key in ncin.ncattrs():
+            platforms = self.separate_repeated(True, getattr(ncin, acdd_key))
 
-        ilong_names = []
-        acdd_instrument_long_name = mmd_element['instrument']['long_name'].pop('acdd')
-        acdd_instrument_long_name_key = list(acdd_instrument_long_name.keys())[0]
-        if acdd_instrument_long_name_key in ncin.ncattrs():
-            ilong_names = self.separate_repeated(
-                True, getattr(ncin, acdd_instrument_long_name_key)
-            )
+        acdd_instrument = mmd_element['instrument'].pop('acdd')
+        instruments = []
+        acdd_instrument_key = list(acdd_instrument.keys())[0]
+        if acdd_instrument_key in ncin.ncattrs():
+            instruments = self.separate_repeated(True, getattr(ncin, acdd_instrument_key))
 
         resources = []
         acdd_resource = mmd_element['resource'].pop('acdd')
@@ -738,53 +796,32 @@ class Nc_to_mmd(object):
                 True, getattr(ncin, acdd_instrument_resource_key))
 
         data = []
-        for long_name, ilong_name, resource, iresource in zip_longest(
-            long_names, ilong_names, resources, iresources, fillvalue=''
-        ):
-            long_name = long_name.split('>')[-1].strip()
-            ilong_name = ilong_name.split('>')[-1].strip()
 
-            # Searches with '' is safe
-            platform_data = self.platform_group.search(long_name)
-            instrument_data = self.instrument_group.search(ilong_name)
+        for platform, instrument, resource, iresource in \
+                zip_longest(platforms, instruments, resources, iresources, fillvalue=''):
 
-            data_dict = {
-                'long_name': long_name,
-                'short_name': platform_data.get('Short_Name', ''),
-                'resource': platform_data.get('Resource', ''),
-            }
+            platform_dict = get_vocab_dict(platform, self.platform_group, resource, False)
+            if not bool(platform_dict):
+                self.missing_attributes['errors'].append(
+                    "%s must be formed as <platform long name>(<platform short name>). "
+                    "Platform short name is optional. The platform must either be present "
+                    "in https://vocab.met.no/mmd/Platform, or in another controlled "
+                    "vocabulary referenced by a valid url." % acdd_key
+                )
+                continue
 
-            if resource != '':
-                data_dict['resource'] = resource
-
-            if data_dict['resource'] == '' or not valid_url(data_dict['resource']):
+            instrument_dict = get_vocab_dict(instrument, self.instrument_group, iresource, False)
+            if not bool(instrument_dict):
                 self.missing_attributes['warnings'].append(
-                    '"%s" in %s attribute is not a valid url' % (data_dict['resource'],
-                                                                 acdd_resource_key))
-                data_dict.pop('resource')
+                    "%s must be formed as <instrument long name>(<instrument short name>). "
+                    "Instrument is optional. The instrument must either be present "
+                    "in https://vocab.met.no/mmd/Instrument, or in another controlled "
+                    "vocabulary referenced by a valid url." % acdd_instrument_key
+                )
+            else:
+                platform_dict['instrument'] = instrument_dict
 
-            instrument_dict = {
-                'long_name': instrument_data.get('Long_Name', ''),
-                'short_name': instrument_data.get('Short_Name', ''),
-                'resource': instrument_data.get('Resource', '')
-            }
-
-            if ilong_name != '':
-                instrument_dict['long_name'] = ilong_name
-            if iresource != '':
-                instrument_dict['resource'] = iresource
-
-            if instrument_dict['resource'] == '' or not valid_url(instrument_dict['resource']):
-                if instrument_dict['resource'] != '':
-                    self.missing_attributes['warnings'].append(
-                        '"%s" in %s attribute is not a valid url' % (instrument_dict['resource'],
-                                                                     acdd_instrument_resource_key))
-                instrument_dict.pop('resource')
-
-            if instrument_dict['long_name'] != '' or instrument_dict['short_name'] != '':
-                data_dict['instrument'] = instrument_dict
-
-            data.append(data_dict)
+            data.append(platform_dict)
 
         return data
 
@@ -1080,11 +1117,12 @@ class Nc_to_mmd(object):
 
         if operational_status == "":
             self.missing_attributes['errors'].append(
-                "The ACDD attribute 'processing_level' in MMD attribute 'operational_status' must "
-                "follow a controlled vocabulary from MMD (see "
-                "https://htmlpreview.github.io/?https://github."
-                "com/metno/mmd/blob/master/doc/mmd-specification."
-                "html#operational-status).")
+                "The ACDD attribute 'processing_level' in MMD "
+                "attribute 'operational_status' must follow a "
+                "controlled vocabulary from MMD (see https://"
+                "htmlpreview.github.io/?https://github.com/metno/mmd"
+                "/blob/master/doc/mmd-specification.html#operational-"
+                "status).")
 
         return operational_status
 
@@ -1331,10 +1369,12 @@ class Nc_to_mmd(object):
         the SPDX source listed above.
 
         """
+        license_group = MMDGroup("mmd", "https://vocab.met.no/mmd/Use_Constraint")
+        license_group.init_vocab()
+
         data = None
         old_version = False
         acdd_license = list(mmd_element['resource']['acdd'].keys())[0]
-        acdd_license_id = list(mmd_element['identifier']['acdd_ext'].keys())[0]
         license = getattr(ncin, acdd_license).split('(')
         license_url = license[0].strip()
         # validate url
@@ -1353,17 +1393,25 @@ class Nc_to_mmd(object):
                     '"license_resource" is a deprecated attribute')
         else:
             data = {'resource': license_url}
+
+        # If ncin.license = '<identifier> (<resource>)'
         if len(license) > 1:
             data['identifier'] = license[1][0:-1]
         else:
-            if acdd_license_id not in ncin.ncattrs():
-                self.missing_attributes['warnings'].append(
-                    '%s is a recommended attribute' % acdd_license_id
-                )
-                if old_version:
-                    data['identifier'] = ncin.license
+            if old_version:
+                data['identifier'] = ncin.license
             else:
-                data['identifier'] = getattr(ncin, acdd_license_id)
+                self.missing_attributes['errors'].append(
+                    'license should be provided as <url> (<Identifier>)')
+
+        # Check if the license is in the MMD controlled vocabulary,
+        # and rewrite data dict if necessary
+        if data is not None:
+            if "identifier" in data.keys():
+                license_dict = get_vocab_dict(data['identifier'], license_group, data['resource'])
+                if not bool(license_dict):
+                    data = {'license_text': ncin.license}
+
         return data
 
     def to_mmd(self, collection=None, checksum_calculation=False, mmd_yaml=None,
@@ -1472,6 +1520,7 @@ class Nc_to_mmd(object):
         self.metadata['keywords'] = self.get_keywords(mmd_yaml.pop('keywords'), ncin)
         self.metadata['project'] = self.get_projects(mmd_yaml.pop('project'), ncin)
         self.metadata['platform'] = self.get_platforms(mmd_yaml.pop('platform'), ncin)
+
         self.metadata['dataset_citation'] = self.get_dataset_citations(
             mmd_yaml.pop('dataset_citation'), ncin, **kwargs)
         self.metadata['related_dataset'] = self.get_related_dataset(
@@ -1550,6 +1599,10 @@ class Nc_to_mmd(object):
         # Set dataset_production_status
         self.metadata['quality_control'] = self.get_quality_control(
             mmd_yaml.pop('quality_control'), ncin)
+
+        if ('alternate_identifier' in ncin.ncattrs()):
+            self.metadata['alternate_identifier'] = self.get_alternate_identifier(
+                mmd_yaml.pop('alternate_identifier'), ncin)
 
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)

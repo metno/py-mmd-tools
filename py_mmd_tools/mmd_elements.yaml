@@ -22,13 +22,8 @@ alternate_identifier:
       alternate_identifier:
         comment: Alternative identifier for the dataset (but not DOI). Comma separated list.
         separator: ','
-        description: Alternative identifier for the dataset described by the metadata document. This identifier is when datasets may have multiple identifiers, e.g., identifiers depending on the framework data are shared through.
-  type:
-    acdd_ext:
-      alternate_identifier_type:
-        comment: Identification of the type of identifier used. Comma separated list.
-        separator: ','
-        description: Type of identifier used. Currently no controlled vocabulary is defined, but this should be added once better knowledge of domains are known.
+        description: Alternative identifier for the dataset described by the metadata document in the form <url> (<type>). This identifier is when datasets may have multiple identifiers, e.g., identifiers depending on the framework data are shared through.
+  alternate_identifier_type:
 
 # publisher_type is not in MMD but suggested for the netcdf file - is this ACDD?
 publisher_type:
@@ -61,27 +56,13 @@ last_metadata_update:
     datetime:
       minOccurs: '1'
       acdd: 
-        date_metadata_modified:
-          separator: ','
-          recommended: False
-          comment: Format as ISO8601. Comma separated list if more than once.
-          description: The date on which the metadata was last modified. The ISO 8601:2004 extended date format is recommended.
         date_created:
+          separator: ','        
           minOccurs: '1'
           comment: Format as ISO8601.
           description: The date on which this version of the data was created (modification of variable values implies a new version, hence this would be assigned the date of the most recent modification of variable values). Metadata changes are not considered when assigning the date_created. The ISO 8601:2004 extended date format is recommended, e.g., 2020-10-20T12:35:00Z.
     type:
       minOccurs: '1'
-      acdd_ext:
-        date_metadata_modified_type:
-          separator: ','
-          recommended: False
-          comment: E.g., major or minor modification. Comma separated list.
-          description: Minor modification or Major modification.
-        date_created_type:
-          recommended: False
-          default: Created
-          description: Defaults to "Created". Not necessary as netcdf attribute.
     note:
 
 metadata_status:
@@ -256,11 +237,6 @@ use_constraint:
   minOccurs: '1'
   identifier:
     maxOccurs: '1'
-    acdd_ext:
-      license_identifier:
-        minOccurs: '0'
-        maxOccurs: '1'
-        description: Referring to the spdx licenseId. If the identifier is specified in the license attribute as <URL>(<Identifier>), license_identifier is not needed.
   resource:
     maxOccurs: '1'
     acdd:
@@ -343,18 +319,13 @@ data_center:
   maxOccurs: unbounded
   minOccurs: '0'
   data_center_name:
+    acdd:
+      institution:
+        separator: ','
+        comment: Required
+        description: The name of the institution principally responsible for originating this data in the format <long institution name> (<short institution name>). This attribute is recommended by the CF convention.
+    long_name:
     short_name:
-      acdd_ext:
-        institution_short_name:
-          separator: ','
-          comment: Comma separated list.
-          description: Short version of the institution name.
-    long_name: 
-      acdd:
-        institution:
-          separator: ','
-          comment: Required
-          description: The name of the institution principally responsible for originating this data. This attribute is recommended by the CF convention.
   data_center_url:
     acdd:
       publisher_url:
@@ -451,15 +422,11 @@ project:
 platform:
   maxOccurs: unbounded
   minOccurs: '0'
-  short_name:
-    separator: ','
-    comment: Comma separated list.
-  long_name:
-    acdd:
-      platform:
-        separator: ','
-        comment: Recommended
-        description: Name of the platform(s) that supported the sensor used to create this dataset. Platforms can be of any type, including satellite, ship, station, aircraft or other. Both https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#platform-1[MMD] and https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/platforms[GCMD] has controlled vocabularies for platform names (the GCMD one is a large xml file in which the data producer must search for the correct platform name [use prefLabel], e.g. like <ctrl>-f "models</skos:prefLabel"). Indicate which controlled vocabulary that is used in the platform_vocabulary attribute. Comma separated list.
+  acdd:
+    platform:
+      separator: ','
+      comment: Recommended. Comma separated list.
+      description: Name of the platform(s) that supported the sensor used to create this dataset in the format <long platform name> (<short platform name>). Platforms can be of any type, including satellite, ship, station, aircraft or other. Both https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#platform-1[MMD] and https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/platforms[GCMD] has controlled vocabularies for platform names (the GCMD one is a large xml file in which the data producer must search for the correct platform name [use prefLabel], e.g. like <ctrl>-f "models</skos:prefLabel"). Indicate which controlled vocabulary that is used in the platform_vocabulary attribute.
   resource:
     acdd:
       platform_vocabulary:
@@ -469,22 +436,22 @@ platform:
   orbit_relative:
   orbit_absolute:
   orbit_direction:
+  short_name:
+  long_name:
   instrument:
-    short_name:
-      separator: ','
-      comment: Comma separated list.
-    long_name:
-      acdd:
-        instrument:
-          separator: ','
-          comment: Optional
-          description: Name of the instrument(s) or sensor(s) used to create this dataset. Both https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#instruments[MMD] and https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/instruments[GCMD] has controlled vocabularies for instrument names (the GCMD one is a large xml file in which the data producer must search for the correct instrument name [use prefLabel], e.g. like <ctrl>-f "thermometers</skos:prefLabel"). Indicate which controlled vocabulary that is used in the instrument_vocabulary attribute. Comma separated list.
+    acdd:
+      instrument:
+        separator: ','
+        comment: Optional. Comma separated list.
+        description: Name of the instrument(s) or sensor(s) used to create this dataset in the format <long name> (<short name>). Both https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#instruments[MMD] and https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/instruments[GCMD] has controlled vocabularies for instrument names (the GCMD one is a large xml file in which the data producer must search for the correct instrument name [use prefLabel], e.g. like <ctrl>-f "thermometers</skos:prefLabel"). Indicate which controlled vocabulary that is used in the instrument_vocabulary attribute.
     resource:
       acdd:
         instrument_vocabulary:
           separator: ','
           comment: Comma separated list.
           description: Controlled vocabulary for the names used in the "instrument" attribute, e.g., https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#instruments[MMD] or https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/instruments[GCMD]. Should be provided as urls in a comma separated list.
+    short_name:
+    long_name:    
     mode:
     polarisation:
     product_type:
