@@ -690,6 +690,9 @@ class TestNC2MMD(unittest.TestCase):
         )
 
     def test_license__basic(self):
+        """Test that a valid full license with both url and
+        identifier is accepted and parsed correctly.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -701,6 +704,8 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value['identifier'], 'CC-BY-4.0')
 
     def test_license__simple(self):
+        """Test that a license with valid url only is accepted and parsed correctly.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -1020,6 +1025,9 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value['alternate_identifier'], None)
 
     def test_alternate_identifier_wrong_format(self):
+        """Test that an error is raised when the alternate_identifier
+        is missing the type between parentheses.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -1403,7 +1411,9 @@ class TestNC2MMD(unittest.TestCase):
         assert value == ["Not available"]
 
     def test_get_activity_type_invalid(self):
-        """TODO: add docstring"""
+        """Test that an error is raised if activity_type is not a valid one, e.g. not in
+        the list https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/
+        master/doc/mmd-specification.html#activity-type"""
         mmd_yaml = yaml.load(
             resource_string("py_mmd_tools", "mmd_elements.yaml"), Loader=yaml.FullLoader
         )
@@ -2431,6 +2441,9 @@ class TestNC2MMD(unittest.TestCase):
             'the "Conventions" attribute.')
 
     def test_institution_name_parsing(self):
+        """Test that a valid institution string passed as longname (shortname)
+        is parsed correctly.
+        """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
@@ -2443,6 +2456,7 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(data[0]['data_center_name']['short_name'], 'MET Norway')
 
     def test_institution_short_name_missing(self):
+        """Test that if shortname is missing from institution an error is raised."""
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
