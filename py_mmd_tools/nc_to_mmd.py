@@ -391,11 +391,15 @@ class Nc_to_mmd(object):
                 dc['data_center_name']['long_name'] = ri[0].strip()
                 dc['data_center_name']['short_name'] = ri[1][:-1]
             else:
-                self.missing_attributes['errors'].append(
-                    "%s must be formed as <institution long name> (<institution short name>). "
-                    "Both are required attributes." % acdd_institution_key
-                )
-                continue
+                try:
+                    dc['data_center_name']['long_name'] = institutions[i]
+                    dc['data_center_name']['short_name'] = ncin.institution_short_name
+                except Exception:
+                    self.missing_attributes['errors'].append(
+                        "%s must be formed as <institution long name> (<institution short name>). "
+                        "Both are required attributes." % acdd_institution_key
+                    )
+                    continue
             data.append(dc)
         return data
 
