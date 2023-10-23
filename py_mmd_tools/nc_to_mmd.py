@@ -393,7 +393,7 @@ class Nc_to_mmd(object):
             else:
                 try:
                     dc['data_center_name']['long_name'] = institutions[i]
-                    dc['data_center_name']['short_name'] = ncin.institution_short_name
+                    dc['data_center_name']['short_name'] = ncin.institution_short_name[i]
                 except Exception:
                     self.missing_attributes['errors'].append(
                         "%s must be formed as <institution long name> (<institution short name>). "
