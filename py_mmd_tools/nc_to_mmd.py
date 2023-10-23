@@ -400,6 +400,10 @@ class Nc_to_mmd(object):
                         "Both are required attributes." % acdd_institution_key
                     )
                     continue
+                self.missing_attributes['warnings'].append(
+                    "%s must be formed as <institution long name> (<institution short name>). "
+                    "Both are required attributes." % acdd_institution_key
+                )
             data.append(dc)
         return data
 
