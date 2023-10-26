@@ -172,6 +172,9 @@ def nc_attrs_from_yaml():
             'required': val['required'],
             'description': val['description']})
 
+    import ipdb
+    ipdb.set_trace()
+
     env = jinja2.Environment(
         loader=jinja2.PackageLoader(globals()['__name__'].split('.')[0], 'templates'),
         autoescape=jinja2.select_autoescape(['html', 'xml']),
