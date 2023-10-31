@@ -22,7 +22,7 @@ alternate_identifier:
       alternate_identifier:
         comment: Alternative identifier for the dataset (but not DOI). Comma separated list.
         separator: ','
-        description: Alternative identifier for the dataset described by the metadata document in the form <url> (<type>). This identifier is when datasets may have multiple identifiers, e.g., identifiers depending on the framework data are shared through.
+        description: Alternative identifier for the dataset described by the metadata document in the form <url> (<type>). This is used when datasets have multiple identifiers, e.g., depending on the framework through which the data is shared.
   alternate_identifier_type:
 
 # publisher_type is not in MMD but suggested for the netcdf file - is this ACDD?
@@ -255,7 +255,7 @@ personnel:
       creator_role:
         default: 'Investigator'
         separator: ','
-        recommended: False
+        recommended: True
         comment: Comma separated list.
         description: The role of the data creator is by default 'Investigator'. If multiple creators are provided, all roles should be provided as a comma separated list of the same length as the list of creator names. Creator roles should be defined using elements from the https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#contact-roles[contact role types in the MMD specification].
     acdd: 
@@ -354,7 +354,7 @@ related_dataset:
     related_dataset:
       separator: ','
       comment: Comma separated list.
-      description: Specifies the relation between this dataset and another dataset in the form "<naming_authority:id> (relation type)". The type of relationship must be either "parent" (this dataset is a child dataset of the referenced dataset) or "auxiliary" (this dataset is auxiliary data for the referenced dataset).
+      description: Specifies the relation between this dataset and another dataset in the form "<naming_authority:id> (relation type)". The type of relationship must be either "parent" (this dataset is a child dataset of the referenced dataset) or "auxiliary" (this dataset is auxiliary data for the referenced dataset). Multiple related datasets are provided in a comma separated list.
 
 storage_information:
   maxOccurs: '1'
@@ -415,7 +415,7 @@ project:
     project:
       separator: ','
       comment: Comma separated list.
-      description: The name of the project(s) principally responsible for originating this data in the format <long projectname> (<short project name>). Multiple projects can be separated by commas, as described under Attribute Content Guidelines. Examples; 'PATMOS-X', 'Extended Continental Shelf Project' becomes 'Extended Continental Shelf Project (PATMOS-X)'. I.e., if each substring includes a keyword in parantheses, the content within the paranthesis is interpreted as the short name for the project while the rest is the long name, e.g., 'Nansen Legacy (NLEG)'.
+      description: The name of the project(s) principally responsible for originating this data in the format <long-name> (<short-name>). Multiple projects can be separated by commas, as described under Attribute Content Guidelines. Examples; 'PATMOS-X', 'Extended Continental Shelf Project' becomes 'Extended Continental Shelf Project (PATMOS-X)'. I.e., if each substring includes a keyword in parantheses, the content within the paranthesis is interpreted as the short name for the project while the rest is the long name, e.g., 'Nansen Legacy (NLEG)'.
   short_name:
   long_name:
 
@@ -426,7 +426,7 @@ platform:
     platform:
       separator: ','
       comment: Recommended. Comma separated list.
-      description: Name of the platform(s) that supported the sensor used to create this dataset in the format <long platform name> (<short platform name>). Platforms can be of any type, including satellite, ship, station, aircraft or other. Both https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#platform-1[MMD] and https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/platforms[GCMD] has controlled vocabularies for platform names (the GCMD one is a large xml file in which the data producer must search for the correct platform name [use prefLabel], e.g. like <ctrl>-f "models</skos:prefLabel"). Indicate which controlled vocabulary that is used in the platform_vocabulary attribute.
+      description: Name of the platform(s) that supported the sensor used to create this dataset in the format <long platform name> (<short platform name>). Platforms can be of any type, including satellite, ship, station, aircraft or other. Both https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#platform-1[MMD] and https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/platforms[GCMD] have controlled vocabularies for platform names (the GCMD one is a large xml file in which the data producer must search for the correct platform name [use prefLabel], e.g. like <ctrl>-f "models</skos:prefLabel"). Indicate which controlled vocabulary that is used in the platform_vocabulary attribute.
   resource:
     acdd:
       platform_vocabulary:
@@ -443,7 +443,7 @@ platform:
       instrument:
         separator: ','
         comment: Optional. Comma separated list.
-        description: Name of the instrument(s) or sensor(s) used to create this dataset in the format <long name> (<short name>). Both https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#instruments[MMD] and https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/instruments[GCMD] has controlled vocabularies for instrument names (the GCMD one is a large xml file in which the data producer must search for the correct instrument name [use prefLabel], e.g. like <ctrl>-f "thermometers</skos:prefLabel"). Indicate which controlled vocabulary that is used in the instrument_vocabulary attribute.
+        description: Name of the instrument(s) or sensor(s) used to create this dataset in the format <long name> (<short name>). Both https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#instruments[MMD] and https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/instruments[GCMD] have controlled vocabularies for instrument names (the GCMD one is a large xml file in which the data producer must search for the correct instrument name [use prefLabel], e.g. like <ctrl>-f "thermometers</skos:prefLabel"). Indicate which controlled vocabulary that is used in the instrument_vocabulary attribute.
     resource:
       acdd:
         instrument_vocabulary:
@@ -530,5 +530,5 @@ dataset_citation:
       metadata_link:
         maxOccurs: '1'
         comment: E.g., a dataset landing page
-        description: A URL that gives the location of more complete metadata. A persistent URL is recommended for this attribute.
+        description: A URL that gives the location of more complete metadata, such as a dataset landing page. A persistent URL is recommended for this attribute. At MET Norway, landing page urls are https://data.met.no/dataset/, plus the dataset UUID.
   other:
