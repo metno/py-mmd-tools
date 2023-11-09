@@ -681,12 +681,23 @@ class Nc_to_mmd(object):
 
         return data
 
+    # extract standard names from variables in ncin
+    def get_CFSTDN_keywords(self, ncin):
+        varlist = [variable.getncattr('standard_name') for variable in ncin.variables.values()
+                   if 'standard_name' in variable.ncattrs()]
+        cfstd_names = list(set(varlist))
+
+        return cfstd_names
+
     def get_keywords(self, mmd_element, ncin):
         """ToDo: Add docstring"""
         ok_formatting = True
         acdd_vocabulary = mmd_element['vocabulary'].pop('acdd')
         vocabularies = []
         acdd_vocabulary_key = list(acdd_vocabulary.keys())[0]
+
+        cfstd_names = self.get_CFSTDN_keywords(ncin)
+
         if acdd_vocabulary_key in ncin.ncattrs():
             vocabularies = self.separate_repeated(True, getattr(ncin, acdd_vocabulary_key))
         else:
@@ -694,6 +705,11 @@ class Nc_to_mmd(object):
             self.missing_attributes['errors'].append(
                 '%s is a required ACDD attribute' % acdd_vocabulary_key
             )
+
+        # add vocabulary CFSTDN
+        if len(cfstd_names) != 0:
+            vocabularies.append('CFSTDN:CF Standard Names:https://vocab.met.no/CFSTDN')
+
         resources = []
         resource_short_names = []
         for vocabulary in vocabularies:
@@ -718,6 +734,9 @@ class Nc_to_mmd(object):
             self.missing_attributes['errors'].append(
                 '%s is a required ACDD attribute' % acdd_keyword_key
             )
+        if len(cfstd_names) != 0:
+            for cfstd_name in cfstd_names:
+                keywords.append('CFSTDN:%s' % cfstd_name)
 
         keyword_short_names = []
         for keyword in keywords:
