@@ -1023,10 +1023,10 @@ class TestNC2MMD(unittest.TestCase):
         )
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc.nc'), check_only=True)
         ncin = Dataset(md.netcdf_file)
-        value = md.get_acdd_metadata(
-            mmd_yaml['alternate_identifier'], ncin, 'alternate_identifier'
+        value = md.get_alternate_identifier(
+            mmd_yaml['alternate_identifier'], ncin
         )
-        self.assertEqual(value['alternate_identifier'], None)
+        self.assertEqual(len(value), 0)
 
     def test_alternate_identifier_wrong_format(self):
         """Test that an error is raised when the alternate_identifier
