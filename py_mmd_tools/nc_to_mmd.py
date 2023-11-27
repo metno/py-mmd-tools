@@ -708,7 +708,9 @@ class Nc_to_mmd(object):
 
         # add vocabulary CFSTDN
         if len(cfstd_names) != 0:
-            vocabularies.append('CFSTDN:CF Standard Names:https://vocab.met.no/mmd/Keywords_Vocabulary/CFSTDN')
+            vocabularies.append(
+                "CFSTDN:CF Standard Names:https://vocab.met.no/mmd"
+                "/Keywords_Vocabulary/CFSTDN")
 
         resources = []
         resource_short_names = []
@@ -1552,6 +1554,7 @@ class Nc_to_mmd(object):
             mmd_yaml.pop('dataset_citation'), ncin, **kwargs)
         self.metadata['related_dataset'] = self.get_related_dataset(
             mmd_yaml.pop('related_dataset'), ncin)
+        print("here")
         # Add parent from function kwarg
         if parent is not None:
             if ":" not in parent:
@@ -1599,7 +1602,9 @@ class Nc_to_mmd(object):
         # Data access should not be read from the netCDF-CF file
         mmd_yaml.pop('data_access')
         # Add OPeNDAP data_access if opendap_url is not None
+        print("here")
         if self.opendap_url is not None:
+
             self.metadata['data_access'] = self.get_data_access_dict(ncin, **kwargs)
         else:
             self.metadata['data_access'] = []
