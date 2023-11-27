@@ -79,7 +79,7 @@ The following ACDD elements are recommended (should be used if there is no good 
 {% endfor %}
 |=======================================================================
 
-The following elements are recommended ACDD extensions that are useful to improve (meta)data interoperability. Please refer to the documentation of https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html[MMD] for more details:
+The following elements are recommended ACDD extensions that are useful to **improve (meta)data interoperability**. Please refer to the documentation of https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html[MMD] for more details:
 [cols="1,1,3"]
 |=======================================================================
 |*Attribute* |*MMD equivalent* |*Description*
