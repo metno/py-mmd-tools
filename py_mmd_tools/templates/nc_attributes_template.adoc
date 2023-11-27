@@ -3,7 +3,7 @@
 ////
 
 [[data-as-netcdf-cf]]
-==== Creating NetCDF-CF files
+==== Create NetCDF-CF files
 
 By documenting and formatting your data using <<netcdf,NetCDF>> following the link:https://cfconventions.org/[CF conventions] and the link:https://wiki.esipfed.org/Attribute_Convention_for_Data_Discovery_1-3[Attribute Convention for Data Discovery (ACDD)], <<mmd,MMD>> files can be automatically generated from the <<netcdf,NetCDF>> files. The <<cf,CF conventions>> is a controlled vocabulary providing a definitive description of what the data in each variable represents, and the spatial and temporal properties of the data. The <<acdd,ACDD>> vocabulary describes attributes recommended for describing a <<netcdf,NetCDF>> dataset to data discovery systems. See, e.g., link:https://unidata.github.io/netcdf4-python/[netCDF4-python docs], or link:http://xarray.pydata.org/en/stable/user-guide/io.html[xarray docs] for documentation about how to create netCDF files.
 
