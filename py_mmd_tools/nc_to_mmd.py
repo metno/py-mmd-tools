@@ -708,7 +708,7 @@ class Nc_to_mmd(object):
 
         # add vocabulary CFSTDN
         if len(cfstd_names) != 0:
-            vocabularies.append('CFSTDN:CF Standard Names:https://vocab.met.no/CFSTDN')
+            vocabularies.append('CFSTDN:CF Standard Names:https://vocab.met.no/mmd/Keywords_Vocabulary/CFSTDN')
 
         resources = []
         resource_short_names = []
