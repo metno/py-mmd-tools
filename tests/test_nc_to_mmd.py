@@ -1709,6 +1709,21 @@ class TestNC2MMD(unittest.TestCase):
             'keywords_vocabulary is a required ACDD attribute'
         )
 
+    def test_keywords_standard_name_not_in_CFSTDN(self):
+        """ToDo: Add docstring"""
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_non_cf_standard_name.nc'),
+                       check_only=True)
+        ncin = Dataset(md.netcdf_file)
+        md.get_keywords(mmd_yaml['keywords'], ncin)
+        self.assertEqual(
+            md.missing_attributes['warnings'][0],
+            'The standard name this_is_not_a_cf_standard_name is not a cf_standard name '
+            'from CFSTDN (see https://vocab.met.no/CFSTDN)'
+        )
+
     def test_keywords(self):
         """ToDo: Add docstring"""
         mmd_yaml = yaml.load(
