@@ -1412,8 +1412,11 @@ class Nc_to_mmd(object):
             if old_version:
                 data['identifier'] = ncin.license
             else:
-                self.missing_attributes['errors'].append(
-                    'license should be provided as <url> (<Identifier>)')
+                data['identifier'] = ncin.license.split("/")[-1]
+                if not bool(get_vocab_dict(data['identifier'], license_group, data['resource'])):
+                    data.pop('identifier')
+                    self.missing_attributes['errors'].append(
+                        'license should be provided as <url> (<Identifier>)')
 
         # Check if the license is in the MMD controlled vocabulary,
         # and rewrite data dict if necessary

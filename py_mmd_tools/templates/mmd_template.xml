@@ -4,7 +4,7 @@
     {% for item in data['alternate_identifier'] %}
       {% set ai=item['alternate_identifier'] %}
       {% set type=item['alternate_identifier_type'] %}
-      <mmd:alternate_identifier type="{{ type }}">{{ ai }}</mmd:alternate_identifier>
+  <mmd:alternate_identifier type="{{ type }}">{{ ai }}</mmd:alternate_identifier>
     {% endfor %}
   {% endif %}
   {% for title in data['title'] %}
