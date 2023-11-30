@@ -28,6 +28,7 @@ from dateutil.parser import isoparse
 from uuid import UUID
 
 from metvocab.mmdgroup import MMDGroup
+from metvocab.cfstd import CFStandard
 
 import pathlib
 from netCDF4 import Dataset
@@ -231,6 +232,9 @@ class Nc_to_mmd(object):
 
         self.quality_control = MMDGroup('mmd', 'https://vocab.met.no/mmd/Quality_Control')
         self.quality_control.init_vocab()
+
+        self.cfstdn_keyword = CFStandard()
+        self.cfstdn_keyword.init_vocab()
 
         if not (self.platform_group.is_initialised and self.instrument_group.is_initialised):
             raise ValueError('Instrument or Platform group were not initialised')
@@ -708,6 +712,7 @@ class Nc_to_mmd(object):
 
         # add vocabulary CFSTDN
         if len(cfstd_names) != 0:
+
             vocabularies.append(
                 "CFSTDN:CF Standard Names:https://vocab.met.no/mmd"
                 "/Keywords_Vocabulary/CFSTDN")
@@ -738,7 +743,16 @@ class Nc_to_mmd(object):
             )
         if len(cfstd_names) != 0:
             for cfstd_name in cfstd_names:
-                keywords.append('CFSTDN:%s' % cfstd_name)
+                # Verify whether the standard name is a cf-standard name from CFSTDN
+                cfstdn_search_result = self.cfstdn_keyword.check_standard_name(cfstd_name, True)
+
+                if cfstdn_search_result is not True:
+                    self.missing_attributes['warnings'].append(
+                        "The standard name %s is not a cf_standard name from CFSTDN (see "
+                        "https://vocab.met.no/CFSTDN)"
+                        % (cfstd_name))
+                else:
+                    keywords.append('CFSTDN:%s' % cfstd_name)
 
         keyword_short_names = []
         for keyword in keywords:

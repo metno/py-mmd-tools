@@ -1731,6 +1731,11 @@ class TestNC2MMD(unittest.TestCase):
             'Meteorological geographical features',
             'Atmospheric conditions', 'Oceanographic geographical features'
         ])
+        self.assertEqual(value[3]['vocabulary'], 'CFSTDN')
+        self.assertEqual(
+            value[3]['resource'],
+            'https://vocab.met.no/mmd/Keywords_Vocabulary/CFSTDN'
+        )
 
     def test_keywords_multiple(self):
         """ToDo: Add docstring"""
