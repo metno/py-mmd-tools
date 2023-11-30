@@ -629,6 +629,13 @@ class TestNCAttrsFromYaml(unittest.TestCase):
         adoc = nc_attrs_from_yaml()
         self.assertEqual(type(adoc), str)
 
+    def test_creator_role_acdd_extension(self):
+        mmd_field = 'personnel'
+        val = self.mmd_yaml[mmd_field]
+        set_attributes(mmd_field, val, self.attributes)
+        self.assertEqual(self.attributes['acdd_ext']['not_required'][0]['attribute'],
+                         'creator_role')
+
 
 class TestNC2MMD(unittest.TestCase):
 
