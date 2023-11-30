@@ -1041,18 +1041,17 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value, 'In Work')
 
     def test_alternate_identifier_missing(self):
-        """Test that MMD alternate_identifier is not added when it does
-        not exist in nc-file.
+        """Test that get_alternate_identifier returns an empty list
+        when alternate_identifier is no present in the global
+        attributes of the nc-file.
         """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc.nc'), check_only=True)
         ncin = Dataset(md.netcdf_file)
-        value = md.get_acdd_metadata(
-            mmd_yaml['alternate_identifier'], ncin, 'alternate_identifier'
-        )
-        self.assertEqual(value['alternate_identifier'], None)
+        value = md.get_alternate_identifier(mmd_yaml['alternate_identifier'], ncin)
+        self.assertEqual(len(value), 0)
 
     def test_alternate_identifier_wrong_format(self):
         """Test that an error is raised when the alternate_identifier

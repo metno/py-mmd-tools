@@ -134,6 +134,9 @@
   </mmd:data_center>
     {% endfor %}
   {% endif %}
+  {% if data['quality_control'] %}
+  <mmd:quality_control>{{ data['quality_control'] }}</mmd:quality_control>
+  {% endif %}
   {% if data['data_access'] %}
     {% for data_access in data['data_access'] %}
   <mmd:data_access>
