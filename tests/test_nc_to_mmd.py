@@ -724,7 +724,26 @@ class TestNC2MMD(unittest.TestCase):
         # searching a url (see issue https://github.com/metno/met-vocab-tools/issues/25):
         # self.assertEqual(value['identifier'], 'CC-BY-4.0')
         self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
+        self.assertEqual(len(list(value.keys())), 2)
+
+    def test_license__only_url_but_not_standard(self):
+        """Test that a license with a valid url to an unstandard
+        license causes an error.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.reference_nc, check_only=True)
+        ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        ncin.license = "http://spdx.org/licenses/CC-BY-4.1"
+        value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        # met-vocab-tools should be able to find the license by
+        # searching a url (see issue https://github.com/metno/met-vocab-tools/issues/25):
+        # self.assertEqual(value['identifier'], 'CC-BY-4.0')
+        self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.1')
         self.assertEqual(len(list(value.keys())), 1)
+        self.assertEqual(md.missing_attributes['errors'][0],
+                         'license should be provided as <url> (<Identifier>)')
 
     def test_license__according_to_adc1(self):
         """Test that a license passed as url(identifier) is accepted and parsed correctly.
@@ -1022,18 +1041,17 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value, 'In Work')
 
     def test_alternate_identifier_missing(self):
-        """Test that MMD alternate_identifier is not added when it does
-        not exist in nc-file.
+        """Test that get_alternate_identifier returns an empty list
+        when alternate_identifier is no present in the global
+        attributes of the nc-file.
         """
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc.nc'), check_only=True)
         ncin = Dataset(md.netcdf_file)
-        value = md.get_acdd_metadata(
-            mmd_yaml['alternate_identifier'], ncin, 'alternate_identifier'
-        )
-        self.assertEqual(value['alternate_identifier'], None)
+        value = md.get_alternate_identifier(mmd_yaml['alternate_identifier'], ncin)
+        self.assertEqual(len(value), 0)
 
     def test_alternate_identifier_wrong_format(self):
         """Test that an error is raised when the alternate_identifier

@@ -4,7 +4,7 @@
     {% for item in data['alternate_identifier'] %}
       {% set ai=item['alternate_identifier'] %}
       {% set type=item['alternate_identifier_type'] %}
-      <mmd:alternate_identifier type="{{ type }}">{{ ai }}</mmd:alternate_identifier>
+  <mmd:alternate_identifier type="{{ type }}">{{ ai }}</mmd:alternate_identifier>
     {% endfor %}
   {% endif %}
   {% for title in data['title'] %}
@@ -133,6 +133,9 @@
     <mmd:data_center_url>{{ data_center['data_center_url'] }}</mmd:data_center_url>
   </mmd:data_center>
     {% endfor %}
+  {% endif %}
+  {% if data['quality_control'] %}
+  <mmd:quality_control>{{ data['quality_control'] }}</mmd:quality_control>
   {% endif %}
   {% if data['data_access'] %}
     {% for data_access in data['data_access'] %}

@@ -340,11 +340,14 @@ class Nc_to_mmd(object):
     def get_alternate_identifier(self, mmd_element, ncin):
         """Look up ACDD and ACDD extensions to populate MMD elements"""
 
+        data = []
+        if 'alternate_identifier' not in ncin.ncattrs():
+            return data
+
         acdd_altid = mmd_element['alternate_identifier'].pop('acdd_ext')
         acdd_altid_key = list(acdd_altid.keys())[0]
         altids = self.separate_repeated(True, getattr(ncin, acdd_altid_key))
 
-        data = []
         for id in altids:
             tmp = {}
             ri = id.split('(')
@@ -1444,8 +1447,11 @@ class Nc_to_mmd(object):
             if old_version:
                 data['identifier'] = ncin.license
             else:
-                self.missing_attributes['errors'].append(
-                    'license should be provided as <url> (<Identifier>)')
+                data['identifier'] = ncin.license.split("/")[-1]
+                if not bool(get_vocab_dict(data['identifier'], license_group, data['resource'])):
+                    data.pop('identifier')
+                    self.missing_attributes['errors'].append(
+                        'license should be provided as <url> (<Identifier>)')
 
         # Check if the license is in the MMD controlled vocabulary,
         # and rewrite data dict if necessary
@@ -1644,9 +1650,9 @@ class Nc_to_mmd(object):
         self.metadata['quality_control'] = self.get_quality_control(
             mmd_yaml.pop('quality_control'), ncin)
 
-        if ('alternate_identifier' in ncin.ncattrs()):
-            self.metadata['alternate_identifier'] = self.get_alternate_identifier(
-                mmd_yaml.pop('alternate_identifier'), ncin)
+        # Set alternate_identifier
+        self.metadata['alternate_identifier'] = self.get_alternate_identifier(
+            mmd_yaml.pop('alternate_identifier'), ncin)
 
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
