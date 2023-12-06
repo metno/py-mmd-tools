@@ -1386,45 +1386,50 @@ class Nc_to_mmd(object):
         data = None
         old_version = False
         acdd_license = list(mmd_element['resource']['acdd'].keys())[0]
-        license = getattr(ncin, acdd_license).split('(')
-        license_url = license[0].strip()
-        # validate url
-        if not valid_url(license_url):
-            # Try deprecated attribute name
-            if 'license_resource' in ncin.ncattrs():
-                license_url = ncin.license_resource
+        
+        if 'license' in ncin.ncattrs():
+            license = getattr(ncin, acdd_license).split('(')
+            license_url = license[0].strip()
+            # validate url
             if not valid_url(license_url):
-                self.missing_attributes['errors'].append(
-                    '"%s" is not a valid url' % license_url)
-                return data
+                # Try deprecated attribute name
+                if 'license_resource' in ncin.ncattrs():
+                    license_url = ncin.license_resource
+                if not valid_url(license_url):
+                    self.missing_attributes['errors'].append(
+                        '"%s" is not a valid url' % license_url)
+                    return data
+                else:
+                    data = {'resource': license_url}
+                    old_version = True
+                    self.missing_attributes['warnings'].append(
+                        '"license_resource" is a deprecated attribute')
             else:
                 data = {'resource': license_url}
-                old_version = True
-                self.missing_attributes['warnings'].append(
-                    '"license_resource" is a deprecated attribute')
-        else:
-            data = {'resource': license_url}
 
-        # If ncin.license = '<identifier> (<resource>)'
-        if len(license) > 1:
-            data['identifier'] = license[1][0:-1]
-        else:
-            if old_version:
-                data['identifier'] = ncin.license
+            # If ncin.license = '<identifier> (<resource>)'
+            if len(license) > 1:
+                data['identifier'] = license[1][0:-1]
             else:
-                data['identifier'] = ncin.license.split("/")[-1]
-                if not bool(get_vocab_dict(data['identifier'], license_group, data['resource'])):
-                    data.pop('identifier')
-                    self.missing_attributes['errors'].append(
-                        'license should be provided as <url> (<Identifier>)')
+                if old_version:
+                    data['identifier'] = ncin.license
+                else:
+                    data['identifier'] = ncin.license.split("/")[-1]
+                    if not bool(get_vocab_dict(data['identifier'], license_group, data['resource'])):
+                        data.pop('identifier')
+                        self.missing_attributes['errors'].append(
+                            'license should be provided as <url> (<Identifier>)')
 
-        # Check if the license is in the MMD controlled vocabulary,
-        # and rewrite data dict if necessary
-        if data is not None:
-            if "identifier" in data.keys():
-                license_dict = get_vocab_dict(data['identifier'], license_group, data['resource'])
-                if not bool(license_dict):
-                    data = {'license_text': ncin.license}
+            # Check if the license is in the MMD controlled vocabulary,
+            # and rewrite data dict if necessary
+            if data is not None:
+                if "identifier" in data.keys():
+                    license_dict = get_vocab_dict(data['identifier'], license_group, data['resource'])
+                    if not bool(license_dict):
+                        data = {'license_text': ncin.license}
+        else:
+            self.missing_attributes['errors'].append(
+                            'license is missing and is a required attribute')
 
         return data
 
@@ -1581,8 +1586,9 @@ class Nc_to_mmd(object):
         mmd_yaml.pop('geographic_extent')
 
         # Get use_constraint data
+        print('BEFORE')
         self.metadata['use_constraint'] = self.get_license(mmd_yaml.pop('use_constraint'), ncin)
-
+        print('AFTER')
         # Data access should not be read from the netCDF-CF file
         mmd_yaml.pop('data_access')
         # Add OPeNDAP data_access if opendap_url is not None
