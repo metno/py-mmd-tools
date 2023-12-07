@@ -1388,7 +1388,7 @@ class Nc_to_mmd(object):
         acdd_license = list(mmd_element['resource']['acdd'].keys())[0]
         
         if 'license' not in ncin.ncattrs():
-                self.missing_attributes['errors'].append('license is a required attribute')
+            self.missing_attributes['errors'].append('license is a required attribute')
 
         else:
             license = getattr(ncin, acdd_license).split('(')
