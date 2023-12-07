@@ -1390,7 +1390,7 @@ class Nc_to_mmd(object):
         if 'license' not in ncin.ncattrs():
                 self.missing_attributes['errors'].append('license is a required attribute')
 
-        else 'license' in ncin.ncattrs():
+        else:
             license = getattr(ncin, acdd_license).split('(')
             license_url = license[0].strip()
             # validate url
