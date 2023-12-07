@@ -1586,9 +1586,7 @@ class Nc_to_mmd(object):
         mmd_yaml.pop('geographic_extent')
 
         # Get use_constraint data
-        print('BEFORE')
         self.metadata['use_constraint'] = self.get_license(mmd_yaml.pop('use_constraint'), ncin)
-        print('AFTER')
         # Data access should not be read from the netCDF-CF file
         mmd_yaml.pop('data_access')
         # Add OPeNDAP data_access if opendap_url is not None
