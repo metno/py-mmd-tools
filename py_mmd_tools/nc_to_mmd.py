@@ -1386,7 +1386,7 @@ class Nc_to_mmd(object):
         data = None
         old_version = False
         acdd_license = list(mmd_element['resource']['acdd'].keys())[0]
-        
+
         if 'license' in ncin.ncattrs():
             license = getattr(ncin, acdd_license).split('(')
             license_url = license[0].strip()
@@ -1415,7 +1415,12 @@ class Nc_to_mmd(object):
                     data['identifier'] = ncin.license
                 else:
                     data['identifier'] = ncin.license.split("/")[-1]
-                    if not bool(get_vocab_dict(data['identifier'], license_group, data['resource'])):
+                    if not bool(
+                        get_vocab_dict(
+                            data['identifier'], 
+                            license_group, 
+                            data['resource'])
+                        ):
                         data.pop('identifier')
                         self.missing_attributes['errors'].append(
                             'license should be provided as <url> (<Identifier>)')
@@ -1424,12 +1429,17 @@ class Nc_to_mmd(object):
             # and rewrite data dict if necessary
             if data is not None:
                 if "identifier" in data.keys():
-                    license_dict = get_vocab_dict(data['identifier'], license_group, data['resource'])
+                    license_dict = get_vocab_dict(
+                        data['identifier'], 
+                        license_group, 
+                        data['resource']
+                        )
                     if not bool(license_dict):
                         data = {'license_text': ncin.license}
         else:
             self.missing_attributes['errors'].append(
-                            'license is missing and is a required attribute')
+                'license is missing and is a required attribute'
+                )
 
         return data
 
