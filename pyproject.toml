@@ -1,4 +1,26 @@
 # Minimal PEP 518 pyproject file
+
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+dependencies = [
+"jinja2",
+"lxml>=4.5",
+"netCDF4>=1.5,<=1.6",
+"pandas",
+"parmap",
+"pytest",
+"pytest-cov",
+"python-dateutil",
+"metvocab",
+"@git+https://github.com/metno/met-vocab-tools@v1.2.0",
+"pyyaml",
+"requests",
+"shapely",
+"wget",
+"xmltodict"]
+
+name = "py-mmd-tools"
+description = "This  is a tools for generating MMD files from netCDF-CF files with ACDD attributes, for documenting netCDF-CF files from MMD information."
