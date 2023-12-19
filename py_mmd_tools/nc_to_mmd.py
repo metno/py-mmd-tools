@@ -244,7 +244,11 @@ class Nc_to_mmd(object):
     ACDD_NAMING_AUTH = 'naming_authority'
     ACDD_ID_INVALID_CHARS = ['\\', '/', ':', ' ']
 
-    def __init__(self, netcdf_file, opendap_url=None, output_file=None, check_only=False, json_input=False):
+    def __init__(self, netcdf_file,
+                 opendap_url=None,
+                 output_file=None,
+                 check_only=False,
+                 json_input=False):
         """Class for creating an MMD XML file based on the discovery
         metadata provided in the global attributes of NetCDF files that
         are compliant with the CF-conventions and ACDD.
@@ -310,9 +314,11 @@ class Nc_to_mmd(object):
                 self.check_attributes_not_empty(ncin)
         else:
             # Open netcdf file for reading
-            with self.read_nc_file(self.netcdf_file) as ncin:
-                self.ncin = ncin
-                self.check_attributes_not_empty(ncin)
+            # with self.read_nc_file(self.netcdf_file) as ncin:
+            # self.ncin = ncin
+            # self.check_attributes_not_empty(self.ncin)
+            self.ncin = self.read_nc_file(self.netcdf_file)
+            self.check_attributes_not_empty(self.ncin)
 
     def read_nc_file(self, fn):
         """ Open netcdf dataset, appending #fillmismatch if necessary
@@ -1693,14 +1699,15 @@ class Nc_to_mmd(object):
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
 
-        # Set storage_information
-        # self.metadata['storage_information'] = {
-        #     'file_name': os.path.basename(self.netcdf_file),
-        #     'file_location': os.path.dirname(self.netcdf_file),
-        #     'file_format': 'NetCDF-CF',
-        #     'file_size': '%.2f'%file_size,
-        #     'file_size_unit': 'MB',
-        # }
+        if not self.json_input:
+            # Set storage_information
+            self.metadata['storage_information'] = {
+                'file_name': os.path.basename(self.netcdf_file),
+                'file_location': os.path.dirname(self.netcdf_file),
+                'file_format': 'NetCDF-CF',
+                'file_size': '%.2f'%file_size,
+                'file_size_unit': 'MB',
+            }
 
         if checksum_calculation:
             hasher = FileHash('md5', chunk_size=1048576)
