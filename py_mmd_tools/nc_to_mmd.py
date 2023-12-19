@@ -313,10 +313,6 @@ class Nc_to_mmd(object):
                 self.ncin = ncin
                 self.check_attributes_not_empty(ncin)
         else:
-            # Open netcdf file for reading
-            # with self.read_nc_file(self.netcdf_file) as ncin:
-            # self.ncin = ncin
-            # self.check_attributes_not_empty(self.ncin)
             self.ncin = self.read_nc_file(self.netcdf_file)
             self.check_attributes_not_empty(self.ncin)
 
@@ -1554,7 +1550,7 @@ class Nc_to_mmd(object):
         time_coverage_end = kwargs.pop('time_coverage_end', '')
         geographic_extent_rectangle = kwargs.pop('geographic_extent_rectangle', '')
 
-        # Fix get instnace ncin file
+        # Get ncin object from instance
         ncin = self.ncin
 
         # Get list of MMD elements
