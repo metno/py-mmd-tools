@@ -930,11 +930,13 @@ class Nc_to_mmd(object):
         acdd_title_key = list(acdd_title.keys())[0]
         if acdd_title_key in ncin.ncattrs():
             title = getattr(ncin, acdd_title_key)
+
         acdd_url = mmd_element['url'].pop('acdd')
         urls = []
         acdd_url_key = list(acdd_url.keys())[0]
         if acdd_url_key in ncin.ncattrs():
             urls = self.separate_repeated(True, getattr(ncin, acdd_url_key))
+
         data = []
         for i in range(len(publication_dates)):
             ndt, reason = normalize_iso8601(publication_dates[i])

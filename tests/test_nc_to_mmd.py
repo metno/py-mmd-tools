@@ -1969,6 +1969,14 @@ class TestNC2MMD(unittest.TestCase):
         value = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
         self.assertEqual(value[0]['author'],
                          'DIVISION FOR OBSERVATION QUALITY AND DATA PROCESSING')
+        self.assertEqual(value[0]['publication_date'],
+                         '2020-11-27T14:05:56Z')
+        self.assertEqual(value[0]['title'],
+                         'Direct Broadcast data processed in satellite swath to L1C.')
+        self.assertEqual(value[0]['publisher'],
+                         'Norwegian Meteorological Institute')
+        self.assertEqual(value[0]['publisher'],
+                         'https://data.met.no/dataset/b7cb7934-77ca-4439-812e-f560df3fe7eb')
         """ Not issued unless the warning in nc_to_mmd.py is uncommented:
         self.assertEqual(md.missing_attributes['warnings'][0],
                          'metadata_link attribute is missing')
