@@ -15,6 +15,9 @@ import yaml
 import warnings
 import unittest
 import pytest
+import json
+
+import numpy as np
 
 from dateutil.parser import isoparse
 from filehash import FileHash
@@ -23,7 +26,7 @@ from netCDF4 import Dataset
 from pkg_resources import resource_string
 from unittest.mock import patch
 
-from py_mmd_tools.nc_to_mmd import Nc_to_mmd, normalize_iso8601, normalize_iso8601_0
+from py_mmd_tools.nc_to_mmd import Nc_to_mmd, normalize_iso8601, normalize_iso8601_0, nc_wrapper
 from py_mmd_tools.nc_to_mmd import valid_url
 from py_mmd_tools.nc_to_mmd import get_short_and_long_names
 from py_mmd_tools.yaml_to_adoc import nc_attrs_from_yaml
@@ -391,6 +394,98 @@ def test_get_quality_control(dataDir):
     with pytest.raises(ValueError) as ve:
         md.get_quality_control(mmd_element, ncin)
     assert str(ve.value) == "This is not expected..."
+
+
+@pytest.mark.py_mmd_tools
+def test_nc_wrapper_global_attrs(dataDir):
+
+    test_ncin = os.path.join(dataDir, "reference_nc.nc")
+    test_ncin = Dataset(test_ncin)
+
+    test_json_header = os.path.join(dataDir, "reference_nc_header.json")
+
+    with open(test_json_header, "r") as file:
+        test_json_header = nc_wrapper(json.load(file))
+
+    for attr in test_ncin.ncattrs():
+        assert test_ncin.getncattr(attr) == test_json_header.getncattr(attr), \
+            (f"Divergence in global attribute between header and nc header at {attr},"
+             f" nc: {test_ncin.getncattr(attr)}, json: {test_json_header.getncattr(attr)}")
+    for attr in test_ncin.ncattrs():
+        assert test_ncin.getncattr(attr) == test_json_header[attr], \
+            (f"Divergence in global attribute between header and nc header at {attr},"
+             f" nc: {test_ncin.getncattr(attr)}, json: {test_json_header[attr]}")
+
+
+@pytest.mark.py_mmd_tools
+def test_nc_wrapper_variable_attrs(dataDir):
+
+    test_ncin = os.path.join(dataDir, "reference_nc.nc")
+    test_ncin = Dataset(test_ncin)
+
+    test_json_header = os.path.join(dataDir, "reference_nc_header.json")
+
+    with open(test_json_header, "r") as file:
+        test_json_header = nc_wrapper(json.load(file))
+
+    def handle_type_comparison(a, b):
+        if isinstance(a, (np.floating, float)) or isinstance(b, (np.floating, float)):
+            if np.isnan(a) and np.isnan(b):
+                return True
+            else:
+                return np.abs(a-b) < 1e-8
+
+        if isinstance(a, (np.ndarray, list)) and isinstance(b, (np.ndarray, list)):
+            return (a == b).all()
+
+        return a == b
+
+    for var, var_attrs in test_ncin.variables.items():
+        for attr in var_attrs.ncattrs():
+            assert handle_type_comparison(var_attrs.getncattr(attr),
+                                          test_json_header.variables[var].getncattr(attr)), \
+                (f"Divergence in variable attribute between json and nc header at {var}:{attr},"
+                 f" nc: {var_attrs.getncattr(attr)} of type {type(var_attrs.getncattr(attr))},"
+                 f"json: {test_json_header.variables[var].getncattr(attr)}"
+                 f" of type {type(test_json_header.variables[var].getncattr(attr))}")
+
+    for var, var_attrs in test_ncin.variables.items():
+        for attr in var_attrs.ncattrs():
+            assert handle_type_comparison(var_attrs.getncattr(attr),
+                                          test_json_header.variables[var][attr]), \
+                (f"Divergence in variable attribute between json and nc header at {var}:{attr},"
+                 f" nc: {var_attrs.getncattr(attr)} of type {type(var_attrs.getncattr(attr))},"
+                 f"json: {test_json_header.variables[var][attr]}"
+                 f" of type {type(test_json_header.variables[var][attr])}")
+
+
+@pytest.mark.py_mmd_tools
+def test_json_dry_run(dataDir):
+    test_json_header = os.path.join(dataDir, "reference_nc_header.json")
+
+    with open(test_json_header, "r") as file:
+        test_json_header = json.load(file)
+
+    tmp = Nc_to_mmd(test_json_header, json_input=True, check_only=True)
+    tmp.to_mmd()
+
+
+@pytest.mark.py_mmd_tools
+def test_nc_wrapper_ncatters(dataDir):
+    test_ncin = os.path.join(dataDir, "reference_nc.nc")
+    test_ncin = Dataset(test_ncin)
+
+    test_json_header = os.path.join(dataDir, "reference_nc_header.json")
+
+    with open(test_json_header, "r") as file:
+        test_json_header = nc_wrapper(json.load(file))
+
+    assert test_json_header.ncattrs() == test_ncin.ncattrs(), \
+        "Keys in global ncattrs does not match between json and nc."
+
+    for var in test_ncin.variables:
+        assert test_ncin.variables[var].ncattrs() == test_json_header.variables[var].ncattrs(), \
+            f"Mismatch in variable attributes, for variable {var}"
 
 
 class TestNCAttrsFromYaml(unittest.TestCase):
