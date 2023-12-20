@@ -2043,7 +2043,6 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(value[0]['url'],
                          'https://data.met.no/dataset/b7cb7934-77ca-4439-812e-f560df3fe7eb')
 
-
     def test_dataset_citation_invalid_date(self):
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
@@ -2668,7 +2667,7 @@ class TestNC2MMD(unittest.TestCase):
             "(Dataset landing page),"
             "https://ieeexplore.ieee__.org/document/7914752(Scientific publication)"
         )
-        data = md.get_related_information(mmd_yaml['related_information'], ncin)
+        md.get_related_information(mmd_yaml['related_information'], ncin)
         self.assertEqual(
             md.missing_attributes["errors"][0],
             'references must contain valid uris')
@@ -2686,7 +2685,7 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(self.fail_nc, check_only=True)
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
         ncin.references = "landing_page, paper"
-        data = md.get_related_information(mmd_yaml['related_information'], ncin)
+        md.get_related_information(mmd_yaml['related_information'], ncin)
         self.assertEqual(
             md.missing_attributes["errors"][0],
             "references must be formed as <uri>(<type>).")

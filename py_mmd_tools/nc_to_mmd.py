@@ -227,7 +227,6 @@ class Nc_to_mmd(object):
     VALID_NAMING_AUTHORITIES = None
     LANDING_PAGE_BASE = None
 
-
     def __init__(self, netcdf_file,
                  opendap_url=None,
                  output_file=None,
@@ -249,7 +248,8 @@ class Nc_to_mmd(object):
         self.VALID_NAMING_AUTHORITIES = ['no.met', 'no.nve', 'no.nilu', 'no.niva']
         self.LANDING_PAGE_BASE = {
             'no.met': 'https://data.met.no/dataset',
-            'dummy': 'https://data.fake.no', # used if naming_authority is missing from the nc file
+            'dummy': 'https://data.fake.no',  # used if naming_authority is
+                                              # missing from the nc file
         }
         if (output_file is None or opendap_url is None) and check_only is False:
             raise ValueError(
