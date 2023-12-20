@@ -446,6 +446,24 @@ def test_nc_wrapper_variable_attrs(dataDir):
                  f" of type {type(test_json_header.variables[var].getncattr(attr))}")
 
 
+@pytest.mark.py_mmd_tools
+def test_nc_wrapper_ncatters(dataDir):
+    test_ncin = os.path.join(dataDir, "reference_nc.nc")
+    test_ncin = Dataset(test_ncin)
+
+    test_json_header = os.path.join(dataDir, "reference_nc_header.json")
+
+    with open(test_json_header, "r") as file:
+        test_json_header = nc_wrapper(json.load(file))
+
+    assert test_json_header.ncattrs() == test_ncin.ncattrs(), \
+        "Keys in global ncattrs does not match between json and nc."
+
+    for var in test_ncin.variables:
+        assert test_ncin.variables[var].ncattrs() == test_json_header.variables[var].ncattrs(), \
+            f"Mismatch in variable attributes, for variable {var}"
+
+
 class TestNCAttrsFromYaml(unittest.TestCase):
 
     def setUp(self):
