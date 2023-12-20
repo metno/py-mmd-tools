@@ -169,6 +169,54 @@ def get_vocab_dict(field, controlled_vocabulary, resource="", mmd_required_vocab
     return field_data
 
 
+class nc_wrapper():
+    """
+    Wrapper of dict/json to provide netCDF attr access for compatability
+    in nc_to_mmd
+    """
+
+    def __init__(self, netcdf_header: dict):
+        self.netcdf_header = netcdf_header
+
+        if "global_variables" in netcdf_header:
+            for i in netcdf_header["global_variables"]:
+                setattr(self, i, netcdf_header["global_variables"][i])
+
+        for i in netcdf_header["variables"]:
+            netcdf_header["variables"][i] = nc_sub(netcdf_header["variables"][i])
+
+    def __getitem__(self, key):
+        return self.netcdf_header["global_variables"][key]
+
+    def ncattrs(self):
+        return list(self.netcdf_header["global_variables"].keys())
+
+    def getncattr(self, attr):
+        return self.netcdf_header["global_variables"][attr]
+
+    @property
+    def variables(self):
+        return self.netcdf_header["variables"]
+
+
+class nc_sub():
+    """
+    Wrapper for handling variable attributes in nc_wrapper
+    """
+
+    def __init__(self, netcdf_header):
+        self.netcdf_header = netcdf_header
+
+    def __getitem__(self, key):
+        return self.netcdf_header["attrs"][key]
+
+    def ncattrs(self):
+        return list(self.netcdf_header["attrs"].keys())
+
+    def getncattr(self, attr):
+        return self.netcdf_header["attrs"][attr]
+
+
 class Nc_to_mmd(object):
 
     # Some constants:
@@ -178,7 +226,11 @@ class Nc_to_mmd(object):
     ACDD_NAMING_AUTH = 'naming_authority'
     ACDD_ID_INVALID_CHARS = ['\\', '/', ':', ' ']
 
-    def __init__(self, netcdf_file, opendap_url=None, output_file=None, check_only=False):
+    def __init__(self, netcdf_file,
+                 opendap_url=None,
+                 output_file=None,
+                 check_only=False,
+                 json_input=False):
         """Class for creating an MMD XML file based on the discovery
         metadata provided in the global attributes of NetCDF files that
         are compliant with the CF-conventions and ACDD.
@@ -197,7 +249,8 @@ class Nc_to_mmd(object):
                 "must be provided if check_only is False")
         super(Nc_to_mmd, self).__init__()
         self.output_file = output_file
-        self.netcdf_file = os.path.abspath(netcdf_file)
+        if not json_input:
+            self.netcdf_file = os.path.abspath(netcdf_file)
         self.opendap_url = opendap_url
         self.check_only = check_only
         self.missing_attributes = {
@@ -232,14 +285,17 @@ class Nc_to_mmd(object):
         self.quality_control = MMDGroup('mmd', 'https://vocab.met.no/mmd/Quality_Control')
         self.quality_control.init_vocab()
 
+        self.json_input = json_input
+
         if not (self.platform_group.is_initialised and self.instrument_group.is_initialised):
             raise ValueError('Instrument or Platform group were not initialised')
 
-        # Open netcdf file for reading
-        with self.read_nc_file(self.netcdf_file) as ncin:
-            self.check_attributes_not_empty(ncin)
-
-        return
+        if json_input:
+            self.ncin = nc_wrapper(netcdf_file)
+            self.check_attributes_not_empty(self.ncin)
+        else:
+            self.ncin = self.read_nc_file(self.netcdf_file)
+            self.check_attributes_not_empty(self.ncin)
 
     def read_nc_file(self, fn):
         """ Open netcdf dataset, appending #fillmismatch if necessary
@@ -1490,10 +1546,8 @@ class Nc_to_mmd(object):
         time_coverage_end = kwargs.pop('time_coverage_end', '')
         geographic_extent_rectangle = kwargs.pop('geographic_extent_rectangle', '')
 
-        # Open netcdf file for reading
-        ncin = self.read_nc_file(self.netcdf_file)
-
-        self.check_attributes_not_empty(ncin)
+        # Get ncin object from instance
+        ncin = self.ncin
 
         # Get list of MMD elements
         if mmd_yaml is None:
@@ -1605,7 +1659,8 @@ class Nc_to_mmd(object):
         else:
             self.metadata['data_access'] = []
 
-        file_size = pathlib.Path(self.netcdf_file).stat().st_size / (1024 * 1024)
+        if not self.json_input:
+            file_size = pathlib.Path(self.netcdf_file).stat().st_size / (1024 * 1024)
 
         # ACDD processing_level follows a controlled vocabulary, so
         # it must be handled separately
@@ -1635,14 +1690,15 @@ class Nc_to_mmd(object):
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
 
-        # Set storage_information
-        self.metadata['storage_information'] = {
-            'file_name': os.path.basename(self.netcdf_file),
-            'file_location': os.path.dirname(self.netcdf_file),
-            'file_format': 'NetCDF-CF',
-            'file_size': '%.2f'%file_size,
-            'file_size_unit': 'MB',
-        }
+        if not self.json_input:
+            # Set storage_information
+            self.metadata['storage_information'] = {
+                'file_name': os.path.basename(self.netcdf_file),
+                'file_location': os.path.dirname(self.netcdf_file),
+                'file_format': 'NetCDF-CF',
+                'file_size': '%.2f'%file_size,
+                'file_size_unit': 'MB',
+            }
 
         if checksum_calculation:
             hasher = FileHash('md5', chunk_size=1048576)
