@@ -221,10 +221,12 @@ class Nc_to_mmd(object):
 
     # Some constants:
     # add others when needed. See #198
-    VALID_NAMING_AUTHORITIES = ['no.met', 'no.nve', 'no.nilu', 'no.niva']
     ACDD_ID = 'id'
     ACDD_NAMING_AUTH = 'naming_authority'
-    ACDD_ID_INVALID_CHARS = ['\\', '/', ':', ' ']
+    ACDD_ID_INVALID_CHARS = None
+    VALID_NAMING_AUTHORITIES = None
+    LANDING_PAGE_BASE = None
+
 
     def __init__(self, netcdf_file,
                  opendap_url=None,
@@ -243,6 +245,12 @@ class Nc_to_mmd(object):
             opendap_url : str
                 OPeNDAP url
         """
+        self.ACDD_ID_INVALID_CHARS = ['\\', '/', ':', ' ']
+        self.VALID_NAMING_AUTHORITIES = ['no.met', 'no.nve', 'no.nilu', 'no.niva']
+        self.LANDING_PAGE_BASE = {
+            'no.met': 'https://data.met.no/dataset',
+            'dummy': 'https://data.fake.no', # used if naming_authority is missing from the nc file
+        }
         if (output_file is None or opendap_url is None) and check_only is False:
             raise ValueError(
                 "The opendap_url and output_file input parameters "
@@ -306,6 +314,20 @@ class Nc_to_mmd(object):
             ncin = Dataset(self.netcdf_file+'#fillmismatch')
 
         return ncin
+
+    def get_dataset_landing_page_url(self):
+        """ Returns the url to the dataset landing page. The url
+        follows a rule defined by the LANDING_PAGE_BASE attribute.
+        """
+        if self.ACDD_ID in self.ncin.ncattrs():
+            ncid = getattr(self.ncin, self.ACDD_ID)
+        else:
+            ncid = "dummy"
+        if self.ACDD_NAMING_AUTH in self.ncin.ncattrs():
+            naming_authority = getattr(self.ncin, self.ACDD_NAMING_AUTH)
+        else:
+            naming_authority = "dummy"
+        return os.path.join(self.LANDING_PAGE_BASE[naming_authority], ncid)
 
     def separate_repeated(self, repetition_allowed, acdd_attr, separator=','):
         """ToDo: Add docstring"""
@@ -931,11 +953,11 @@ class Nc_to_mmd(object):
         if acdd_title_key in ncin.ncattrs():
             title = getattr(ncin, acdd_title_key)
 
-        acdd_url = mmd_element['url'].pop('acdd')
-        urls = []
-        acdd_url_key = list(acdd_url.keys())[0]
-        if acdd_url_key in ncin.ncattrs():
-            urls = self.separate_repeated(True, getattr(ncin, acdd_url_key))
+        publisher = None
+        acdd_publisher = mmd_element['publisher'].pop('acdd')
+        acdd_publisher_key = list(acdd_publisher.keys())[0]
+        if acdd_publisher_key in ncin.ncattrs():
+            publisher = getattr(ncin, acdd_publisher_key)
 
         data = []
         for i in range(len(publication_dates)):
@@ -952,23 +974,15 @@ class Nc_to_mmd(object):
                     'publication_date': ndt,
                     'title': title,
                 }
-                if len(urls) <= i:
-                    """ not necessary, since metadata_link is not mandatory
-                    # Issue warning
-                    self.missing_attributes['warnings'].append(
-                        '%s attribute is missing' % acdd_url_key)
-                    """
-                    url = ''
-                else:
-                    url = urls[i]
-                # Validate the url
-                if not valid_url(url):
-                    if url != '':
-                        # Issue warning
+                data_dict['url'] = self.get_dataset_landing_page_url()
+
+                if publisher is not None:
+                    default = "Norwegian Meteorological Institute"
+                    if publisher != default:
                         self.missing_attributes['warnings'].append(
-                            '"%s" in %s attribute is not a valid url' % (url, acdd_url_key))
-                else:
-                    data_dict['url'] = url
+                            "If datasets should be published by MET Norway, the %s ACDD attribute"
+                            " should be %s." % (acdd_publisher_key, default))
+                    data_dict['publisher'] = publisher
 
                 data.append(data_dict)
 
@@ -1320,6 +1334,11 @@ class Nc_to_mmd(object):
             'Extended metadata',
         ]
         data = []
+        # Add dataset landing page from rule
+        data.append({
+            'resource': self.get_dataset_landing_page_url(),
+            'type': 'Dataset landing page'})
+
         repetition_allowed = mmd_element.pop('maxOccurs', '') not in ['0', '1']
         acdd = mmd_element['resource']['acdd']
         separator = acdd.pop('separator', ',')
@@ -1358,6 +1377,10 @@ class Nc_to_mmd(object):
             x = filter(lambda a: a[0].lower() == a[1].lower(), xx)
             ri = {'resource': uri, 'type': list(x)[0][1]}
             ri['description'] = ""  # not easily available in acdd - needs to be discussed
+            if ri['type'] == 'Dataset landing page':
+                # The landing page is given by a rule in py-mmd-tools
+                # see get_dataset_landing_page_url
+                continue
             data.append(ri)
         return data
 
