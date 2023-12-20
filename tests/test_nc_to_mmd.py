@@ -437,7 +437,8 @@ def test_nc_wrapper_variable_attrs(dataDir):
 
     for var, var_attrs in test_ncin.variables.items():
         for attr in var_attrs.ncattrs():
-            assert handle_type_comparison(var_attrs.getncattr(attr), test_json_header.variables[var].getncattr(attr)), \
+            assert handle_type_comparison(var_attrs.getncattr(attr),
+                                          test_json_header.variables[var].getncattr(attr)), \
                 (f"Divergence in variable attribute between json and nc header at {var}:{attr},"
                  f" nc: {var_attrs.getncattr(attr)} of type {type(var_attrs.getncattr(attr))},"
                  f"json: {test_json_header.variables[var].getncattr(attr)}"
