@@ -188,12 +188,6 @@ class nc_wrapper():
     def __getitem__(self, key):
         return self.netcdf_header["global_variables"][key]
 
-    def __enter__(self, inpt):
-        return self
-
-    def __exit__(self, type, value, trackeback):
-        pass
-
     def ncattrs(self):
         return list(self.netcdf_header["global_variables"].keys())
 
@@ -205,7 +199,7 @@ class nc_wrapper():
         return self.netcdf_header["variables"]
 
 
-class nc_sub(nc_wrapper):
+class nc_sub():
     """
     Wrapper for handling variable attributes in nc_wrapper
     """
@@ -216,21 +210,11 @@ class nc_sub(nc_wrapper):
     def __getitem__(self, key):
         return self.netcdf_header["attrs"][key]
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, trackeback):
-        pass
-
     def ncattrs(self):
         return list(self.netcdf_header["attrs"].keys())
 
     def getncattr(self, attr):
         return self.netcdf_header["attrs"][attr]
-
-    @property
-    def variables(self):
-        pass
 
 
 class Nc_to_mmd(object):
