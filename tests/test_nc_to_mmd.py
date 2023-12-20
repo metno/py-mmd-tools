@@ -421,9 +421,9 @@ def test_nc_wrapper_variable_attrs(dataDir):
     with open(test_json_header, "r") as file:
         test_json_header = nc_wrapper(json.load(file))
 
-    for var in test_ncin.variables:
-        for attr in var.ncattrs():
-            assert var.getncattr(attr) == test_json_header.variables[var].getncattr(attr), \
+    for var, var_attrs in test_ncin.variables.items():
+        for attr in var_attrs.ncattrs():
+            assert var_attrs.getncattr(attr) == test_json_header.variables[var].getncattr(attr), \
                 (f"Divergence in variable attribute between json and nc header at {var}:{attr},"
                  f" nc: {test_ncin.getncattr(attr)}, json: {test_json_header.getncattr(attr)}")
 
