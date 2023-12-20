@@ -750,10 +750,12 @@ class Nc_to_mmd(object):
         (longitude and latitude are omitted).
         """
         varlist = []
-        for variable in ncin.variables.values():
-            if 'standard_name' in variable.ncattrs():
-                if variable.standard_name not in ['longitude', 'latitude']:
-                    varlist.append(variable.getncattr('standard_name'))
+        for key in ncin.variables.keys():
+            import ipdb
+            ipdb.set_trace()
+            if 'standard_name' in ncin.variables[key].ncattrs():
+                if ncin.variables[key].standard_name not in ['longitude', 'latitude']:
+                    varlist.append(ncin.variables[key].standard_name)
 
         return varlist
 
@@ -812,7 +814,7 @@ class Nc_to_mmd(object):
 
                 if cfstdn_search_result is not True:
                     self.missing_attributes['warnings'].append(
-                        "The standard name %s is not a cf_standard name from CFSTDN (see "
+                        "The standard name %s is not a CF standard name (see "
                         "https://vocab.met.no/CFSTDN)"
                         % (cfstd_name))
                 else:

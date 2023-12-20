@@ -1850,8 +1850,8 @@ class TestNC2MMD(unittest.TestCase):
         md.get_keywords(mmd_yaml['keywords'], ncin)
         self.assertEqual(
             md.missing_attributes['warnings'][0],
-            'The standard name this_is_not_a_cf_standard_name is not a cf_standard name '
-            'from CFSTDN (see https://vocab.met.no/CFSTDN)'
+            'The standard name this_is_not_a_cf_standard_name is not a CF standard name '
+            '(see https://vocab.met.no/CFSTDN)'
         )
 
     def test_keywords(self):
