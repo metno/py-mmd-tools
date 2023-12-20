@@ -460,6 +460,17 @@ def test_nc_wrapper_variable_attrs(dataDir):
 
 
 @pytest.mark.py_mmd_tools
+def test_json_dry_run(dataDir):
+    test_json_header = os.path.join(dataDir, "reference_nc_header.json")
+
+    with open(test_json_header, "r") as file:
+        test_json_header = json.load(file)
+
+    tmp = Nc_to_mmd(test_json_header, json_input=True, check_only=True)
+    tmp.to_mmd()
+
+
+@pytest.mark.py_mmd_tools
 def test_nc_wrapper_ncatters(dataDir):
     test_ncin = os.path.join(dataDir, "reference_nc.nc")
     test_ncin = Dataset(test_ncin)

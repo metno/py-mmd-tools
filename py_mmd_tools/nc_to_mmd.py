@@ -180,7 +180,7 @@ class nc_wrapper():
 
         if "global_variables" in netcdf_header:
             for i in netcdf_header["global_variables"]:
-                setattr(self, i, self.netcdf_header["global_variables"][i])
+                setattr(self, i, netcdf_header["global_variables"][i])
 
         for i in netcdf_header["variables"]:
             netcdf_header["variables"][i] = nc_sub(netcdf_header["variables"][i])
@@ -188,7 +188,7 @@ class nc_wrapper():
     def __getitem__(self, key):
         return self.netcdf_header["global_variables"][key]
 
-    def __enter__(self):
+    def __enter__(self, inpt):
         return self
 
     def __exit__(self, type, value, trackeback):
@@ -307,9 +307,8 @@ class Nc_to_mmd(object):
             raise ValueError('Instrument or Platform group were not initialised')
 
         if json_input:
-            with nc_wrapper(netcdf_file) as ncin:
-                self.ncin = ncin
-                self.check_attributes_not_empty(ncin)
+            self.ncin = nc_wrapper(netcdf_file)
+            self.check_attributes_not_empty(self.ncin)
         else:
             self.ncin = self.read_nc_file(self.netcdf_file)
             self.check_attributes_not_empty(self.ncin)
