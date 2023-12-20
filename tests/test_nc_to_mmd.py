@@ -15,6 +15,7 @@ import yaml
 import warnings
 import unittest
 import pytest
+import json
 
 from dateutil.parser import isoparse
 from filehash import FileHash
@@ -23,7 +24,7 @@ from netCDF4 import Dataset
 from pkg_resources import resource_string
 from unittest.mock import patch
 
-from py_mmd_tools.nc_to_mmd import Nc_to_mmd, normalize_iso8601, normalize_iso8601_0
+from py_mmd_tools.nc_to_mmd import Nc_to_mmd, normalize_iso8601, normalize_iso8601_0, nc_wrapper
 from py_mmd_tools.nc_to_mmd import valid_url
 from py_mmd_tools.nc_to_mmd import get_short_and_long_names
 from py_mmd_tools.yaml_to_adoc import nc_attrs_from_yaml
@@ -391,6 +392,39 @@ def test_get_quality_control(dataDir):
     with pytest.raises(ValueError) as ve:
         md.get_quality_control(mmd_element, ncin)
     assert str(ve.value) == "This is not expected..."
+
+
+@pytest.mark.py_mmd_tools
+def test_nc_wrapper_global_attrs(dataDir):
+
+    test_ncin = os.path.join(dataDir, "reference_nc.nc")
+    test_ncin = Dataset(test_ncin)
+
+    test_json_header = os.path.join(dataDir, "reference_nc_header.json")
+
+    test_json_header = nc_wrapper(json.load(test_json_header))
+
+    for attr in test_ncin.ncattrs():
+        assert test_ncin.getncattr(attr) == test_json_header.getncattr(attr), \
+            (f"Divergence in global attribute between header and nc header at {attr},"
+             f" nc: {test_ncin.getncattr(attr)}, json: {test_json_header.getncattr(attr)}")
+
+
+@pytest.mark.py_mmd_tools
+def test_nc_wrapper_variable_attrs(dataDir):
+
+    test_ncin = os.path.join(dataDir, "reference_nc.nc")
+    test_ncin = Dataset(test_ncin)
+
+    test_json_header = os.path.join(dataDir, "reference_nc_header.json")
+
+    test_json_header = nc_wrapper(json.load(test_json_header))
+
+    for var in test_ncin.variables:
+        for attr in var.ncattrs():
+            assert var.getncattr(attr) == test_json_header.variables[var].getncattr(attr), \
+                (f"Divergence in variable attribute between json and nc header at {var}:{attr},"
+                 f" nc: {test_ncin.getncattr(attr)}, json: {test_json_header.getncattr(attr)}")
 
 
 class TestNCAttrsFromYaml(unittest.TestCase):

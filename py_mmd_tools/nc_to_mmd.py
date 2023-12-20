@@ -221,9 +221,6 @@ class nc_sub(nc_wrapper):
     def __exit__(self, type, value, trackeback):
         pass
 
-    def is_(self, a, b):
-        return a
-
     def ncattrs(self):
         return list(self.netcdf_header.keys())
 
