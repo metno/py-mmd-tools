@@ -411,6 +411,10 @@ def test_nc_wrapper_global_attrs(dataDir):
         assert test_ncin.getncattr(attr) == test_json_header.getncattr(attr), \
             (f"Divergence in global attribute between header and nc header at {attr},"
              f" nc: {test_ncin.getncattr(attr)}, json: {test_json_header.getncattr(attr)}")
+    for attr in test_ncin.ncattrs():
+        assert test_ncin.getncattr(attr) == test_json_header[attr], \
+            (f"Divergence in global attribute between header and nc header at {attr},"
+             f" nc: {test_ncin.getncattr(attr)}, json: {test_json_header[attr]}")
 
 
 @pytest.mark.py_mmd_tools
@@ -444,6 +448,15 @@ def test_nc_wrapper_variable_attrs(dataDir):
                  f" nc: {var_attrs.getncattr(attr)} of type {type(var_attrs.getncattr(attr))},"
                  f"json: {test_json_header.variables[var].getncattr(attr)}"
                  f" of type {type(test_json_header.variables[var].getncattr(attr))}")
+
+    for var, var_attrs in test_ncin.variables.items():
+        for attr in var_attrs.ncattrs():
+            assert handle_type_comparison(var_attrs.getncattr(attr),
+                                          test_json_header.variables[var][attr]), \
+                (f"Divergence in variable attribute between json and nc header at {var}:{attr},"
+                 f" nc: {var_attrs.getncattr(attr)} of type {type(var_attrs.getncattr(attr))},"
+                 f"json: {test_json_header.variables[var][attr]}"
+                 f" of type {type(test_json_header.variables[var][attr])}")
 
 
 @pytest.mark.py_mmd_tools
