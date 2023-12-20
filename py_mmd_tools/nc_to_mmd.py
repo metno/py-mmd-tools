@@ -746,11 +746,16 @@ class Nc_to_mmd(object):
 
     # extract standard names from variables in ncin
     def get_CFSTDN_keywords(self, ncin):
-        varlist = [variable.getncattr('standard_name') for variable in ncin.variables.values()
-                   if 'standard_name' in variable.ncattrs()]
-        cfstd_names = list(set(varlist))
+        """ Return list of CF variables in the netCDF file
+        (longitude and latitude are omitted).
+        """
+        varlist = []
+        for variable in ncin.variables.values():
+            if 'standard_name' in variable.ncattrs():
+                if variable.standard_name not in ['longitude', 'latitude']:
+                    varlist.append(variable.getncattr('standard_name'))
 
-        return cfstd_names
+        return varlist
 
     def get_keywords(self, mmd_element, ncin):
         """ToDo: Add docstring"""

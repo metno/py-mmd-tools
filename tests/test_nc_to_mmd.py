@@ -488,6 +488,16 @@ def test_nc_wrapper_ncatters(dataDir):
             f"Mismatch in variable attributes, for variable {var}"
 
 
+@pytest.mark.py_mmd_tools
+def test_get_CFSTDN_keywords(dataDir):
+    """ Test that get_CFSTDN_keywords returns a list with one CF
+    standard name from the test file.
+    """
+    md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
+    vars = md.get_CFSTDN_keywords(md.ncin)
+    assert vars[0] == "toa_bidirectional_reflectance"
+
+
 class TestNCAttrsFromYaml(unittest.TestCase):
 
     def setUp(self):
