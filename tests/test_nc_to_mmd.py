@@ -17,6 +17,8 @@ import unittest
 import pytest
 import json
 
+import numpy as np
+
 from dateutil.parser import isoparse
 from filehash import FileHash
 from lxml import etree
@@ -421,11 +423,25 @@ def test_nc_wrapper_variable_attrs(dataDir):
     with open(test_json_header, "r") as file:
         test_json_header = nc_wrapper(json.load(file))
 
+    def handle_type_comparison(a, b):
+        if isinstance(a, (np.floating, float)) or isinstance(b, (np.floating, float)):
+            if np.isnan(a) and np.isnan(b):
+                return True
+            else:
+                return np.abs(a-b) < 1e-8
+
+        if isinstance(a, (np.ndarray, list)) and isinstance(b, (np.ndarray, list)):
+            return (a == b).all()
+
+        return a == b
+
     for var, var_attrs in test_ncin.variables.items():
         for attr in var_attrs.ncattrs():
-            assert var_attrs.getncattr(attr) == test_json_header.variables[var].getncattr(attr), \
+            assert handle_type_comparison(var_attrs.getncattr(attr), test_json_header.variables[var].getncattr(attr)), \
                 (f"Divergence in variable attribute between json and nc header at {var}:{attr},"
-                 f" nc: {test_ncin.getncattr(attr)}, json: {test_json_header.getncattr(attr)}")
+                 f" nc: {var_attrs.getncattr(attr)} of type {type(var_attrs.getncattr(attr))},"
+                 f"json: {test_json_header.variables[var].getncattr(attr)}"
+                 f" of type {type(test_json_header.variables[var].getncattr(attr))}")
 
 
 class TestNCAttrsFromYaml(unittest.TestCase):
