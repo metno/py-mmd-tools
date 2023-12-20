@@ -171,7 +171,8 @@ def get_vocab_dict(field, controlled_vocabulary, resource="", mmd_required_vocab
 
 class nc_wrapper():
     """
-    Wrapper of dict to provide netCDF attr access
+    Wrapper of dict/json to provide netCDF attr access for compatability
+    in nc_to_mmd
     """
 
     def __init__(self, netcdf_header: dict):
@@ -208,6 +209,9 @@ class nc_wrapper():
 
 
 class nc_sub(nc_wrapper):
+    """
+    Wrapper for handling variable attributes in nc_wrapper
+    """
 
     def __init__(self, netcdf_header):
         self.netcdf_header = netcdf_header
@@ -222,10 +226,10 @@ class nc_sub(nc_wrapper):
         pass
 
     def ncattrs(self):
-        return list(self.netcdf_header.keys())
+        return list(self.netcdf_header["attrs"].keys())
 
     def getncattr(self, attr):
-        return self.netcdf_header[attr]
+        return self.netcdf_header["attrs"][attr]
 
     @property
     def variables(self):
