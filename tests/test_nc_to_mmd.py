@@ -418,7 +418,8 @@ def test_nc_wrapper_variable_attrs(dataDir):
 
     test_json_header = os.path.join(dataDir, "reference_nc_header.json")
 
-    test_json_header = nc_wrapper(json.load(test_json_header))
+    with open(test_json_header, "r") as file:
+        test_json_header = nc_wrapper(json.load(file))
 
     for var in test_ncin.variables:
         for attr in var.ncattrs():
