@@ -751,8 +751,6 @@ class Nc_to_mmd(object):
         """
         varlist = []
         for key in ncin.variables.keys():
-            import ipdb
-            ipdb.set_trace()
             if 'standard_name' in ncin.variables[key].ncattrs():
                 if ncin.variables[key].standard_name not in ['longitude', 'latitude']:
                     varlist.append(ncin.variables[key].standard_name)
