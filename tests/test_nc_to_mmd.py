@@ -81,6 +81,19 @@ def test_get_landing_page_url(dataDir):
 
 
 @pytest.mark.py_mmd_tools
+def test_license_missing(dataDir):
+    """ Test that an error is raised if the license attribute is missing.
+    """
+    mmd_yaml = yaml.load(
+        resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+    )
+    # nc_to_update.nc does not have license..
+    md = Nc_to_mmd(os.path.join(dataDir, "nc_to_update.nc"), check_only=True)
+    md.get_license(mmd_yaml['use_constraint'], md.ncin)
+    assert md.missing_attributes["errors"][0] == 'ACDD attribute "license" is required'
+
+
+@pytest.mark.py_mmd_tools
 def test_get_related_dataset(dataDir):
     """ Test get_related_dataset function.
     """

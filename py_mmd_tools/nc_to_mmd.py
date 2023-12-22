@@ -1467,6 +1467,10 @@ class Nc_to_mmd(object):
         data = None
         old_version = False
         acdd_license = list(mmd_element['resource']['acdd'].keys())[0]
+        if acdd_license not in ncin.ncattrs():
+            self.missing_attributes['errors'].append('ACDD attribute "%s" is required' %
+                                                     acdd_license)
+            return data
         license = getattr(ncin, acdd_license).split('(')
         license_url = license[0].strip()
         # validate url
