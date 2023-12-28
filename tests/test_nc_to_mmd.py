@@ -71,6 +71,16 @@ def test_parent_keyword_arg(dataDir):
 
 
 @pytest.mark.py_mmd_tools
+def test_get_landing_page_url(dataDir):
+    md = Nc_to_mmd(os.path.join(dataDir, "reference_nc.nc"), check_only=True)
+    assert md.get_dataset_landing_page_url() == "https://data.met.no/dataset/" \
+                                                "b7cb7934-77ca-4439-812e-f560df3fe7eb"
+    md = Nc_to_mmd(os.path.join(dataDir, "reference_nc_missing_keywords_vocab.nc"),
+                   check_only=True)
+    assert md.get_dataset_landing_page_url() == "https://data.fake.no/dummy"
+
+
+@pytest.mark.py_mmd_tools
 def test_license_missing(dataDir):
     """ Test that an error is raised if the license attribute is missing.
     """
@@ -2019,25 +2029,6 @@ class TestNC2MMD(unittest.TestCase):
                          'metadata_link attribute is missing')
         """
 
-    def test_dataset_citation_invalid_url(self):
-        """ Test that a warning is issued if the url provided in the
-        metadata_link is invalid.
-        """
-        mmd_yaml = yaml.load(
-            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-        )
-        md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.creator_name = "Tester Test"
-        ncin.date_created = "2022-11-04T11:06:10Z"
-        ncin.title = "Test dataset"
-        ncin.publisher_name = "Norwegian Meteorological Institute"
-        ncin.metadata_link = "invalid_url"
-        value = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
-        self.assertEqual(value[0]['author'], 'Tester Test')
-        self.assertEqual(md.missing_attributes['warnings'][0],
-                         '"invalid_url" in metadata_link attribute is not a valid url')
-
     def test_dataset_citation_as_kwarg(self):
         """Test that the user can provide a custom dataset citation.
         """
@@ -2088,6 +2079,14 @@ class TestNC2MMD(unittest.TestCase):
             value[0]['title'],
             'Direct Broadcast data processed in satellite swath to L1C.'
         )
+        self.assertEqual(value[0]['publication_date'],
+                         '2020-11-27T14:05:56Z')
+        self.assertEqual(value[0]['title'],
+                         'Direct Broadcast data processed in satellite swath to L1C.')
+        self.assertEqual(value[0]['publisher'],
+                         'Norwegian Meteorological Institute')
+        self.assertEqual(value[0]['url'],
+                         'https://data.met.no/dataset/b7cb7934-77ca-4439-812e-f560df3fe7eb')
 
     def test_dataset_citation_invalid_date(self):
         mmd_yaml = yaml.load(
@@ -2643,17 +2642,12 @@ class TestNC2MMD(unittest.TestCase):
         mmd_yaml = yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
-        md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.references = (
-            "https://data.met.no/dataset/3f9974bf-b073-4c16-81d8-c34fcf3b1f01"
-            "(Dataset landing page),"
-            "https://ieeexplore.ieee.org/document/7914752(Scientific publication)"
-        )
+        md = Nc_to_mmd(self.reference_nc, check_only=True)
+        ncin = Dataset(md.netcdf_file)
         data = md.get_related_information(mmd_yaml['related_information'], ncin)
         self.assertEqual(
             data[0]['resource'],
-            'https://data.met.no/dataset/3f9974bf-b073-4c16-81d8-c34fcf3b1f01')
+            'https://data.met.no/dataset/b7cb7934-77ca-4439-812e-f560df3fe7eb')
         self.assertEqual(data[0]['type'], 'Dataset landing page')
         self.assertEqual(data[1]['resource'], 'https://ieeexplore.ieee.org/document/7914752')
         self.assertEqual(data[1]['type'], 'Scientific publication')
@@ -2671,9 +2665,11 @@ class TestNC2MMD(unittest.TestCase):
             "https://ieeexplore.ieee.org/document/7914752 (Scientific publication)"  # added space
         )
         data = md.get_related_information(mmd_yaml['related_information'], ncin)
+        # Note: A landing page url created from the netcdf id and
+        # naming_authority attributes overrides the references information
         self.assertEqual(
             data[0]['resource'],
-            'https://data.met.no/dataset/3f9974bf-b073-4c16-81d8-c34fcf3b1f01')
+            'https://data.fake.no/npp-viirs-mband-20201127134002-20201127135124')
         self.assertEqual(data[0]['type'], 'Dataset landing page')
         self.assertEqual(data[1]['resource'], 'https://ieeexplore.ieee.org/document/7914752')
         self.assertEqual(data[1]['type'], 'Scientific publication')
@@ -2694,7 +2690,7 @@ class TestNC2MMD(unittest.TestCase):
             "https://ieeexplore.ieee.org/document/7914752(Scientific publication)"
         )
         data = md.get_related_information(mmd_yaml['related_information'], ncin)
-        self.assertEqual(data[0]['type'], 'Scientific publication')
+        self.assertEqual(data[1]['type'], 'Scientific publication')
         self.assertEqual(
             md.missing_attributes["errors"][0],
             'Reference types must follow a controlled vocabulary from'
@@ -2716,8 +2712,7 @@ class TestNC2MMD(unittest.TestCase):
             "(Dataset landing page),"
             "https://ieeexplore.ieee__.org/document/7914752(Scientific publication)"
         )
-        data = md.get_related_information(mmd_yaml['related_information'], ncin)
-        self.assertEqual(data, [])
+        md.get_related_information(mmd_yaml['related_information'], ncin)
         self.assertEqual(
             md.missing_attributes["errors"][0],
             'references must contain valid uris')
@@ -2735,8 +2730,7 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(self.fail_nc, check_only=True)
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
         ncin.references = "landing_page, paper"
-        data = md.get_related_information(mmd_yaml['related_information'], ncin)
-        self.assertEqual(data, [])
+        md.get_related_information(mmd_yaml['related_information'], ncin)
         self.assertEqual(
             md.missing_attributes["errors"][0],
             "references must be formed as <uri>(<type>).")
