@@ -779,7 +779,6 @@ class Nc_to_mmd(object):
 
         # add vocabulary CFSTDN
         if len(cfstd_names) != 0:
-
             vocabularies.append(
                 "CFSTDN:CF Standard Names:https://vocab.met.no/mmd"
                 "/Keywords_Vocabulary/CFSTDN")
@@ -812,9 +811,8 @@ class Nc_to_mmd(object):
             for cfstd_name in cfstd_names:
                 # Verify whether the standard name is a cf-standard name from CFSTDN
                 cfstdn_search_result = self.cfstdn_keyword.check_standard_name(cfstd_name, True)
-
                 if cfstdn_search_result is not True:
-                    self.missing_attributes['warnings'].append(
+                    self.missing_attributes['errors'].append(
                         "The standard name %s is not a CF standard name (see "
                         "https://vocab.met.no/CFSTDN)"
                         % (cfstd_name))
@@ -1688,7 +1686,6 @@ class Nc_to_mmd(object):
         mmd_yaml.pop('data_access')
         # Add OPeNDAP data_access if opendap_url is not None
         if self.opendap_url is not None:
-
             self.metadata['data_access'] = self.get_data_access_dict(ncin, **kwargs)
         else:
             self.metadata['data_access'] = []
