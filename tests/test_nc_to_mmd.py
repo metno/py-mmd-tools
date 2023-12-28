@@ -511,6 +511,16 @@ def test_nc_wrapper_ncatters(dataDir):
             f"Mismatch in variable attributes, for variable {var}"
 
 
+@pytest.mark.py_mmd_tools
+def test_get_CFSTDN_keywords(dataDir):
+    """ Test that get_CFSTDN_keywords returns a list with one CF
+    standard name from the test file.
+    """
+    md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
+    vars = md.get_CFSTDN_keywords(md.ncin)
+    assert vars[0] == "toa_bidirectional_reflectance"
+
+
 class TestNCAttrsFromYaml(unittest.TestCase):
 
     def setUp(self):
@@ -1852,6 +1862,23 @@ class TestNC2MMD(unittest.TestCase):
             'keywords_vocabulary is a required ACDD attribute'
         )
 
+    def test_keywords_standard_name_not_in_CFSTDN(self):
+        """Test that an error is added if the CF standard name does
+        not exist.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_non_cf_standard_name.nc'),
+                       check_only=True)
+        ncin = Dataset(md.netcdf_file)
+        md.get_keywords(mmd_yaml['keywords'], ncin)
+        self.assertEqual(
+            md.missing_attributes['errors'][0],
+            'The standard name this_is_not_a_cf_standard_name is not a CF standard name '
+            '(see https://vocab.met.no/CFSTDN)'
+        )
+
     def test_keywords(self):
         """ToDo: Add docstring"""
         mmd_yaml = yaml.load(
@@ -1874,6 +1901,11 @@ class TestNC2MMD(unittest.TestCase):
             'Meteorological geographical features',
             'Atmospheric conditions', 'Oceanographic geographical features'
         ])
+        self.assertEqual(value[3]['vocabulary'], 'CFSTDN')
+        self.assertEqual(
+            value[3]['resource'],
+            'https://vocab.met.no/mmd/Keywords_Vocabulary/CFSTDN'
+        )
 
     def test_keywords_multiple(self):
         """ToDo: Add docstring"""

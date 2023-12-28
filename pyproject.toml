@@ -1,4 +1,9 @@
 # Minimal PEP 518 pyproject file
+
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "py-mmd-tools"
+description = "This  is a tools for generating MMD files from netCDF-CF files with ACDD attributes, for documenting netCDF-CF files from MMD information."

@@ -28,6 +28,7 @@ from dateutil.parser import isoparse
 from uuid import UUID
 
 from metvocab.mmdgroup import MMDGroup
+from metvocab.cfstd import CFStandard
 
 import pathlib
 from netCDF4 import Dataset
@@ -207,6 +208,9 @@ class nc_sub():
     def __init__(self, netcdf_header):
         self.netcdf_header = netcdf_header
 
+        for var, value in self.netcdf_header["attrs"].items():
+            setattr(self, var, value)
+
     def __getitem__(self, key):
         return self.netcdf_header["attrs"][key]
 
@@ -292,6 +296,9 @@ class Nc_to_mmd(object):
 
         self.quality_control = MMDGroup('mmd', 'https://vocab.met.no/mmd/Quality_Control')
         self.quality_control.init_vocab()
+
+        self.cfstdn_keyword = CFStandard()
+        self.cfstdn_keyword.init_vocab()
 
         self.json_input = json_input
 
@@ -762,12 +769,28 @@ class Nc_to_mmd(object):
 
         return data
 
+    # extract standard names from variables in ncin
+    def get_CFSTDN_keywords(self, ncin):
+        """ Return list of CF variables in the netCDF file
+        (longitude and latitude are omitted).
+        """
+        varlist = []
+        for key in ncin.variables.keys():
+            if 'standard_name' in ncin.variables[key].ncattrs():
+                if ncin.variables[key].standard_name not in ['longitude', 'latitude']:
+                    varlist.append(ncin.variables[key].standard_name)
+
+        return varlist
+
     def get_keywords(self, mmd_element, ncin):
         """ToDo: Add docstring"""
         ok_formatting = True
         acdd_vocabulary = mmd_element['vocabulary'].pop('acdd')
         vocabularies = []
         acdd_vocabulary_key = list(acdd_vocabulary.keys())[0]
+
+        cfstd_names = self.get_CFSTDN_keywords(ncin)
+
         if acdd_vocabulary_key in ncin.ncattrs():
             vocabularies = self.separate_repeated(True, getattr(ncin, acdd_vocabulary_key))
         else:
@@ -775,6 +798,13 @@ class Nc_to_mmd(object):
             self.missing_attributes['errors'].append(
                 '%s is a required ACDD attribute' % acdd_vocabulary_key
             )
+
+        # add vocabulary CFSTDN
+        if len(cfstd_names) != 0:
+            vocabularies.append(
+                "CFSTDN:CF Standard Names:https://vocab.met.no/mmd"
+                "/Keywords_Vocabulary/CFSTDN")
+
         resources = []
         resource_short_names = []
         for vocabulary in vocabularies:
@@ -799,6 +829,17 @@ class Nc_to_mmd(object):
             self.missing_attributes['errors'].append(
                 '%s is a required ACDD attribute' % acdd_keyword_key
             )
+        if len(cfstd_names) != 0:
+            for cfstd_name in cfstd_names:
+                # Verify whether the standard name is a cf-standard name from CFSTDN
+                cfstdn_search_result = self.cfstdn_keyword.check_standard_name(cfstd_name, True)
+                if cfstdn_search_result is not True:
+                    self.missing_attributes['errors'].append(
+                        "The standard name %s is not a CF standard name (see "
+                        "https://vocab.met.no/CFSTDN)"
+                        % (cfstd_name))
+                else:
+                    keywords.append('CFSTDN:%s' % cfstd_name)
 
         keyword_short_names = []
         for keyword in keywords:
