@@ -25,7 +25,7 @@ jobs:
           pip install --upgrade pip
           pip install pytest-timeout
           pip install pytest-cov
-          pip insatll .
+          pip install .
       - name: Run Tests
         run: |
           export MMD_PATH=$HOME/mmd
