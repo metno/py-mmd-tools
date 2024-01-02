@@ -2,15 +2,15 @@ name: pytest
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   pyTestCov:
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9, '3.10']
+        python-version: [3.8, 3.9, "3.10", "3.11"]
     runs-on: ubuntu-latest
     steps:
       - name: Python Setup
@@ -23,9 +23,9 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install --upgrade pip
-          pip install -r requirements.txt
           pip install pytest-timeout
           pip install pytest-cov
+          pip install .
       - name: Run Tests
         run: |
           export MMD_PATH=$HOME/mmd

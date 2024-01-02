@@ -1,4 +1,0 @@
-include LICENSE
-recursive-include py_mmd_tools/templates *
-include py_mmd_tools/mmd_elements.yaml
-include py_mmd_tools/cf_elements.yaml

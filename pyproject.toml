@@ -1,9 +1,62 @@
 # Minimal PEP 518 pyproject file
 
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools", "setuptools_scm", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
+classifiers = [
+	"Programming Language :: Python :: 3",
+	"Development Status :: 4 - Beta",
+	"Intended Audience :: Science/Research",
+	"License :: OSI Approved :: Apache Software License",
+	"Operating System :: OS Independent",
+	"Programming Language :: Python :: 3 :: Only",
+	"Programming Language :: Python :: 3.8",
+	"Programming Language :: Python :: 3.9",
+	"Programming Language :: Python :: 3.10",
+	"Programming Language :: Python :: 3.11",
+	"Programming Language :: Python :: Implementation :: CPython",
+	"Topic :: Scientific/Engineering",
+	"Topic :: Scientific/Engineering :: Atmospheric Science",
+]
+dynamic = ["version"]
+dependencies = [
+	"coverage",
+	"filehash",
+	"jinja2",
+	"lxml>=4.5",
+	"netCDF4 ~= 1.5",
+	"pandas",
+	"parmap",
+	"pytest",
+	"pytest-cov",
+	"python-dateutil",
+	"metvocab @ git+https://github.com/metno/met-vocab-tools@v1.2.0",
+	"pyyaml",
+	"requests",
+	"shapely",
+	"wget",
+	"xmltodict",
+]
 name = "py-mmd-tools"
 description = "This  is a tools for generating MMD files from netCDF-CF files with ACDD attributes, for documenting netCDF-CF files from MMD information."
+readme = "README.md"
+requires-python = ">=3.8"
+
+[project.scripts]
+nc2mmd = "py_mmd_tools.script.nc2mmd:_main"
+check_nc = "py_mmd_tools.script.check_nc:_main"
+yaml2adoc = "py_mmd_tools.script.yaml2adoc:_main"
+
+[project.urls]
+source = "https://github.com/metno/py-mmd-tools"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["py_mmd_tools"]
+
+[tool.pytest.ini_options]
+markers = ["script: Script tests", "py_mmd_tools: Main package tools"]
