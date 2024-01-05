@@ -317,7 +317,8 @@ class Nc_to_mmd(object):
         """
         try:
             ncin = Dataset(self.netcdf_file)
-        except OSError:
+        except OSError as error:
+            print(error)
             ncin = Dataset(self.netcdf_file+'#fillmismatch')
 
         return ncin
