@@ -97,6 +97,13 @@
             },
             "dtype": "float32",
             "shape": [3, 5]
+        },
+        "M01_copy": {
+            "attrs": {
+                "standard_name": "toa_bidirectional_reflectance"
+            },
+            "dtype": "float32",
+            "shape": [3, 5]
         }
     }
 }

@@ -291,7 +291,8 @@ def test_get_data_access_dict_with_custom_wms(monkeypatch):
                                        wms_link='http://test-link')
     assert data[1]['type'] == 'OGC WMS'
     assert 'http://test-link' in str(data[1]['resource'])
-    assert data[1]['wms_layers'] == ['toa_bidirectional_reflectance']
+    assert data[1]['wms_layers'] == ['toa_bidirectional_reflectance',
+                                     'toa_bidirectional_reflectance']
 
 
 @pytest.mark.py_mmd_tools
@@ -518,6 +519,7 @@ def test_get_CFSTDN_keywords(dataDir):
     """
     md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
     vars = md.get_CFSTDN_keywords(md.ncin)
+    assert len(vars) == 1
     assert vars[0] == "toa_bidirectional_reflectance"
 
 
