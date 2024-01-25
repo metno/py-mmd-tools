@@ -12,7 +12,7 @@ metadata_identifier:
       maxOccurs: '1'
       minOccurs: '1'
       comment: Required. We recommend using reverse-DNS naming. No repetition allowed.
-      description: The organization that provides the initial id (see above) for the dataset. The naming authority should be uniquely specified by this attribute. We recommend using reverse-DNS naming for the naming authority.
+      description: The organisation that provides the initial id (see above) for the dataset. The naming authority should be uniquely specified by this attribute. We recommend using reverse-DNS naming for the naming authority.
 
 alternate_identifier:
   maxOccurs: unbounded
@@ -78,7 +78,7 @@ title:
     acdd:
       title:
         minOccurs: '1'
-        comment: Use ACDD extension "title_no" for Norwegian translation.
+        comment: Use the ACDD extension "title_no" for Norwegian translation.
         description: A short phrase or sentence describing the dataset. In many discovery systems, the title will be displayed in the results list from a search, and therefore should be human readable and reasonable to display in a list of such names. This attribute is also recommended by the NetCDF Users Guide and the CF conventions.
     acdd_ext:
       title_no:
@@ -101,8 +101,8 @@ abstract:
       summary:
         minOccurs: '1'
         separator: ';'
-        comment: Use ACDD extension "summary_no" for Norwegian translation.
-        description: A paragraph describing the dataset, analogous to an abstract for a paper. Use ACDD extension "summary_no" for Norwegian translation.
+        comment: Use the ACDD extension "summary_no" for Norwegian translation.
+        description: A paragraph describing the dataset, analogous to an abstract for a paper. Use the ACDD extension "summary_no" for Norwegian translation.
     acdd_ext:
       summary_no:
         comment: Used for Norwegian version of the abstract.
@@ -244,7 +244,7 @@ use_constraint:
         minOccurs: '1'
         maxOccurs: '1'
         comment: Required.
-        description: Provide the URL to a standard or specific license, enter "Freely Distributed" or "None", or describe any restrictions to data access and distribution in free text. It is strongly recommended to use identifiers and URL's from https://spdx.org/licenses/ and to use a form similar to <URL>(<Identifier>) using elements from the SPDX license list.
+        description: Provide the URL to a standard or specific licence, enter "Freely Distributed" or "None", or describe any restrictions to data access and distribution in free text. It is strongly recommended to use identifiers and URL's from https://spdx.org/licenses/ and to use a form similar to <URL>(<Identifier>) using elements from the SPDX licence list.
   license_text:
 
 personnel:
@@ -415,7 +415,7 @@ project:
     project:
       separator: ','
       comment: Comma separated list.
-      description: The name of the project(s) principally responsible for originating this data in the format <long-name> (<short-name>). Multiple projects can be separated by commas, as described under Attribute Content Guidelines. Examples; 'PATMOS-X', 'Extended Continental Shelf Project' becomes 'Extended Continental Shelf Project (PATMOS-X)'. I.e., if each substring includes a keyword in parantheses, the content within the paranthesis is interpreted as the short name for the project while the rest is the long name, e.g., 'Nansen Legacy (NLEG)'.
+      description: The name of the project(s) principally responsible for originating this data in the format <long-name> (<short-name>). Multiple projects can be separated by commas, as described under Attribute Content Guidelines. Examples; 'PATMOS-X', 'Extended Continental Shelf Project' becomes 'Extended Continental Shelf Project (PATMOS-X)'. I.e., if each substring includes a keyword in parentheses, the content within the parenthesis is interpreted as the short name for the project while the rest is the long name, e.g., 'Nansen Legacy (NLEG)'.
   short_name:
   long_name:
 
