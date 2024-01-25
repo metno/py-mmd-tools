@@ -639,7 +639,7 @@ class TestNCAttrsFromYaml(unittest.TestCase):
                        'No repetition allowed.',
             'default': '',
             'description':
-                'The organization that provides the initial id (see above) for '
+                'The organisation that provides the initial id (see above) for '
                 'the dataset. The naming authority should be uniquely '
                 'specified by this attribute. We recommend using reverse-DNS '
                 'naming for the naming authority.',
