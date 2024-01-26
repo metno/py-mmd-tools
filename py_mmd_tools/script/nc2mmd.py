@@ -147,6 +147,7 @@ def main(args=None):
 
 
 def _main():  # pragma: no cover
+    # Why should this catch errors and print them afterwards? Seems strange...
     try:
         main(create_parser().parse_args())  # entry point in setup.cfg
     except ValueError as e:

@@ -3,8 +3,13 @@
 """
 Tool for extracting netCDF header to a json. For use in py-mmd-tools-api
 
+License:
 
+This file is part of the py-mmd-tools repository
+<https://github.com/metno/py-mmd-tools>.
 
+py-mmd-tools is licensed under the Apache License 2.0
+<https://github.com/metno/py-mmd-tools/blob/master/LICENSE>
 """
 import os
 import json
@@ -28,6 +33,11 @@ def create_parser():
     )
 
     parser.add_argument(
+        '-o', '--output', type=str,
+        help='Output json file', required=True
+    )
+
+    parser.add_argument(
         "-e", "--file-ending", default="nc", type=str,
         help="File ending of nc files"
     )
@@ -36,6 +46,7 @@ def create_parser():
 
 
 def get_header_netCDF(data) -> dict:
+    """TODO: Add docstring"""
     full_attr = {"global_variables": {i: data.getncattr(
         i) for i in data.ncattrs()}, "variables":  {}}
 
@@ -50,6 +61,7 @@ def get_header_netCDF(data) -> dict:
 
 
 def handle_numpy_types(inpt):
+    """TODO: Add docstring"""
     if isinstance(inpt, np.float32):
         return np.float64(inpt)
 
@@ -73,24 +85,17 @@ def main(args=None):
 
     json_header = [get_header_netCDF(Dataset(file)) for file in inputfiles]
 
-    [print(i) for i in json_header]
+    # this should be written to a file instead:
+    # [print(i) for i in json_header]
+    with open(args.output, "w") as fp:
+        json.dump(json_header, fp)
 
     return
 
 
 def _main():  # pragma: no cover
-    try:
-        main(create_parser().parse_args())  # entry point
-    except ValueError as e:
-        print(e)
-    except AttributeError as e:
-        print(e)
+    main(create_parser().parse_args())  # entry point
 
 
-if __name__ == "__main__":
-    try:
-        main(create_parser().parse_args())
-    except ValueError as e:
-        print(e)
-    except AttributeError as e:
-        print(e)
+if __name__ == "__main__":  # pragma: no cover
+    main(create_parser().parse_args())
