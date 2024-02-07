@@ -38,17 +38,22 @@ def test_main(dataDir):
 
 @pytest.mark.script
 @pytest.mark.parametrize(
-    "test_input, expected",
-    [(np.float32(0.1), np.float64), (np.int64(1), int), (np.ndarray([1, 2, 3]), list)],
+    "dataDir, test_input, expected",
+    [
+        ("_", np.float32(0.1), np.float64),
+        ("_", np.int64(1), int),
+        ("_", np.ndarray([1, 2, 3]), list),
+    ],
 )
-def test_handle_numpy_types(test_input, expected):
+def test_handle_numpy_types(dataDir, test_input, expected):
     assert isinstance(handle_numpy_types(test_input), expected)
 
 
 @pytest.mark.script
-def test_get_header_netCDF():
-    expected = json.load("reference_nc.json")
-    test_input = get_header_netCDF(Dataset("reference_nc.nc"))
+def test_get_header_netCDF(dataDir):
+    with open(os.path.join(dataDir, "reference_nc.json")) as file:
+        expected = json.load(file)
+    test_input = get_header_netCDF(Dataset(os.path.join(dataDir, "reference_nc.nc")))
     assert json.dumps(test_input, sort_keys=True) == json.dumps(expected, sort_keys=True)
 
 
