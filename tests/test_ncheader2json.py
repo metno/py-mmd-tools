@@ -50,7 +50,8 @@ def test_main_raise_error():
 @pytest.mark.script
 def test_read_folder(dataDir):
     parser = create_parser()
-    parsed = parser.parse_args(["-i", dataDir])
+    temp_dir = tempfile.gettempdir()
+    parsed = parser.parse_args(["-i", dataDir, "-o", temp_dir])
     main(parsed)
     assert True
 
