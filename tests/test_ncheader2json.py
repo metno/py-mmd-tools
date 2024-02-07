@@ -51,6 +51,7 @@ def test_main_raise_error():
 def test_read_folder(dataDir):
     parser = create_parser()
     parsed = parser.parse_args(["-i", dataDir])
+    main(parsed)
     assert True
 
 
