@@ -30,10 +30,16 @@ def create_parser():
     parser.add_argument("-i", "--input", type=str, help="Input file or folder", required=True)
 
     parser.add_argument(
-        "-o", "--output", type=str, help="Output json file, if unset the json is dumped to stdout", required=False
+        "-o",
+        "--output",
+        type=str,
+        help="Output json file, if unset the json is dumped to stdout",
+        required=False,
     )
 
-    parser.add_argument("-e", "--file-ending", default="nc", type=str, help="File ending of nc files")
+    parser.add_argument(
+        "-e", "--file-ending", default="nc", type=str, help="File ending of nc files"
+    )
 
     return parser
 
@@ -42,7 +48,10 @@ def get_header_netCDF(data: Dataset) -> dict:
     """
     This function grapb all global and variable attributes and dumps it in to a json.
     """
-    full_attr = {"global_variables": {i: data.getncattr(i) for i in data.ncattrs()}, "variables": {}}
+    full_attr = {
+        "global_variables": {i: data.getncattr(i) for i in data.ncattrs()},
+        "variables": {},
+    }
 
     for var_name, variable in data.variables.items():
         full_attr["variables"][var_name] = {
