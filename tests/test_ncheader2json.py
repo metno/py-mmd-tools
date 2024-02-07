@@ -48,6 +48,13 @@ def test_main_raise_error():
 
 
 @pytest.mark.script
+def test_read_folder(dataDir):
+    parser = create_parser()
+    parsed = parser.parse_args(["-i", dataDir])
+    assert True
+
+
+@pytest.mark.script
 @pytest.mark.parametrize(
     "dataDir, test_input, expected",
     [
