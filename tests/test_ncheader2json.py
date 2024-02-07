@@ -42,14 +42,14 @@ def test_main(dataDir):
     [(np.float32(0.1), np.float64), (np.int64(1), int), (np.ndarray([1, 2, 3]), list)],
 )
 def test_handle_numpy_types(test_input, expected):
-    assert isinstance(handle_numpy_types(test_input, expected))
+    assert isinstance(handle_numpy_types(test_input), expected)
 
 
 @pytest.mark.script
 def test_get_header_netCDF():
     expected = json.load("reference_nc.json")
     test_input = get_header_netCDF(Dataset("reference_nc.nc"))
-    assert test_input == expected
+    assert json.dumps(test_input, sort_keys=True) == json.dumps(expected, sort_keys=True)
 
 
 @pytest.mark.script
