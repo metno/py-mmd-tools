@@ -32,7 +32,7 @@ def test_main(dataDir):
     main(parsed)
     with open(test_out, "r") as fp:
         ncheader = json.load(fp)
-    assert ncheader[0]["global_variables"]["id"] == "b7cb7934-77ca-4439-812e-f560df3fe7eb"
+    assert ncheader["global_variables"]["id"] == "b7cb7934-77ca-4439-812e-f560df3fe7eb"
     os.remove(test_out)
 
 
