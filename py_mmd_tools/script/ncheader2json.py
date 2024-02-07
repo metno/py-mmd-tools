@@ -26,14 +26,13 @@ def create_parser():
 
     parser = argparse.ArgumentParser(description="Extract nc header to json format")
 
-    parser.add_argument("-i", "--input", type=str, help="Input file or folder", required=True)
+    parser.add_argument("-i", "--input", type=str, help="Input file", required=True)
 
     parser.add_argument(
         "-o",
         "--output",
         type=str,
-        help="Output json file, if unset the json is dumped to stdout. "
-        "If a folder is input, the original file name will be appended.",
+        help="Output json file, if unset the json is dumped to stdout.",
         required=False,
     )
 
@@ -82,27 +81,20 @@ def handle_numpy_types(inpt):
 
 def main(args=None):
     """Main function for this script"""
-    if pathlib.Path(args.input).is_dir():
-        inputfiles = pathlib.Path(args.input).glob("*.nc")
-    elif pathlib.Path(args.input).is_file():
+    if pathlib.Path(args.input).is_file():
         inputfiles = [args.input]
     else:
         raise ValueError(f"Invalid input: {args.input}")
 
-    json_header = [json.loads(get_header_netCDF(Dataset(file))) for file in inputfiles]
+    json_header = [json.loads(get_header_netCDF(Dataset(file))) for file in inputfiles][0]
 
     if args.output:
-        if len(json_header) > 1:
-            for i, j in zip(inputfiles, json_header):
-                with open(args.output + inputfiles.split("/")[-1], "w") as fp:
-                    json.dump(j, fp)
-        else:
-            with open(args.output, "w") as fp:
-                json.dump(json_header[0], fp)
+        with open(args.output, "w") as fp:
+            json.dump(json_header[0], fp)
     else:
         print(json_header)
 
-    return json_header[0] if len(json_header) == 1 else json_header
+    return json_header
 
 
 def _main():  # pragma: no cover
