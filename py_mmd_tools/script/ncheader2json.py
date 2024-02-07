@@ -34,7 +34,7 @@ def create_parser():
 
     parser.add_argument(
         '-o', '--output', type=str,
-        help='Output json file', required=True
+        help='Output json file, if unset the json is dumped to stdout', required=False
     )
 
     parser.add_argument(
@@ -45,8 +45,10 @@ def create_parser():
     return parser
 
 
-def get_header_netCDF(data) -> dict:
-    """TODO: Add docstring"""
+def get_header_netCDF(data: Dataset) -> dict:
+    """
+    This function grapb all global and variable attributes and dumps it in to a json.
+    """
     full_attr = {"global_variables": {i: data.getncattr(
         i) for i in data.ncattrs()}, "variables":  {}}
 
@@ -61,7 +63,10 @@ def get_header_netCDF(data) -> dict:
 
 
 def handle_numpy_types(inpt):
-    """TODO: Add docstring"""
+    """
+    Some numpy types can not be converted or parsed to a json object.
+    This functions handles conversion from un-parsable types, to parsable ones.
+    """
     if isinstance(inpt, np.float32):
         return np.float64(inpt)
 
@@ -85,10 +90,12 @@ def main(args=None):
 
     json_header = [get_header_netCDF(Dataset(file)) for file in inputfiles]
 
-    # this should be written to a file instead:
-    # [print(i) for i in json_header]
-    with open(args.output, "w") as fp:
-        json.dump(json_header, fp)
+    if args.output:
+        with open(args.output, "w") as fp:
+            json.dump(json_header, fp)
+    else:
+        print(json_header)
+
 
     return
 
