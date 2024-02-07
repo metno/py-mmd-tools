@@ -32,7 +32,8 @@ def create_parser():
         "-o",
         "--output",
         type=str,
-        help="Output json file, if unset the json is dumped to stdout",
+        help="Output json file, if unset the json is dumped to stdout. "
+        "If a folder is input, the original file name will be appended.",
         required=False,
     )
 
@@ -91,8 +92,13 @@ def main(args=None):
     json_header = [get_header_netCDF(Dataset(file)) for file in inputfiles]
 
     if args.output:
-        with open(args.output, "w") as fp:
-            json.dump(json_header, fp)
+        if len(json_header) > 1:
+            for i in inputfiles:
+                with open(args.output + inputfiles.split("/")[-1], "w") as fp:
+                    json.dump(json.loads(i), fp)
+        else:
+            with open(args.output, "w") as fp:
+                json.dump(json.loads(json_header[0]), fp)
     else:
         print(json_header)
 
