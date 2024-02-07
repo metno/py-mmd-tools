@@ -34,6 +34,17 @@ def test_main(dataDir):
         ncheader = json.load(fp)
     assert ncheader["global_variables"]["id"] == "b7cb7934-77ca-4439-812e-f560df3fe7eb"
     os.remove(test_out)
+    parsed = parser.parse_args(["-i", test_in])
+    ncheader = main(parsed)
+    assert ncheader["global_variables"]["id"] == "b7cb7934-77ca-4439-812e-f560df3fe7eb"
+
+
+@pytest.mark.script
+def test_main_raise_error():
+    parser = create_parser()
+    parsed = parser.parse_args(["-i", "this_path_should_not_exsist"])
+    with pytest.raises(ValueError):
+        main(args=parsed)
 
 
 @pytest.mark.script

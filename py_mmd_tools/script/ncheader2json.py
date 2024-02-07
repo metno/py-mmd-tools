@@ -102,7 +102,7 @@ def main(args=None):
     else:
         print(json_header)
 
-    return
+    return json_header[0] if len(json_header) == 1 else json_header
 
 
 def _main():  # pragma: no cover
