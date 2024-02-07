@@ -12,7 +12,6 @@ import os
 import json
 import pytest
 import tempfile
-import glob
 
 import numpy as np
 
