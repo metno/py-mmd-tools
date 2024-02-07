@@ -93,9 +93,9 @@ def main(args=None):
 
     if args.output:
         if len(json_header) > 1:
-            for i in inputfiles:
+            for i, j in zip(inputfiles, json_header):
                 with open(args.output + inputfiles.split("/")[-1], "w") as fp:
-                    json.dump(json.loads(i), fp)
+                    json.dump(i, fp)
         else:
             with open(args.output, "w") as fp:
                 json.dump(json_header[0], fp)

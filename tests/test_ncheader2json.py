@@ -12,6 +12,7 @@ import os
 import json
 import pytest
 import tempfile
+import glob
 
 import numpy as np
 
@@ -52,8 +53,8 @@ def test_read_folder(dataDir):
     parser = create_parser()
     temp_dir = tempfile.gettempdir()
     parsed = parser.parse_args(["-i", dataDir, "-o", temp_dir])
-    main(parsed)
-    assert True
+    expected = glob.glob(dataDir + "*nc")
+    assert sorted(glob.glob(temp_dir + "*nc")) == sorted(expected)
 
 
 @pytest.mark.script
