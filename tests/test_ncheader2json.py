@@ -41,7 +41,7 @@ def test_main(dataDir):
 @pytest.mark.script
 @pytest.mark.parametrize("test_input, expected", [(np.float32(0.1), np.float64),
                                                   (np.int64(1), int),
-                                                  (np.ndarray([1,2,3], list))])
+                                                  (np.ndarray([1,2,3]), list)])
 def test_handle_numpy_types(test_input, expected):
     assert isinstance(handle_numpy_types(test_input, expected))
 
