@@ -86,12 +86,11 @@ def main(args=None):
     else:
         raise ValueError(f"Invalid input: {args.input}")
 
-    json_header = [json.loads(get_header_netCDF(Dataset(file))) for file in inputfiles]
-    json_header = json_header[0]
+    json_header = [json.loads(get_header_netCDF(Dataset(file))) for file in inputfiles][0]
 
     if args.output:
         with open(args.output, "w") as fp:
-            json.dump(json_header[0], fp)
+            json.dump(json_header, fp)
     else:
         print(json_header)
 
