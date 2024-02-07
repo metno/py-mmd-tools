@@ -57,8 +57,3 @@ def test_get_header_netCDF(dataDir):
     assert json.dumps(json.loads(test_input), sort_keys=True) == json.dumps(
         expected, sort_keys=True
     )
-
-
-@pytest.mark.script
-def test_create_parser():
-    raise NotImplementedError
