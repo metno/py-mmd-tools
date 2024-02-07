@@ -7,6 +7,7 @@ This file is part of the py-mmd-tools repository
 py-mmd-tools is licensed under the Apache License 2.0
 <https://github.com/metno/py-mmd-tools/blob/master/LICENSE>
 """
+
 import os
 import json
 import pytest
@@ -20,17 +21,14 @@ from py_mmd_tools.script.ncheader2json import get_header_netCDF
 from py_mmd_tools.script.ncheader2json import handle_numpy_types
 from netCDF4 import Dataset
 
+
 @pytest.mark.script
 def test_main(dataDir):
-    """ Test that the created json file contains correct dataset id
-    """
+    """Test that the created json file contains correct dataset id"""
     parser = create_parser()
-    test_in = os.path.join(dataDir, 'reference_nc.nc')
-    fd, test_out = tempfile.mkstemp(suffix='.json')
-    parsed = parser.parse_args([
-        '-i', test_in,
-        '-o', test_out
-    ])
+    test_in = os.path.join(dataDir, "reference_nc.nc")
+    fd, test_out = tempfile.mkstemp(suffix=".json")
+    parsed = parser.parse_args(["-i", test_in, "-o", test_out])
     main(parsed)
     with open(test_out, "r") as fp:
         ncheader = json.load(fp)
@@ -39,9 +37,9 @@ def test_main(dataDir):
 
 
 @pytest.mark.script
-@pytest.mark.parametrize("test_input, expected", [(np.float32(0.1), np.float64),
-                                                  (np.int64(1), int),
-                                                  (np.ndarray([1,2,3]), list)])
+@pytest.mark.parametrize(
+    "test_input, expected", [(np.float32(0.1), np.float64), (np.int64(1), int), (np.ndarray([1, 2, 3]), list)]
+)
 def test_handle_numpy_types(test_input, expected):
     assert isinstance(handle_numpy_types(test_input, expected))
 

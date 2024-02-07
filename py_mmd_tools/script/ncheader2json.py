@@ -27,20 +27,13 @@ def create_parser():
 
     parser = argparse.ArgumentParser(description="Extract nc header to json format")
 
-    parser.add_argument(
-        '-i', '--input', type=str,
-        help='Input file or folder', required=True
-    )
+    parser.add_argument("-i", "--input", type=str, help="Input file or folder", required=True)
 
     parser.add_argument(
-        '-o', '--output', type=str,
-        help='Output json file, if unset the json is dumped to stdout', required=False
+        "-o", "--output", type=str, help="Output json file, if unset the json is dumped to stdout", required=False
     )
 
-    parser.add_argument(
-        "-e", "--file-ending", default="nc", type=str,
-        help="File ending of nc files"
-    )
+    parser.add_argument("-e", "--file-ending", default="nc", type=str, help="File ending of nc files")
 
     return parser
 
@@ -49,15 +42,14 @@ def get_header_netCDF(data: Dataset) -> dict:
     """
     This function grapb all global and variable attributes and dumps it in to a json.
     """
-    full_attr = {"global_variables": {i: data.getncattr(
-        i) for i in data.ncattrs()}, "variables":  {}}
+    full_attr = {"global_variables": {i: data.getncattr(i) for i in data.ncattrs()}, "variables": {}}
 
     for var_name, variable in data.variables.items():
-        full_attr["variables"][var_name] = {'attrs': {i: handle_numpy_types(variable.getncattr(i))
-                                                      for i in variable.ncattrs()},
-                                            'dtype': str(variable.dtype),
-                                            'shape': variable.shape
-                                            }
+        full_attr["variables"][var_name] = {
+            "attrs": {i: handle_numpy_types(variable.getncattr(i)) for i in variable.ncattrs()},
+            "dtype": str(variable.dtype),
+            "shape": variable.shape,
+        }
 
     return json.dumps(full_attr)
 
@@ -82,11 +74,11 @@ def handle_numpy_types(inpt):
 def main(args=None):
     """Main function for this script"""
     if pathlib.Path(args.input).is_dir():
-        inputfiles = pathlib.Path(args.input).glob('*.nc')
+        inputfiles = pathlib.Path(args.input).glob("*.nc")
     elif pathlib.Path(args.input).is_file():
         inputfiles = [args.input]
     else:
-        raise ValueError(f'Invalid input: {args.input}')
+        raise ValueError(f"Invalid input: {args.input}")
 
     json_header = [get_header_netCDF(Dataset(file)) for file in inputfiles]
 
@@ -95,7 +87,6 @@ def main(args=None):
             json.dump(json_header, fp)
     else:
         print(json_header)
-
 
     return
 
