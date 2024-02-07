@@ -83,7 +83,7 @@ def handle_numpy_types(inpt):
 def main(args=None):
     """Main function for this script"""
     if pathlib.Path(args.input).is_dir():
-        inputfiles = pathlib.Path(args.input).glob("/*.nc")
+        inputfiles = pathlib.Path(args.input).glob("**.nc")
     elif pathlib.Path(args.input).is_file():
         inputfiles = [args.input]
     else:
