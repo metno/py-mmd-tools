@@ -342,8 +342,6 @@ class Nc_to_mmd(object):
         semicolon). This function splits the value of the ACDD
         attribute into multiple strings, and returns a list.
         """
-        if type(acdd_attr) is not str:
-            raise ValueError("Input must be of type string")
         if repetition_allowed:
             acdd_attr = [ss.strip() for ss in acdd_attr.split(separator)]
         return acdd_attr
@@ -1600,7 +1598,6 @@ class Nc_to_mmd(object):
 
         This list can be extended but requires some new code...
         """
-        raise ValueError("hei")
         if collection is not None and type(collection) is not str:
             raise ValueError('collection must be of type str')
 
