@@ -105,7 +105,7 @@ def test_separate_repeated(dataDir):
                      ' &quot;Short_Name&quot;: &quot;Sentinel-1A&quot;',
                      ' &quot;Long_Name&quot;: &quot;Sentinel-1A&quot;']
     with pytest.raises(AttributeError) as ee:
-        platforms = md.separate_repeated(True, getattr(ncin, "platform"))
+        md.separate_repeated(True, getattr(ncin, "platform"))
     assert str(ee.value) == "'list' object has no attribute 'split'"
     assert ee.traceback[1].lineno == 345
 
