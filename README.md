@@ -42,6 +42,12 @@ Install the Py-MMD-Tools package:
 pip install .
 ```
 
+or (for development)
+
+```text
+pip install . --editable
+```
+
 All dependencies should now be installed, and the following command should generate an MMD file:
 
 ```text

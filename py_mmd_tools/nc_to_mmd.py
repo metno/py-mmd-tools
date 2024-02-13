@@ -338,7 +338,11 @@ class Nc_to_mmd(object):
         return os.path.join(self.LANDING_PAGE_BASE[naming_authority], ncid)
 
     def separate_repeated(self, repetition_allowed, acdd_attr, separator=','):
-        """ToDo: Add docstring"""
+        """ACDD is a flat format, meaning nested data must be provided
+        as a long string with a given separator (e.g., a comma or a
+        semicolon). This function splits the value of the ACDD
+        attribute into multiple strings, and returns a list.
+        """
         if repetition_allowed:
             acdd_attr = [ss.strip() for ss in acdd_attr.split(separator)]
         return acdd_attr

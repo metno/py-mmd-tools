@@ -94,6 +94,23 @@ def test_license_missing(dataDir):
 
 
 @pytest.mark.py_mmd_tools
+def test_separate_repeated(dataDir):
+    """ Test function Nc_to_mmd.separate_repeated
+    """
+    md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
+    ncin = Dataset(md.netcdf_file, "w", diskless=True)
+    ncin.platform = ['&quot;Basis&quot;: &quot;Space-based Platforms&quot;',
+                     ' &quot;Category&quot;: &quot;Earth Observation Satellites&quot;',
+                     ' &quot;Sub_Category&quot;: &quot;Sentinel-1&quot;',
+                     ' &quot;Short_Name&quot;: &quot;Sentinel-1A&quot;',
+                     ' &quot;Long_Name&quot;: &quot;Sentinel-1A&quot;']
+    with pytest.raises(AttributeError) as ee:
+        md.separate_repeated(True, getattr(ncin, "platform"))
+    assert str(ee.value) == "'list' object has no attribute 'split'"
+    assert ee.traceback[1].lineno == 345
+
+
+@pytest.mark.py_mmd_tools
 def test_get_related_dataset(dataDir):
     """ Test get_related_dataset function.
     """
