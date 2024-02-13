@@ -5,9 +5,9 @@
 [[data-as-netcdf-cf]]
 ==== Create NetCDF-CF files
 
-By documenting and formatting your data using <<netcdf,NetCDF>> following the link:https://cfconventions.org/[CF conventions] and the link:https://wiki.esipfed.org/Attribute_Convention_for_Data_Discovery_1-3[Attribute Convention for Data Discovery (ACDD)], <<mmd,MMD>> files can be automatically generated from the <<netcdf,NetCDF>> files. The <<cf,CF conventions>> is a controlled vocabulary providing a definitive description of what the data in each variable represents, and the spatial and temporal properties of the data. The <<acdd,ACDD>> vocabulary describes attributes recommended for describing a <<netcdf,NetCDF>> dataset to data discovery systems. See, e.g., link:https://unidata.github.io/netcdf4-python/[netCDF4-python docs], or link:http://xarray.pydata.org/en/stable/user-guide/io.html[xarray docs] for documentation about how to create netCDF files.
+By documenting and formatting your data using <<netcdf,NetCDF>> following the link:https://cfconventions.org/[CF conventions] and the link:https://wiki.esipfed.org/Attribute_Convention_for_Data_Discovery_1-3[Attribute Convention for Data Discovery (ACDD)], <<mmd,MMD>> files can be automatically generated from the <<netcdf,NetCDF>> files. The <<cf,CF convention>> is a controlled vocabulary providing a definitive description of what the data in each variable represents, and the spatial and temporal properties of the data. The <<acdd,ACDD>> vocabulary describes attributes recommended for describing a <<netcdf,NetCDF>> dataset to data discovery systems. See, e.g., link:https://unidata.github.io/netcdf4-python/[netCDF4-python docs], or link:http://xarray.pydata.org/en/stable/user-guide/io.html[xarray docs] for documentation about how to create netCDF files.
 
-The ACDD recommendations should be followed in order to properly document your netCDF-CF files. The below tables summarize required and recommended ACDD and some additional attributes that are needed to support interoperability between different information systems (e.g., GCMD/DIF, the INSPIRE and WMO profiles of ISO19115, etc.).
+The ACDD recommendations should be followed in order to properly document your netCDF-CF files. The below tables summarise required and recommended ACDD and some additional attributes that are needed to support interoperability between different information systems (e.g., GCMD/DIF, the INSPIRE and WMO profiles of ISO19115, etc.).
 
 ===== Notes 
 
@@ -33,7 +33,7 @@ The keywords should be provided by the ``keywords`` attribute as a comma separat
 
 See https://adc.met.no/node/96 for more information about how to define the ACDD keywords.
 
-A data *license* provides information about any restrictions on the use of the dataset. To support a linked data approach, it is strongly recommended to use identifiers and URL's from https://spdx.org/licenses/ and to use a form similar to <URL>(<Identifier>) using elements from the SPDX license list. Example:
+A data *licence* provides information about any restrictions on the use of the dataset. To support a linked data approach, it is strongly recommended to use identifiers and URL's from https://spdx.org/licenses/ and to use a form similar to <URL>(<Identifier>) using elements from the SPDX licence list. Example:
 
 [EXAMPLE]
 ====
