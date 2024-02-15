@@ -107,7 +107,6 @@ def main(args=None):
     else:
         print(json.dumps(json_header))
 
-
     return json_header
 
 
