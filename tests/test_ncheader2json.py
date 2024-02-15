@@ -71,4 +71,6 @@ def test_get_header_netCDF(dataDir):
     with open(os.path.join(dataDir, "reference_nc_header.json")) as file:
         expected = json.load(file)
     test_input = get_header_netCDF(Dataset(os.path.join(dataDir, "reference_nc.nc")))
-    assert json.dumps(json.loads(test_input), sort_keys=True) == json.dumps(expected, sort_keys=True)
+    assert json.dumps(json.loads(test_input), sort_keys=True) == json.dumps(
+        expected, sort_keys=True
+    )
