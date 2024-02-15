@@ -104,7 +104,6 @@ def main(args=None):
         with open(args.output, "w") as fp:
             json.dump(json_header, fp)
     else:
-
         print(json.dumps(json_header))
 
     return json_header
