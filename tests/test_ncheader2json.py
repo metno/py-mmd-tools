@@ -60,6 +60,9 @@ def test_main_raise_error():
     ],
 )
 def test_handle_numpy_types(dataDir, test_input, expected):
+    """
+    Assert that numpy types are handled as expected
+    """
     assert isinstance(handle_numpy_types(test_input), expected)
 
 
