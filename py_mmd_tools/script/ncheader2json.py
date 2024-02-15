@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Tool for extracting netCDF header to a json. For use in py-mmd-tools-api
+Tool for extracting netCDF header to a json. For use with the py-mmd-tools API.
 
 License:
 
