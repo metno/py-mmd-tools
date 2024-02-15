@@ -3,6 +3,9 @@
 """
 Tool for extracting netCDF header to a json. For use with the py-mmd-tools API.
 
+
+Usage:
+ncheader2json -i <path-to-nc-file> | curl -X POST -H 'Content-Type: application/json'  -d @- "<url-to-api>"
 License:
 
 This file is part of the py-mmd-tools repository
@@ -24,7 +27,10 @@ from netCDF4 import Dataset
 def create_parser():
     """Create parser object"""
 
-    parser = argparse.ArgumentParser(description="Extract nc header to json format")
+    parser = argparse.ArgumentParser(
+        description="Extract nc header to json format. Usage in api: ncheader2json -i <path-to-nc-file> |"
+        " curl -X POST -H 'Content-Type: application/json'  -d @- '<url-to-api>'"
+    )
 
     parser.add_argument("-i", "--input", type=str, help="Input file", required=True)
 
