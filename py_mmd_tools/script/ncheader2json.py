@@ -45,7 +45,7 @@ def create_parser():
 
 def get_header_netCDF(data: Dataset) -> dict:
     """
-    This function grapb all global and variable attributes and dumps it in to a json.
+    This function grabs all global and variable attributes and dumps them into a json file.
     """
     full_attr = {
         "global_variables": {i: data.getncattr(i) for i in data.ncattrs()},

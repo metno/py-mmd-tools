@@ -48,7 +48,7 @@ def test_main_raise_error():
 
 
 @pytest.mark.script
-@pytest.mark.parametrize(
+@pytest.mark.parameterize(
     "dataDir, test_input, expected",
     [
         ("_", np.float32(0.1), np.float64),
