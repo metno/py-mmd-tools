@@ -6,7 +6,8 @@ Tool for extracting netCDF header to a json. For use with the py-mmd-tools API.
 
 Usage:
 
-ncheader2json -i <path-to-nc-file> | curl -X POST -H 'Content-Type: application/json'  -d @- "<url-to-api>"
+ncheader2json -i <path-to-nc-file> |
+curl -X POST -H 'Content-Type: application/json'  -d @- "<url-to-api>"
 
 License:
 
