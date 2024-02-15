@@ -41,6 +41,9 @@ def test_main(dataDir):
 
 @pytest.mark.script
 def test_main_raise_error():
+    """
+    Test that ncheader2json rasies expected exception.
+    """
     parser = create_parser()
     parsed = parser.parse_args(["-i", "this_path_should_not_exsist"])
     with pytest.raises(ValueError):
@@ -62,9 +65,10 @@ def test_handle_numpy_types(dataDir, test_input, expected):
 
 @pytest.mark.script
 def test_get_header_netCDF(dataDir):
+    """
+    Test that the script returns expected netCDF header.
+    """
     with open(os.path.join(dataDir, "reference_nc_header.json")) as file:
         expected = json.load(file)
     test_input = get_header_netCDF(Dataset(os.path.join(dataDir, "reference_nc.nc")))
-    assert json.dumps(json.loads(test_input), sort_keys=True) == json.dumps(
-        expected, sort_keys=True
-    )
+    assert json.dumps(json.loads(test_input), sort_keys=True) == json.dumps(expected, sort_keys=True)
