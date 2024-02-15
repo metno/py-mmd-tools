@@ -30,7 +30,8 @@ def create_parser():
     """Create parser object"""
 
     parser = argparse.ArgumentParser(
-        description="Extract nc header to json format. Usage in api: ncheader2json -i <path-to-nc-file> |"
+        description="Extract nc header to json format. Usage in api: ncheader2json"
+        " -i <path-to-nc-file> |"
         " curl -X POST -H 'Content-Type: application/json'  -d @- '<url-to-api>'"
     )
 
