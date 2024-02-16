@@ -592,6 +592,8 @@ class Nc_to_mmd(object):
             if lang_key in ncin.ncattrs():
                 contents.append(getattr(ncin, lang_key))
                 content_lang.append(lang_key[-2:])
+            else:
+                self.missing_attributes['errors'].append('%s is a required attribute' % lang_key)
         for i in range(len(contents)):
             data.append({elem_name: contents[i], 'lang': content_lang[i]})
         return data
