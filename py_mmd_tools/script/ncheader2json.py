@@ -89,6 +89,9 @@ def handle_numpy_types(inpt):
     if isinstance(inpt, np.ndarray):
         return inpt.tolist()
 
+    if isinstance(inpt, np.int8):
+        return int(inpt)
+
     return inpt
 
 
