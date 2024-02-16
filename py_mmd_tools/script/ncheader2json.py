@@ -10,7 +10,7 @@ ncheader2json -i <path-to-nc-file> |
 curl -X POST -H 'Content-Type: application/json'  -d @- "<url-to-api>"
 
 
-The can currently be found at https://py-mmd-tools.s-enda-dev.k8s.met.no
+The API can currently be found at https://py-mmd-tools.s-enda-dev.k8s.met.no/nc2mmd
 
 License:
 
