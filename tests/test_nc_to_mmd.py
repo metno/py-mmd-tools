@@ -1149,6 +1149,9 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(type(value), list)
         self.assertTrue('lang' in value[0].keys())
         self.assertTrue('title' in value[0].keys())
+        self.assertEqual(
+            md.missing_attributes['errors'][0],
+            "title_no is a required attribute")
 
     def test_data_center(self):
         """Test get_data_centers function"""
@@ -1338,11 +1341,11 @@ class TestNC2MMD(unittest.TestCase):
                 time_coverage_end='1950/01/01 00:00:00'
             )
         self.assertEqual(
-            md.missing_attributes['errors'][3],
+            md.missing_attributes['errors'][5],
             "time_coverage_start must be in ISO8601 format: "
             "YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.")
         self.assertEqual(
-            md.missing_attributes['errors'][4],
+            md.missing_attributes['errors'][6],
             "time_coverage_end must be in ISO8601 format: "
             "YYYY-mm-ddTHH:MM:SS<second fraction><time zone>.")
 
