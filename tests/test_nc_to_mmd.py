@@ -107,7 +107,7 @@ def test_separate_repeated(dataDir):
     with pytest.raises(AttributeError) as ee:
         md.separate_repeated(True, getattr(ncin, "platform"))
     assert str(ee.value) == "'list' object has no attribute 'split'"
-    assert ee.traceback[1].lineno == 345
+    assert ee.traceback[1].lineno == 343
 
 
 @pytest.mark.py_mmd_tools
