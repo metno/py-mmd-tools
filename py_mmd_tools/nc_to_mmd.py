@@ -790,8 +790,8 @@ class Nc_to_mmd(object):
         varlist = []
         for key in ncin.variables.keys():
             if "standard_name" in ncin.variables[key].ncattrs():
-                if all(ncin.variables[key].standard_name not in ["longitude", "latitude", "time"],
-                        ncin.variables[key].standard_name not in varlist):
+                if all([ncin.variables[key].standard_name not in ["longitude", "latitude", "time"],
+                        ncin.variables[key].standard_name not in varlist]):
                     varlist.append(ncin.variables[key].standard_name)
 
         return varlist
@@ -1076,9 +1076,9 @@ class Nc_to_mmd(object):
         # id and naming_authority are required, and both should be in
         # the acdd list
         acdd_key = list(acdd.keys())
-        if any(len(acdd_key) != 2,
+        if any([len(acdd_key) != 2,
                self.ACDD_ID not in acdd_key,
-               self.ACDD_NAMING_AUTH not in acdd_key):
+               self.ACDD_NAMING_AUTH not in acdd_key]):
             raise AttributeError(
                 "ACDD attribute inconsistency in mmd_elements.yaml. Expected %s and %s but "
                 "received %s." % (self.ACDD_ID, self.ACDD_NAMING_AUTH, str(acdd_key))
