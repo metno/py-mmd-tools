@@ -86,6 +86,9 @@ def handle_numpy_types(inpt):
     if isinstance(inpt, np.int64):
         return inpt.item()
 
+    if isinstance(inpt, np.int16):
+        return inpt.item()
+
     if isinstance(inpt, np.ndarray):
         return inpt.tolist()
 
