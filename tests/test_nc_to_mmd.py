@@ -107,7 +107,6 @@ def test_separate_repeated(dataDir):
     with pytest.raises(AttributeError) as ee:
         md.separate_repeated(True, getattr(ncin, "platform"))
     assert str(ee.value) == "'list' object has no attribute 'split'"
-    assert ee.traceback[1].lineno == 343
 
 
 @pytest.mark.py_mmd_tools
@@ -527,6 +526,18 @@ def test_nc_wrapper_ncatters(dataDir):
     for var in test_ncin.variables:
         assert test_ncin.variables[var].ncattrs() == test_json_header.variables[var].ncattrs(), \
             f"Mismatch in variable attributes, for variable {var}"
+
+
+@pytest.mark.py_mmd_tools
+def test_attribute_error_title_json(dataDir):
+    test_json_header = os.path.join(dataDir, "reference_nc_header_missing_title.json")
+
+    with open(test_json_header, "r") as file:
+        test_json_header = json.load(file)
+
+    tmp = Nc_to_mmd(test_json_header, json_input=True, check_only=True)
+    with pytest.raises(AttributeError):
+        tmp.to_mmd()
 
 
 @pytest.mark.py_mmd_tools
