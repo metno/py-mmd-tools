@@ -484,16 +484,8 @@ class Nc_to_mmd(object):
                 dc["data_center_name"]["long_name"] = ri[0].strip()
                 dc["data_center_name"]["short_name"] = ri[1][:-1]
             else:
-                try:
-                    dc["data_center_name"]["long_name"] = institutions[i]
-                    dc["data_center_name"]["short_name"] = ncin.institution_short_name[i]
-                except Exception:
-                    self.missing_attributes["errors"].append(
-                        "%s must be formed as <institution long name> (<institution short name>). "
-                        "Both are required attributes." % acdd_institution_key
-                    )
-                    continue
-                self.missing_attributes["warnings"].append(
+                # Require shape "long name (short name)
+                self.missing_attributes["errors"].append(
                     "%s must be formed as <institution long name> (<institution short name>). "
                     "Both are required attributes." % acdd_institution_key
                 )
@@ -1810,7 +1802,7 @@ class Nc_to_mmd(object):
             warnings.warn("\n\t" + "\n\t".join(self.missing_attributes["warnings"]))
         if len(self.missing_attributes["errors"]) > 0:
             raise AttributeError(
-                "%s:\n\t" % self.netcdf_file + "\n\t".join(self.missing_attributes["errors"])
+                "Errors in %s:\n\t" % self.netcdf_file + "\n\t".join(self.missing_attributes["errors"])
             )
 
         env = jinja2.Environment(
