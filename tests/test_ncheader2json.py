@@ -56,6 +56,7 @@ def test_main_raise_error():
     [
         ("_", np.float32(0.1), np.float64),
         ("_", np.int64(1), int),
+        ("_", np.int16(1), int),
         ("_", np.ndarray([1, 2, 3]), list),
     ],
 )
