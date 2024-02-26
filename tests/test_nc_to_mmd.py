@@ -529,6 +529,14 @@ def test_nc_wrapper_ncatters(dataDir):
 
 
 @pytest.mark.py_mmd_tools
+def test_attribute_error_title_json(dataDir):
+    test_json_header = os.path.join(dataDir, "reference_nc_header_missing_title.json")
+    with pytest.raises(AttributeError):
+        tmp = Nc_to_mmd(test_json_header, json_input=True, check_only=True)
+        tmp.to_mmd()
+
+
+@pytest.mark.py_mmd_tools
 def test_get_CFSTDN_keywords(dataDir):
     """ Test that get_CFSTDN_keywords returns a list with one CF
     standard name from the test file.
