@@ -1027,7 +1027,7 @@ class Nc_to_mmd(object):
                 data_dict = {
                     "author": authors,
                     "publication_date": ndt,
-                    "title": title if title else None,
+                    "title": title if "title" in locals() else None,
                 }
                 data_dict["url"] = self.get_dataset_landing_page_url()
 
