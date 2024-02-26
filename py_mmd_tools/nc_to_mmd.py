@@ -306,7 +306,10 @@ class Nc_to_mmd(object):
         if json_input:
             self.ncin = nc_wrapper(netcdf_file)
             self.check_attributes_not_empty(self.ncin)
-            self.netcdf_file = self.ncin.getncattr("title")
+            try:
+                self.netcdf_file = self.ncin.getncattr("title")
+            except KeyError:
+                self.netcdf_file = "<Not provided>"
         else:
             self.ncin = self.read_nc_file(self.netcdf_file)
             self.check_attributes_not_empty(self.ncin)
@@ -1024,7 +1027,7 @@ class Nc_to_mmd(object):
                 data_dict = {
                     "author": authors,
                     "publication_date": ndt,
-                    "title": title,
+                    "title": title if "title" in locals() else None,
                 }
                 data_dict["url"] = self.get_dataset_landing_page_url()
 
