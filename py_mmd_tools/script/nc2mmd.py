@@ -22,6 +22,7 @@ import netCDF4
 import os
 import pathlib
 import yaml
+import warnings
 
 from pkg_resources import resource_string
 
@@ -85,6 +86,10 @@ def create_parser():
         '--log-ids', default=None,
         help='Store the metadata IDs in a file'
     )
+    parser.add_argument(
+        '--print_warnings',  action='store_true',
+        help="Toggle whether to print warnings"
+    )
 
     return parser
 
@@ -96,6 +101,9 @@ def main(args=None):
             raise ValueError('OPeNDAP url must be provided')
         if args.output_dir is None:
             raise ValueError('MMD XML output directory must be provided')
+
+    if not args.print_warnings:
+        warnings.filterwarnings("ignore")
 
     assume_same_url_basename = False
     if pathlib.Path(args.input).is_dir():
