@@ -535,8 +535,8 @@ def test_attribute_error_title_json(dataDir):
     with open(test_json_header, "r") as file:
         test_json_header = json.load(file)
 
+    tmp = Nc_to_mmd(test_json_header, json_input=True, check_only=True)
     with pytest.raises(AttributeError):
-        tmp = Nc_to_mmd(test_json_header, json_input=True, check_only=True)
         tmp.to_mmd()
 
 
