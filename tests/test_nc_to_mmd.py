@@ -531,6 +531,10 @@ def test_nc_wrapper_ncatters(dataDir):
 @pytest.mark.py_mmd_tools
 def test_attribute_error_title_json(dataDir):
     test_json_header = os.path.join(dataDir, "reference_nc_header_missing_title.json")
+
+    with open(test_json_header, "r") as file:
+        test_json_header = json.load(file)
+
     with pytest.raises(AttributeError):
         tmp = Nc_to_mmd(test_json_header, json_input=True, check_only=True)
         tmp.to_mmd()
