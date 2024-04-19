@@ -110,6 +110,29 @@ def test_separate_repeated(dataDir):
 
 
 @pytest.mark.py_mmd_tools
+def testNc_to_mmd_get_geographic_extent_polygon(dataDir):
+    """ Test that get_geographic_extent_polygon returns default crs if
+    geospatial_bounds_crs is missing.
+    """
+    md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
+    ncin = Dataset(md.netcdf_file, "w", diskless=True)
+    ncin.geospatial_bounds = ("POLYGON ((59.01 1.23, 59.06 1.66, 59.10 2.09, 59.15 2.53, "
+                              "59.19 2.96, 59.24 3.40, 59.28 3.84, 59.32 4.28, 59.35 4.72, "
+                              "59.39 5.16, 59.43 5.61, 59.43 5.61, 59.57 5.57, 59.72 5.52, "
+                              "59.87 5.48, 60.01 5.43, 60.16 5.39, 60.31 5.34, 60.46 5.29, "
+                              "60.60 5.25, 60.75 5.20, 60.92 5.15, 60.92 5.15, 60.88 4.67, "
+                              "60.84 4.21, 60.80 3.75, 60.76 3.29, 60.72 2.84, 60.68 2.38, "
+                              "60.63 1.92, 60.59 1.47, 60.54 1.02, 60.49 0.56, 60.49 0.56, "
+                              "60.33 0.64, 60.18 0.71, 60.03 0.77, 59.89 0.84, 59.74 0.90, "
+                              "59.59 0.97, 59.45 1.03, 59.30 1.10, 59.15 1.16, 59.01 1.23))")
+    mmd_yaml = yaml.load(
+        resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+    )
+    data = md.get_geographic_extent_polygon(mmd_yaml["geographic_extent"].pop("polygon"), ncin)
+    assert data["srsName"] == "EPSG:4326"
+
+
+@pytest.mark.py_mmd_tools
 def test_get_related_dataset(dataDir):
     """ Test get_related_dataset function.
     """

@@ -1196,7 +1196,11 @@ class Nc_to_mmd(object):
             pos = []
             for i in range(len(lat)):
                 pos.append("%.4f %.4f" % (lat[i], lon[i]))
-            data = {"srsName": ncin.geospatial_bounds_crs, "pos": pos}
+            if "geospatial_bounds_crs" in ncin.ncattrs():
+                gb_crs = ncin.geospatial_bounds_crs
+            else:
+                gb_crs = "EPSG:4326"
+            data = {"srsName": gb_crs, "pos": pos}
         return data
 
     def get_geographic_extent_rectangle(self, mmd_element, ncin):
