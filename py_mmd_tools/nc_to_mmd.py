@@ -233,9 +233,8 @@ class Nc_to_mmd(object):
     VALID_NAMING_AUTHORITIES = None
     LANDING_PAGE_BASE = None
 
-    def __init__(
-        self, netcdf_file, opendap_url=None, output_file=None, check_only=False, json_input=False
-    ):
+    def __init__(self, netcdf_file, opendap_url=None, output_file=None, check_only=False,
+                 json_input=False, target_nc_filename=None, file_size=None):
         """Class for creating an MMD XML file based on the discovery
         metadata provided in the global attributes of NetCDF files that
         are compliant with the CF-conventions and ACDD.
@@ -262,8 +261,31 @@ class Nc_to_mmd(object):
             )
         super(Nc_to_mmd, self).__init__()
         self.output_file = output_file
+
         if not json_input:
             self.netcdf_file = os.path.abspath(netcdf_file)
+            self.target_nc_filename = self.netcdf_file
+            self.ncin = self.read_nc_file(self.netcdf_file)
+            self.check_attributes_not_empty(self.ncin)
+            self.file_size = pathlib.Path(self.netcdf_file).stat().st_size / (1024 * 1024)
+
+        else:
+            if file_size is None:
+                raise ValueError("Input parameter 'file_size' must be "
+                                 "provided when using input from json.")
+            if target_nc_filename is None:
+                raise ValueError("Input parameter 'target_nc_filename' must be "
+                                 "provided when using input from json.")
+            self.ncin = nc_wrapper(netcdf_file)
+            self.check_attributes_not_empty(self.ncin)
+            self.file_size = file_size
+
+        # We may want to use the target_nc_filename for other cases
+        # than with the API, e.g., if a file will be moved after
+        # creation of the MMD file.
+        if target_nc_filename is not None:
+            self.target_nc_filename = target_nc_filename
+
         self.opendap_url = opendap_url
         self.check_only = check_only
         self.missing_attributes = {"errors": [], "warnings": []}
@@ -302,17 +324,6 @@ class Nc_to_mmd(object):
 
         if not (self.platform_group.is_initialised and self.instrument_group.is_initialised):
             raise ValueError("Instrument or Platform group were not initialised")
-
-        if json_input:
-            self.ncin = nc_wrapper(netcdf_file)
-            self.check_attributes_not_empty(self.ncin)
-            try:
-                self.netcdf_file = self.ncin.getncattr("title")
-            except KeyError:
-                self.netcdf_file = "<Not provided>"
-        else:
-            self.ncin = self.read_nc_file(self.netcdf_file)
-            self.check_attributes_not_empty(self.ncin)
 
     def read_nc_file(self, fn):
         """Open netcdf dataset, appending #fillmismatch if necessary"""
@@ -1749,9 +1760,6 @@ class Nc_to_mmd(object):
         else:
             self.metadata["data_access"] = []
 
-        if not self.json_input:
-            file_size = pathlib.Path(self.netcdf_file).stat().st_size / (1024 * 1024)
-
         # ACDD processing_level follows a controlled vocabulary, so
         # it must be handled separately
         self.metadata["operational_status"] = self.get_operational_status(
@@ -1785,15 +1793,14 @@ class Nc_to_mmd(object):
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
 
-        if not self.json_input:
-            # Set storage_information
-            self.metadata["storage_information"] = {
-                "file_name": os.path.basename(self.netcdf_file),
-                "file_location": os.path.dirname(self.netcdf_file),
-                "file_format": "NetCDF-CF",
-                "file_size": "%.2f" % file_size,
-                "file_size_unit": "MB",
-            }
+        # Set storage_information
+        self.metadata["storage_information"] = {
+            "file_name": os.path.basename(self.target_nc_filename),
+            "file_location": os.path.dirname(self.target_nc_filename),
+            "file_format": "NetCDF-CF",
+            "file_size": "%.2f" % self.file_size,
+            "file_size_unit": "MB",
+        }
 
         if checksum_calculation:
             hasher = FileHash("md5", chunk_size=1048576)
