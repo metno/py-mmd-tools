@@ -29,6 +29,8 @@ from unittest.mock import patch
 from py_mmd_tools.nc_to_mmd import Nc_to_mmd, normalize_iso8601, normalize_iso8601_0, nc_wrapper
 from py_mmd_tools.nc_to_mmd import valid_url
 from py_mmd_tools.nc_to_mmd import get_short_and_long_names
+from py_mmd_tools.nc_to_mmd import nc_sub
+from py_mmd_tools.nc_to_mmd import nc_wrapper
 from py_mmd_tools.yaml_to_adoc import nc_attrs_from_yaml
 from py_mmd_tools.yaml_to_adoc import required
 from py_mmd_tools.yaml_to_adoc import repetition_allowed
@@ -523,7 +525,7 @@ def test_nc_wrapper_variable_attrs(dataDir):
 
 
 @pytest.mark.py_mmd_tools
-def test_json_dry_run(dataDir):
+def test_json(dataDir, monkeypatch):
     test_json_header = os.path.join(dataDir, "reference_nc_header.json")
 
     with open(test_json_header, "r") as file:
@@ -531,6 +533,21 @@ def test_json_dry_run(dataDir):
 
     tmp = Nc_to_mmd(test_json_header, json_input=True, check_only=True)
     tmp.to_mmd()
+
+    with monkeypatch.context() as mp:
+        mp.setattr(nc_wrapper, "__init__", lambda *a, **k: None)
+        mp.setattr(nc_wrapper, "ncattrs", lambda *a, **k: ["what", "ever"])
+        mp.setattr(nc_wrapper, "getncattr", lambda *a, **k: ["what", "ever"])
+        with pytest.raises(ValueError) as ee:
+            tmp = Nc_to_mmd(test_json_header, json_input=True,
+                            opendap_url="https://thredds.met.no/etc", output_file="somefn.xml")
+        assert "Input parameter 'file_size' must be " in str(ee.value)
+
+    with pytest.raises(ValueError) as ee:
+        tmp = Nc_to_mmd(test_json_header, json_input=True, file_size=10,
+                        opendap_url="https://thredds.met.no/etc", output_file="somefn.xml")
+    assert "Input parameter 'target_nc_filename' must be " in str(ee.value)
+
 
 
 @pytest.mark.py_mmd_tools

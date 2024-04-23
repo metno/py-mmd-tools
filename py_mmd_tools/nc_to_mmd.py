@@ -240,12 +240,24 @@ class Nc_to_mmd(object):
         are compliant with the CF-conventions and ACDD.
 
         Args:
-            output_file : str
-                Output path for the resulting mmd xml file
             netcdf_file : str
                 Input NetCDF file
             opendap_url : str
                 OPeNDAP url
+            output_file : str
+                Output path for the resulting mmd xml file
+            check_only : boolean
+                Will only check the NetCDF attributes if True
+            json_input : boolean
+                If True, specifies that the input netcdf_file is
+                actually a json file with only metadata
+            target_nc_filename : str
+                If, for some reason, the filename that should be
+                referred to in the MMD file is differrent than the
+                input filename, this parameter provides that filename.
+            file_size : float
+                If json_input is True, the file size needs to be
+                provided as an input parameter. The unit is GB.
         """
         self.ACDD_ID_INVALID_CHARS = ["\\", "/", ":", " "]
         self.VALID_NAMING_AUTHORITIES = ["no.met", "no.nve", "no.nilu", "no.niva"]
@@ -270,12 +282,14 @@ class Nc_to_mmd(object):
             self.file_size = pathlib.Path(self.netcdf_file).stat().st_size / (1024 * 1024)
 
         else:
-            if file_size is None:
+            if file_size is None and not check_only:
                 raise ValueError("Input parameter 'file_size' must be "
                                  "provided when using input from json.")
-            if target_nc_filename is None:
+            if target_nc_filename is None and not check_only:
                 raise ValueError("Input parameter 'target_nc_filename' must be "
                                  "provided when using input from json.")
+            else:
+                self.target_nc_filename = target_nc_filename
             self.ncin = nc_wrapper(netcdf_file)
             self.check_attributes_not_empty(self.ncin)
             self.file_size = file_size
@@ -1793,14 +1807,15 @@ class Nc_to_mmd(object):
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
 
-        # Set storage_information
-        self.metadata["storage_information"] = {
-            "file_name": os.path.basename(self.target_nc_filename),
-            "file_location": os.path.dirname(self.target_nc_filename),
-            "file_format": "NetCDF-CF",
-            "file_size": "%.2f" % self.file_size,
-            "file_size_unit": "MB",
-        }
+        if not self.check_only:
+            # Set storage_information
+            self.metadata["storage_information"] = {
+                "file_name": os.path.basename(self.target_nc_filename),
+                "file_location": os.path.dirname(self.target_nc_filename),
+                "file_format": "NetCDF-CF",
+                "file_size": "%.2f" % self.file_size,
+                "file_size_unit": "MB",
+            }
 
         if checksum_calculation:
             hasher = FileHash("md5", chunk_size=1048576)
