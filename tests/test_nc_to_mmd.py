@@ -26,10 +26,9 @@ from netCDF4 import Dataset
 from pkg_resources import resource_string
 from unittest.mock import patch
 
-from py_mmd_tools.nc_to_mmd import Nc_to_mmd, normalize_iso8601, normalize_iso8601_0, nc_wrapper
+from py_mmd_tools.nc_to_mmd import Nc_to_mmd, normalize_iso8601, normalize_iso8601_0
 from py_mmd_tools.nc_to_mmd import valid_url
 from py_mmd_tools.nc_to_mmd import get_short_and_long_names
-from py_mmd_tools.nc_to_mmd import nc_sub
 from py_mmd_tools.nc_to_mmd import nc_wrapper
 from py_mmd_tools.yaml_to_adoc import nc_attrs_from_yaml
 from py_mmd_tools.yaml_to_adoc import required
@@ -547,7 +546,6 @@ def test_json(dataDir, monkeypatch):
         tmp = Nc_to_mmd(test_json_header, json_input=True, file_size=10,
                         opendap_url="https://thredds.met.no/etc", output_file="somefn.xml")
     assert "Input parameter 'target_nc_filename' must be " in str(ee.value)
-
 
 
 @pytest.mark.py_mmd_tools
