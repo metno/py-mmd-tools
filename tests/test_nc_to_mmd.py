@@ -549,6 +549,18 @@ def test_json(dataDir, monkeypatch):
 
 
 @pytest.mark.py_mmd_tools
+def testNc_to_mmd_Init(dataDir):
+    """Additional tests for the init method.
+    """
+    # Test case with target_nc_filename different from input filename
+    md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'),
+                   target_nc_filename="/dummy/path/to/filename.nc",
+                   opendap_url="https://thredds.met.no/etc",
+                   output_file="somefn.xml")
+    assert md.target_nc_filename == "/dummy/path/to/filename.nc"
+
+
+@pytest.mark.py_mmd_tools
 def test_nc_wrapper_ncatters(dataDir):
     test_ncin = os.path.join(dataDir, "reference_nc.nc")
     test_ncin = Dataset(test_ncin)
