@@ -254,10 +254,12 @@ class Nc_to_mmd(object):
             target_nc_filename : str
                 If, for some reason, the filename that should be
                 referred to in the MMD file is differrent than the
-                input filename, this parameter provides that filename.
+                input filename, e.g., if a file will be moved after
+                creation of the MMD file, this parameter provides that
+                filename.
             file_size : float
                 If json_input is True, the file size needs to be
-                provided as an input parameter. The unit is GB.
+                provided as an input parameter. The unit is MB.
         """
         self.ACDD_ID_INVALID_CHARS = ["\\", "/", ":", " "]
         self.VALID_NAMING_AUTHORITIES = ["no.met", "no.nve", "no.nilu", "no.niva"]
@@ -288,15 +290,10 @@ class Nc_to_mmd(object):
             if target_nc_filename is None and not check_only:
                 raise ValueError("Input parameter 'target_nc_filename' must be "
                                  "provided when using input from json.")
-            else:
-                self.target_nc_filename = target_nc_filename
             self.ncin = nc_wrapper(netcdf_file)
             self.check_attributes_not_empty(self.ncin)
             self.file_size = file_size
 
-        # We may want to use the target_nc_filename for other cases
-        # than with the API, e.g., if a file will be moved after
-        # creation of the MMD file.
         if target_nc_filename is not None:
             self.target_nc_filename = target_nc_filename
 

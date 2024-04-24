@@ -550,7 +550,11 @@ def test_json(dataDir, monkeypatch):
 
 @pytest.mark.py_mmd_tools
 def testNc_to_mmd_Init(dataDir):
-    """Additional tests for the init method.
+    """Test __init__
+
+    1: that the target_nc_filename is added, if provided.
+
+    Additional tests for the init method can be added here.
     """
     # Test case with target_nc_filename different from input filename
     md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'),
