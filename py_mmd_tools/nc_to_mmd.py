@@ -17,10 +17,13 @@ py-mmd-tools is licensed under the Apache License 2.0
 
 import os
 import re
-import warnings
 import yaml
 import jinja2
+import pathlib
+import warnings
 import shapely.wkt
+
+import numpy as np
 
 from filehash import FileHash
 from itertools import zip_longest
@@ -31,7 +34,6 @@ from uuid import UUID
 from metvocab.mmdgroup import MMDGroup
 from metvocab.cfstd import CFStandard
 
-import pathlib
 from netCDF4 import Dataset
 
 from shapely.errors import ShapelyError
@@ -234,68 +236,60 @@ class Nc_to_mmd(object):
     LANDING_PAGE_BASE = None
 
     def __init__(self, netcdf_file, opendap_url=None, output_file=None, check_only=False,
-                 json_input=False, target_nc_filename=None, file_size=None):
+                 json_input=False, checksum_calculation=False):
         """Class for creating an MMD XML file based on the discovery
         metadata provided in the global attributes of NetCDF files that
         are compliant with the CF-conventions and ACDD.
 
         Args:
-            netcdf_file : str
-                Input NetCDF file
+            netcdf_file : str or dict
+                NetCDF filename (str) or a dictionary containing the
+                required NetCDF-CF attributes and file infomation.
             opendap_url : str
-                OPeNDAP url
+                OPeNDAP url to the dataset as it will be available
+                from the archive.
             output_file : str
-                Output path for the resulting mmd xml file
-            check_only : boolean
-                Will only check the NetCDF attributes if True
-            json_input : boolean
-                If True, specifies that the input netcdf_file is
-                actually a json file with only metadata
-            target_nc_filename : str
-                If, for some reason, the filename that should be
-                referred to in the MMD file is differrent than the
-                input filename, e.g., if a file will be moved after
-                creation of the MMD file, this parameter provides that
-                filename.
-            file_size : float
-                If json_input is True, the file size needs to be
-                provided as an input parameter. The unit is MB.
+                Output path for the resulting mmd xml file.
+            check_only : bool
+                Only check the NetCDF file. In this case, only the
+                NetCDF filename ('netcdf_file') input parameter is required.
+            json_input : bool
+                The provided 'netcdf_file' argument is a dict
+                containing the required NetCDF-CF attrbiutes.
+            checksum_calculation : bool, default False
+                True if the file checksum should be calculated.
         """
         self.ACDD_ID_INVALID_CHARS = ["\\", "/", ":", " "]
         self.VALID_NAMING_AUTHORITIES = ["no.met", "no.nve", "no.nilu", "no.niva"]
         self.LANDING_PAGE_BASE = {
             "no.met": "https://data.met.no/dataset",
             "dummy": "https://data.fake.no",  # used if naming_authority is
-            # missing from the nc file
+                                              # missing from the nc file
         }
+        self.HASH_ALGORITHM = "md5"
+        self.checksum_calculation = checksum_calculation
+
         if (output_file is None or opendap_url is None) and check_only is False:
             raise ValueError(
                 "The opendap_url and output_file input parameters "
                 "must be provided if check_only is False"
             )
         super(Nc_to_mmd, self).__init__()
+
         self.output_file = output_file
-
-        if not json_input:
-            self.netcdf_file = os.path.abspath(netcdf_file)
-            self.target_nc_filename = self.netcdf_file
-            self.ncin = self.read_nc_file(self.netcdf_file)
-            self.check_attributes_not_empty(self.ncin)
-            self.file_size = pathlib.Path(self.netcdf_file).stat().st_size / (1024 * 1024)
-
+        if json_input:
+            self.netcdf_file = netcdf_file["archive_location"]
+            self.file_size = netcdf_file["file_size"]
+            if self.checksum_calculation:
+                self.file_checksum = netcdf_file["file_checksum"]
+                self.HASH_ALGORITHM = netcdf_file["file_checksum_type"] + "sum"
         else:
-            if file_size is None and not check_only:
-                raise ValueError("Input parameter 'file_size' must be "
-                                 "provided when using input from json.")
-            if target_nc_filename is None and not check_only:
-                raise ValueError("Input parameter 'target_nc_filename' must be "
-                                 "provided when using input from json.")
-            self.ncin = nc_wrapper(netcdf_file)
-            self.check_attributes_not_empty(self.ncin)
-            self.file_size = file_size
-
-        if target_nc_filename is not None:
-            self.target_nc_filename = target_nc_filename
+            self.netcdf_file = os.path.abspath(netcdf_file)
+            self.file_size = np.round(pathlib.Path(self.netcdf_file).stat().st_size/(1024*1024), 2)
+            if self.checksum_calculation:
+                # we may have to base it on the complete file - @amundi..
+                hasher = FileHash(self.HASH_ALGORITHM, chunk_size=1048576)
+                self.file_checksum = hasher.hash_file(self.netcdf_file)
 
         self.opendap_url = opendap_url
         self.check_only = check_only
@@ -335,6 +329,17 @@ class Nc_to_mmd(object):
 
         if not (self.platform_group.is_initialised and self.instrument_group.is_initialised):
             raise ValueError("Instrument or Platform group were not initialised")
+
+        if self.json_input:
+            self.ncin = nc_wrapper(netcdf_file)
+            self.check_attributes_not_empty(self.ncin)
+            try:
+                self.netcdf_file = self.ncin.getncattr("title")
+            except KeyError:
+                self.netcdf_file = "<Not provided>"
+        else:
+            self.ncin = self.read_nc_file(self.netcdf_file)
+            self.check_attributes_not_empty(self.ncin)
 
     def read_nc_file(self, fn):
         """Open netcdf dataset, appending #fillmismatch if necessary"""
@@ -1596,7 +1601,6 @@ class Nc_to_mmd(object):
     def to_mmd(
         self,
         collection=None,
-        checksum_calculation=False,
         mmd_yaml=None,
         parent=None,
         *args,
@@ -1613,8 +1617,6 @@ class Nc_to_mmd(object):
         ----------
         collection : str, default 'METNCS'
             Specify the MMD collection for which you are harvesting to.
-        checksum_calculation : bool, default False
-            True if the file checksum should be calculated.
         mmd_yaml : str, optional
             The yaml file to use for translation from ACDD to MMS.
         time_coverage_start : str, optional
@@ -1804,22 +1806,18 @@ class Nc_to_mmd(object):
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
 
-        if not self.check_only:
-            # Set storage_information
-            self.metadata["storage_information"] = {
-                "file_name": os.path.basename(self.target_nc_filename),
-                "file_location": os.path.dirname(self.target_nc_filename),
-                "file_format": "NetCDF-CF",
-                "file_size": "%.2f" % self.file_size,
-                "file_size_unit": "MB",
-            }
+        # Set storage_information
+        self.metadata["storage_information"] = {
+            "file_name": os.path.basename(self.netcdf_file),
+            "file_location": os.path.dirname(self.netcdf_file),
+            "file_format": "NetCDF-CF",
+            "file_size": "%.2f" % self.file_size,
+            "file_size_unit": "MB",
+        }
 
-        if checksum_calculation:
-            hasher = FileHash("md5", chunk_size=1048576)
-            fchecksum = hasher.hash_file(self.netcdf_file)
-
-            self.metadata["storage_information"]["checksum"] = fchecksum
-            self.metadata["storage_information"]["checksum_type"] = "%ssum" % hasher.hash_algorithm
+        if self.checksum_calculation:
+            self.metadata["storage_information"]["checksum"] = self.file_checksum
+            self.metadata["storage_information"]["checksum_type"] = self.HASH_ALGORITHM + "sum"
 
         self.check_conventions(ncin)
         self.check_feature_type(ncin)

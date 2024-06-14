@@ -40,6 +40,14 @@ def create_parser():
     )
 
     parser.add_argument("-i", "--input", type=str, help="Input file", required=True)
+    parser.add_argument("--archive_location", type=str,
+                        help="Archive location of the NetCDF-CF file (e.g., like "
+                             "'/lustre/storeX/<some-location>/<filename>.nc').",
+                        required=True)
+    parser.add_argument("--file_checksum", type=str, default=None,
+                        help="Checksum of the NetCDF-CF file.")
+    parser.add_argument("--file_checksum_type", type=str, default=None,
+                        help="Checksum type.")
 
     parser.add_argument(
         "-o",
@@ -56,13 +64,19 @@ def create_parser():
     return parser
 
 
-def get_header_netCDF(data: Dataset) -> dict:
+def get_header_netCDF(file: str, archive_location: str, file_checksum: str,
+                      file_checksum_type: str) -> dict:
     """
     This function grabs all global and variable attributes and dumps them into a json file.
     """
+    data = Dataset(file)
     full_attr = {
         "global_variables": {i: data.getncattr(i) for i in data.ncattrs()},
         "variables": {},
+        "file_size": np.round(pathlib.Path(file).stat().st_size / (1024 * 1024), 2),
+        "archive_location": archive_location,
+        "file_checksum": file_checksum,
+        "file_checksum_type": file_checksum_type,
     }
 
     for var_name, variable in data.variables.items():
@@ -102,7 +116,9 @@ def main(args=None):
     else:
         raise ValueError(f"Invalid input: {args.input}")
 
-    json_header = [json.loads(get_header_netCDF(Dataset(file))) for file in inputfiles][0]
+    json_header = [json.loads(get_header_netCDF(file, args.archive_location, args.file_checksum,
+                                                args.file_checksum_type))
+                   for file in inputfiles][0]
 
     if args.output:
         with open(args.output, "w") as fp:
