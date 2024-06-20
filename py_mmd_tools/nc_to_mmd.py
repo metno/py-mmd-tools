@@ -871,7 +871,8 @@ class Nc_to_mmd(object):
                         "%s in %s attribute is not a valid url" % (resource, acdd_vocabulary_key)
                     )
                     continue
-                keywords_this = [k.replace(prefix + ":", "") for k in keywords if prefix in k]
+                keywords_this = [k.replace(prefix + ":", "").strip()
+                                 for k in keywords if prefix in k]
                 data.append({"resource": resource, "keyword": keywords_this, "vocabulary": prefix})
         return data
 
