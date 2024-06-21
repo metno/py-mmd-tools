@@ -120,5 +120,7 @@
                 5
             ]
         }
-    }
+    },
+    "archive_location": "/final/storage/of/the/netcdf/file.nc",
+    "file_size": 500
 }
