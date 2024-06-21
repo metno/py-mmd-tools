@@ -785,7 +785,9 @@ class Nc_to_mmd(object):
         varlist = []
         for key in ncin.variables.keys():
             if "standard_name" in ncin.variables[key].ncattrs():
-                if all([ncin.variables[key].standard_name not in ["longitude", "latitude", "time"],
+                if all([ncin.variables[key].standard_name not in ["longitude", "latitude", "time",
+                                                                  "projection_x_coordinate",
+                                                                  "projection_y_coordinate"],
                         ncin.variables[key].standard_name not in varlist]):
                     varlist.append(ncin.variables[key].standard_name)
 

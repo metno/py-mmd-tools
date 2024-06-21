@@ -5,7 +5,6 @@
 
 Python tools for MMD. The package contains tools for generating MMD files from netCDF-CF files with ACDD attributes, for documenting netCDF-CF files from MMD information, and for updating the [Data Management Handbook](https://metno.github.io/data-management-handbook/) with information about the translation from ACDD to MMD. Command line tools are available in the `py_mmd_tools/scripts/` folder. For example,
 
-See it [here](https://metno.github.io/data-management-handbook/).
 ```
 ./py_mmd_tools/script/nc2mmd.py -i tests/data/reference_nc.nc -o .
 ```
