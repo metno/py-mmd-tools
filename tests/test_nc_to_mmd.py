@@ -1944,6 +1944,30 @@ class TestNC2MMD(unittest.TestCase):
             ' in keywords_vocabulary attribute is not a valid url'
         )
 
+    def test_spaces_around_keywords_are_stripped(self):
+        """Test that if a keyword is provided as
+        'GEMET: Meteorological geographical features ,', then the
+        spaces around 'Meteorological geographical features' are
+        removed.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(self.fail_nc, check_only=True)
+        ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        ncin.keywords = "GCMDSK: Earth Science > Atmosphere > Atmospheric radiation , " \
+                        "GEMET: Meteorological geographical features, " \
+                        "GEMET: Atmospheric conditions , " \
+                        "NORTHEMES:Weather and climate "
+        ncin.keywords_vocabulary = (
+            "GCMDSK:GCMD Science Keywords:https://vocab.met.no/GCMDSK,"
+            "GEMET:INSPIRE Themes:http://inspire.ec.eur_opa.eu/theme, "
+            "NORTHEMES:GeoNorge Themes:"
+            "https://register.geonorge.no/metadata-kodelister/nasjonal-temainndeling")
+        data = md.get_keywords(mmd_yaml['keywords'], ncin)
+        self.assertEqual(data[0]["keyword"][0],
+                         "Earth Science > Atmosphere > Atmospheric radiation")
+
     def test_keywords_vocabulary_missing(self):
         """ToDo: Add docstring"""
         mmd_yaml = yaml.load(

@@ -812,7 +812,9 @@ class Nc_to_mmd(object):
         varlist = []
         for key in ncin.variables.keys():
             if "standard_name" in ncin.variables[key].ncattrs():
-                if all([ncin.variables[key].standard_name not in ["longitude", "latitude", "time"],
+                if all([ncin.variables[key].standard_name not in ["longitude", "latitude", "time",
+                                                                  "projection_x_coordinate",
+                                                                  "projection_y_coordinate"],
                         ncin.variables[key].standard_name not in varlist]):
                     varlist.append(ncin.variables[key].standard_name)
 
@@ -898,7 +900,8 @@ class Nc_to_mmd(object):
                         "%s in %s attribute is not a valid url" % (resource, acdd_vocabulary_key)
                     )
                     continue
-                keywords_this = [k.replace(prefix + ":", "") for k in keywords if prefix in k]
+                keywords_this = [k.replace(prefix + ":", "").strip()
+                                 for k in keywords if prefix in k]
                 data.append({"resource": resource, "keyword": keywords_this, "vocabulary": prefix})
         return data
 
