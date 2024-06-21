@@ -32,4 +32,9 @@ jobs:
           git clone https://github.com/metno/mmd $MMD_PATH
           python -m pytest -v --cov=py_mmd_tools --cov=script --timeout=120
       - name: Upload to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
+        with:
+          fail_ci_if_error: true
+          flags: unittests # optional
+          token: ${{ secrets.CODECOV_TOKEN }} # required
+          verbose: true # optional (default = false)
