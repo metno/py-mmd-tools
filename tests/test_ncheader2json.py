@@ -58,6 +58,7 @@ def test_main_raise_error():
         ("_", np.int64(1), int),
         ("_", np.int16(1), int),
         ("_", np.ndarray([1, 2, 3]), list),
+        ("_", np.int32(4321), int)
     ],
 )
 def test_handle_numpy_types(dataDir, test_input, expected):
