@@ -964,7 +964,7 @@ class Nc_to_mmd(object):
 
         return data
 
-    def get_dataset_citations(self, mmd_element, ncin, dataset_citation=None, **kwargs):
+    def get_dataset_citations(self, mmd_element, ncin, dataset_citation=None):
         """MMD allows several dataset citations. This will lead to
         problems with associating the different elements to each other.
         In practice, most datasets will only have one citation, so will
@@ -1580,6 +1580,7 @@ class Nc_to_mmd(object):
         checksum_calculation=False,
         mmd_yaml=None,
         parent=None,
+        overrides=None,
         *args,
         **kwargs,
     ):
@@ -1598,35 +1599,54 @@ class Nc_to_mmd(object):
             True if the file checksum should be calculated.
         mmd_yaml : str, optional
             The yaml file to use for translation from ACDD to MMS.
-        time_coverage_start : str, optional
-            The start date and time, in iso8601 format, for the
-            dataset coverage.
-        time_coverage_end   : str, optional
-            The end date and time, in iso8601 format, for the dataset
-            coverage.
-        geographic_extent_rectangle : dict, optional
-            The geographic extent of the datasets defined as a rectangle
-            in lat/lon projection. The extent is defined using the
-            following child elements: {
-                'geospatial_lat_max': geospatial_lat_max
-                    - The northernmost point covered by the dataset.
-                'geospatial_lat_min': geospatial_lat_min
-                    - The southernmost point covered by the dataset.
-                'geospatial_lon_min': geospatial_lon_min
-                    - The easternmost point covered by the dataset.
-                'geospatial_lon_max': geospatial_lon_max
-                    - The westernmost point covered by the dataset.
-            }
+        parent : str, optional
+            ID of parent dataset.
+        overrides : dict, optional
+            A dictionary with overrides for certain MMD fields:
+
+            time_coverage_start : str
+                The start date and time, in iso8601 format, for the
+                dataset coverage.
+            time_coverage_end : str
+                The end date and time, in iso8601 format, for the
+                dataset coverage.
+            geographic_extent_rectangle : dict
+                The geographic extent of the datasets defined as a
+                rectangle in lat/lon projection. The extent is defined
+                using the following child elements: {
+                    'geospatial_lat_max': geospatial_lat_max
+                        - The northernmost point covered by the
+                          dataset.
+                    'geospatial_lat_min': geospatial_lat_min
+                        - The southernmost point covered by the
+                          dataset.
+                    'geospatial_lon_min': geospatial_lon_min
+                        - The easternmost point covered by the
+                          dataset.
+                    'geospatial_lon_max': geospatial_lon_max
+                        - The westernmost point covered by the
+                          dataset.
+                }
+            dataset_citation : dict
+                An alternative dataset citation. This can be useful if
+                the citation refers to a parent dataset or a DOI.
+            platform : dict
+                A dictionary specifying the platform according to MMD
+                guidelines.
 
         This list can be extended but requires some new code...
         """
         if collection is not None and type(collection) is not str:
             raise ValueError("collection must be of type str")
 
-        # kwargs that were not added in the function def:
-        time_coverage_start = kwargs.pop("time_coverage_start", "")
-        time_coverage_end = kwargs.pop("time_coverage_end", "")
-        geographic_extent_rectangle = kwargs.pop("geographic_extent_rectangle", "")
+        # Overrides
+        if overrides is None:
+            overrides = {}
+        time_coverage_start = overrides.pop("time_coverage_start", None)
+        time_coverage_end = overrides.pop("time_coverage_end", None)
+        geographic_extent_rectangle = overrides.pop("geographic_extent_rectangle", None)
+        dataset_citation = overrides.pop("dataset_citation", None)
+        platform = overrides.pop("platform", None)
 
         # Get ncin object from instance
         ncin = self.ncin
@@ -1689,10 +1709,14 @@ class Nc_to_mmd(object):
         self.metadata["personnel"] = self.get_personnel(mmd_yaml.pop("personnel"), ncin)
         self.metadata["keywords"] = self.get_keywords(mmd_yaml.pop("keywords"), ncin)
         self.metadata["project"] = self.get_projects(mmd_yaml.pop("project"), ncin)
-        self.metadata["platform"] = self.get_platforms(mmd_yaml.pop("platform"), ncin)
+        if platform is None:
+            self.metadata["platform"] = self.get_platforms(mmd_yaml.pop("platform"), ncin)
+        else:
+            mmd_yaml.pop("platform")
+            self.metadata["platform"] = [platform]
 
         self.metadata["dataset_citation"] = self.get_dataset_citations(
-            mmd_yaml.pop("dataset_citation"), ncin, **kwargs
+            mmd_yaml.pop("dataset_citation"), ncin, dataset_citation=dataset_citation
         )
         self.metadata["related_dataset"] = self.get_related_dataset(
             mmd_yaml.pop("related_dataset"), ncin

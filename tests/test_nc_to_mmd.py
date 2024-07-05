@@ -71,6 +71,27 @@ def test_parent_keyword_arg(dataDir):
 
 
 @pytest.mark.py_mmd_tools
+def test_platform_in_overrides(dataDir):
+    """Test that over-riding the platform attribute works as expected.
+    """
+    md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
+    req, msg = md.to_mmd(
+        overrides={
+            "platform": {
+                "short_name": "Metop-A",
+                "long_name": "Meteorological operational satellite - A",
+                "resource": "http://www.wmo-sat.info/oscar/satellites/view/metop-a",
+                "orbit_relative": 3,
+                "orbit_absolute": 100,
+                "orbit_direction": "ascending",
+                "instrument": {
+                    "short_name": "AVHRR",
+                    "long_name": "Advanced Very High Resolution Radiometer",
+                    "resource": "https://www.wmo-sat.info/oscar/instruments/view/avhrr"}}})
+    assert md.metadata["platform"][0]["short_name"] == "Metop-A"
+
+
+@pytest.mark.py_mmd_tools
 def test_get_landing_page_url(dataDir):
     md = Nc_to_mmd(os.path.join(dataDir, "reference_nc.nc"), check_only=True)
     assert md.get_dataset_landing_page_url() == "https://data.met.no/dataset/" \
@@ -1108,12 +1129,11 @@ class TestNC2MMD(unittest.TestCase):
         )
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_missing_rectangle.nc'),
                        check_only=True)
-        md.to_mmd(geographic_extent_rectangle={
-            'geospatial_lat_max': 90,
-            'geospatial_lat_min': -90,
-            'geospatial_lon_min': -180,
-            'geospatial_lon_max': 180
-        })
+        md.to_mmd(overrides={
+            "geographic_extent_rectangle": {"geospatial_lat_max": 90,
+                                            "geospatial_lat_min": -90,
+                                            "geospatial_lon_min": -180,
+                                            "geospatial_lon_max": 180}})
         self.assertEqual(md.metadata['geographic_extent']['rectangle']['north'], 90)
 
     def test_collection_is_not_list(self):
@@ -1338,7 +1358,7 @@ class TestNC2MMD(unittest.TestCase):
             'time_coverage_start is a required ACDD attribute'
         )
 
-    def test_missing_temporal_extent_but_start_provided_as_kwarg(self):
+    def test_missing_temporal_extent_but_start_provided_in_dict(self):
         """ToDo: Add docstring"""
         yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
@@ -1346,34 +1366,30 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_missing_attrs.nc'),
                        check_only=True)
         with self.assertRaises(AttributeError):
-            md.to_mmd(time_coverage_start='1850-01-01T00:00:00Z')
+            md.to_mmd(overrides={"time_coverage_start": "1850-01-01T00:00:00Z"})
         self.assertEqual(md.metadata['temporal_extent']['start_date'],
                          '1850-01-01T00:00:00Z')
 
-    def test_missing_temporal_extent_but_start_and_end_provided_as_kwargs(self):
+    def test_missing_temporal_extent_but_start_and_end_provided_in_dict(self):
         """ToDo: Add docstring"""
         yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_missing_attrs.nc'),
                        check_only=True)
         with self.assertRaises(AttributeError):
-            md.to_mmd(
-                time_coverage_start='1850-01-01T00:00:00Z',
-                time_coverage_end='1950-01-01T00:00:00Z'
-            )
+            md.to_mmd(overrides={"time_coverage_start": "1850-01-01T00:00:00Z",
+                                 "time_coverage_end": "1950-01-01T00:00:00Z"})
         self.assertEqual(md.metadata['temporal_extent']['start_date'],
                          '1850-01-01T00:00:00Z')
         self.assertEqual(md.metadata['temporal_extent']['end_date'], '1950-01-01T00:00:00Z')
 
-    def test_missing_temporal_extent_but_start_and_end_provided_as_kwargs_and_wrong(self):
+    def test_missing_temporal_extent_but_start_and_end_provided_in_dict_and_wrong(self):
         """Test that errors are raised when input times are not iso"""
         yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_missing_attrs.nc'),
                        check_only=True)
         with self.assertRaises(AttributeError):
-            md.to_mmd(
-                time_coverage_start='1850/01/01 00:00:00',
-                time_coverage_end='1950/01/01 00:00:00'
-            )
+            md.to_mmd(overrides={"time_coverage_start": "1850/01/01 00:00:00",
+                                 "time_coverage_end": "1950/01/01 00:00:00"})
         self.assertEqual(
             md.missing_attributes['errors'][5],
             "time_coverage_start must be in ISO8601 format: "
@@ -2144,7 +2160,7 @@ class TestNC2MMD(unittest.TestCase):
             "publication_date": "2023-07-06",
             "title": "Some random title"}
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc.nc'), check_only=True)
-        req_ok, msg = md.to_mmd(dataset_citation=dc)
+        req_ok, msg = md.to_mmd(overrides={"dataset_citation": dc})
         self.assertEqual(md.metadata['dataset_citation'][0]['author'], 'No Name')
 
     def test_dataset_citation(self):
