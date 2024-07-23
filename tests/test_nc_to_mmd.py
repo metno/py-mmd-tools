@@ -26,9 +26,10 @@ from netCDF4 import Dataset
 from pkg_resources import resource_string
 from unittest.mock import patch
 
-from py_mmd_tools.nc_to_mmd import Nc_to_mmd, normalize_iso8601, normalize_iso8601_0, nc_wrapper
+from py_mmd_tools.nc_to_mmd import Nc_to_mmd, normalize_iso8601, normalize_iso8601_0
 from py_mmd_tools.nc_to_mmd import valid_url
 from py_mmd_tools.nc_to_mmd import get_short_and_long_names
+from py_mmd_tools.nc_to_mmd import nc_wrapper
 from py_mmd_tools.yaml_to_adoc import nc_attrs_from_yaml
 from py_mmd_tools.yaml_to_adoc import required
 from py_mmd_tools.yaml_to_adoc import repetition_allowed
@@ -225,8 +226,8 @@ def test_checksum(monkeypatch):
     with monkeypatch.context() as mp:
         mp.setattr("py_mmd_tools.nc_to_mmd.Dataset",
                    lambda *args, **kwargs: patchedDataset(url, *args, **kwargs))
-        md = Nc_to_mmd(fn, url, check_only=True)
-        md.to_mmd(checksum_calculation=True)
+        md = Nc_to_mmd(fn, url, checksum_calculation=True, check_only=True)
+        md.to_mmd()
     checksum = md.metadata['storage_information']['checksum']
     with open(tested, 'w') as tt:
         tt.write('%s *%s'%(checksum, fn))
@@ -246,8 +247,8 @@ def test_create_mmd_1(monkeypatch):
     with monkeypatch.context() as mp:
         mp.setattr("py_mmd_tools.nc_to_mmd.Dataset",
                    lambda *args, **kwargs: patchedDataset(url, *args, **kwargs))
-        md = Nc_to_mmd(fn, url, output_file=tested)
-        md.to_mmd(checksum_calculation=True)
+        md = Nc_to_mmd(fn, url, output_file=tested, checksum_calculation=True)
+        md.to_mmd()
 
     reference_xsd = os.path.join(os.environ['MMD_PATH'], 'xsd/mmd_strict.xsd')
     xsd_obj = etree.XMLSchema(etree.parse(reference_xsd))
@@ -278,8 +279,8 @@ def test_create_and_validate_mmd_platform(monkeypatch):
     with monkeypatch.context() as mp:
         mp.setattr("py_mmd_tools.nc_to_mmd.Dataset",
                    lambda *args, **kwargs: patchedDataset(url, *args, **kwargs))
-        md = Nc_to_mmd(fn, url, output_file=tested)
-        md.to_mmd(checksum_calculation=True)
+        md = Nc_to_mmd(fn, url, output_file=tested, checksum_calculation=True)
+        md.to_mmd()
     reference_xsd = os.path.join(os.environ['MMD_PATH'], 'xsd/mmd_strict.xsd')
     xsd_obj = etree.XMLSchema(etree.parse(reference_xsd))
     xml_doc = etree.ElementTree(file=tested)
@@ -523,14 +524,53 @@ def test_nc_wrapper_variable_attrs(dataDir):
 
 
 @pytest.mark.py_mmd_tools
-def test_json_dry_run(dataDir):
+def test_json(dataDir, monkeypatch):
+    """TODO: add docstring
+    """
     test_json_header = os.path.join(dataDir, "reference_nc_header.json")
 
     with open(test_json_header, "r") as file:
         test_json_header = json.load(file)
 
-    tmp = Nc_to_mmd(test_json_header, json_input=True, check_only=True)
+    tmp = Nc_to_mmd(test_json_header, json_input=True, check_only=True, checksum_calculation=True)
     tmp.to_mmd()
+
+    with monkeypatch.context() as mp:
+        mp.setattr(nc_wrapper, "__init__", lambda *a, **k: None)
+        mp.setattr(nc_wrapper, "ncattrs", lambda *a, **k: ["what", "ever"])
+        mp.setattr(nc_wrapper, "getncattr", lambda *a, **k: ["what", "ever"])
+        test_json_header.pop("file_size")
+        with pytest.raises(KeyError) as ee:
+            tmp = Nc_to_mmd(test_json_header, json_input=True,
+                            opendap_url="https://thredds.met.no/etc", output_file="somefn.xml")
+        assert "'file_size'" == str(ee.value)
+
+    test_json_header.pop("archive_location")
+    with pytest.raises(KeyError) as ee:
+        tmp = Nc_to_mmd(test_json_header, json_input=True,
+                        opendap_url="https://thredds.met.no/etc", output_file="somefn.xml")
+    assert "'archive_location'" in str(ee.value)
+
+
+# The target_nc_filename should not be needed if the file is correctly
+# placed before creating the MMD file. With
+# https://github.com/metno/discovery-metadata-catalog-ingestor/issues/225
+# we can let the MMD files validate but not be inserted unless the
+# nc-file and the odap url exist.
+# @pytest.mark.py_mmd_tools
+# def testNc_to_mmd_Init(dataDir):
+#     """Test __init__
+#
+#     1: that the target_nc_filename is added, if provided.
+#
+#     Additional tests for the init method can be added here.
+#     """
+#     # Test case with target_nc_filename different from input filename
+#     md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'),
+#                    target_nc_filename="/dummy/path/to/filename.nc",
+#                    opendap_url="https://thredds.met.no/etc",
+#                    output_file="somefn.xml")
+#     assert md.target_nc_filename == "/dummy/path/to/filename.nc"
 
 
 @pytest.mark.py_mmd_tools
@@ -2200,8 +2240,7 @@ class TestNC2MMD(unittest.TestCase):
     def test_oserror_opendap(self, mock_nc_dataset):
         """ToDo: Add docstring"""
         mock_nc_dataset.side_effect = OSError
-        fn = os.path.abspath(
-            'S1A_IW_GRDH_1SDV_20210131T172816_20210131T172841_036385_04452D_505F.nc')
+        fn = os.path.abspath('tests/data/reference_nc.nc')
         url = (
             'http://nbstds.met.no/thredds/dodsC/NBS/S1A/2021/01/31/IW/'
             'S1A_IW_GRDH_1SDV_20210131T172816_20210131T172841_036385_04452D_505F.nc'
@@ -2427,8 +2466,9 @@ class TestNC2MMD(unittest.TestCase):
             md = Nc_to_mmd(
                 file,
                 os.path.join('https://thredds.met.no/thredds/dodsC/', file),
+                checksum_calculation=True,
                 output_file=tested)
-            md.to_mmd(checksum_calculation=True)
+            md.to_mmd()
             xsd_obj = etree.XMLSchema(etree.parse(self.reference_xsd))
             xml_doc = etree.ElementTree(file=tested)
             valid = xsd_obj.validate(xml_doc)
@@ -2573,7 +2613,7 @@ class TestNC2MMD(unittest.TestCase):
         """ToDo: Add docstring"""
         fn = os.path.abspath('tests/data/reference_nc.nc')
         md = Nc_to_mmd(fn, check_only=True)
-        md.to_mmd(checksum_calculation=False)
+        md.to_mmd()
         with self.assertRaises(KeyError):
             md.metadata['storage_information']['checksum']
             md.metadata['storage_information']['checksum_type']
