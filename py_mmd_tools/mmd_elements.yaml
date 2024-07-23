@@ -26,7 +26,7 @@ alternate_identifier:
   alternate_identifier_type:
 
 # publisher_type is not in MMD but suggested for the netcdf file - is this ACDD?
-publisher_type:
+None:
   maxOccurs: '1'
   minOccurs: '0'
   acdd:
@@ -37,7 +37,7 @@ publisher_type:
       description: Specifies type of publisher as one of 'person', 'group', 'institution', or 'position'. If this attribute is not specified, the publisher is assumed to be a person.
 
 # publisher_email is not in MMD but recommended for the netcdf file
-publisher_email:
+None:
   maxOccurs: '1'
   minOccurs: '0'
   acdd:
