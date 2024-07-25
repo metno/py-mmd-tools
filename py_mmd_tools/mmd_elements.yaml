@@ -25,27 +25,17 @@ alternate_identifier:
         description: Alternative identifier for the dataset described by the metadata document in the form <url> (<type>). This is used when datasets have multiple identifiers, e.g., depending on the framework through which the data is shared.
   alternate_identifier_type:
 
-# publisher_type is not in MMD but suggested for the netcdf file - is this ACDD?
-None:
-  maxOccurs: '1'
+# Conventions is not in MMD but recommended for the netcdf file
+not_mmd.Conventions:
+  maxOccurs: 'unbounded'
   minOccurs: '0'
   acdd:
-    publisher_type:
+    Conventions:
       maxOccurs: '1'
-      minOccurs: '0'
-      comment: Suggested
-      description: Specifies type of publisher as one of 'person', 'group', 'institution', or 'position'. If this attribute is not specified, the publisher is assumed to be a person.
+      minOccurs: '1'
+      comment: Required
+      description: Required. A comma-separated string with names of the conventions that are followed by the dataset, e.g., "CF-1.10, ACDD-1.3".
 
-# publisher_email is not in MMD but recommended for the netcdf file
-None:
-  maxOccurs: '1'
-  minOccurs: '0'
-  acdd:
-    publisher_email:
-      maxOccurs: '1'
-      minOccurs: '0'
-      comment: Recommended
-      description: The email address of the person (or other entity specified by the publisher_type attribute) responsible for publishing the data file or product to users, with its current metadata and format.
 
 last_metadata_update:
   maxOccurs: '1'
@@ -332,6 +322,28 @@ data_center:
         separator: ','
         comment: Comma separated list.
         description: The URL of the person (or other entity specified by the publisher_type attribute) responsible for publishing the data file or product to users.
+
+# publisher_type is not in MMD but suggested for the netcdf file - is this ACDD?
+not_mmd.publisher_type:
+  maxOccurs: 'unbounded'
+  minOccurs: '0'
+  acdd:
+    publisher_type:
+      maxOccurs: 'unbounded'
+      minOccurs: '0'
+      comment: Suggested
+      description: Specifies type of publisher as one of 'person', 'group', 'institution', or 'position'. If this attribute is not specified, the publisher is assumed to be a person.
+
+# publisher_email is not in MMD but recommended for the netcdf file
+not_mmd.publisher_email:
+  maxOccurs: 'unbounded'
+  minOccurs: '0'
+  acdd:
+    publisher_email:
+      maxOccurs: 'unbounded'
+      minOccurs: '0'
+      comment: Recommended
+      description: The email address of the person (or other entity specified by the publisher_type attribute) responsible for publishing the data file or product to users, with its current metadata and format.
 
 data_access:
   maxOccurs: unbounded
