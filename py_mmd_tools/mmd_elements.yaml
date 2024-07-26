@@ -750,3 +750,16 @@ dataset_citation:
         comment: E.g., a dataset landing page
         description: A URL that gives the location of more complete metadata, such as a dataset landing page. A persistent URL is recommended for this attribute. At MET Norway, landing page urls are https://data.met.no/dataset/, plus the dataset UUID. The nc-to-mmd conversion tool automatically creates the dataset citation url, so the metadata_link is only needed if the information is wanted in the NetCDF file.
   other:
+
+# wigos_id is not in MMD but recommended for the netcdf file
+not_mmd.wigos_id:
+  maxOccurs: 'unbounded'
+  minOccurs: '0'
+  acdd_ext:
+    wigos_id:
+      maxOccurs: 'unbounded'
+      minOccurs: '0'
+      comment:
+      description: WMO WIGOS identifier if available to describe the platform generating data.
+      format: "text"
+      requirement_level: "Recommended"
