@@ -51,7 +51,7 @@ not_mmd.history:
 not_mmd.featureType:
   maxOccurs: 'unbounded'
   minOccurs: '0'
-  acdd:
+  acdd_ext:
     featureType:
       maxOccurs: '1'
       minOccurs: '0'
@@ -155,6 +155,7 @@ temporal_extent:
     minOccurs: '0'
     acdd:
       time_coverage_end:
+        minOccurs: '1'
         separator: ','
         comment: Comma separated list.
         description: Describes the time of the last data point in the data set. If the dataset is continuously updated with new measurements (e.g., a timeseries receiving new observations), this attribute can be omitted. Use ISO 8601:2004 date format, preferably the extended format as recommended in the Attribute Content Guidance section. I.e. YYYY-MM-DDTHH:MM:SSZ (always use UTC).
@@ -245,6 +246,11 @@ operational_status:
       maxOccurs: '1'
       comment: Optional
       description: A textual description of the processing level of the data. Valid keywords are listed in https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#operational-status[Section 4.5 of the MMD specification].
+  acdd_ext:
+    operational_status:
+        maxOccurs: '1'
+        comment: Not part of ACDD, MET extension. Recommended for filtering purposes.
+        description: The current operational status of the product. Only elements from the controlled vocabulary of the MMD specification are allowed.
 
 access_constraint:
   maxOccurs: '1'
@@ -290,6 +296,8 @@ personnel:
   name:
     acdd:
       creator_name:
+        maxOccurs: '1'
+        minOccurs: '1'
         default: 'Not available'
         separator: ','
         comment: Required. Consistency across comma separated lists for all creator_* attributes is required. Do not use ',' except for separating elements.
@@ -302,6 +310,8 @@ personnel:
   creator_type:
     acdd:
       creator_type:
+        maxOccurs: '1'
+        minOccurs: '1'
         default: person
         separator: ','
         comment: Required (unless it is "person"). Consistency across comma separated lists for all creator_* attributes is required. Do not use ',' except for separating elements.
@@ -309,6 +319,8 @@ personnel:
   email:
     acdd:
       creator_email:
+        maxOccurs: '1'
+        minOccurs: '1'
         default: 'Not available'
         separator: ','
         comment: Required.
@@ -324,6 +336,8 @@ personnel:
   organisation:
     acdd:
       creator_institution:
+        maxOccurs: '1'
+        minOccurs: '1'
         default: 'Not available'
         separator: ','
         comment: Required.
@@ -364,7 +378,9 @@ data_center:
     acdd:
       publisher_url:
         separator: ','
-        comment: Comma separated list.
+        maxOccurs: '1'
+        minOccurs: '1'
+        comment: Required if not hosted by MET. If multiple are listed, use comma separated list and consistency across fields.
         description: The URL of the person (or other entity specified by the publisher_type attribute) responsible for publishing the data file or product to users.
 
 # publisher_type is not in MMD but suggested for the netcdf file - is this ACDD?
@@ -385,8 +401,8 @@ not_mmd.publisher_email:
   acdd:
     publisher_email:
       maxOccurs: 'unbounded'
-      minOccurs: '0'
-      comment: Recommended
+      minOccurs: '1'
+      comment: Required if not hosted by MET. If multiple are listed, use comma separated list and consistency across fields.
       description: The email address of the person (or other entity specified by the publisher_type attribute) responsible for publishing the data file or product to users, with its current metadata and format.
 
 data_access:
@@ -469,6 +485,7 @@ project:
   minOccurs: '0'
   acdd: 
     project:
+      minOccurs: '1'
       separator: ','
       comment: Comma separated list.
       description: The name of the project(s) principally responsible for originating this data in the format <long-name> (<short-name>). Multiple projects can be separated by commas, as described under Attribute Content Guidelines. Examples; 'PATMOS-X', 'Extended Continental Shelf Project' becomes 'Extended Continental Shelf Project (PATMOS-X)'. I.e., if each substring includes a keyword in parentheses, the content within the parenthesis is interpreted as the short name for the project while the rest is the long name, e.g., 'Nansen Legacy (NLEG)'.
@@ -542,6 +559,10 @@ activity_type:
       comment: Optional
       separator: ';'
       description: The method of production of the original data. This attribute is defined in the https://cfconventions.org/Data/cf-conventions/cf-conventions-1.10/cf-conventions.html#description-of-file-contents[CF Conventions]. Valid MMD values are listed in https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#activity-type[section 4.8 of the MMD specification].
+  acdd_ext:
+    activity_type:
+      comment: Not part of ACDD, MET extension. Recommended for filtering purposes.
+      description: Activity types are used to identify the origin of the dataset. This is not an identification of the observation platform (e.g. specific vessel, SYNOP station or satellite), but more the nature of the generation process (e.g. simulation, in situ observation, remote sensing etc). It is useful in the context of filtering data when searching for relevant datasets. Only elements from the controlled vocabulary of the MMD specification are allowed.
 
 dataset_citation:
   maxOccurs: unbounded
@@ -549,12 +570,15 @@ dataset_citation:
   author:
     acdd:
       creator_name:
+        maxOccurs: '1'
+        minOccurs: '1'
         comment: Comma separated list.
         separator: ','
         description: The name of the person (or other creator type specified by the creator_type attribute) principally responsible for creating this data.
   publication_date:
     acdd:
       date_created:
+        recommended: False
         separator: ','
         comment: Required
         description: The date on which this version of the data was created (modification of variable values implies a new version, hence this would be assigned the date of the most recent modification of variable values). Metadata changes are not considered when assigning the date_created. The ISO 8601:2004 extended date format is recommended, e.g., 2020-10-20T12:35:00Z.
@@ -572,7 +596,7 @@ dataset_citation:
     acdd:
       publisher_name:
         separator: ','
-        comment: Required
+        comment: Required if not hosted by MET. If not an organisation add publisher_institution which is used to identify the data centre hosting the dataset. If multiple are listed, use comma separated list and consistency across fields.
         description: The name of the person (or entity specified by the publisher_type attribute) responsible for publishing the data file or product to users.
   pages:
   isbn:
