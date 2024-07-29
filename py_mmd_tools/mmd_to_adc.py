@@ -4,6 +4,14 @@
 This script generates a yaml file contatining requiremnents specific to the Arctic Data Centre.
 This new yaml file is generated using the more general mmd_elements.yaml file.
 
+License:
+
+This file is part of the py-mmd-tools repository
+<https://github.com/metno/py-mmd-tools>.
+
+py-mmd-tools is licensed under the Apache License 2.0
+<https://github.com/metno/py-mmd-tools/blob/master/LICENSE>
+
 Each entry in the new adc_elements.yaml is strucutred as follows:
 
 attribute name:
@@ -19,11 +27,11 @@ attribute name:
       - option 3
       - option 4
     requirement_level:
-
 '''
 
 import yaml
 from collections import defaultdict
+
 
 def extract_adc_attributes(data, prefix=''):
     '''
@@ -46,7 +54,9 @@ def extract_adc_attributes(data, prefix=''):
         names (prefixed if nested), and the values are dictionaries containing
         the attribute's metadata (description, format, requirement_level, etc.).
     '''
-
+    if not isinstance(data, (dict, list)):
+        raise TypeError("Expected input data to be of type dict or list")
+    
     attributes = defaultdict(dict)
     
     if isinstance(data, dict):
