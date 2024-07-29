@@ -115,7 +115,11 @@
     <mmd:email>post@met.no</mmd:email>
     <mmd:organisation>Norwegian Meteorological Institute</mmd:organisation>
     <mmd:contact_address>
-        <mmd:country>NORWAY</mmd:country>
+      <mmd:address>Meteorologisk institutt, Henrik Mohnsplass 1</mmd:address>
+      <mmd:city>Oslo</mmd:city>
+      <mmd:province_or_state>Oslo</mmd:province_or_state>
+      <mmd:postal_code>0000</mmd:postal_code>
+      <mmd:country>Norway</mmd:country>
     </mmd:contact_address>
   </mmd:personnel>
   <mmd:data_center>

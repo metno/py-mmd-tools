@@ -80,20 +80,37 @@ def test_move_data(dataDir, monkeypatch):
     new_file_location_base = "/some/where/new"
     nc_file = os.path.join(dataDir, "reference_nc.nc")
 
+    class MockResponse:
+
+        status_code = 200
+
+    with pytest.raises(ValueError):
+        move_data(mmd_repository_path, new_file_location_base, nc_file, env="hei")
+
+    with pytest.raises(ValueError):
+        move_data("/some/folder/mmd-xml-noenv", new_file_location_base, nc_file)
+
     with monkeypatch.context() as mp:
         mp.setattr("py_mmd_tools.mmd_operations.new_file_location",
                    lambda *a, **k: new_file_location_base)
         mp.setattr("py_mmd_tools.mmd_operations.get_local_mmd_git_path",
                    lambda *a, **k: os.path.join(dataDir, "reference_nc.xml"))
-        updated, mmd_new = move_data(mmd_repository_path, new_file_location_base, nc_file)
-        assert updated == True
-        assert os.path.isfile(mmd_new)
-        lines = mmd_readlines(mmd_new)
+        mp.setattr("py_mmd_tools.mmd_operations.shutil.move",
+                   lambda *a, **k: None)
+        mp.setattr("py_mmd_tools.mmd_operations.requests.get",
+                   lambda *a, **k: MockResponse())
+        mp.setattr("py_mmd_tools.mmd_operations.requests.post",
+                   lambda *a, **k: MockResponse())
+        not_updated, updated = move_data(mmd_repository_path, new_file_location_base, nc_file)
+        assert len(not_updated) == 0
+        assert len(updated) == 1
+        assert os.path.isfile(updated[0])
+        lines = mmd_readlines(updated[0])
         for line in lines:
             if "<mmd:file_location>" in line:
                 assert "/some/where/new" in line
         # Remove new MMD file
-        os.remove(mmd_new)
+        os.remove(updated[0])
 
         def mock_walk(*a, **k):
             yield (1, nc_file)
@@ -103,20 +120,22 @@ def test_move_data(dataDir, monkeypatch):
         # This pattern is not really used but it should look something
         # like this when used correctly:
         pattern = os.path.join(dataDir, "%Y/%m/%d/*.nc")
-        updated, mmd_new = move_data(mmd_repository_path, new_file_location_base, pattern)
-        assert updated == True
-        assert os.path.isfile(mmd_new)
-        lines = mmd_readlines(mmd_new)
+        not_updated, updated = move_data(mmd_repository_path, new_file_location_base, pattern,
+                                         dry_run=False)
+        assert len(not_updated) == 0
+        assert len(updated) == 1
+        assert os.path.isfile(updated[0])
+        lines = mmd_readlines(updated[0])
         for line in lines:
             if "<mmd:file_location>" in line:
                 assert "/some/where/new" in line
         # Remove new MMD file
-        os.remove(mmd_new)
+        os.remove(updated[0])
 
         mp.setattr("py_mmd_tools.mmd_operations.mmd_change_file_location",
                    lambda *a, **k: (nc_file, False))
-        with pytest.raises(Exception):
-            updated, mmd_new = move_data(mmd_repository_path, new_file_location_base, pattern)
+        not_updated, updated = move_data(mmd_repository_path, new_file_location_base, pattern)
+        assert len(not_updated) == 1
 
 
 @pytest.mark.script

@@ -49,6 +49,11 @@ def create_parser():
              "parsing date/times from a path given a glob pattern "
              "intertwined with date/time format akin to "
              "strptime/strftime format.")
+    parser.add_argument(
+        '--dmci-update', action='store_true',
+        help='Directly update the online catalog with the changed MMD files.'
+    )
+        
     return parser
 
 
@@ -63,7 +68,8 @@ def main(args=None):
 
     return move_data(args.mmd_repository_path,
                      args.new_file_location_base,
-                     args.existing_pathname_pattern)
+                     args.existing_pathname_pattern,
+                     dry_run=not args.dmci_update)
 
 
 def _main():  # pragma: no cover

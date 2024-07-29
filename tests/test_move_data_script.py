@@ -30,6 +30,10 @@ def test_main(dataDir, monkeypatch):
         existing_pathname_pattern
     ])
 
+    class MockResponse:
+
+        status_code = 200
+
     with monkeypatch.context() as mp:
         mp.setattr("py_mmd_tools.mmd_operations.os.path.isdir",
                    lambda *a, **k: True)
@@ -37,10 +41,17 @@ def test_main(dataDir, monkeypatch):
                    lambda *a, **k: new_file_location_base)
         mp.setattr("py_mmd_tools.mmd_operations.get_local_mmd_git_path",
                    lambda *a, **k: os.path.join(dataDir, "reference_nc.xml"))
-        updated, mmd_new = main(parsed)
-        assert updated == True
-        assert os.path.isfile(mmd_new)
-        lines = mmd_readlines(mmd_new)
+        mp.setattr("py_mmd_tools.mmd_operations.shutil.move",
+                   lambda *a, **k: None)
+        mp.setattr("py_mmd_tools.mmd_operations.requests.get",
+                   lambda *a, **k: MockResponse())
+        mp.setattr("py_mmd_tools.mmd_operations.requests.post",
+                   lambda *a, **k: MockResponse())
+        not_updated, updated = main(parsed)
+        assert len(not_updated) == 0
+        assert len(updated) == 1
+        assert os.path.isfile(updated[0])
+        lines = mmd_readlines(updated[0])
         for line in lines:
             if "<mmd:file_location>" in line:
                 assert "/some/where/new" in line
@@ -48,7 +59,8 @@ def test_main(dataDir, monkeypatch):
         mp.setattr("py_mmd_tools.mmd_operations.os.path.isdir",
                    lambda *a, **k: False)
         with pytest.raises(ValueError):
-            updated, mmd_new = main(parsed)
+            not_updated, updated = main(parsed)
+        assert len(updated) == 1
 
         map = {
             mmd_repository_path: True,
@@ -59,7 +71,8 @@ def test_main(dataDir, monkeypatch):
 
         mp.setattr("py_mmd_tools.mmd_operations.os.path.isdir", mock_isdir)
         with pytest.raises(ValueError):
-            updated, mmd_new = main(parsed)
+            not_updated, updated = main(parsed)
 
+        assert len(updated) == 1
         # Remove new MMD file
-        os.remove(mmd_new)
+        os.remove(updated[0])

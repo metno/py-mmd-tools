@@ -14,6 +14,7 @@ import uuid
 import shutil
 import netCDF4
 import datetime
+import requests
 import tempfile
 import datetime_glob
 
@@ -75,9 +76,34 @@ def mmd_readlines(filename):
     return lines
 
 
-def move_data(mmd_repository_path, new_file_location_base, existing_pathname_pattern_or_exact):
+def move_data(mmd_repository_path, new_file_location_base, existing_pathname_pattern_or_exact,
+              dry_run=True, env="prod"):
     """Update MMD and move data file.
     """
+    if env not in ["dev", "staging", "prod"]:
+        raise ValueError("Invalid env input")
+    if env not in mmd_repository_path:
+        raise ValueError("Invalid mmd_repository path")
+
+    urls = {
+        "prod": {
+            "dmci": "dmci.s-enda.k8s.met.no",
+            "csw": "data.csw.met.no",
+            "id_namespace": "no.met",
+        },
+        "staging": {
+            "dmci": "dmci.s-enda-staging.k8s.met.no",
+            "csw": "https://csw.s-enda-staging.k8s.met.no/",
+            "id_namespace": "no.met.staging",
+        },
+        "dev": {
+            "dmci": "dmci.s-enda-dev.k8s.met.no",
+            "csw": "https://csw.s-enda-dev.k8s.met.no/",
+            "id_namespace": "no.met.dev",
+        }
+    }
+
+
     if os.path.isfile(existing_pathname_pattern_or_exact):
         existing = [existing_pathname_pattern_or_exact]
         existing_pathname_pattern = None
@@ -86,27 +112,62 @@ def move_data(mmd_repository_path, new_file_location_base, existing_pathname_pat
                     datetime_glob.walk(pattern=existing_pathname_pattern_or_exact)]
         existing_pathname_pattern = existing_pathname_pattern_or_exact
 
+    if dry_run:
+        # Not copying the file will make it easy to check changes
+        # with git diff
+        existing_pathname_pattern = None
+
     updated = []
+    not_updated = []
     for file in existing:
         nfl = new_file_location(file, new_file_location_base, existing_pathname_pattern)
         mmd_orig = get_local_mmd_git_path(file, mmd_repository_path)
         mmd_new, mmd_updated = mmd_change_file_location(mmd_orig, nfl)
-        if not mmd_updated:
-            raise Exception("MMD was not updated..")
+
+        # Get MMD content as binary data
+        with open(mmd_new, "rb") as fn:
+            data = fn.read()
+
+        res = requests.post(url=f"https://{urls[env]['dmci']}/v1/validate", data=data)
+        dmci_valid = False
+        if res.status_code == 200:
+            dmci_valid = True
+
 
         # Update with dmci update
-        dmci_updated = True
+        dmci_updated = False
+        if not dry_run:
+            # be careful with this...
+            res = requests.post(url=f"https://{urls[env]['dmci']}/v1/update", data=data)
+        if res.status_code == 200:
+            # This intentionally becomes True in case of dry-run and
+            # a valid xml
+            dmci_updated = True
 
         # If update was ok - move netcdf file
-        # mv file nfl
-        nc_moved = True
+        nc_moved = False
+        if dmci_updated:
+            shutil.move(file, nfl)
+            nc_moved = True
 
         # Check by searching CSW and checking data access urls
-        ds_found_and_accessible = True
+        res = requests.get(url=f"https://{urls[env]['csw']}/csw",
+                           params={
+                               "service": "CSW",
+                               "version": "2.0.2",
+                               "request": "GetRepositoryItem",
+                               "id": f"no.met.{urls[env]['id_namespace']}"
+                                     f"{os.path.basename(file).split('.')[0]}"})
+        ds_found_and_accessible = False
+        if res.status_code == 200:
+            ds_found_and_accessible = True
 
-        updated.append(all([mmd_updated, dmci_updated, nc_moved, ds_found_and_accessible]))
+        if all([mmd_updated, dmci_updated, nc_moved, ds_found_and_accessible]):
+            updated.append(mmd_new)
+        else:
+            not_updated.append(mmd_new)
 
-    return all(updated), mmd_new
+    return not_updated, updated
 
 
 def new_file_location(file, new_base_loc, existing_pathname_pattern=None):
