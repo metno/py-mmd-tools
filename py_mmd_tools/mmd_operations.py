@@ -112,12 +112,12 @@ def move_data(mmd_repository_path, new_file_location_base, existing_pathname_pat
                     datetime_glob.walk(pattern=existing_pathname_pattern_or_exact)]
         existing_pathname_pattern = existing_pathname_pattern_or_exact
 
-    copy_mmd = False
+    copy_mmd = True
     if dry_run:
         # Not copying the file will make it easy to check changes
         # with git diff
         existing_pathname_pattern = None
-        copy_mmd = True
+        copy_mmd = False
 
     updated = []
     not_updated = []
