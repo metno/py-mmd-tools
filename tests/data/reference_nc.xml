@@ -114,6 +114,9 @@
     <mmd:name>DIVISION FOR OBSERVATION QUALITY AND DATA PROCESSING</mmd:name>
     <mmd:email>post@met.no</mmd:email>
     <mmd:organisation>Norwegian Meteorological Institute</mmd:organisation>
+    <mmd:contact_address>
+        <mmd:country>NORWAY</mmd:country>
+    </mmd:contact_address>
   </mmd:personnel>
   <mmd:data_center>
     <mmd:data_center_name>
