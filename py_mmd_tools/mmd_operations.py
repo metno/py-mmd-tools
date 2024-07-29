@@ -112,17 +112,19 @@ def move_data(mmd_repository_path, new_file_location_base, existing_pathname_pat
                     datetime_glob.walk(pattern=existing_pathname_pattern_or_exact)]
         existing_pathname_pattern = existing_pathname_pattern_or_exact
 
+    copy_mmd = False
     if dry_run:
         # Not copying the file will make it easy to check changes
         # with git diff
         existing_pathname_pattern = None
+        copy_mmd = True
 
     updated = []
     not_updated = []
     for file in existing:
         nfl = new_file_location(file, new_file_location_base, existing_pathname_pattern)
         mmd_orig = get_local_mmd_git_path(file, mmd_repository_path)
-        mmd_new, mmd_updated = mmd_change_file_location(mmd_orig, nfl)
+        mmd_new, mmd_updated = mmd_change_file_location(mmd_orig, nfl, copy=copy_mmd)
 
         # Get MMD content as binary data
         with open(mmd_new, "rb") as fn:
