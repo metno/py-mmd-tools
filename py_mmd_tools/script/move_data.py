@@ -15,21 +15,9 @@ Usage:
     move_data [-h] -i INPUT -n OUTPUT_DIR
 """
 import os
-import re
-import glob
-import uuid
-import netCDF4
-import pathlib
 import argparse
-import tempfile
-import datetime_glob
 
 from py_mmd_tools.mmd_operations import move_data
-from py_mmd_tools.mmd_operations import mmd_readlines
-from py_mmd_tools.mmd_operations import new_file_location
-from py_mmd_tools.mmd_operations import get_local_mmd_git_path
-from py_mmd_tools.mmd_operations import add_metadata_update_info
-from py_mmd_tools.mmd_operations import mmd_change_file_location
 
 
 def create_parser():
@@ -53,7 +41,7 @@ def create_parser():
         '--dmci-update', action='store_true',
         help='Directly update the online catalog with the changed MMD files.'
     )
-        
+
     return parser
 
 

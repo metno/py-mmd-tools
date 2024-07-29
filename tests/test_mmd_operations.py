@@ -28,6 +28,7 @@ def test_get_local_mmd_git_path(dataDir):
     assert fn == "/some/folder/mmd-xml-production/arch_4/arch_3/arch_9/" \
                  "b7cb7934-77ca-4439-812e-f560df3fe7eb.xml"
 
+
 @pytest.mark.script
 def test_mmd_change_file_location(dataDir):
     """Test that an MMD file is created with new file_location, and
@@ -38,7 +39,7 @@ def test_mmd_change_file_location(dataDir):
     new_file_location = "/some/where/else/2024/06/19"
 
     new_mmd, changed = mmd_change_file_location(mmd, new_file_location)
-    assert changed == True
+    assert changed is True
     assert os.path.isfile(new_mmd)
     lines = mmd_readlines(new_mmd)
     for line in lines:
@@ -46,7 +47,7 @@ def test_mmd_change_file_location(dataDir):
             assert "/some/where/else/2024/06/19" in line
 
     mmd, changed = mmd_change_file_location(mmd, new_file_location, copy=False)
-    assert changed == True
+    assert changed is True
     assert os.path.isfile(mmd)
     lines = mmd_readlines(mmd)
     for line in lines:

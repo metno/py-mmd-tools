@@ -66,6 +66,7 @@ def test_main(dataDir, monkeypatch):
             mmd_repository_path: True,
             new_file_location_base: False
         }
+
         def mock_isdir(pp):
             return map[pp]
 

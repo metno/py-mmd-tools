@@ -21,12 +21,13 @@ import datetime_glob
 
 def add_metadata_update_info(f, note, type="Minor modification"):
     """ Add update information """
-    f.write("    <mmd:update>\n"
-            "      <mmd:datetime>%s</mmd:datetime>\n"
-            "      <mmd:type>%s</mmd:type>\n"
-            "      <mmd:note>%s</mmd:note>\n"
-            "    </mmd:update>\n" % (datetime.datetime.utcnow().replace(
-        tzinfo=pytz.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), type, note))
+    f.write(
+        "    <mmd:update>\n"
+        "      <mmd:datetime>%s</mmd:datetime>\n"
+        "      <mmd:type>%s</mmd:type>\n"
+        "      <mmd:note>%s</mmd:note>\n"
+        "    </mmd:update>\n" % (datetime.datetime.utcnow().replace(
+                                 tzinfo=pytz.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), type, note))
 
 
 def get_local_mmd_git_path(nc_file, mmd_repository_path):
@@ -103,7 +104,6 @@ def move_data(mmd_repository_path, new_file_location_base, existing_pathname_pat
         }
     }
 
-
     if os.path.isfile(existing_pathname_pattern_or_exact):
         existing = [existing_pathname_pattern_or_exact]
         existing_pathname_pattern = None
@@ -129,10 +129,6 @@ def move_data(mmd_repository_path, new_file_location_base, existing_pathname_pat
             data = fn.read()
 
         res = requests.post(url=f"https://{urls[env]['dmci']}/v1/validate", data=data)
-        dmci_valid = False
-        if res.status_code == 200:
-            dmci_valid = True
-
 
         # Update with dmci update
         dmci_updated = False
@@ -146,20 +142,25 @@ def move_data(mmd_repository_path, new_file_location_base, existing_pathname_pat
 
         # If update was ok - move netcdf file
         nc_moved = False
-        if dmci_updated:
+        if dmci_updated and not dry_run:
             shutil.move(file, nfl)
+            nc_moved = True
+        elif dmci_updated and dry_run:
             nc_moved = True
 
         # Check by searching CSW and checking data access urls
-        res = requests.get(url=f"https://{urls[env]['csw']}/csw",
-                           params={
-                               "service": "CSW",
-                               "version": "2.0.2",
-                               "request": "GetRepositoryItem",
-                               "id": f"no.met.{urls[env]['id_namespace']}"
-                                     f"{os.path.basename(file).split('.')[0]}"})
         ds_found_and_accessible = False
-        if res.status_code == 200:
+        if not dry_run:
+            res = requests.get(url=f"https://{urls[env]['csw']}/csw",
+                               params={
+                                   "service": "CSW",
+                                   "version": "2.0.2",
+                                   "request": "GetRepositoryItem",
+                                   "id": f"no.met.{urls[env]['id_namespace']}"
+                                         f"{os.path.basename(file).split('.')[0]}"})
+            if res.status_code == 200:
+                ds_found_and_accessible = True
+        else:
             ds_found_and_accessible = True
 
         if all([mmd_updated, dmci_updated, nc_moved, ds_found_and_accessible]):
@@ -176,7 +177,7 @@ def new_file_location(file, new_base_loc, existing_pathname_pattern=None):
     new_base_loc. This is to allow usage flexibility of the move_data
     function.
     """
-    if existing_pathname_pattern == None:
+    if existing_pathname_pattern is None:
         file_path = os.path.join(new_base_loc, os.path.basename(file))
     else:
         file_path = os.path.join(new_base_loc, file.removeprefix(re.split(r"[^\w/-]",
