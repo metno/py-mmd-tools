@@ -613,7 +613,7 @@ platform:
     acdd:
       platform_vocabulary:
         separator: ','
-        comment:
+        comment: ''
         description: Controlled vocabulary for the names used in the "platform" attribute, e.g., https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#platform-1[MMD] or https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/platforms[GCMD]. Should be provided as urls in a comma separated list.
         format: "text"
         requirement_level: "Recommended"
@@ -759,7 +759,7 @@ not_mmd.wigos_id:
     wigos_id:
       maxOccurs: 'unbounded'
       minOccurs: '0'
-      comment:
+      comment: ''
       description: WMO WIGOS identifier if available to describe the platform generating data.
       format: "text"
       requirement_level: "Recommended"
