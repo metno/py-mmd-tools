@@ -30,7 +30,7 @@ def create_parser():
         help="Local folder containing all MMD files.")
     parser.add_argument(
         "new_file_location_base", type=str,
-        help="Base or exact path to the new file location.")
+        help="Base or exact path to the folder to which the new file will be moved.")
     parser.add_argument(
         "existing_pathname_pattern", type=str,
         help="Pathname pattern to existing file location(s). Allows "
@@ -54,10 +54,12 @@ def main(args=None):
     if not os.path.isdir(args.new_file_location_base):
         raise ValueError(f"Invalid input: {args.new_file_location_base}")
 
-    return move_data(args.mmd_repository_path,
-                     args.new_file_location_base,
-                     args.existing_pathname_pattern,
-                     dry_run=not args.dmci_update)
+    not_updated, updated =  move_data(args.mmd_repository_path,
+                                      args.new_file_location_base,
+                                      args.existing_pathname_pattern,
+                                      dry_run=not args.dmci_update)
+    print(f"Updated: {len(updated)}")
+    print(f"Not updated: {len(not_updated)}")
 
 
 def _main():  # pragma: no cover

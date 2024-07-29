@@ -172,16 +172,17 @@ def move_data(mmd_repository_path, new_file_location_base, existing_pathname_pat
 
 
 def new_file_location(file, new_base_loc, existing_pathname_pattern=None):
-    """Return the new file location. If existing_pathname_pattern is
-    None, the returned path will equal the provided parameter
-    new_base_loc. This is to allow usage flexibility of the move_data
-    function.
+    """Return the name of the new folder where the netcdf file will be
+    stored. If existing_pathname_pattern is None, the returned path
+    will equal the provided parameter new_base_loc. This is to allow
+    usage flexibility of the move_data function.
     """
     if existing_pathname_pattern is None:
         file_path = os.path.join(new_base_loc, os.path.basename(file))
     else:
         file_path = os.path.join(new_base_loc, file.removeprefix(re.split(r"[^\w/-]",
                                                                  existing_pathname_pattern)[0]))
-    if not os.path.isfile(file_path):
-        raise ValueError(f"File does not exist: {file_path}")
-    return os.path.dirname(os.path.abspath(file_path))
+    new_folder = os.path.dirname(os.path.abspath(file_path))
+    if not os.path.isdir(new_folder):
+        raise ValueError(f"Folder does not exist: {file_path}")
+    return new_folder
