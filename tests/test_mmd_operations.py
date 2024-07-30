@@ -102,6 +102,8 @@ def test_move_data(dataDir, monkeypatch):
                    lambda *a, **k: MockResponse())
         mp.setattr("py_mmd_tools.mmd_operations.requests.post",
                    lambda *a, **k: MockResponse())
+        mp.setattr("py_mmd_tools.mmd_operations.os.access",
+                   lambda *a, **k: True)
         not_updated, updated = move_data(mmd_repository_path, new_file_location_base, nc_file)
         assert len(not_updated) == 0
         assert len(updated) == 1
@@ -110,8 +112,6 @@ def test_move_data(dataDir, monkeypatch):
         for line in lines:
             if "<mmd:file_location>" in line:
                 assert "/some/where/new" in line
-        # Remove new MMD file
-        os.remove(updated[0])
 
         def mock_walk(*a, **k):
             yield (1, nc_file)
@@ -130,8 +130,8 @@ def test_move_data(dataDir, monkeypatch):
         for line in lines:
             if "<mmd:file_location>" in line:
                 assert "/some/where/new" in line
-        # Remove new MMD file
-        os.remove(updated[0])
+        # TODO: Remove new MMD file - manual update needed for now..
+        # os.remove() - get filename through a function
 
         mp.setattr("py_mmd_tools.mmd_operations.mmd_change_file_location",
                    lambda *a, **k: (nc_file, False))

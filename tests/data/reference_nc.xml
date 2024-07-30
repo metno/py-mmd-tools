@@ -12,6 +12,21 @@
       <mmd:datetime>2020-11-27T14:05:56Z</mmd:datetime>
       <mmd:type>Created</mmd:type>
     </mmd:update>
+    <mmd:update>
+      <mmd:datetime>2024-07-30T12:36:53Z</mmd:datetime>
+      <mmd:type>Minor modification</mmd:type>
+      <mmd:note>New file location in storage information.</mmd:note>
+    </mmd:update>
+    <mmd:update>
+      <mmd:datetime>2024-07-30T12:39:39Z</mmd:datetime>
+      <mmd:type>Minor modification</mmd:type>
+      <mmd:note>New file location in storage information.</mmd:note>
+    </mmd:update>
+    <mmd:update>
+      <mmd:datetime>2024-07-30T12:39:57Z</mmd:datetime>
+      <mmd:type>Minor modification</mmd:type>
+      <mmd:note>New file location in storage information.</mmd:note>
+    </mmd:update>
   </mmd:last_metadata_update>
   <mmd:temporal_extent>
     <mmd:start_date>2020-11-27T13:40:02.019817Z</mmd:start_date>
@@ -142,7 +157,7 @@
   </mmd:data_access>
   <mmd:storage_information>
     <mmd:file_name>reference_nc.nc</mmd:file_name>
-    <mmd:file_location>/home/mortenwh/dev/py-mmd-tools/tests/data</mmd:file_location>
+    <mmd:file_location>/some/where/new</mmd:file_location>
     <mmd:file_format>NetCDF-CF</mmd:file_format>
     <mmd:file_size unit="MB">0.03</mmd:file_size>
     <mmd:checksum type="md5sum">aa188b45ece9bdbbc9b470106a6b13f8</mmd:checksum>
