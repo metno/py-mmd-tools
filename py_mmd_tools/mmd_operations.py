@@ -30,6 +30,27 @@ def add_metadata_update_info(f, note, type="Minor modification"):
                                  tzinfo=pytz.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), type, note))
 
 
+def check_csw_catalog(ds_id, nc_file, urls, env, emsg):
+    """Search for the dataset with id 'ds_id' in the CSW metadata
+    catalog.
+    """
+    ds_found_and_accessible = False
+    res = requests.get(url=f"https://{urls[env]['csw']}/csw",
+                        params={
+                            "service": "CSW",
+                            "version": "2.0.2",
+                            "request": "GetRepositoryItem",
+                            "id": ds_id})
+    # TODO: check the data_access urls
+    if res.status_code == 200:
+        ds_found_and_accessible = True
+    else:
+        emsg += (f"Could not find dataset in CSW catalog: "
+                 f"{os.path.basename(nc_file).split('.')[0]}")
+
+    return ds_found_and_accessible, emsg
+
+
 def get_local_mmd_git_path(nc_file, mmd_repository_path):
     """Return the path to the original MMD file.
     """
@@ -43,10 +64,12 @@ def get_local_mmd_git_path(nc_file, mmd_repository_path):
 
 
 def mmd_change_file_location(mmd, new_file_location, copy=True):
-    """Copy original MMD file, and make changes. Return the filename
-    of the updated file, and a status flag indicating if it has been
-    changed or not.
+    """Copy original MMD file, and change the file_location field.
+    Return the filename of the updated MMD file, and a status flag
+    indicating if it has been changed or not.
     """
+    if not os.path.isfile(mmd):
+        return None, False
     if copy:
         tmp_path = tempfile.gettempdir()
         shutil.copy2(mmd, tmp_path)
@@ -75,6 +98,20 @@ def mmd_readlines(filename):
     with open(filename, "r") as f:
         lines = f.readlines()
     return lines
+
+
+def move_data_file(nc_file, nfl, emsg=""):
+    """Move data file from nc_file to nfl.
+    """
+    nc_moved = False
+    try:
+        shutil.move(nc_file, nfl)
+    except Exception as e:
+        nc_moved = False
+        emsg = f"Could not move file from {nc_file} to {nfl}.\nError message: {str(e)}\n"
+    else:
+        nc_moved = True
+    return nc_moved, emsg
 
 
 def move_data(mmd_repository_path, new_file_location_base, existing_pathname_pattern_or_exact,
@@ -108,82 +145,97 @@ def move_data(mmd_repository_path, new_file_location_base, existing_pathname_pat
         existing = [existing_pathname_pattern_or_exact]
         existing_pathname_pattern = None
     else:
-        existing = [file for match, file in
+        existing = [str(nc_file) for match, nc_file in
                     datetime_glob.walk(pattern=existing_pathname_pattern_or_exact)]
         existing_pathname_pattern = existing_pathname_pattern_or_exact
 
     copy_mmd = True
     if dry_run:
-        # Not copying the file will make it easy to check changes
+        # Not copying the MMD file will make it easy to check changes
         # with git diff
         existing_pathname_pattern = None
         copy_mmd = False
 
     updated = []
-    not_updated = []
-    for file in existing:
-        nfl = new_file_location(file, new_file_location_base, existing_pathname_pattern)
-        mmd_orig = get_local_mmd_git_path(file, mmd_repository_path)
+    not_updated = {}
+    for nc_file in existing:
+        # Error message
+        emsg = ""
+        nfl = new_file_location(nc_file, new_file_location_base, existing_pathname_pattern)
+        try:
+            mmd_orig = get_local_mmd_git_path(nc_file, mmd_repository_path)
+        except Exception as e:
+            not_updated[nc_file] = f"Could not get MMD path of {nc_file}.\nError: {str(e)}"
+            continue
+
+        # Check permissions before doing anything
+        remove_file_allowed = os.access(nc_file, os.W_OK)
+        write_file_allowed = os.access(nfl, os.W_OK)
+        if not remove_file_allowed or not write_file_allowed:
+            if not remove_file_allowed:
+                not_updated[mmd_orig] = f"Missing permission to delete {nc_file}"
+            if not write_file_allowed:
+                not_updated[mmd_orig] = f"Missing permission to write {nfl}"
+            if not remove_file_allowed and not write_file_allowed:
+                not_updated[mmd_orig] = (f"Missing permission to delete {nc_file} "
+                                         f"nor to write {nfl}")
+            continue
+
         mmd_new, mmd_updated = mmd_change_file_location(mmd_orig, nfl, copy=copy_mmd)
+        if not mmd_updated:
+            emsg = f"Could not update MMD file for {nc_file}"
+            not_updated[mmd_orig] = emsg
+            continue
 
         # Get MMD content as binary data
         with open(mmd_new, "rb") as fn:
             data = fn.read()
-
         res = requests.post(url=f"https://{urls[env]['dmci']}/v1/validate", data=data)
 
         # Update with dmci update
         dmci_updated = False
-        if not dry_run:
+        if res.status_code == 200 and not dry_run:
             # be careful with this...
             res = requests.post(url=f"https://{urls[env]['dmci']}/v1/update", data=data)
         if res.status_code == 200:
             # This intentionally becomes True in case of dry-run and
             # a valid xml
             dmci_updated = True
+        else:
+            emsg = "Could not push updated MMD file to the DMCI API."
+            not_updated[mmd_orig] = emsg
+            continue
 
-        # If update was ok - move netcdf file
-        nc_moved = False
         if dmci_updated and not dry_run:
-            shutil.move(file, nfl)
-            nc_moved = True
+            nc_moved, emsg = move_data_file(nc_file, nfl)
         elif dmci_updated and dry_run:
             nc_moved = True
 
-        # Check by searching CSW and checking data access urls
-        ds_found_and_accessible = False
+        ds_id = f"no.met.{urls[env]['id_namespace']}:{os.path.basename(mmd_orig).split('.')[0]}"
         if not dry_run:
-            res = requests.get(url=f"https://{urls[env]['csw']}/csw",
-                               params={
-                                   "service": "CSW",
-                                   "version": "2.0.2",
-                                   "request": "GetRepositoryItem",
-                                   "id": f"no.met.{urls[env]['id_namespace']}"
-                                         f"{os.path.basename(file).split('.')[0]}"})
-            if res.status_code == 200:
-                ds_found_and_accessible = True
+            ds_found_and_accessible, emsg = check_csw_catalog(ds_id, nc_file, urls, env, emsg)
         else:
             ds_found_and_accessible = True
 
         if all([mmd_updated, dmci_updated, nc_moved, ds_found_and_accessible]):
-            updated.append(mmd_new)
+            updated.append(mmd_orig)
         else:
-            not_updated.append(mmd_new)
+            not_updated[mmd_orig] = emsg
 
     return not_updated, updated
 
 
-def new_file_location(file, new_base_loc, existing_pathname_pattern=None):
+def new_file_location(nc_file, new_base_loc, existing_pathname_pattern=None):
     """Return the name of the new folder where the netcdf file will be
     stored. If existing_pathname_pattern is None, the returned path
     will equal the provided parameter new_base_loc. This is to allow
     usage flexibility of the move_data function.
     """
     if existing_pathname_pattern is None:
-        file_path = os.path.join(new_base_loc, os.path.basename(file))
+        file_path = os.path.join(new_base_loc, os.path.basename(nc_file))
     else:
-        file_path = os.path.join(new_base_loc, file.removeprefix(re.split(r"[^\w/-]",
-                                                                 existing_pathname_pattern)[0]))
+        prefix = re.split(r"[^\w/-]", existing_pathname_pattern)[0]
+        file_path = os.path.join(new_base_loc, nc_file[len(prefix):])
     new_folder = os.path.dirname(os.path.abspath(file_path))
     if not os.path.isdir(new_folder):
         raise ValueError(f"Folder does not exist: {file_path}")
