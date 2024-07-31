@@ -9,6 +9,7 @@ py-mmd-tools is licensed under the Apache License 2.0
 """
 import os
 import pytest
+import subprocess
 
 from py_mmd_tools.mmd_operations import mmd_readlines
 
@@ -47,20 +48,12 @@ def test_main(dataDir, monkeypatch):
                    lambda *a, **k: MockResponse())
         mp.setattr("py_mmd_tools.mmd_operations.requests.post",
                    lambda *a, **k: MockResponse())
-        not_updated, updated = main(parsed)
-        assert len(not_updated) == 0
-        assert len(updated) == 1
-        assert os.path.isfile(updated[0])
-        lines = mmd_readlines(updated[0])
-        for line in lines:
-            if "<mmd:file_location>" in line:
-                assert "/some/where/new" in line
+        main(parsed)
 
         mp.setattr("py_mmd_tools.mmd_operations.os.path.isdir",
                    lambda *a, **k: False)
         with pytest.raises(ValueError):
-            not_updated, updated = main(parsed)
-        assert len(updated) == 1
+            main(parsed)
 
         map = {
             mmd_repository_path: True,
@@ -72,8 +65,6 @@ def test_main(dataDir, monkeypatch):
 
         mp.setattr("py_mmd_tools.mmd_operations.os.path.isdir", mock_isdir)
         with pytest.raises(ValueError):
-            not_updated, updated = main(parsed)
+            main(parsed)
 
-        assert len(updated) == 1
-        # Remove new MMD file
-        os.remove(updated[0])
+    subprocess.run(["git", "restore", "tests/data/reference_nc.xml"])

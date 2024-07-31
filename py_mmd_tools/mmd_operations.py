@@ -30,7 +30,7 @@ def add_metadata_update_info(f, note, type="Minor modification"):
                                  tzinfo=pytz.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), type, note))
 
 
-def check_csw_catalog(ds_id, nc_file, urls, env, emsg):
+def check_csw_catalog(ds_id, nc_file, urls, env, emsg=""):
     """Search for the dataset with id 'ds_id' in the CSW metadata
     catalog.
     """
@@ -45,8 +45,7 @@ def check_csw_catalog(ds_id, nc_file, urls, env, emsg):
     if res.status_code == 200:
         ds_found_and_accessible = True
     else:
-        emsg += (f"Could not find dataset in CSW catalog: "
-                 f"{os.path.basename(nc_file).split('.')[0]}")
+        emsg += f"Could not find dataset in CSW catalog: {nc_file} (id: {ds_id})"
 
     return ds_found_and_accessible, emsg
 
@@ -213,7 +212,7 @@ def move_data(mmd_repository_path, new_file_location_base, existing_pathname_pat
 
         ds_id = f"no.met.{urls[env]['id_namespace']}:{os.path.basename(mmd_orig).split('.')[0]}"
         if not dry_run:
-            ds_found_and_accessible, emsg = check_csw_catalog(ds_id, nc_file, urls, env, emsg)
+            ds_found_and_accessible, emsg = check_csw_catalog(ds_id, nc_file, urls, env, emsg=emsg)
         else:
             ds_found_and_accessible = True
 
