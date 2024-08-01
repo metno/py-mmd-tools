@@ -38,6 +38,7 @@ dependencies = [
 	"shapely",
 	"wget",
 	"xmltodict",
+        "datetime_glob",
 ]
 name = "py-mmd-tools"
 description = "This  is a tools for generating MMD files from netCDF-CF files with ACDD attributes, for documenting netCDF-CF files from MMD information."

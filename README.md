@@ -11,6 +11,15 @@ Python tools for MMD. The package contains tools for generating MMD files from n
 
 generates an output MMD file called `reference_nc.xml`.
 
+In addition, the `mmd_operations` module currently contains a tool to move data
+files and accordingly update MMD files registered in online catalogs. This
+module can be extended with other necessary data management tools. Moving
+can be done with the `move_data` script, e.g.:
+
+```
+move_data /path/to/files-from-git/mmd-xml-<env> /path/to/new/storage "/path/to/data/files/*.nc" --dmci-update
+```
+
 # Installation
 
 To avoid problems with conflicting versions, we recommend using the [Conda](
