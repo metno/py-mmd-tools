@@ -17,10 +17,13 @@ py-mmd-tools is licensed under the Apache License 2.0
 
 import os
 import re
-import warnings
 import yaml
 import jinja2
+import pathlib
+import warnings
 import shapely.wkt
+
+import numpy as np
 
 from filehash import FileHash
 from itertools import zip_longest
@@ -31,7 +34,6 @@ from uuid import UUID
 from metvocab.mmdgroup import MMDGroup
 from metvocab.cfstd import CFStandard
 
-import pathlib
 from netCDF4 import Dataset
 
 from shapely.errors import ShapelyError
@@ -233,37 +235,62 @@ class Nc_to_mmd(object):
     VALID_NAMING_AUTHORITIES = None
     LANDING_PAGE_BASE = None
 
-    def __init__(
-        self, netcdf_file, opendap_url=None, output_file=None, check_only=False, json_input=False
-    ):
+    def __init__(self, netcdf_file, opendap_url=None, output_file=None, check_only=False,
+                 json_input=False, checksum_calculation=False):
         """Class for creating an MMD XML file based on the discovery
         metadata provided in the global attributes of NetCDF files that
         are compliant with the CF-conventions and ACDD.
 
         Args:
-            output_file : str
-                Output path for the resulting mmd xml file
-            netcdf_file : str
-                Input NetCDF file
+            netcdf_file : str or dict
+                NetCDF filename (str) or a dictionary containing the
+                required NetCDF-CF attributes and file infomation.
             opendap_url : str
-                OPeNDAP url
+                OPeNDAP url to the dataset as it will be available
+                from the archive.
+            output_file : str
+                Output path for the resulting mmd xml file.
+            check_only : bool
+                Only check the NetCDF file. In this case, only the
+                NetCDF filename ('netcdf_file') input parameter is required.
+            json_input : bool
+                The provided 'netcdf_file' argument is a dict
+                containing the required NetCDF-CF attrbiutes.
+            checksum_calculation : bool, default False
+                True if the file checksum should be calculated.
         """
         self.ACDD_ID_INVALID_CHARS = ["\\", "/", ":", " "]
         self.VALID_NAMING_AUTHORITIES = ["no.met", "no.nve", "no.nilu", "no.niva"]
         self.LANDING_PAGE_BASE = {
             "no.met": "https://data.met.no/dataset",
             "dummy": "https://data.fake.no",  # used if naming_authority is
-            # missing from the nc file
+                                              # missing from the nc file
         }
+        self.HASH_ALGORITHM = "md5"
+        self.checksum_calculation = checksum_calculation
+
         if (output_file is None or opendap_url is None) and check_only is False:
             raise ValueError(
                 "The opendap_url and output_file input parameters "
                 "must be provided if check_only is False"
             )
         super(Nc_to_mmd, self).__init__()
+
         self.output_file = output_file
-        if not json_input:
+        if json_input:
+            self.netcdf_file = netcdf_file["archive_location"]
+            self.file_size = netcdf_file["file_size"]
+            if self.checksum_calculation:
+                self.file_checksum = netcdf_file["file_checksum"]
+                self.HASH_ALGORITHM = netcdf_file["file_checksum_type"] + "sum"
+        else:
             self.netcdf_file = os.path.abspath(netcdf_file)
+            self.file_size = np.round(pathlib.Path(self.netcdf_file).stat().st_size/(1024*1024), 2)
+            if self.checksum_calculation:
+                # we may have to base it on the complete file - @amundi..
+                hasher = FileHash(self.HASH_ALGORITHM, chunk_size=1048576)
+                self.file_checksum = hasher.hash_file(self.netcdf_file)
+
         self.opendap_url = opendap_url
         self.check_only = check_only
         self.missing_attributes = {"errors": [], "warnings": []}
@@ -303,7 +330,7 @@ class Nc_to_mmd(object):
         if not (self.platform_group.is_initialised and self.instrument_group.is_initialised):
             raise ValueError("Instrument or Platform group were not initialised")
 
-        if json_input:
+        if self.json_input:
             self.ncin = nc_wrapper(netcdf_file)
             self.check_attributes_not_empty(self.ncin)
             try:
@@ -964,7 +991,7 @@ class Nc_to_mmd(object):
 
         return data
 
-    def get_dataset_citations(self, mmd_element, ncin, dataset_citation=None, **kwargs):
+    def get_dataset_citations(self, mmd_element, ncin, dataset_citation=None):
         """MMD allows several dataset citations. This will lead to
         problems with associating the different elements to each other.
         In practice, most datasets will only have one citation, so will
@@ -1577,9 +1604,9 @@ class Nc_to_mmd(object):
     def to_mmd(
         self,
         collection=None,
-        checksum_calculation=False,
         mmd_yaml=None,
         parent=None,
+        overrides=None,
         *args,
         **kwargs,
     ):
@@ -1594,39 +1621,56 @@ class Nc_to_mmd(object):
         ----------
         collection : str, default 'METNCS'
             Specify the MMD collection for which you are harvesting to.
-        checksum_calculation : bool, default False
-            True if the file checksum should be calculated.
         mmd_yaml : str, optional
             The yaml file to use for translation from ACDD to MMS.
-        time_coverage_start : str, optional
-            The start date and time, in iso8601 format, for the
-            dataset coverage.
-        time_coverage_end   : str, optional
-            The end date and time, in iso8601 format, for the dataset
-            coverage.
-        geographic_extent_rectangle : dict, optional
-            The geographic extent of the datasets defined as a rectangle
-            in lat/lon projection. The extent is defined using the
-            following child elements: {
-                'geospatial_lat_max': geospatial_lat_max
-                    - The northernmost point covered by the dataset.
-                'geospatial_lat_min': geospatial_lat_min
-                    - The southernmost point covered by the dataset.
-                'geospatial_lon_min': geospatial_lon_min
-                    - The easternmost point covered by the dataset.
-                'geospatial_lon_max': geospatial_lon_max
-                    - The westernmost point covered by the dataset.
-            }
+        parent : str, optional
+            ID of parent dataset.
+        overrides : dict, optional
+            A dictionary with overrides for certain MMD fields:
+
+            time_coverage_start : str
+                The start date and time, in iso8601 format, for the
+                dataset coverage.
+            time_coverage_end : str
+                The end date and time, in iso8601 format, for the
+                dataset coverage.
+            geographic_extent_rectangle : dict
+                The geographic extent of the datasets defined as a
+                rectangle in lat/lon projection. The extent is defined
+                using the following child elements: {
+                    'geospatial_lat_max': geospatial_lat_max
+                        - The northernmost point covered by the
+                          dataset.
+                    'geospatial_lat_min': geospatial_lat_min
+                        - The southernmost point covered by the
+                          dataset.
+                    'geospatial_lon_min': geospatial_lon_min
+                        - The easternmost point covered by the
+                          dataset.
+                    'geospatial_lon_max': geospatial_lon_max
+                        - The westernmost point covered by the
+                          dataset.
+                }
+            dataset_citation : dict
+                An alternative dataset citation. This can be useful if
+                the citation refers to a parent dataset or a DOI.
+            platform : dict
+                A dictionary specifying the platform according to MMD
+                guidelines.
 
         This list can be extended but requires some new code...
         """
         if collection is not None and type(collection) is not str:
             raise ValueError("collection must be of type str")
 
-        # kwargs that were not added in the function def:
-        time_coverage_start = kwargs.pop("time_coverage_start", "")
-        time_coverage_end = kwargs.pop("time_coverage_end", "")
-        geographic_extent_rectangle = kwargs.pop("geographic_extent_rectangle", "")
+        # Overrides
+        if overrides is None:
+            overrides = {}
+        time_coverage_start = overrides.pop("time_coverage_start", None)
+        time_coverage_end = overrides.pop("time_coverage_end", None)
+        geographic_extent_rectangle = overrides.pop("geographic_extent_rectangle", None)
+        dataset_citation = overrides.pop("dataset_citation", None)
+        platform = overrides.pop("platform", None)
 
         # Get ncin object from instance
         ncin = self.ncin
@@ -1689,10 +1733,14 @@ class Nc_to_mmd(object):
         self.metadata["personnel"] = self.get_personnel(mmd_yaml.pop("personnel"), ncin)
         self.metadata["keywords"] = self.get_keywords(mmd_yaml.pop("keywords"), ncin)
         self.metadata["project"] = self.get_projects(mmd_yaml.pop("project"), ncin)
-        self.metadata["platform"] = self.get_platforms(mmd_yaml.pop("platform"), ncin)
+        if platform is None:
+            self.metadata["platform"] = self.get_platforms(mmd_yaml.pop("platform"), ncin)
+        else:
+            mmd_yaml.pop("platform")
+            self.metadata["platform"] = [platform]
 
         self.metadata["dataset_citation"] = self.get_dataset_citations(
-            mmd_yaml.pop("dataset_citation"), ncin, **kwargs
+            mmd_yaml.pop("dataset_citation"), ncin, dataset_citation=dataset_citation
         )
         self.metadata["related_dataset"] = self.get_related_dataset(
             mmd_yaml.pop("related_dataset"), ncin
@@ -1752,9 +1800,6 @@ class Nc_to_mmd(object):
         else:
             self.metadata["data_access"] = []
 
-        if not self.json_input:
-            file_size = pathlib.Path(self.netcdf_file).stat().st_size / (1024 * 1024)
-
         # ACDD processing_level follows a controlled vocabulary, so
         # it must be handled separately
         self.metadata["operational_status"] = self.get_operational_status(
@@ -1788,22 +1833,18 @@ class Nc_to_mmd(object):
         for key in mmd_yaml:
             self.metadata[key] = self.get_acdd_metadata(mmd_yaml[key], ncin, key)
 
-        if not self.json_input:
-            # Set storage_information
-            self.metadata["storage_information"] = {
-                "file_name": os.path.basename(self.netcdf_file),
-                "file_location": os.path.dirname(self.netcdf_file),
-                "file_format": "NetCDF-CF",
-                "file_size": "%.2f" % file_size,
-                "file_size_unit": "MB",
-            }
+        # Set storage_information
+        self.metadata["storage_information"] = {
+            "file_name": os.path.basename(self.netcdf_file),
+            "file_location": os.path.dirname(self.netcdf_file),
+            "file_format": "NetCDF-CF",
+            "file_size": "%.2f" % self.file_size,
+            "file_size_unit": "MB",
+        }
 
-        if checksum_calculation:
-            hasher = FileHash("md5", chunk_size=1048576)
-            fchecksum = hasher.hash_file(self.netcdf_file)
-
-            self.metadata["storage_information"]["checksum"] = fchecksum
-            self.metadata["storage_information"]["checksum_type"] = "%ssum" % hasher.hash_algorithm
+        if self.checksum_calculation:
+            self.metadata["storage_information"]["checksum"] = self.file_checksum
+            self.metadata["storage_information"]["checksum_type"] = self.HASH_ALGORITHM + "sum"
 
         self.check_conventions(ncin)
         self.check_feature_type(ncin)

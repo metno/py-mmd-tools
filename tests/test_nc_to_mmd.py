@@ -26,9 +26,10 @@ from netCDF4 import Dataset
 from pkg_resources import resource_string
 from unittest.mock import patch
 
-from py_mmd_tools.nc_to_mmd import Nc_to_mmd, normalize_iso8601, normalize_iso8601_0, nc_wrapper
+from py_mmd_tools.nc_to_mmd import Nc_to_mmd, normalize_iso8601, normalize_iso8601_0
 from py_mmd_tools.nc_to_mmd import valid_url
 from py_mmd_tools.nc_to_mmd import get_short_and_long_names
+from py_mmd_tools.nc_to_mmd import nc_wrapper
 from py_mmd_tools.yaml_to_adoc import nc_attrs_from_yaml
 from py_mmd_tools.yaml_to_adoc import required
 from py_mmd_tools.yaml_to_adoc import repetition_allowed
@@ -68,6 +69,27 @@ def test_parent_keyword_arg(dataDir):
     with pytest.raises(ValueError) as ve:
         req, msg = md.to_mmd(parent="no.met:not-a-uuid")
     assert str(ve.value) == "UUID part of the parent ID is not valid"
+
+
+@pytest.mark.py_mmd_tools
+def test_platform_in_overrides(dataDir):
+    """Test that over-riding the platform attribute works as expected.
+    """
+    md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
+    req, msg = md.to_mmd(
+        overrides={
+            "platform": {
+                "short_name": "Metop-A",
+                "long_name": "Meteorological operational satellite - A",
+                "resource": "http://www.wmo-sat.info/oscar/satellites/view/metop-a",
+                "orbit_relative": 3,
+                "orbit_absolute": 100,
+                "orbit_direction": "ascending",
+                "instrument": {
+                    "short_name": "AVHRR",
+                    "long_name": "Advanced Very High Resolution Radiometer",
+                    "resource": "https://www.wmo-sat.info/oscar/instruments/view/avhrr"}}})
+    assert md.metadata["platform"][0]["short_name"] == "Metop-A"
 
 
 @pytest.mark.py_mmd_tools
@@ -225,8 +247,8 @@ def test_checksum(monkeypatch):
     with monkeypatch.context() as mp:
         mp.setattr("py_mmd_tools.nc_to_mmd.Dataset",
                    lambda *args, **kwargs: patchedDataset(url, *args, **kwargs))
-        md = Nc_to_mmd(fn, url, check_only=True)
-        md.to_mmd(checksum_calculation=True)
+        md = Nc_to_mmd(fn, url, checksum_calculation=True, check_only=True)
+        md.to_mmd()
     checksum = md.metadata['storage_information']['checksum']
     with open(tested, 'w') as tt:
         tt.write('%s *%s'%(checksum, fn))
@@ -246,8 +268,8 @@ def test_create_mmd_1(monkeypatch):
     with monkeypatch.context() as mp:
         mp.setattr("py_mmd_tools.nc_to_mmd.Dataset",
                    lambda *args, **kwargs: patchedDataset(url, *args, **kwargs))
-        md = Nc_to_mmd(fn, url, output_file=tested)
-        md.to_mmd(checksum_calculation=True)
+        md = Nc_to_mmd(fn, url, output_file=tested, checksum_calculation=True)
+        md.to_mmd()
 
     reference_xsd = os.path.join(os.environ['MMD_PATH'], 'xsd/mmd_strict.xsd')
     xsd_obj = etree.XMLSchema(etree.parse(reference_xsd))
@@ -278,8 +300,8 @@ def test_create_and_validate_mmd_platform(monkeypatch):
     with monkeypatch.context() as mp:
         mp.setattr("py_mmd_tools.nc_to_mmd.Dataset",
                    lambda *args, **kwargs: patchedDataset(url, *args, **kwargs))
-        md = Nc_to_mmd(fn, url, output_file=tested)
-        md.to_mmd(checksum_calculation=True)
+        md = Nc_to_mmd(fn, url, output_file=tested, checksum_calculation=True)
+        md.to_mmd()
     reference_xsd = os.path.join(os.environ['MMD_PATH'], 'xsd/mmd_strict.xsd')
     xsd_obj = etree.XMLSchema(etree.parse(reference_xsd))
     xml_doc = etree.ElementTree(file=tested)
@@ -523,14 +545,53 @@ def test_nc_wrapper_variable_attrs(dataDir):
 
 
 @pytest.mark.py_mmd_tools
-def test_json_dry_run(dataDir):
+def test_json(dataDir, monkeypatch):
+    """TODO: add docstring
+    """
     test_json_header = os.path.join(dataDir, "reference_nc_header.json")
 
     with open(test_json_header, "r") as file:
         test_json_header = json.load(file)
 
-    tmp = Nc_to_mmd(test_json_header, json_input=True, check_only=True)
+    tmp = Nc_to_mmd(test_json_header, json_input=True, check_only=True, checksum_calculation=True)
     tmp.to_mmd()
+
+    with monkeypatch.context() as mp:
+        mp.setattr(nc_wrapper, "__init__", lambda *a, **k: None)
+        mp.setattr(nc_wrapper, "ncattrs", lambda *a, **k: ["what", "ever"])
+        mp.setattr(nc_wrapper, "getncattr", lambda *a, **k: ["what", "ever"])
+        test_json_header.pop("file_size")
+        with pytest.raises(KeyError) as ee:
+            tmp = Nc_to_mmd(test_json_header, json_input=True,
+                            opendap_url="https://thredds.met.no/etc", output_file="somefn.xml")
+        assert "'file_size'" == str(ee.value)
+
+    test_json_header.pop("archive_location")
+    with pytest.raises(KeyError) as ee:
+        tmp = Nc_to_mmd(test_json_header, json_input=True,
+                        opendap_url="https://thredds.met.no/etc", output_file="somefn.xml")
+    assert "'archive_location'" in str(ee.value)
+
+
+# The target_nc_filename should not be needed if the file is correctly
+# placed before creating the MMD file. With
+# https://github.com/metno/discovery-metadata-catalog-ingestor/issues/225
+# we can let the MMD files validate but not be inserted unless the
+# nc-file and the odap url exist.
+# @pytest.mark.py_mmd_tools
+# def testNc_to_mmd_Init(dataDir):
+#     """Test __init__
+#
+#     1: that the target_nc_filename is added, if provided.
+#
+#     Additional tests for the init method can be added here.
+#     """
+#     # Test case with target_nc_filename different from input filename
+#     md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'),
+#                    target_nc_filename="/dummy/path/to/filename.nc",
+#                    opendap_url="https://thredds.met.no/etc",
+#                    output_file="somefn.xml")
+#     assert md.target_nc_filename == "/dummy/path/to/filename.nc"
 
 
 @pytest.mark.py_mmd_tools
@@ -1108,12 +1169,11 @@ class TestNC2MMD(unittest.TestCase):
         )
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_missing_rectangle.nc'),
                        check_only=True)
-        md.to_mmd(geographic_extent_rectangle={
-            'geospatial_lat_max': 90,
-            'geospatial_lat_min': -90,
-            'geospatial_lon_min': -180,
-            'geospatial_lon_max': 180
-        })
+        md.to_mmd(overrides={
+            "geographic_extent_rectangle": {"geospatial_lat_max": 90,
+                                            "geospatial_lat_min": -90,
+                                            "geospatial_lon_min": -180,
+                                            "geospatial_lon_max": 180}})
         self.assertEqual(md.metadata['geographic_extent']['rectangle']['north'], 90)
 
     def test_collection_is_not_list(self):
@@ -1338,7 +1398,7 @@ class TestNC2MMD(unittest.TestCase):
             'time_coverage_start is a required ACDD attribute'
         )
 
-    def test_missing_temporal_extent_but_start_provided_as_kwarg(self):
+    def test_missing_temporal_extent_but_start_provided_in_dict(self):
         """ToDo: Add docstring"""
         yaml.load(
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
@@ -1346,34 +1406,30 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_missing_attrs.nc'),
                        check_only=True)
         with self.assertRaises(AttributeError):
-            md.to_mmd(time_coverage_start='1850-01-01T00:00:00Z')
+            md.to_mmd(overrides={"time_coverage_start": "1850-01-01T00:00:00Z"})
         self.assertEqual(md.metadata['temporal_extent']['start_date'],
                          '1850-01-01T00:00:00Z')
 
-    def test_missing_temporal_extent_but_start_and_end_provided_as_kwargs(self):
+    def test_missing_temporal_extent_but_start_and_end_provided_in_dict(self):
         """ToDo: Add docstring"""
         yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_missing_attrs.nc'),
                        check_only=True)
         with self.assertRaises(AttributeError):
-            md.to_mmd(
-                time_coverage_start='1850-01-01T00:00:00Z',
-                time_coverage_end='1950-01-01T00:00:00Z'
-            )
+            md.to_mmd(overrides={"time_coverage_start": "1850-01-01T00:00:00Z",
+                                 "time_coverage_end": "1950-01-01T00:00:00Z"})
         self.assertEqual(md.metadata['temporal_extent']['start_date'],
                          '1850-01-01T00:00:00Z')
         self.assertEqual(md.metadata['temporal_extent']['end_date'], '1950-01-01T00:00:00Z')
 
-    def test_missing_temporal_extent_but_start_and_end_provided_as_kwargs_and_wrong(self):
+    def test_missing_temporal_extent_but_start_and_end_provided_in_dict_and_wrong(self):
         """Test that errors are raised when input times are not iso"""
         yaml.load(resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader)
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_missing_attrs.nc'),
                        check_only=True)
         with self.assertRaises(AttributeError):
-            md.to_mmd(
-                time_coverage_start='1850/01/01 00:00:00',
-                time_coverage_end='1950/01/01 00:00:00'
-            )
+            md.to_mmd(overrides={"time_coverage_start": "1850/01/01 00:00:00",
+                                 "time_coverage_end": "1950/01/01 00:00:00"})
         self.assertEqual(
             md.missing_attributes['errors'][5],
             "time_coverage_start must be in ISO8601 format: "
@@ -2144,7 +2200,7 @@ class TestNC2MMD(unittest.TestCase):
             "publication_date": "2023-07-06",
             "title": "Some random title"}
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc.nc'), check_only=True)
-        req_ok, msg = md.to_mmd(dataset_citation=dc)
+        req_ok, msg = md.to_mmd(overrides={"dataset_citation": dc})
         self.assertEqual(md.metadata['dataset_citation'][0]['author'], 'No Name')
 
     def test_dataset_citation(self):
@@ -2200,8 +2256,7 @@ class TestNC2MMD(unittest.TestCase):
     def test_oserror_opendap(self, mock_nc_dataset):
         """ToDo: Add docstring"""
         mock_nc_dataset.side_effect = OSError
-        fn = os.path.abspath(
-            'S1A_IW_GRDH_1SDV_20210131T172816_20210131T172841_036385_04452D_505F.nc')
+        fn = os.path.abspath('tests/data/reference_nc.nc')
         url = (
             'http://nbstds.met.no/thredds/dodsC/NBS/S1A/2021/01/31/IW/'
             'S1A_IW_GRDH_1SDV_20210131T172816_20210131T172841_036385_04452D_505F.nc'
@@ -2427,8 +2482,9 @@ class TestNC2MMD(unittest.TestCase):
             md = Nc_to_mmd(
                 file,
                 os.path.join('https://thredds.met.no/thredds/dodsC/', file),
+                checksum_calculation=True,
                 output_file=tested)
-            md.to_mmd(checksum_calculation=True)
+            md.to_mmd()
             xsd_obj = etree.XMLSchema(etree.parse(self.reference_xsd))
             xml_doc = etree.ElementTree(file=tested)
             valid = xsd_obj.validate(xml_doc)
@@ -2573,7 +2629,7 @@ class TestNC2MMD(unittest.TestCase):
         """ToDo: Add docstring"""
         fn = os.path.abspath('tests/data/reference_nc.nc')
         md = Nc_to_mmd(fn, check_only=True)
-        md.to_mmd(checksum_calculation=False)
+        md.to_mmd()
         with self.assertRaises(KeyError):
             md.metadata['storage_information']['checksum']
             md.metadata['storage_information']['checksum_type']
