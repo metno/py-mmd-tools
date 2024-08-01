@@ -11,8 +11,6 @@ import os
 import pytest
 import subprocess
 
-from py_mmd_tools.mmd_operations import mmd_readlines
-
 from py_mmd_tools.script.move_data import main
 from py_mmd_tools.script.move_data import create_parser
 

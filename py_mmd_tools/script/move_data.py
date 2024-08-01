@@ -54,10 +54,10 @@ def main(args=None):
     if not os.path.isdir(args.new_file_location_base):
         raise ValueError(f"Invalid input: {args.new_file_location_base}")
 
-    not_updated, updated =  move_data(args.mmd_repository_path,
-                                      args.new_file_location_base,
-                                      args.existing_pathname_pattern,
-                                      dry_run=not args.dmci_update)
+    not_updated, updated = move_data(args.mmd_repository_path,
+                                     args.new_file_location_base,
+                                     args.existing_pathname_pattern,
+                                     dry_run=not args.dmci_update)
     print(f"Updated: {len(updated)}")
     print(f"Not updated: {len(not_updated)}\n")
     for key, val in not_updated.items():

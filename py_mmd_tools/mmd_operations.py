@@ -36,11 +36,11 @@ def check_csw_catalog(ds_id, nc_file, urls, env, emsg=""):
     """
     ds_found_and_accessible = False
     res = requests.get(url=f"https://{urls[env]['csw']}/csw",
-                        params={
-                            "service": "CSW",
-                            "version": "2.0.2",
-                            "request": "GetRepositoryItem",
-                            "id": ds_id})
+                       params={
+                           "service": "CSW",
+                           "version": "2.0.2",
+                           "request": "GetRepositoryItem",
+                           "id": ds_id})
     # TODO: check the data_access urls
     if res.status_code == 200:
         ds_found_and_accessible = True
