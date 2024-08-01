@@ -105,5 +105,9 @@
             "dtype": "float32",
             "shape": [3, 5]
         }
-    }
+    },
+    "archive_location": "/final/storage/of/the/netcdf/file.nc",
+    "file_size": 0.03,
+    "file_checksum": "aa188b45ece9bdbbc9b470106a6b13f8",
+    "file_checksum_type": "md5"
 }

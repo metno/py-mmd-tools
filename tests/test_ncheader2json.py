@@ -19,7 +19,6 @@ from py_mmd_tools.script.ncheader2json import create_parser
 from py_mmd_tools.script.ncheader2json import main
 from py_mmd_tools.script.ncheader2json import get_header_netCDF
 from py_mmd_tools.script.ncheader2json import handle_numpy_types
-from netCDF4 import Dataset
 
 
 @pytest.mark.script
@@ -28,13 +27,15 @@ def test_main(dataDir):
     parser = create_parser()
     test_in = os.path.join(dataDir, "reference_nc.nc")
     fd, test_out = tempfile.mkstemp(suffix=".json")
-    parsed = parser.parse_args(["-i", test_in, "-o", test_out])
+    parsed = parser.parse_args(["-i", test_in, "-o", test_out,
+                                "--archive_location", "/some/locationt/file.nc"])
     main(parsed)
     with open(test_out, "r") as fp:
         ncheader = json.load(fp)
     assert ncheader["global_variables"]["id"] == "b7cb7934-77ca-4439-812e-f560df3fe7eb"
     os.remove(test_out)
-    parsed = parser.parse_args(["-i", test_in])
+    parsed = parser.parse_args(["-i", test_in,
+                                "--archive_location", "/some/locationt/file.nc"])
     ncheader = main(parsed)
     assert ncheader["global_variables"]["id"] == "b7cb7934-77ca-4439-812e-f560df3fe7eb"
 
@@ -45,7 +46,8 @@ def test_main_raise_error():
     Test that ncheader2json rasies expected exception.
     """
     parser = create_parser()
-    parsed = parser.parse_args(["-i", "this_path_should_not_exsist"])
+    parsed = parser.parse_args(["-i", "this_path_should_not_exsist",
+                                "--archive_location", "/some/locationt/file.nc"])
     with pytest.raises(ValueError):
         main(args=parsed)
 
@@ -75,7 +77,10 @@ def test_get_header_netCDF(dataDir):
     """
     with open(os.path.join(dataDir, "reference_nc_header.json")) as file:
         expected = json.load(file)
-    test_input = get_header_netCDF(Dataset(os.path.join(dataDir, "reference_nc.nc")))
+    test_input = get_header_netCDF(os.path.join(dataDir, "reference_nc.nc"),
+                                   "/final/storage/of/the/netcdf/file.nc",
+                                   "aa188b45ece9bdbbc9b470106a6b13f8",
+                                   "md5")
     assert json.dumps(json.loads(test_input), sort_keys=True) == json.dumps(
         expected, sort_keys=True
     )
