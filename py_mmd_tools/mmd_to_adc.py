@@ -15,15 +15,15 @@ py-mmd-tools is licensed under the Apache License 2.0
 Each entry in adc_elements.yaml is strucutred as follows:
 
 attribute name:
-    description: 
-    help: 
-    format: 
+    description:
+    help:
+    format:
     limits: # Where applicable, such as for geospatial_lat_min
-      min: 
-      max: 
+      min:
+      max:
     options: # Where applicable
       - option 1
-      - option 2 
+      - option 2
       - option 3
       - option 4
     requirement_level:
@@ -35,9 +35,11 @@ from collections import defaultdict
 
 def extract_adc_attributes(data, prefix=''):
     '''
-    Recursively extract attributes relevant for the Arctic Data Centre (ADC) from a nested dictionary or list structure.
+    Recursively extract attributes relevant for the Arctic Data Centre (ADC)
+    from a nested dictionary or list structure.
 
-    This function searches for 'acdd' and 'acdd_ext' keys in the input data structure and extracts attributes that have both 'format' and 'requirement_level' keys.
+    This function searches for 'acdd' and 'acdd_ext' keys in the input data structure
+    and extracts attributes that have both 'format' and 'requirement_level' keys.
 
     Parameters
     ----------
@@ -56,9 +58,9 @@ def extract_adc_attributes(data, prefix=''):
     '''
     if not isinstance(data, (dict, list)):
         raise TypeError("Expected input data to be of type dict or list")
-    
+
     attributes = defaultdict(dict)
-    
+
     if isinstance(data, dict):
         for key, value in data.items():
             if key in ['acdd', 'acdd_ext']:
@@ -74,7 +76,7 @@ def extract_adc_attributes(data, prefix=''):
         for item in data:
             nested_attributes = extract_adc_attributes(item, prefix)
             attributes.update(nested_attributes)
-    
+
     return attributes
 
 
