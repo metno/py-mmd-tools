@@ -34,7 +34,7 @@ from collections import defaultdict
 
 
 def extract_adc_attributes(data, prefix=''):
-    '''
+    """
     Recursively extract attributes relevant for the Arctic Data Centre (ADC)
     from a nested dictionary or list structure.
 
@@ -55,10 +55,7 @@ def extract_adc_attributes(data, prefix=''):
         A dictionary of extracted ADC attributes. The keys are the attribute
         names (prefixed if nested), and the values are dictionaries containing
         the attribute's metadata (description, format, requirement_level, etc.).
-    '''
-    if not isinstance(data, (dict, list)):
-        raise TypeError("Expected input data to be of type dict or list")
-
+    """
     attributes = defaultdict(dict)
 
     if isinstance(data, dict):
