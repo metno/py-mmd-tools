@@ -452,7 +452,7 @@ data_center:
         separator: ','
         maxOccurs: '1'
         minOccurs: '1'
-        comment: Required if not hosted by MET. If multiple are listed, use comma separated list and consistency across fields.
+        comment: Required. If multiple are listed, use comma separated list and consistency across fields.
         description: The URL of the person (or other entity specified by the publisher_type attribute) responsible for publishing the data file or product to users.
         format: "text"
         requirement_level: "Required if not hosted by MET"
@@ -476,7 +476,7 @@ not_mmd.publisher_email:
     publisher_email:
       maxOccurs: 'unbounded'
       minOccurs: '1'
-      comment: Required if not hosted by MET. If multiple are listed, use comma separated list and consistency across fields.
+      comment: Required. If multiple are listed, use comma separated list and consistency across fields.
       description: The email address of the person (or other entity specified by the publisher_type attribute) responsible for publishing the data file or product to users, with its current metadata and format.
       format: "text"
       requirement_level: "Required if not hosted by MET"
@@ -732,7 +732,7 @@ dataset_citation:
     acdd:
       publisher_name:
         separator: ','
-        comment: Required if not hosted by MET. If not an organisation add publisher_institution which is used to identify the data centre hosting the dataset. If multiple are listed, use comma separated list and consistency across fields.
+        comment: Required. If this is not an organisation, add publisher_institution which is used to identify the data centre hosting the dataset. If multiple are listed, use comma separated list and consistency across fields.
         description: The name of the person (or entity specified by the publisher_type attribute) responsible for publishing the data file or product to users.
         format: "text"
         requirement_level: "Required if not hosted by MET"

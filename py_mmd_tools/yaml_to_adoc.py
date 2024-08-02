@@ -71,7 +71,7 @@ def set_attribute(mmd_field, val, convention, attributes, req='not_required'):
     if convention not in val.keys():
         return None
     if mmd_field.split('.')[0] == 'not_mmd':
-        mmd_field = 'None'
+        mmd_field = ""
 
     for attr in val[convention].keys():
         if req == 'required' and not required(val[convention][attr]):

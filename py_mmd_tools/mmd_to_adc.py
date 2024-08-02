@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 This script generates a yaml file contatining requiremnents specific to the Arctic Data Centre.
 This new yaml file is generated using the more general mmd_elements.yaml file.
 
@@ -12,7 +12,7 @@ This file is part of the py-mmd-tools repository
 py-mmd-tools is licensed under the Apache License 2.0
 <https://github.com/metno/py-mmd-tools/blob/master/LICENSE>
 
-Each entry in the new adc_elements.yaml is strucutred as follows:
+Each entry in adc_elements.yaml is strucutred as follows:
 
 attribute name:
     description: 
@@ -27,7 +27,7 @@ attribute name:
       - option 3
       - option 4
     requirement_level:
-'''
+"""
 
 import yaml
 from collections import defaultdict
@@ -86,10 +86,10 @@ with open('mmd_elements.yaml', 'r') as f:
 ADC_attributes = extract_adc_attributes(mmd_data)
 
 # Create the output dictionary
-output = {"ADC_global_attributes": {}}
+output = {}
 
 for attr, data in ADC_attributes.items():
-    output["ADC_global_attributes"][attr] = {
+    output[attr] = {
         "description": data.get("description", ""),
         "help": data.get("comment", ""),
         "format": data.get("format", ""),
@@ -97,10 +97,10 @@ for attr, data in ADC_attributes.items():
     }
 
     if "options" in data:
-        output["ADC_global_attributes"][attr]["options"] = data["options"]
+        output[attr]["options"] = data["options"]
 
     if "limits" in data:
-        output["ADC_global_attributes"][attr]["limits"] = data["limits"]
+        output[attr]["limits"] = data["limits"]
 
 # Write the output to adc_elements.yaml
 with open('adc_elements.yaml', 'w') as f:
