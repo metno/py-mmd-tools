@@ -33,18 +33,18 @@ import yaml
 from collections import defaultdict
 
 
-def extract_adc_attributes(data, prefix=''):
+def extract_acdd_attributes(data, prefix=''):
     """
-    Recursively extract attributes relevant for the Arctic Data Centre (ADC)
+    Recursively extract ACDD attributes
     from a nested dictionary or list structure.
 
-    This function searches for 'acdd' and 'acdd_ext' keys in the input data structure
+    This function searches for 'acdd' keys in the input data structure
     and extracts attributes that have both 'format' and 'requirement_level' keys.
 
     Parameters
     ----------
     data : dict or list
-        The input data structure to search for ADC attributes.
+        The input data structure to search for ACDD attributes.
     prefix : str, optional
         A string prefix to prepend to extracted attribute names, used for
         handling nested structures. Default is an empty string.
@@ -52,7 +52,7 @@ def extract_adc_attributes(data, prefix=''):
     Returns
     -------
     dict
-        A dictionary of extracted ADC attributes. The keys are the attribute
+        A dictionary of extracted ACDD attributes. The keys are the attribute
         names (prefixed if nested), and the values are dictionaries containing
         the attribute's metadata (description, format, requirement_level, etc.).
     """
@@ -67,11 +67,11 @@ def extract_adc_attributes(data, prefix=''):
                         final_key = full_key.split('.')[-1]
                         attributes[final_key] = attr_data
             else:
-                nested_attributes = extract_adc_attributes(value, f"{prefix}{key}.")
+                nested_attributes = extract_acdd_attributes(value, f"{prefix}{key}.")
                 attributes.update(nested_attributes)
     elif isinstance(data, list):
         for item in data:
-            nested_attributes = extract_adc_attributes(item, prefix)
+            nested_attributes = extract_acdd_attributes(item, prefix)
             attributes.update(nested_attributes)
 
     return attributes
@@ -81,13 +81,13 @@ def extract_adc_attributes(data, prefix=''):
 with open('mmd_elements.yaml', 'r') as f:
     mmd_data = yaml.safe_load(f)
 
-# Extract ADC attributes
-ADC_attributes = extract_adc_attributes(mmd_data)
+# Extract ACDD attributes
+acdd_attributes = extract_acdd_attributes(mmd_data)
 
 # Create the output dictionary
 output = {}
 
-for attr, data in ADC_attributes.items():
+for attr, data in acdd_attributes.items():
     output[attr] = {
         "description": data.get("description", ""),
         "help": data.get("comment", ""),
