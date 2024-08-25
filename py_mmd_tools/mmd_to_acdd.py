@@ -60,7 +60,7 @@ def extract_adc_attributes(data, prefix=''):
 
     if isinstance(data, dict):
         for key, value in data.items():
-            if key in ['acdd', 'acdd_ext']:
+            if key == 'acdd':
                 for attr, attr_data in value.items():
                     if 'format' in attr_data and 'requirement_level' in attr_data:
                         full_key = f"{prefix}{attr}" if prefix else attr
@@ -101,8 +101,8 @@ for attr, data in ADC_attributes.items():
     if "limits" in data:
         output[attr]["limits"] = data["limits"]
 
-# Write the output to adc_elements.yaml
-with open('adc_elements.yaml', 'w') as f:
+# Write the output to acdd_elements.yaml
+with open('acdd_elements.yaml', 'w') as f:
     yaml.dump(output, f, sort_keys=False, default_flow_style=False)
 
-print("adc_elements.yaml has been created successfully.")
+print("acdd_elements.yaml has been created successfully.")
