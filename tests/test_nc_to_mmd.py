@@ -1753,7 +1753,7 @@ class TestNC2MMD(unittest.TestCase):
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.platform = 'Environmental Satellite'
+        ncin.platform = 'Fake Environmental Satellite'
         ncin.platform_vocabulary = 'invalid_url'
         value = md.get_platforms(mmd_yaml['platform'], ncin)
         self.assertEqual(value, [])
@@ -1852,7 +1852,7 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(self.fail_nc, check_only=True)
         ncin = Dataset(md.netcdf_file, "w", diskless=True)
         # Note that Envisat is not in the MMD vocabulary
-        ncin.platform = 'Envisat'
+        ncin.platform = 'FakeEnvisat'
         value = md.get_platforms(mmd_yaml['platform'], ncin)
         self.assertEqual(value, [])
         self.assertEqual(
