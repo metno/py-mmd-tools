@@ -77,32 +77,33 @@ def extract_acdd_attributes(data, prefix=''):
     return attributes
 
 
-# Read the mmd_elements.yaml file
-with open('mmd_elements.yaml', 'r') as f:
-    mmd_data = yaml.safe_load(f)
+if __name__ == "__main__":
+    # Read the mmd_elements.yaml file
+    with open('mmd_elements.yaml', 'r') as f:
+        mmd_data = yaml.safe_load(f)
 
-# Extract ACDD attributes
-acdd_attributes = extract_acdd_attributes(mmd_data)
+    # Extract ACDD attributes
+    acdd_attributes = extract_acdd_attributes(mmd_data)
 
-# Create the output dictionary
-output = {}
+    # Create the output dictionary
+    output = {}
 
-for attr, data in acdd_attributes.items():
-    output[attr] = {
-        "description": data.get("description", ""),
-        "help": data.get("comment", ""),
-        "format": data.get("format", ""),
-        "requirement_level": data.get("requirement_level", "")
-    }
+    for attr, data in acdd_attributes.items():
+        output[attr] = {
+            "description": data.get("description", ""),
+            "help": data.get("comment", ""),
+            "format": data.get("format", ""),
+            "requirement_level": data.get("requirement_level", "")
+        }
 
-    if "options" in data:
-        output[attr]["options"] = data["options"]
+        if "options" in data:
+            output[attr]["options"] = data["options"]
 
-    if "limits" in data:
-        output[attr]["limits"] = data["limits"]
+        if "limits" in data:
+            output[attr]["limits"] = data["limits"]
 
-# Write the output to acdd_elements.yaml
-with open('acdd_elements.yaml', 'w') as f:
-    yaml.dump(output, f, sort_keys=False, default_flow_style=False)
+    # Write the output to acdd_elements.yaml
+    with open('acdd_elements.yaml', 'w') as f:
+        yaml.dump(output, f, sort_keys=False, default_flow_style=False)
 
-print("acdd_elements.yaml has been created successfully.")
+    print("acdd_elements.yaml has been created successfully.")
