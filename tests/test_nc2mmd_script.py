@@ -112,7 +112,6 @@ def test_main_localfile_more_than_1_dot_in_filename(dataDir, monkeypatch):
         '-i', test_in,
         '-u', url,
         '-o', out_dir,
-        '--collection', 'ADC'
     ])
     with monkeypatch.context() as mp:
         mp.setattr("py_mmd_tools.nc_to_mmd.Dataset",
