@@ -1626,7 +1626,7 @@ class TestNC2MMD(unittest.TestCase):
         # iso_topic_category is not valid
         ncin.creator_role = "abcd"
         md.get_personnel(mmd_element, ncin)
-        assert "The ACDD attribute 'contact_roles' must" in md.missing_attributes['errors'][0]
+        assert "The ACDD attribute 'contributor_role' must" in md.missing_attributes['errors'][0]
 
     def test_personnel(self):
         """Test reading of personnel from nc file into MMD"""
