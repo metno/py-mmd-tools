@@ -121,11 +121,11 @@ def test_separate_repeated(dataDir):
     """
     md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
     with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
-        ncin.platform = ['&quot;Basis&quot;: &quot;Space-based Platforms&quot;',
-                        ' &quot;Category&quot;: &quot;Earth Observation Satellites&quot;',
-                        ' &quot;Sub_Category&quot;: &quot;Sentinel-1&quot;',
-                        ' &quot;Short_Name&quot;: &quot;Sentinel-1A&quot;',
-                        ' &quot;Long_Name&quot;: &quot;Sentinel-1A&quot;']
+        ncin.platform = ["&quot;Basis&quot;: &quot;Space-based Platforms&quot;",
+                         " &quot;Category&quot;: &quot;Earth Observation Satellites&quot;",
+                         " &quot;Sub_Category&quot;: &quot;Sentinel-1&quot;",
+                         " &quot;Short_Name&quot;: &quot;Sentinel-1A&quot;",
+                         " &quot;Long_Name&quot;: &quot;Sentinel-1A&quot;"]
         with pytest.raises(AttributeError) as ee:
             md.separate_repeated(True, getattr(ncin, "platform"))
 
@@ -1020,8 +1020,9 @@ class TestNC2MMD(unittest.TestCase):
         )
         md = Nc_to_mmd(self.reference_nc, check_only=True)
         with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
-            ncin.license = "https://earth.esa.int/eogateway/documents/20142/1564626/" \
-                           "ESA-Data-Policy-ESA-PB-EO-2010-54.pdf (ESA earth observation data policy)"
+            ncin.license = ("https://earth.esa.int/eogateway/documents/20142/1564626/"
+                            "ESA-Data-Policy-ESA-PB-EO-2010-54.pdf (ESA earth "
+                            "observation data policy)")
             value = md.get_license(mmd_yaml['use_constraint'], ncin)
         self.assertEqual(
             value['license_text'],
@@ -1305,9 +1306,7 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_with_altID.nc'), check_only=True)
         with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
             ncin.alternate_identifier = 'wrong format, missing type'
-            value = md.get_alternate_identifier(
-                mmd_yaml['alternate_identifier'], ncin
-            )
+            md.get_alternate_identifier(mmd_yaml['alternate_identifier'], ncin)
         self.assertEqual(
             md.missing_attributes['errors'][0],
             'alternate_identifier must be formed as <url> (<type>).'
@@ -2181,7 +2180,8 @@ class TestNC2MMD(unittest.TestCase):
             ncin.title = "Test dataset"
             ncin.publisher_name = "Norwegian Meteorological Institute"
             ncin.metadata_link = "invalid_url"
-            value = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin, dataset_citation=dc)
+            value = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin,
+                                             dataset_citation=dc)
 
         self.assertEqual(value[0]['author'], 'No Name')
 
@@ -2792,7 +2792,8 @@ class TestNC2MMD(unittest.TestCase):
             ncin.references = (
                 "https://data.met.no/dataset/3f9974bf-b073-4c16-81d8-c34fcf3b1f01"
                 " (Dataset landing page),"  # added a space
-                "https://ieeexplore.ieee.org/document/7914752 (Scientific publication)"  # added space
+                "https://ieeexplore.ieee.org/document/7914752 (Scientific "
+                "publication)"  # added space
             )
             data = md.get_related_information(mmd_yaml['related_information'], ncin)
 
