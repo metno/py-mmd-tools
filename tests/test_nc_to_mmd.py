@@ -120,14 +120,15 @@ def test_separate_repeated(dataDir):
     """ Test function Nc_to_mmd.separate_repeated
     """
     md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
-    ncin = Dataset(md.netcdf_file, "w", diskless=True)
-    ncin.platform = ['&quot;Basis&quot;: &quot;Space-based Platforms&quot;',
-                     ' &quot;Category&quot;: &quot;Earth Observation Satellites&quot;',
-                     ' &quot;Sub_Category&quot;: &quot;Sentinel-1&quot;',
-                     ' &quot;Short_Name&quot;: &quot;Sentinel-1A&quot;',
-                     ' &quot;Long_Name&quot;: &quot;Sentinel-1A&quot;']
-    with pytest.raises(AttributeError) as ee:
-        md.separate_repeated(True, getattr(ncin, "platform"))
+    with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+        ncin.platform = ['&quot;Basis&quot;: &quot;Space-based Platforms&quot;',
+                        ' &quot;Category&quot;: &quot;Earth Observation Satellites&quot;',
+                        ' &quot;Sub_Category&quot;: &quot;Sentinel-1&quot;',
+                        ' &quot;Short_Name&quot;: &quot;Sentinel-1A&quot;',
+                        ' &quot;Long_Name&quot;: &quot;Sentinel-1A&quot;']
+        with pytest.raises(AttributeError) as ee:
+            md.separate_repeated(True, getattr(ncin, "platform"))
+
     assert str(ee.value) == "'list' object has no attribute 'split'"
 
 
@@ -137,20 +138,21 @@ def testNc_to_mmd_get_geographic_extent_polygon(dataDir):
     geospatial_bounds_crs is missing.
     """
     md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
-    ncin = Dataset(md.netcdf_file, "w", diskless=True)
-    ncin.geospatial_bounds = ("POLYGON ((59.01 1.23, 59.06 1.66, 59.10 2.09, 59.15 2.53, "
-                              "59.19 2.96, 59.24 3.40, 59.28 3.84, 59.32 4.28, 59.35 4.72, "
-                              "59.39 5.16, 59.43 5.61, 59.43 5.61, 59.57 5.57, 59.72 5.52, "
-                              "59.87 5.48, 60.01 5.43, 60.16 5.39, 60.31 5.34, 60.46 5.29, "
-                              "60.60 5.25, 60.75 5.20, 60.92 5.15, 60.92 5.15, 60.88 4.67, "
-                              "60.84 4.21, 60.80 3.75, 60.76 3.29, 60.72 2.84, 60.68 2.38, "
-                              "60.63 1.92, 60.59 1.47, 60.54 1.02, 60.49 0.56, 60.49 0.56, "
-                              "60.33 0.64, 60.18 0.71, 60.03 0.77, 59.89 0.84, 59.74 0.90, "
-                              "59.59 0.97, 59.45 1.03, 59.30 1.10, 59.15 1.16, 59.01 1.23))")
-    mmd_yaml = yaml.load(
-        resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-    )
-    data = md.get_geographic_extent_polygon(mmd_yaml["geographic_extent"].pop("polygon"), ncin)
+    with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+        ncin.geospatial_bounds = ("POLYGON ((59.01 1.23, 59.06 1.66, 59.10 2.09, 59.15 2.53, "
+                                  "59.19 2.96, 59.24 3.40, 59.28 3.84, 59.32 4.28, 59.35 4.72, "
+                                  "59.39 5.16, 59.43 5.61, 59.43 5.61, 59.57 5.57, 59.72 5.52, "
+                                  "59.87 5.48, 60.01 5.43, 60.16 5.39, 60.31 5.34, 60.46 5.29, "
+                                  "60.60 5.25, 60.75 5.20, 60.92 5.15, 60.92 5.15, 60.88 4.67, "
+                                  "60.84 4.21, 60.80 3.75, 60.76 3.29, 60.72 2.84, 60.68 2.38, "
+                                  "60.63 1.92, 60.59 1.47, 60.54 1.02, 60.49 0.56, 60.49 0.56, "
+                                  "60.33 0.64, 60.18 0.71, 60.03 0.77, 59.89 0.84, 59.74 0.90, "
+                                  "59.59 0.97, 59.45 1.03, 59.30 1.10, 59.15 1.16, 59.01 1.23))")
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        data = md.get_geographic_extent_polygon(mmd_yaml["geographic_extent"].pop("polygon"), ncin)
+
     assert data["srsName"] == "EPSG:4326"
 
 
@@ -163,49 +165,44 @@ def test_get_related_dataset(dataDir):
     )
     # One related dataset
     md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
-    ncin = Dataset(md.netcdf_file, "w", diskless=True)
-    ncin.related_dataset = 'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb (parent)'
-    data = md.get_related_dataset(mmd_yaml['related_dataset'], ncin)
+    with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+        ncin.related_dataset = 'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb (parent)'
+        data = md.get_related_dataset(mmd_yaml['related_dataset'], ncin)
     assert data[0]['id'] == 'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb'
-    ncin.close()
 
     # Two related datasets
     md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
-    ncin = Dataset(md.netcdf_file, "w", diskless=True)
-    ncin.related_dataset = (
-        'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb (parent), '
-        'no.met:b7cb7934-78ca-4439-812e-f560df3fe7eb (auxiliary)')
-    data = md.get_related_dataset(mmd_yaml['related_dataset'], ncin)
+    with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+        ncin.related_dataset = (
+            'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb (parent), '
+            'no.met:b7cb7934-78ca-4439-812e-f560df3fe7eb (auxiliary)')
+        data = md.get_related_dataset(mmd_yaml['related_dataset'], ncin)
     assert data[0]['id'] == 'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb'
     assert data[1]['id'] == 'no.met:b7cb7934-78ca-4439-812e-f560df3fe7eb'
-    ncin.close()
 
     # Malformed relation
     md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
-    ncin = Dataset(md.netcdf_file, "w", diskless=True)
-    ncin.related_dataset = 'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb'
-    data = md.get_related_dataset(mmd_yaml['related_dataset'], ncin)
+    with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+        ncin.related_dataset = 'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb'
+        data = md.get_related_dataset(mmd_yaml['related_dataset'], ncin)
     assert 'The global attribute "related_dataset" is malformed' in \
         md.missing_attributes['errors'][0]
-    ncin.close()
 
     # Invalid relation type
     md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
-    ncin = Dataset(md.netcdf_file, "w", diskless=True)
-    ncin.related_dataset = 'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb (child)'
-    data = md.get_related_dataset(mmd_yaml['related_dataset'], ncin)
+    with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+        ncin.related_dataset = 'no.met:b7cb7934-77ca-4439-812e-f560df3fe7eb (child)'
+        data = md.get_related_dataset(mmd_yaml['related_dataset'], ncin)
     assert 'The dataset relation type must be either' in \
         md.missing_attributes['errors'][0]
-    ncin.close()
 
     # Invalid identifier pattern
     md = Nc_to_mmd(os.path.join(dataDir, 'reference_nc.nc'), check_only=True)
-    ncin = Dataset(md.netcdf_file, "w", diskless=True)
-    ncin.related_dataset = 'b7cb7934-77ca-4439-812e-f560df3fe7eb (parent)'
-    data = md.get_related_dataset(mmd_yaml['related_dataset'], ncin)
+    with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+        ncin.related_dataset = 'b7cb7934-77ca-4439-812e-f560df3fe7eb (parent)'
+        data = md.get_related_dataset(mmd_yaml['related_dataset'], ncin)
     assert 'missing naming_authority in the identifier' in \
         md.missing_attributes['errors'][0]
-    ncin.close()
 
 
 @pytest.mark.py_mmd_tools
@@ -234,8 +231,8 @@ def testNc_to_mmd_Get_acdd_metadata(dataDir):
     key = "dataset_production_status"
     test_in = os.path.join(dataDir, "reference_nc.nc")
     md = Nc_to_mmd(test_in, check_only=True)
-    ncin = Dataset(test_in, "w", diskless=True)
-    assert md.get_acdd_metadata(mmd_yaml[key], ncin, key) == "Complete"
+    with Dataset(test_in, "w", diskless=True) as ncin:
+        assert md.get_acdd_metadata(mmd_yaml[key], ncin, key) == "Complete"
 
 
 @pytest.mark.py_mmd_tools
@@ -410,24 +407,23 @@ def test_get_operational_status(dataDir, monkeypatch):
     mmd_element = mmd_yaml["operational_status"]
     test_in = os.path.join(dataDir, "reference_nc.nc")
     md = Nc_to_mmd(test_in, check_only=True)
-    ncin = Dataset(test_in, "w", diskless=True)
-
-    # processing_level is not present
-    value = md.get_operational_status(mmd_element, ncin)
-    assert value == "Not available"
-
-    # processing_level is not valid
-    ncin.processing_level = "kjhhas"
-    mmd_element["maxOccurs"] = "1"
-    value = md.get_operational_status(mmd_element, ncin)
-    assert ("The ACDD attribute 'processing_level' in MMD attribute 'operational_status'"
-            in md.missing_attributes['errors'][0])
-
-    # repetition of processing_level is allowed
-    mmd_element["maxOccurs"] = "unbounded"
-    with pytest.raises(ValueError) as ve:
+    with Dataset(test_in, "w", diskless=True) as ncin:
+        # processing_level is not present
         value = md.get_operational_status(mmd_element, ncin)
-    assert str(ve.value) == "This is not expected..."
+        assert value == "Not available"
+
+        # processing_level is not valid
+        ncin.processing_level = "kjhhas"
+        mmd_element["maxOccurs"] = "1"
+        value = md.get_operational_status(mmd_element, ncin)
+        assert ("The ACDD attribute 'processing_level' in MMD attribute 'operational_status'"
+                in md.missing_attributes['errors'][0])
+
+        # repetition of processing_level is allowed
+        mmd_element["maxOccurs"] = "unbounded"
+        with pytest.raises(ValueError) as ve:
+            value = md.get_operational_status(mmd_element, ncin)
+        assert str(ve.value) == "This is not expected..."
 
 
 @pytest.mark.py_mmd_tools
@@ -438,24 +434,23 @@ def test_dataset_production_status(dataDir):
     mmd_element = mmd_yaml["dataset_production_status"]
     test_in = os.path.join(dataDir, "reference_nc.nc")
     md = Nc_to_mmd(test_in, check_only=True)
-    ncin = Dataset(test_in, "w", diskless=True)
-
-    # dataset_production_status is not present
-    value = md.get_dataset_production_status(mmd_element, ncin)
-    assert value == "Complete"
-
-    # dataset_production_status is not valid
-    ncin.dataset_production_status = "kjhhas"
-    mmd_element["maxOccurs"] = "1"
-    value = md.get_dataset_production_status(mmd_element, ncin)
-    assert "The ACDD attribute 'dataset_production_status'"
-    "must " in md.missing_attributes['errors'][0]
-
-    # repetition of processing_level is allowed
-    mmd_element["maxOccurs"] = "unbounded"
-    with pytest.raises(ValueError) as ve:
+    with Dataset(test_in, "w", diskless=True) as ncin:
+        # dataset_production_status is not present
         value = md.get_dataset_production_status(mmd_element, ncin)
-    assert str(ve.value) == "This is not expected..."
+        assert value == "Complete"
+
+        # dataset_production_status is not valid
+        ncin.dataset_production_status = "kjhhas"
+        mmd_element["maxOccurs"] = "1"
+        value = md.get_dataset_production_status(mmd_element, ncin)
+        assert "The ACDD attribute 'dataset_production_status'"
+        "must " in md.missing_attributes['errors'][0]
+
+        # repetition of processing_level is allowed
+        mmd_element["maxOccurs"] = "unbounded"
+        with pytest.raises(ValueError) as ve:
+            value = md.get_dataset_production_status(mmd_element, ncin)
+        assert str(ve.value) == "This is not expected..."
 
 
 @pytest.mark.py_mmd_tools
@@ -466,19 +461,18 @@ def test_get_quality_control(dataDir):
     mmd_element = mmd_yaml["quality_control"]
     test_in = os.path.join(dataDir, "reference_nc.nc")
     md = Nc_to_mmd(test_in, check_only=True)
-    ncin = Dataset(test_in, "w", diskless=True)
-
-    # processing_level is not valid
-    ncin.quality_control = "kjhhas"
-    mmd_element["maxOccurs"] = "1"
-    md.get_quality_control(mmd_element, ncin)
-    assert "The ACDD attribute 'quality_control' must " in md.missing_attributes['errors'][0]
-
-    # repetition of processing_level is allowed
-    mmd_element["maxOccurs"] = "unbounded"
-    with pytest.raises(ValueError) as ve:
+    with Dataset(test_in, "w", diskless=True) as ncin:
+        # processing_level is not valid
+        ncin.quality_control = "kjhhas"
+        mmd_element["maxOccurs"] = "1"
         md.get_quality_control(mmd_element, ncin)
-    assert str(ve.value) == "This is not expected..."
+        assert "The ACDD attribute 'quality_control' must " in md.missing_attributes['errors'][0]
+
+        # repetition of processing_level is allowed
+        mmd_element["maxOccurs"] = "unbounded"
+        with pytest.raises(ValueError) as ve:
+            md.get_quality_control(mmd_element, ncin)
+        assert str(ve.value) == "This is not expected..."
 
 
 @pytest.mark.py_mmd_tools
@@ -914,10 +908,10 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.reference_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.license = "CC-BY-4.0"
-        ncin.license_resource = "http://spdx.org/licenses/CC-BY-4.0"
-        value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.license = "CC-BY-4.0"
+            ncin.license_resource = "http://spdx.org/licenses/CC-BY-4.0"
+            value = md.get_license(mmd_yaml['use_constraint'], ncin)
         self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
         self.assertEqual(value['identifier'], 'CC-BY-4.0')
         self.assertEqual(
@@ -929,9 +923,9 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.reference_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.license = "spdx.org/licenses/CC-BY-4.0"
-        value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.license = "spdx.org/licenses/CC-BY-4.0"
+            value = md.get_license(mmd_yaml['use_constraint'], ncin)
         self.assertIsNone(value)
         self.assertEqual(
             md.missing_attributes["errors"][0],
@@ -946,9 +940,9 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.reference_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.license = "http://spdx.org/licenses/CC-BY-4.0 (CC-BY-4.0)"
-        value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.license = "http://spdx.org/licenses/CC-BY-4.0 (CC-BY-4.0)"
+            value = md.get_license(mmd_yaml['use_constraint'], ncin)
         self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
         self.assertEqual(value['identifier'], 'CC-BY-4.0')
 
@@ -959,9 +953,10 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.reference_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.license = "http://spdx.org/licenses/CC-BY-4.0"
-        value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.license = "http://spdx.org/licenses/CC-BY-4.0"
+            value = md.get_license(mmd_yaml['use_constraint'], ncin)
+
         # met-vocab-tools should be able to find the license by
         # searching a url (see issue https://github.com/metno/met-vocab-tools/issues/25):
         # self.assertEqual(value['identifier'], 'CC-BY-4.0')
@@ -976,9 +971,10 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.reference_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.license = "http://spdx.org/licenses/CC-BY-4.1"
-        value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.license = "http://spdx.org/licenses/CC-BY-4.1"
+            value = md.get_license(mmd_yaml['use_constraint'], ncin)
+
         # met-vocab-tools should be able to find the license by
         # searching a url (see issue https://github.com/metno/met-vocab-tools/issues/25):
         # self.assertEqual(value['identifier'], 'CC-BY-4.0')
@@ -994,9 +990,10 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.reference_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.license = "http://spdx.org/licenses/CC-BY-4.0(CC-BY-4.0)"
-        value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.license = "http://spdx.org/licenses/CC-BY-4.0(CC-BY-4.0)"
+            value = md.get_license(mmd_yaml['use_constraint'], ncin)
+
         self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
         self.assertEqual(value['identifier'], 'CC-BY-4.0')
 
@@ -1007,9 +1004,10 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.reference_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.license = "http://spdx.org/licenses/CC-BY-4.0 (CC-BY-4.0)"
-        value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.license = "http://spdx.org/licenses/CC-BY-4.0 (CC-BY-4.0)"
+            value = md.get_license(mmd_yaml['use_constraint'], ncin)
+
         self.assertEqual(value['resource'], 'http://spdx.org/licenses/CC-BY-4.0')
         self.assertEqual(value['identifier'], 'CC-BY-4.0')
 
@@ -1021,10 +1019,10 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.reference_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.license = "https://earth.esa.int/eogateway/documents/20142/1564626/" \
-                       "ESA-Data-Policy-ESA-PB-EO-2010-54.pdf (ESA earth observation data policy)"
-        value = md.get_license(mmd_yaml['use_constraint'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.license = "https://earth.esa.int/eogateway/documents/20142/1564626/" \
+                           "ESA-Data-Policy-ESA-PB-EO-2010-54.pdf (ESA earth observation data policy)"
+            value = md.get_license(mmd_yaml['use_constraint'], ncin)
         self.assertEqual(
             value['license_text'],
             "https://earth.esa.int/eogateway/documents/20142/1564626/"
@@ -1100,11 +1098,11 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.geospatial_bounds = ""
-        md.get_geographic_extent_polygon(
-            mmd_yaml['geographic_extent']['polygon'], ncin
-        )
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.geospatial_bounds = ""
+            md.get_geographic_extent_polygon(
+                mmd_yaml['geographic_extent']['polygon'], ncin
+            )
         self.assertEqual(
             md.missing_attributes["errors"][0],
             "geospatial_bounds must be formatted as a WKT string"
@@ -1149,13 +1147,13 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc.nc'), check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.geospatial_lat_max = "60.158733f; // float"
-        ncin.geospatial_lat_min = "59.78492f; // float"
-        ncin.geospatial_lon_max = "10.944986f; // float"
-        ncin.geospatial_lon_min = "10.508897f; // float"
-        md.get_geographic_extent_rectangle(
-            mmd_yaml['geographic_extent']['rectangle'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.geospatial_lat_max = "60.158733f; // float"
+            ncin.geospatial_lat_min = "59.78492f; // float"
+            ncin.geospatial_lon_max = "10.944986f; // float"
+            ncin.geospatial_lon_min = "10.508897f; // float"
+            md.get_geographic_extent_rectangle(
+                mmd_yaml['geographic_extent']['rectangle'], ncin)
         self.assertEqual(
             md.missing_attributes['errors'][0],
             'geospatial_lat_max must be convertible to float type.')
@@ -1305,12 +1303,11 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_with_altID.nc'), check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.alternate_identifier = 'wrong format, missing type'
-        value = md.get_alternate_identifier(
-            mmd_yaml['alternate_identifier'], ncin
-        )
-        print(value)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.alternate_identifier = 'wrong format, missing type'
+            value = md.get_alternate_identifier(
+                mmd_yaml['alternate_identifier'], ncin
+            )
         self.assertEqual(
             md.missing_attributes['errors'][0],
             'alternate_identifier must be formed as <url> (<type>).'
@@ -1465,16 +1462,15 @@ class TestNC2MMD(unittest.TestCase):
         )
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_attrs_multiple.nc'),
                        check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-
         valid_start = '2020-11-27T13:40:02.019817Z'
         invalid_start = '2020-13-27T13:40:02.019817'  # month outside [0,12]
         valid_end = '2020-11-27T13:51:24.401505Z'
         invalid_end = '2020-13-27T13:51:24.019817'  # month outside [0,12]
 
-        ncin.time_coverage_start = '{}, {}'.format(valid_start, invalid_start)
-        ncin.time_coverage_end = '{}, {}'.format(valid_end, invalid_end)
-        value = md.get_temporal_extents(mmd_yaml['temporal_extent'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.time_coverage_start = '{}, {}'.format(valid_start, invalid_start)
+            ncin.time_coverage_end = '{}, {}'.format(valid_end, invalid_end)
+            value = md.get_temporal_extents(mmd_yaml['temporal_extent'], ncin)
 
         template = 'ACDD start/end datetime {} is not valid ISO8601:'
         self.assertEqual(value[0]['start_date'], valid_start)
@@ -1621,11 +1617,10 @@ class TestNC2MMD(unittest.TestCase):
         mmd_element = mmd_yaml["personnel"]
         test_in = os.path.abspath('tests/data/reference_nc.nc')
         md = Nc_to_mmd(test_in, check_only=True)
-        ncin = Dataset(test_in, "w", diskless=True)
-
-        # iso_topic_category is not valid
-        ncin.creator_role = "abcd"
-        md.get_personnel(mmd_element, ncin)
+        with Dataset(test_in, "w", diskless=True) as ncin:
+            # iso_topic_category is not valid
+            ncin.creator_role = "abcd"
+            md.get_personnel(mmd_element, ncin)
         assert "The ACDD attribute 'contact_roles' must" in md.missing_attributes['errors'][0]
 
     def test_personnel(self):
@@ -1659,11 +1654,10 @@ class TestNC2MMD(unittest.TestCase):
         mmd_element = mmd_yaml["iso_topic_category"]
         test_in = os.path.abspath('tests/data/reference_nc.nc')
         md = Nc_to_mmd(test_in, check_only=True)
-        ncin = Dataset(test_in, "w", diskless=True)
-
-        # iso_topic_category is not valid
-        ncin.iso_topic_category = "abcd"
-        md.get_iso_topic_category(mmd_element, ncin)
+        with Dataset(test_in, "w", diskless=True) as ncin:
+            # iso_topic_category is not valid
+            ncin.iso_topic_category = "abcd"
+            md.get_iso_topic_category(mmd_element, ncin)
         assert "The ACDD attribute 'iso_topic_category' must" in md.missing_attributes['errors'][0]
 
     def test_get_iso_topic_category_not_available(self):
@@ -1673,10 +1667,9 @@ class TestNC2MMD(unittest.TestCase):
         mmd_element = mmd_yaml["iso_topic_category"]
         test_in = os.path.abspath('tests/data/reference_nc.nc')
         md = Nc_to_mmd(test_in, check_only=True)
-        ncin = Dataset(test_in, "w", diskless=True)
-
-        # iso_topic_category is not present
-        value = md.get_iso_topic_category(mmd_element, ncin)
+        with Dataset(test_in, "w", diskless=True) as ncin:
+            # iso_topic_category is not present
+            value = md.get_iso_topic_category(mmd_element, ncin)
         assert value == ["Not available"]
 
     def test_get_activity_type_invalid(self):
@@ -1689,11 +1682,10 @@ class TestNC2MMD(unittest.TestCase):
         mmd_element = mmd_yaml["activity_type"]
         test_in = os.path.abspath('tests/data/reference_nc.nc')
         md = Nc_to_mmd(test_in, check_only=True)
-        ncin = Dataset(test_in, "w", diskless=True)
-
-        # activity_type is not valid
-        ncin.source = "abcd"
-        md.get_activity_type(mmd_element, ncin)
+        with Dataset(test_in, "w", diskless=True) as ncin:
+            # activity_type is not valid
+            ncin.source = "abcd"
+            md.get_activity_type(mmd_element, ncin)
         assert ("The ACDD attribute 'source' in MMD attribute 'activity_type'"
                 in md.missing_attributes['errors'][0])
 
@@ -1710,12 +1702,12 @@ class TestNC2MMD(unittest.TestCase):
         # The GCMD resource url
         resource = "https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/platforms"
         # Define dataset
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.platform = "Sentinel-1A"
-        ncin.platform_vocabulary = resource
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.platform = "Sentinel-1A"
+            ncin.platform_vocabulary = resource
 
-        # Get the platform dict
-        value = md.get_platforms(mmd_yaml['platform'], ncin)
+            # Get the platform dict
+            value = md.get_platforms(mmd_yaml['platform'], ncin)
         self.assertEqual(value[0]['resource'], resource)
 
     def test_missing_vocabulary_platform_instrument_short_name(self):
@@ -1729,13 +1721,13 @@ class TestNC2MMD(unittest.TestCase):
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc_missing_keywords_vocab.nc'),
                        check_only=True)
         # Define dataset
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.platform = 'Suomi National Polar-orbiting Partnership (SNPP)'
-        ncin.instrument = 'VIIRS'
-        ncin.instrument_vocabulary = 'not a valid vocab url'
-        ncin.platform_vocabulary = 'https://www.wmo-sat.info/oscar/satellites/view/342'
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.platform = 'Suomi National Polar-orbiting Partnership (SNPP)'
+            ncin.instrument = 'VIIRS'
+            ncin.instrument_vocabulary = 'not a valid vocab url'
+            ncin.platform_vocabulary = 'https://www.wmo-sat.info/oscar/satellites/view/342'
+            value = md.get_platforms(mmd_yaml['platform'], ncin)
 
-        value = md.get_platforms(mmd_yaml['platform'], ncin)
         self.assertEqual(value[0]['resource'],
                          'https://www.wmo-sat.info/oscar/satellites/view/342')
         self.assertEqual(value[0]['short_name'], 'SNPP')
@@ -1752,10 +1744,11 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.platform = 'Environmental Satellite'
-        ncin.platform_vocabulary = 'invalid_url'
-        value = md.get_platforms(mmd_yaml['platform'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.platform = 'Environmental Satellite'
+            ncin.platform_vocabulary = 'invalid_url'
+            value = md.get_platforms(mmd_yaml['platform'], ncin)
+
         self.assertEqual(value, [])
         self.assertEqual(
             md.missing_attributes['errors'][0],
@@ -1774,9 +1767,9 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.platform = 'Suomi National Polar-orbiting Partnership (Suomi NPP)(Too Many)(SNPP)'
-        value = md.get_platforms(mmd_yaml['platform'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.platform = 'Suomi National Polar-orbiting Partnership (Suomi NPP)(Too Many)(SNPP)'
+            value = md.get_platforms(mmd_yaml['platform'], ncin)
         self.assertEqual(value, [])
         self.assertEqual(
             md.missing_attributes['errors'][0],
@@ -1794,10 +1787,11 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.platform = "Suomi National Polar-orbiting Partnership (SNPP)"
-        ncin.instrument = 'InstrName (Instrument Name)(Too Many)(IN)'
-        value = md.get_platforms(mmd_yaml['platform'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.platform = "Suomi National Polar-orbiting Partnership (SNPP)"
+            ncin.instrument = 'InstrName (Instrument Name)(Too Many)(IN)'
+            value = md.get_platforms(mmd_yaml['platform'], ncin)
+
         self.assertEqual(value[0]['short_name'], "SNPP")
         self.assertEqual(
             md.missing_attributes['warnings'][0],
@@ -1816,11 +1810,12 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.platform = 'Suomi National Polar-orbiting Partnership (Suomi NPP)(SNPP)'
-        # A valid url is required
-        ncin.platform_vocabulary = "https://www.validurl.no"
-        value = md.get_platforms(mmd_yaml['platform'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.platform = 'Suomi National Polar-orbiting Partnership (Suomi NPP)(SNPP)'
+            # A valid url is required
+            ncin.platform_vocabulary = "https://www.validurl.no"
+            value = md.get_platforms(mmd_yaml['platform'], ncin)
+
         self.assertEqual(value[0]['long_name'],
                          'Suomi National Polar-orbiting Partnership (Suomi NPP)')
         self.assertEqual(value[0]['short_name'], 'SNPP')
@@ -1832,12 +1827,13 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.platform = "Platform Name (PN)"
-        ncin.platform_vocabulary = "https://www.validurl.no"
-        # This is an entry in MMD:
-        ncin.instrument = 'Synthetic Aperture Radar (C-band) (SAR-C)'
-        value = md.get_platforms(mmd_yaml['platform'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.platform = "Platform Name (PN)"
+            ncin.platform_vocabulary = "https://www.validurl.no"
+            # This is an entry in MMD:
+            ncin.instrument = 'Synthetic Aperture Radar (C-band) (SAR-C)'
+            value = md.get_platforms(mmd_yaml['platform'], ncin)
+
         self.assertEqual(value[0]['instrument']['short_name'], 'SAR-C')
         self.assertEqual(value[0]['instrument']['long_name'], 'Synthetic Aperture Radar (C-band)')
 
@@ -1850,10 +1846,11 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        # Note that Envisat is not in the MMD vocabulary
-        ncin.platform = 'Envisat'
-        value = md.get_platforms(mmd_yaml['platform'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            # Note that Envisat is not in the MMD vocabulary
+            ncin.platform = 'Envisat'
+            value = md.get_platforms(mmd_yaml['platform'], ncin)
+
         self.assertEqual(value, [])
         self.assertEqual(
             md.missing_attributes['errors'][0],
@@ -1922,13 +1919,14 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.keywords = "GCMDSK:Earth Science > Atmosphere > Atmospheric radiation, " \
-                        "GEMET:Meteorological geographical features, " \
-                        "GEMET:Atmospheric conditions, " \
-                        "NORTHEMES:Weather and climate"
-        ncin.keywords_vocabulary = ""
-        md.get_keywords(mmd_yaml['keywords'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.keywords = "GCMDSK:Earth Science > Atmosphere > Atmospheric radiation, " \
+                            "GEMET:Meteorological geographical features, " \
+                            "GEMET:Atmospheric conditions, " \
+                            "NORTHEMES:Weather and climate"
+            ncin.keywords_vocabulary = ""
+            md.get_keywords(mmd_yaml['keywords'], ncin)
+
         self.assertEqual(
             md.missing_attributes['errors'][0],
             'keywords_vocabulary must be formatted as <short_name>:<long_name>:<url>'
@@ -1942,18 +1940,19 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.keywords = "GCMDSK:Earth Science > Atmosphere > Atmospheric radiation, " \
-                        "GEMET:Meteorological geographical features, " \
-                        "GEMET:Atmospheric conditions, " \
-                        "NORTHEMES:Weather and climate"
-        ncin.keywords_vocabulary = (
-            "GCMDSK:GCMD Science Keywords:"
-            "https://gcmd.earth_data.nasa.gov/kms/concepts/concept_scheme/sciencekeywords, "
-            "GEMET:INSPIRE Themes:http://inspire.ec.eur_opa.eu/theme, "
-            "NORTHEMES:GeoNorge Themes:"
-            "https://register.geonorge.no/metadata-kodelister/nasjonal-temainndeling")
-        md.get_keywords(mmd_yaml['keywords'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.keywords = "GCMDSK:Earth Science > Atmosphere > Atmospheric radiation, " \
+                            "GEMET:Meteorological geographical features, " \
+                            "GEMET:Atmospheric conditions, " \
+                            "NORTHEMES:Weather and climate"
+            ncin.keywords_vocabulary = (
+                "GCMDSK:GCMD Science Keywords:"
+                "https://gcmd.earth_data.nasa.gov/kms/concepts/concept_scheme/sciencekeywords, "
+                "GEMET:INSPIRE Themes:http://inspire.ec.eur_opa.eu/theme, "
+                "NORTHEMES:GeoNorge Themes:"
+                "https://register.geonorge.no/metadata-kodelister/nasjonal-temainndeling")
+            md.get_keywords(mmd_yaml['keywords'], ncin)
+
         self.assertEqual(
             md.missing_attributes['errors'][0],
             'https://gcmd.earth_data.nasa.gov/kms/concepts/concept_scheme/sciencekeywords'
@@ -1970,17 +1969,18 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.keywords = "GCMDSK: Earth Science > Atmosphere > Atmospheric radiation , " \
-                        "GEMET: Meteorological geographical features, " \
-                        "GEMET: Atmospheric conditions , " \
-                        "NORTHEMES:Weather and climate "
-        ncin.keywords_vocabulary = (
-            "GCMDSK:GCMD Science Keywords:https://vocab.met.no/GCMDSK,"
-            "GEMET:INSPIRE Themes:http://inspire.ec.eur_opa.eu/theme, "
-            "NORTHEMES:GeoNorge Themes:"
-            "https://register.geonorge.no/metadata-kodelister/nasjonal-temainndeling")
-        data = md.get_keywords(mmd_yaml['keywords'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.keywords = "GCMDSK: Earth Science > Atmosphere > Atmospheric radiation , " \
+                            "GEMET: Meteorological geographical features, " \
+                            "GEMET: Atmospheric conditions , " \
+                            "NORTHEMES:Weather and climate "
+            ncin.keywords_vocabulary = (
+                "GCMDSK:GCMD Science Keywords:https://vocab.met.no/GCMDSK,"
+                "GEMET:INSPIRE Themes:http://inspire.ec.eur_opa.eu/theme, "
+                "NORTHEMES:GeoNorge Themes:"
+                "https://register.geonorge.no/metadata-kodelister/nasjonal-temainndeling")
+            data = md.get_keywords(mmd_yaml['keywords'], ncin)
+
         self.assertEqual(data[0]["keyword"][0],
                          "Earth Science > Atmosphere > Atmospheric radiation")
 
@@ -2176,13 +2176,14 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.creator_name = "Tester Test"
-        ncin.date_created = "2022-11-04T11:06:10Z"
-        ncin.title = "Test dataset"
-        ncin.publisher_name = "Norwegian Meteorological Institute"
-        ncin.metadata_link = "invalid_url"
-        value = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin, dataset_citation=dc)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.creator_name = "Tester Test"
+            ncin.date_created = "2022-11-04T11:06:10Z"
+            ncin.title = "Test dataset"
+            ncin.publisher_name = "Norwegian Meteorological Institute"
+            ncin.metadata_link = "invalid_url"
+            value = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin, dataset_citation=dc)
+
         self.assertEqual(value[0]['author'], 'No Name')
 
     def test_check_only(self):
@@ -2229,24 +2230,26 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc.nc'), check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.time_coverage_start = "2020-11-27T13:40:02.019817Z"
-        ncin.time_coverage_end = "2020-11-27T13:51:24.401505Z"
-        ncin.creator_name = 'Kreator Kreatorsen'
-        ncin.date_created = "2020-11-28T13:51:24.401505Z"
-        ncin.title = "Test dataset"
-        ncin.metadata_link = "https://data.met.no/dataset/uuid-for-the-dataset"
-        ncin.references = "Some free-text refences"
-        value = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
-        self.assertEqual(value[0]['author'], 'Kreator Kreatorsen')
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.time_coverage_start = "2020-11-27T13:40:02.019817Z"
+            ncin.time_coverage_end = "2020-11-27T13:51:24.401505Z"
+            ncin.creator_name = 'Kreator Kreatorsen'
+            ncin.date_created = "2020-11-28T13:51:24.401505Z"
+            ncin.title = "Test dataset"
+            ncin.metadata_link = "https://data.met.no/dataset/uuid-for-the-dataset"
+            ncin.references = "Some free-text refences"
+            value = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
 
-        # Test that an error is appended if date created is not in
-        # the correct format
-        ncin.date_created = "2020-99-28 13:51:24"
-        mmd_yaml = yaml.load(
-            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-        )
-        value = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
+            self.assertEqual(value[0]['author'], 'Kreator Kreatorsen')
+
+            # Test that an error is appended if date created is not in
+            # the correct format
+            ncin.date_created = "2020-99-28 13:51:24"
+            mmd_yaml = yaml.load(
+                resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+            )
+            value = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
+
         self.assertIn(
             "ACDD attribute date_created contains an invalid ISO8601 date:",
             md.missing_attributes['errors'][0]
@@ -2522,7 +2525,7 @@ class TestNC2MMD(unittest.TestCase):
         )
 
     def test_publication_date__is_a_list_of_dates(self):
-        """The publication data can be a list of dates but is set to
+        """The publication date can be a list of dates but is set to
         date_created. In most cases it is the only one item, but we
         need to check that what we get from the netcdf file is an
         actual list, and that the items are actual datestrings.
@@ -2547,9 +2550,10 @@ class TestNC2MMD(unittest.TestCase):
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
         # To overwrite date_created, wihtout saving it to file we use diskless
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.date_created = '2019/01/01 00:00:00'
-        md.get_metadata_updates(mmd_yaml['last_metadata_update'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.date_created = '2019/01/01 00:00:00'
+            md.get_metadata_updates(mmd_yaml['last_metadata_update'], ncin)
+
         self.assertEqual(
             md.missing_attributes['errors'][0],
             "Datetime element must be in ISO8601 format: "
@@ -2563,13 +2567,14 @@ class TestNC2MMD(unittest.TestCase):
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
         # To overwrite date_created, wihtout saving it to file we use diskless
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.date_created = '2019-01-01T00:00:00Z'
-        data = md.get_metadata_updates(mmd_yaml['last_metadata_update'], ncin)
-        self.assertIn(
-            {'datetime':  ncin.date_created, 'type': 'Created'},
-            data['update']
-        )
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.date_created = '2019-01-01T00:00:00Z'
+            data = md.get_metadata_updates(mmd_yaml['last_metadata_update'], ncin)
+
+            self.assertIn(
+                {'datetime':  ncin.date_created, 'type': 'Created'},
+                data['update']
+            )
         assert (len(data['update']) == 1)
         self.assertEqual(data['update'][0]['type'], 'Created')
 
@@ -2670,10 +2675,11 @@ class TestNC2MMD(unittest.TestCase):
 
     def test_check_attributes_not_empty(self):
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.geospatial_bounds = ""
-        with self.assertRaises(ValueError) as e:
-            md.check_attributes_not_empty(ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.geospatial_bounds = ""
+            with self.assertRaises(ValueError) as e:
+                md.check_attributes_not_empty(ncin)
+
         self.assertIn('Global attribute geospatial_bounds is empty - please correct.',
                       str(e.exception))
 
@@ -2683,18 +2689,19 @@ class TestNC2MMD(unittest.TestCase):
         a bug. This test checks that 0 is accepted.
         """
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.subswath = 0
-        self.assertEqual(None, md.check_attributes_not_empty(ncin))
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.subswath = 0
+            self.assertEqual(None, md.check_attributes_not_empty(ncin))
 
     def test_check_feature_type__missing(self):
         """ Test that the correct warning is issued if the CF
         attribute featureType is missing.
         """
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.tull = "tull"
-        md.check_feature_type(ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.tull = "tull"
+            md.check_feature_type(ncin)
+
         self.assertEqual(
             md.missing_attributes["warnings"][0],
             "CF attribute featureType is missing - one of the feature"
@@ -2707,9 +2714,10 @@ class TestNC2MMD(unittest.TestCase):
         attribute featureType is wrong.
         """
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.featureType = "tull"
-        md.check_feature_type(ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.featureType = "tull"
+            md.check_feature_type(ncin)
+
         self.assertEqual(
             md.missing_attributes["errors"][0],
             "featureType seems to be wrong - it should be picked from "
@@ -2719,9 +2727,10 @@ class TestNC2MMD(unittest.TestCase):
 
     def test_check_conventions__missing(self):
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.tull = "tull"
-        md.check_conventions(ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.tull = "tull"
+            md.check_conventions(ncin)
+
         self.assertEqual(
             md.missing_attributes["errors"][0],
             'Required attribute "Conventions" is missing. This should'
@@ -2730,9 +2739,10 @@ class TestNC2MMD(unittest.TestCase):
 
     def test_check_conventions__cf_and_acdd_missing(self):
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.Conventions = "tull"
-        md.check_conventions(ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.Conventions = "tull"
+            md.check_conventions(ncin)
+
         self.assertEqual(
             md.missing_attributes["errors"][0],
             'The dataset should follow the CF-standard. Please '
@@ -2752,9 +2762,10 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.institution = "Norwegian Meteorological Institute (MET Norway)"
-        data = md.get_data_centers(mmd_yaml['data_center'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.institution = "Norwegian Meteorological Institute (MET Norway)"
+            data = md.get_data_centers(mmd_yaml['data_center'], ncin)
+
         self.assertEqual(data[0]['data_center_name']['long_name'],
                          'Norwegian Meteorological Institute')
         self.assertEqual(data[0]['data_center_name']['short_name'], 'MET Norway')
@@ -2765,9 +2776,10 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.institution = "Norwegian Meteorological Institute"
-        md.get_data_centers(mmd_yaml['data_center'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.institution = "Norwegian Meteorological Institute"
+            md.get_data_centers(mmd_yaml['data_center'], ncin)
+
         self.assertEqual(
             md.missing_attributes['errors'][0],
             "institution must be formed as <institution long name> (<institution short name>). "
@@ -2794,13 +2806,14 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.references = (
-            "https://data.met.no/dataset/3f9974bf-b073-4c16-81d8-c34fcf3b1f01"
-            " (Dataset landing page),"  # added a space
-            "https://ieeexplore.ieee.org/document/7914752 (Scientific publication)"  # added space
-        )
-        data = md.get_related_information(mmd_yaml['related_information'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.references = (
+                "https://data.met.no/dataset/3f9974bf-b073-4c16-81d8-c34fcf3b1f01"
+                " (Dataset landing page),"  # added a space
+                "https://ieeexplore.ieee.org/document/7914752 (Scientific publication)"  # added space
+            )
+            data = md.get_related_information(mmd_yaml['related_information'], ncin)
+
         # Note: A landing page url created from the netcdf id and
         # naming_authority attributes overrides the references information
         self.assertEqual(
@@ -2819,13 +2832,14 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.references = (
-            "https://data.met.no/dataset/3f9974bf-b073-4c16-81d8-c34fcf3b1f01"
-            "(kjhf),"
-            "https://ieeexplore.ieee.org/document/7914752(Scientific publication)"
-        )
-        data = md.get_related_information(mmd_yaml['related_information'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.references = (
+                "https://data.met.no/dataset/3f9974bf-b073-4c16-81d8-c34fcf3b1f01"
+                "(kjhf),"
+                "https://ieeexplore.ieee.org/document/7914752(Scientific publication)"
+            )
+            data = md.get_related_information(mmd_yaml['related_information'], ncin)
+
         self.assertEqual(data[1]['type'], 'Scientific publication')
         self.assertEqual(
             md.missing_attributes["errors"][0],
@@ -2842,13 +2856,14 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.references = (
-            "https://data.invalid_domain.no/dataset/3f9974bf-b073-4c16-81d8-c34fcf3b1f01"
-            "(Dataset landing page),"
-            "https://ieeexplore.ieee__.org/document/7914752(Scientific publication)"
-        )
-        md.get_related_information(mmd_yaml['related_information'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.references = (
+                "https://data.invalid_domain.no/dataset/3f9974bf-b073-4c16-81d8-c34fcf3b1f01"
+                "(Dataset landing page),"
+                "https://ieeexplore.ieee__.org/document/7914752(Scientific publication)"
+            )
+            md.get_related_information(mmd_yaml['related_information'], ncin)
+
         self.assertEqual(
             md.missing_attributes["errors"][0],
             'references must contain valid uris')
@@ -2864,9 +2879,10 @@ class TestNC2MMD(unittest.TestCase):
             resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
         )
         md = Nc_to_mmd(self.fail_nc, check_only=True)
-        ncin = Dataset(md.netcdf_file, "w", diskless=True)
-        ncin.references = "landing_page, paper"
-        md.get_related_information(mmd_yaml['related_information'], ncin)
+        with Dataset(md.netcdf_file, "w", diskless=True) as ncin:
+            ncin.references = "landing_page, paper"
+            md.get_related_information(mmd_yaml['related_information'], ncin)
+
         self.assertEqual(
             md.missing_attributes["errors"][0],
             "references must be formed as <uri>(<type>).")
