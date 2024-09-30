@@ -50,6 +50,7 @@ nc2mmd = "py_mmd_tools.script.nc2mmd:_main"
 check_nc = "py_mmd_tools.script.check_nc:_main"
 yaml2adoc = "py_mmd_tools.script.yaml2adoc:_main"
 ncheader2json = "py_mmd_tools.script.ncheader2json:_main"
+move_data = "py_mmd_tools.script.move_data:_main"
 
 [project.urls]
 source = "https://github.com/metno/py-mmd-tools"
