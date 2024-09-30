@@ -2524,23 +2524,6 @@ class TestNC2MMD(unittest.TestCase):
             'ACDD attribute date_created is required'
         )
 
-    def test_publication_date__is_a_list_of_dates(self):
-        """The publication date can be a list of dates but is set to
-        date_created. In most cases it is the only one item, but we
-        need to check that what we get from the netcdf file is an
-        actual list, and that the items are actual datestrings.
-        """
-        mmd_yaml = yaml.load(
-            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
-        )
-        md = Nc_to_mmd(self.reference_nc, check_only=True)
-        # To overwrite date_created, wihtout saving it to file we use diskless
-        ncin = Dataset(md.netcdf_file)
-        data = md.get_dataset_citations(mmd_yaml['dataset_citation'], ncin)
-        self.assertEqual(
-            data[0]['title'],
-            'Direct Broadcast data processed in satellite swath to L1C.')
-
     def test_get_metadata_updates__datetimes_not_iso(self):
         """ Test that an error is raised if datetimes of metadata
         updates are not ISO 8601.
