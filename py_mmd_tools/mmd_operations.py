@@ -18,6 +18,8 @@ import tempfile
 import warnings
 import datetime_glob
 
+import urllib.parse
+
 
 def add_metadata_update_info(f, note, type="Minor modification"):
     """ Add update information """
@@ -34,15 +36,19 @@ def check_csw_catalog(ds_id, nc_file, urls, env, emsg=""):
     """Search for the dataset with id 'ds_id' in the CSW metadata
     catalog.
     """
+    payload = {
+        "service": "CSW",
+        "version": "2.0.2",
+        "request": "GetRepositoryItem",
+        "id": ds_id}
+
+    payload_str = urllib.parse.urlencode(payload, safe=":")
+
     ds_found_and_accessible = False
     res = requests.get(url=f"https://{urls[env]['csw']}/csw",
-                       params={
-                           "service": "CSW",
-                           "version": "2.0.2",
-                           "request": "GetRepositoryItem",
-                           "id": ds_id})
+                       params=payload_str)
     # TODO: check the data_access urls
-    if res.status_code == 200:
+    if res.status_code == 200 and "ExceptionText" not in res.text:
         ds_found_and_accessible = True
     else:
         emsg += f"Could not find dataset in CSW catalog: {nc_file} (id: {ds_id})"
@@ -183,10 +189,10 @@ def move_data(mmd_repository_path, old_file_location_base, new_file_location_bas
 
         # Update with dmci update
         dmci_updated = False
-        if res.status_code == 200 and not dry_run:
+        if res.status_code == 200 and "OK" in res.text and not dry_run:
             # be careful with this...
             res = requests.post(url=f"https://{urls[env]['dmci']}/v1/update", data=data)
-        if res.status_code == 200:
+        if res.status_code == 200 and "OK" in res.text:
             # This should be the case for a dry-run and a valid xml
             dmci_updated = True
         else:
@@ -199,7 +205,7 @@ def move_data(mmd_repository_path, old_file_location_base, new_file_location_bas
         elif dmci_updated and dry_run:
             nc_moved = True
 
-        ds_id = f"no.met.{urls[env]['id_namespace']}:{os.path.basename(mmd_orig).split('.')[0]}"
+        ds_id = f"{urls[env]['id_namespace']}:{os.path.basename(mmd_orig).split('.')[0]}"
         if not dry_run:
             ds_found_and_accessible, emsg = check_csw_catalog(ds_id, nc_file, urls, env, emsg=emsg)
         else:

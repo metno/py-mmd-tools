@@ -32,6 +32,7 @@ def test_main(dataDir, monkeypatch):
     class MockResponse:
 
         status_code = 200
+        text = "OK"
 
     with monkeypatch.context() as mp:
         mp.setattr("py_mmd_tools.mmd_operations.os.path.isdir",
