@@ -16,6 +16,7 @@ import netCDF4
 import datetime
 import requests
 import tempfile
+import warnings
 import datetime_glob
 
 
@@ -68,7 +69,7 @@ def mmd_change_file_location(mmd, new_file_location, copy=True):
     indicating if it has been changed or not.
     """
     if not os.path.isfile(mmd):
-        return None, False
+        raise ValueError(f"File does not exist: {mmd}")
     if copy:
         tmp_path = tempfile.gettempdir()
         shutil.copy2(mmd, tmp_path)
@@ -113,8 +114,8 @@ def move_data_file(nc_file, nfl, emsg=""):
     return nc_moved, emsg
 
 
-def move_data(mmd_repository_path, new_file_location_base, existing_pathname_pattern_or_exact,
-              dry_run=True, env="prod"):
+def move_data(mmd_repository_path, old_file_location_base, new_file_location_base,
+              ext_pattern=None, dry_run=True, env="prod"):
     """Update MMD and move data file.
     """
     if env not in ["dev", "staging", "prod"]:
@@ -140,19 +141,16 @@ def move_data(mmd_repository_path, new_file_location_base, existing_pathname_pat
         }
     }
 
-    if os.path.isfile(existing_pathname_pattern_or_exact):
-        existing = [existing_pathname_pattern_or_exact]
-        existing_pathname_pattern = None
+    if os.path.isfile(old_file_location_base):
+        existing = [old_file_location_base]
     else:
         existing = [str(nc_file) for match, nc_file in
-                    datetime_glob.walk(pattern=existing_pathname_pattern_or_exact)]
-        existing_pathname_pattern = existing_pathname_pattern_or_exact
+                    datetime_glob.walk(pattern=os.path.join(old_file_location_base, ext_pattern))]
 
     copy_mmd = True
     if dry_run:
         # Not copying the MMD file will make it easy to check changes
         # with git diff
-        existing_pathname_pattern = None
         copy_mmd = False
 
     updated = []
@@ -160,7 +158,7 @@ def move_data(mmd_repository_path, new_file_location_base, existing_pathname_pat
     for nc_file in existing:
         # Error message
         emsg = ""
-        nfl = new_file_location(nc_file, new_file_location_base, existing_pathname_pattern)
+        nfl = new_file_location(nc_file, new_file_location_base, old_file_location_base)
         try:
             mmd_orig = get_local_mmd_git_path(nc_file, mmd_repository_path)
         except Exception as e:
@@ -171,20 +169,17 @@ def move_data(mmd_repository_path, new_file_location_base, existing_pathname_pat
         remove_file_allowed = os.access(nc_file, os.W_OK)
         write_file_allowed = os.access(nfl, os.W_OK)
         if not remove_file_allowed or not write_file_allowed:
-            if not remove_file_allowed:
-                not_updated[mmd_orig] = f"Missing permission to delete {nc_file}"
-            if not write_file_allowed:
-                not_updated[mmd_orig] = f"Missing permission to write {nfl}"
             if not remove_file_allowed and not write_file_allowed:
-                not_updated[mmd_orig] = (f"Missing permission to delete {nc_file} "
-                                         f"nor to write {nfl}")
-            continue
+                raise PermissionError(f"Missing permissions to delete {nc_file} "
+                                      f"and to write {nfl}")
+            if not remove_file_allowed:
+                raise PermissionError(f"Missing permission to delete {nc_file}")
+            if not write_file_allowed:
+                raise PermissionError(f"Missing permission to write {nfl}")
 
         mmd_new, mmd_updated = mmd_change_file_location(mmd_orig, nfl, copy=copy_mmd)
         if not mmd_updated:
-            emsg = f"Could not update MMD file for {nc_file}"
-            not_updated[mmd_orig] = emsg
-            continue
+            raise Exception(f"Could not update MMD file for {nc_file}")
 
         # Get MMD content as binary data
         with open(mmd_new, "rb") as fn:
@@ -197,16 +192,15 @@ def move_data(mmd_repository_path, new_file_location_base, existing_pathname_pat
             # be careful with this...
             res = requests.post(url=f"https://{urls[env]['dmci']}/v1/update", data=data)
         if res.status_code == 200:
-            # This intentionally becomes True in case of dry-run and
-            # a valid xml
+            # This should be the case for a dry-run and a valid xml
             dmci_updated = True
         else:
-            emsg = "Could not push updated MMD file to the DMCI API."
-            not_updated[mmd_orig] = emsg
-            continue
+            raise Exception(f"Could not push updated MMD file to the DMCI API: {mmd_new}")
 
         if dmci_updated and not dry_run:
             nc_moved, emsg = move_data_file(nc_file, nfl)
+            if not nc_moved:
+                raise Exception(f"Could not move {nc_file} to {nfl}.")
         elif dmci_updated and dry_run:
             nc_moved = True
 
@@ -216,6 +210,9 @@ def move_data(mmd_repository_path, new_file_location_base, existing_pathname_pat
         else:
             ds_found_and_accessible = True
 
+        if not ds_found_and_accessible:
+            warnings.warn(f"Could not find data in CSW catalog: {ds_id}")
+
         if all([mmd_updated, dmci_updated, nc_moved, ds_found_and_accessible]):
             updated.append(mmd_orig)
         else:
@@ -224,18 +221,13 @@ def move_data(mmd_repository_path, new_file_location_base, existing_pathname_pat
     return not_updated, updated
 
 
-def new_file_location(nc_file, new_base_loc, existing_pathname_pattern=None):
+def new_file_location(nc_file, new_base_loc, existing_base_loc):
     """Return the name of the new folder where the netcdf file will be
-    stored. If existing_pathname_pattern is None, the returned path
-    will equal the provided parameter new_base_loc. This is to allow
-    usage flexibility of the move_data function.
+    stored. Subfolders of new_base_loc will be created.
     """
-    if existing_pathname_pattern is None:
-        file_path = os.path.join(new_base_loc, os.path.basename(nc_file))
-    else:
-        prefix = re.split(r"[^\w/-]", existing_pathname_pattern)[0]
-        file_path = os.path.join(new_base_loc, nc_file[len(prefix):])
+    if not os.path.isdir(new_base_loc):
+        raise ValueError(f"Folder does not exist: {new_base_loc}")
+    file_path = nc_file.replace(existing_base_loc, new_base_loc)
     new_folder = os.path.dirname(os.path.abspath(file_path))
-    if not os.path.isdir(new_folder):
-        raise ValueError(f"Folder does not exist: {file_path}")
+    os.makedirs(new_folder)
     return new_folder

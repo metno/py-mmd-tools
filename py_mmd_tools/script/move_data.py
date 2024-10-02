@@ -29,13 +29,16 @@ def create_parser():
         "mmd_repository_path", type=str,
         help="Local folder containing all MMD files.")
     parser.add_argument(
-        "new_file_location_base", type=str,
-        help="Base or exact path to the folder to which the new file will be moved.")
+        "old_file_location_base", type=str,
+        help="Base folder from which the data file(s) will be moved, or exact path to a file.")
     parser.add_argument(
-        "existing_pathname_pattern", type=str,
-        help="Pathname pattern to existing file location(s). Allows "
-             "parsing date/times from a path given a glob pattern "
-             "intertwined with date/time format akin to "
+        "new_file_location_base", type=str,
+        help="Base or exact path to the folder to which the data file(s) will be moved.")
+    parser.add_argument(
+        "--ext_pattern", type=str, default=None,
+        help="Pathname pattern extending old_file_location_base, i.e., extending the "
+             "existing file *base* location(s). Allows parsing date/times from a path "
+             "given a glob pattern intertwined with date/time format akin to "
              "strptime/strftime format.")
     parser.add_argument(
         '--dmci-update', action='store_true',
@@ -55,13 +58,12 @@ def main(args=None):
         raise ValueError(f"Invalid input: {args.new_file_location_base}")
 
     not_updated, updated = move_data(args.mmd_repository_path,
+                                     args.old_file_location_base,
                                      args.new_file_location_base,
-                                     args.existing_pathname_pattern,
+                                     args.ext_pattern,
                                      dry_run=not args.dmci_update)
-    print(f"Updated: {len(updated)}")
-    print(f"Not updated: {len(not_updated)}\n")
-    for key, val in not_updated.items():
-        print(f"{key}: {val}")
+
+    return updated, not_updated
 
 
 def _main():  # pragma: no cover
