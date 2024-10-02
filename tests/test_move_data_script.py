@@ -87,7 +87,7 @@ def test_main(dataDir, monkeypatch):
             mmd_repository_path,
             old_file_location_base,
             new_file_location_base,
-            "--ext_pattern", ext_pattern,
+            "--ext-pattern", ext_pattern,
         ])
         u, n = main(parsed)
         assert len(u) == 1
@@ -101,7 +101,7 @@ def test_main(dataDir, monkeypatch):
             mmd_repository_path,
             old_file_location_base,
             new_file_location_base,
-            "--ext_pattern", ext_pattern,
+            "--ext-pattern", ext_pattern,
         ])
         u, n = main(parsed)
         assert len(u) == 1
@@ -115,7 +115,7 @@ def test_main(dataDir, monkeypatch):
             mmd_repository_path,
             old_file_location_base,
             new_file_location_base,
-            "--ext_pattern", ext_pattern,
+            "--ext-pattern", ext_pattern,
         ])
         u, n = main(parsed)
         assert len(u) == 1
@@ -129,7 +129,7 @@ def test_main(dataDir, monkeypatch):
             mmd_repository_path,
             old_file_location_base,
             new_file_location_base,
-            "--ext_pattern", ext_pattern,
+            "--ext-pattern", ext_pattern,
         ])
         u, n = main(parsed)
         assert len(u) == 1
@@ -143,7 +143,7 @@ def test_main(dataDir, monkeypatch):
             mmd_repository_path,
             old_file_location_base,
             new_file_location_base,
-            "--ext_pattern", ext_pattern,
+            "--ext-pattern", ext_pattern,
         ])
         u, n = main(parsed)
         assert len(u) == 1
@@ -157,7 +157,7 @@ def test_main(dataDir, monkeypatch):
             mmd_repository_path,
             old_file_location_base,
             new_file_location_base,
-            "--ext_pattern", ext_pattern,
+            "--ext-pattern", ext_pattern,
         ])
         u, n = main(parsed)
         assert len(u) == 0
