@@ -311,11 +311,6 @@ def test_check_dataset_in_met_csw_catalog():
     """Check that a known dataset is found.
     """
     ds_id = "no.met:806070da-e9f3-4d03-ba1d-26b843961634"
-    # Leads to internal server error:
-    # ds_id = "no.met:aaaffc75-a42f-4bd8-a1f5-c8e8774fd948"
-    # url: 
-    # "https://data.csw.met.no/csw?service=CSW&version=2.0.2"
-    # "&request=GetRepositoryItem&id=no.met:aaaffc75-a42f-4bd8-a1f5-c8e8774fd948"
     nc_file = "ncfile.nc"
     urls = {"prod": {"dmci": "dmci.s-enda.k8s.met.no",
                      "csw": "data.csw.met.no",
