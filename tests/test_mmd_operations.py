@@ -253,9 +253,17 @@ def test_new_file_location(monkeypatch):
     with pytest.raises(ValueError):
         new_file_location(file, new_base, existing_base_loc, True)
 
+    def raise_(ex):
+        raise ex
+
     with monkeypatch.context() as mp:
         mp.setattr("py_mmd_tools.mmd_operations.os.path.isdir", lambda *a, **k: True)
         mp.setattr("py_mmd_tools.mmd_operations.os.makedirs", lambda *a, **k: None)
+        assert new_file_location(file, new_base, existing_base_loc, False) == \
+            "/some/where/else/2024/06/19"
+
+        mp.setattr("py_mmd_tools.mmd_operations.os.makedirs",
+                   lambda *a, **k: raise_(FileExistsError))
         assert new_file_location(file, new_base, existing_base_loc, False) == \
             "/some/where/else/2024/06/19"
 

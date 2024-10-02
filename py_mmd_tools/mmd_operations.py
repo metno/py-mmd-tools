@@ -225,5 +225,9 @@ def new_file_location(nc_file, new_base_loc, existing_base_loc, dry_run):
     file_path = nc_file.replace(existing_base_loc, new_base_loc)
     new_folder = os.path.dirname(os.path.abspath(file_path))
     if not dry_run:
-        os.makedirs(new_folder)
+        try:
+            os.makedirs(new_folder)
+        except FileExistsError:
+            # Do nothing
+            pass
     return new_folder
