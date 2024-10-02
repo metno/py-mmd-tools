@@ -80,7 +80,7 @@ def mmd_change_file_location(mmd, new_file_location, copy=True):
     with open(mmd, "w") as f:
         for line in lines:
             if "</mmd:last_metadata_update>" in line:
-                add_metadata_update_info(f, "New file location in storage information.")
+                add_metadata_update_info(f, "New storage information.")
             if "<mmd:file_location>" in line:
                 f.write(f"    <mmd:file_location>{new_file_location}</mmd:file_location>\n")
                 status = True
