@@ -152,14 +152,14 @@ def test_move_data(dataDir, monkeypatch):
         def raise_(ex):
             raise ex
 
-        # Test 
+        # Test that an error is raised if we cannot find the MMD path
         mp.setattr("py_mmd_tools.mmd_operations.datetime_glob.walk",
                    lambda *a, **k: mock_walk(*a, **k))
         mp.setattr("py_mmd_tools.mmd_operations.get_local_mmd_git_path",
                    lambda *a, **k: raise_(Exception("No path")))
-        not_updated, updated = move_data(mmd_repository_path, old_file_location_base,
-                                         new_file_location_base, pattern)
-        assert "Could not get MMD path" in not_updated[list(not_updated.keys())[0]]
+        with pytest.raises(Exception):
+            not_updated, updated = move_data(mmd_repository_path, old_file_location_base,
+                                             new_file_location_base, pattern)
 
     # Test os.access, remove_file_allowed is False
     mock_access = Mock()
@@ -284,13 +284,13 @@ def test_check_csw_catalog(monkeypatch):
         assert found is False
         assert msg == "Could not find dataset in CSW catalog: /some/file.nc (id: no.met:123)"
 
-    class MockResponse:
+    class MockResponse2:
 
         status_code = 200
 
     with monkeypatch.context() as mp:
         mp.setattr("py_mmd_tools.mmd_operations.requests.get",
-                   lambda *a, **k: MockResponse())
+                   lambda *a, **k: MockResponse2())
         found, msg = check_csw_catalog(ds_id, nc_file, urls, env)
         assert found is True
         assert msg == ""

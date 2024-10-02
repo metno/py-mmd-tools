@@ -8,7 +8,6 @@ py-mmd-tools is licensed under the Apache License 2.0
 <https://github.com/metno/py-mmd-tools/blob/master/LICENSE>
 """
 import os
-import re
 import pytz
 import uuid
 import shutil
@@ -159,11 +158,7 @@ def move_data(mmd_repository_path, old_file_location_base, new_file_location_bas
         # Error message
         emsg = ""
         nfl = new_file_location(nc_file, new_file_location_base, old_file_location_base)
-        try:
-            mmd_orig = get_local_mmd_git_path(nc_file, mmd_repository_path)
-        except Exception as e:
-            not_updated[nc_file] = f"Could not get MMD path of {nc_file}.\nError: {str(e)}"
-            continue
+        mmd_orig = get_local_mmd_git_path(nc_file, mmd_repository_path)
 
         # Check permissions before doing anything
         remove_file_allowed = os.access(nc_file, os.W_OK)
