@@ -157,7 +157,7 @@ def move_data(mmd_repository_path, old_file_location_base, new_file_location_bas
     for nc_file in existing:
         # Error message
         emsg = ""
-        nfl = new_file_location(nc_file, new_file_location_base, old_file_location_base)
+        nfl = new_file_location(nc_file, new_file_location_base, old_file_location_base, dry_run)
         mmd_orig = get_local_mmd_git_path(nc_file, mmd_repository_path)
 
         # Check permissions before doing anything
@@ -216,7 +216,7 @@ def move_data(mmd_repository_path, old_file_location_base, new_file_location_bas
     return not_updated, updated
 
 
-def new_file_location(nc_file, new_base_loc, existing_base_loc):
+def new_file_location(nc_file, new_base_loc, existing_base_loc, dry_run):
     """Return the name of the new folder where the netcdf file will be
     stored. Subfolders of new_base_loc will be created.
     """
@@ -224,5 +224,6 @@ def new_file_location(nc_file, new_base_loc, existing_base_loc):
         raise ValueError(f"Folder does not exist: {new_base_loc}")
     file_path = nc_file.replace(existing_base_loc, new_base_loc)
     new_folder = os.path.dirname(os.path.abspath(file_path))
-    os.makedirs(new_folder)
+    if not dry_run:
+        os.makedirs(new_folder)
     return new_folder

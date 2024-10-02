@@ -35,11 +35,11 @@ def create_parser():
         "new_file_location_base", type=str,
         help="Base or exact path to the folder to which the data file(s) will be moved.")
     parser.add_argument(
-        "--ext_pattern", type=str, default=None,
+        "--ext-pattern", type=str, default=None,
         help="Pathname pattern extending old_file_location_base, i.e., extending the "
-             "existing file *base* location(s). Allows parsing date/times from a path "
-             "given a glob pattern intertwined with date/time format akin to "
-             "strptime/strftime format.")
+             "existing file *base* location(s) with, e.g, the year and month as a "
+             "glob pattern intertwined with date/time format akin to "
+             "strptime/strftime format (e.g., '%Y/%m').")
     parser.add_argument(
         '--dmci-update', action='store_true',
         help='Directly update the online catalog with the changed MMD files.'

@@ -251,12 +251,12 @@ def test_new_file_location(monkeypatch):
     existing_base_loc = "/some/old/loc"
 
     with pytest.raises(ValueError):
-        new_file_location(file, new_base, existing_base_loc)
+        new_file_location(file, new_base, existing_base_loc, True)
 
     with monkeypatch.context() as mp:
         mp.setattr("py_mmd_tools.mmd_operations.os.path.isdir", lambda *a, **k: True)
         mp.setattr("py_mmd_tools.mmd_operations.os.makedirs", lambda *a, **k: None)
-        assert new_file_location(file, new_base, existing_base_loc) == \
+        assert new_file_location(file, new_base, existing_base_loc, False) == \
             "/some/where/else/2024/06/19"
 
 

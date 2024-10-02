@@ -17,8 +17,13 @@ module can be extended with other necessary data management tools. Moving
 can be done with the `move_data` script, e.g.:
 
 ```
-move_data /path/to/files-from-git/mmd-xml-<env> /path/to/new/storage "/path/to/data/files/*.nc" --dmci-update
+move_data /path/to/files-from-git/mmd-xml-<env> /path/to/old/storage /path/to/new/storage "%Y/%m/%d/*.nc" --dmci-update
 ```
+
+The two last arguments provide a search pattern in case the netCDF files are
+stored in subfolders, and to directly updated the metadata catalog,
+respectively. If --dmci-update is not provided, local MMD files will not be
+pushed to the catalog.
 
 # Installation
 
