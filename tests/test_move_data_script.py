@@ -15,8 +15,8 @@ from py_mmd_tools.script.move_data import main
 from py_mmd_tools.script.move_data import create_parser
 
 
-@pytest.mark.script
-def test_main(dataDir, monkeypatch):
+@pytest.mark.py_mmd_tools
+def test_main(dataDir, monkeypatch, caplog):
     """
     """
     mmd_repository_path = "/some/folder/mmd-xml-production"

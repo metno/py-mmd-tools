@@ -85,7 +85,7 @@ def test_mmd_readlines(dataDir):
 
 
 @pytest.mark.py_mmd_tools
-def test_move_data(dataDir, monkeypatch):
+def test_move_data(dataDir, monkeypatch, caplog):
     """Test the move_data function.
     """
     mmd_repository_path = "/some/folder/mmd-xml-production"
@@ -237,6 +237,7 @@ def test_move_data(dataDir, monkeypatch):
                    lambda *a, **k: (False, "Fail"))
         not_updated, updated = move_data(mmd_repository_path, old_file_location_base,
                                          new_file_location_base, pattern, dry_run=False)
+        assert "Could not find data in CSW catalog" in caplog.record_tuples[0][2]
         assert not_updated[os.path.join(dataDir, "reference_nc.xml")] == "Fail"
 
     subprocess.run(["git", "restore", "tests/data/reference_nc.xml"])
@@ -307,7 +308,7 @@ def test_check_csw_catalog(monkeypatch):
 
 
 @pytest.mark.online
-def test_check_dataset_in_met_csw_catalog():
+def test_check_dataset_in_met_csw_catalog(caplog):
     """Check that a known dataset is found.
     """
     ds_id = "no.met:806070da-e9f3-4d03-ba1d-26b843961634"

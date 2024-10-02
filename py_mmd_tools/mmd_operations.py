@@ -11,11 +11,11 @@ import os
 import pytz
 import uuid
 import shutil
+import logging
 import netCDF4
 import datetime
 import requests
 import tempfile
-import warnings
 import datetime_glob
 
 import urllib.parse
@@ -212,10 +212,11 @@ def move_data(mmd_repository_path, old_file_location_base, new_file_location_bas
             ds_found_and_accessible = True
 
         if not ds_found_and_accessible:
-            warnings.warn(f"Could not find data in CSW catalog: {ds_id}")
+            logging.warning(f"Could not find data in CSW catalog: {ds_id}")
 
         if all([mmd_updated, dmci_updated, nc_moved, ds_found_and_accessible]):
             updated.append(mmd_orig)
+            logging.info(f"Updated {mmd_orig}.")
         else:
             not_updated[mmd_orig] = emsg
 

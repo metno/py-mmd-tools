@@ -10,11 +10,9 @@ This file is part of the py-mmd-tools repository
 
 py-mmd-tools is licensed under the Apache License 2.0
 <https://github.com/metno/py-mmd-tools/blob/master/LICENSE>
-
-Usage:
-    move_data [-h] -i INPUT -n OUTPUT_DIR
 """
 import os
+import logging
 import argparse
 
 from py_mmd_tools.mmd_operations import move_data
@@ -41,9 +39,12 @@ def create_parser():
              "glob pattern intertwined with date/time format akin to "
              "strptime/strftime format (e.g., '%Y/%m').")
     parser.add_argument(
-        '--dmci-update', action='store_true',
-        help='Directly update the online catalog with the changed MMD files.'
+        "--dmci-update", action="store_true",
+        help="Directly update the online catalog with the changed MMD files."
     )
+    parser.add_argument(
+        "--log-file", type=str, default="move_data.log",
+        help="Log filename")
 
     return parser
 
@@ -56,6 +57,8 @@ def main(args=None):
 
     if not os.path.isdir(args.new_file_location_base):
         raise ValueError(f"Invalid input: {args.new_file_location_base}")
+
+    logging.basicConfig(filename=args.log_file, level=logging.INFO)
 
     not_updated, updated = move_data(args.mmd_repository_path,
                                      args.old_file_location_base,
