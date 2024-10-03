@@ -237,7 +237,7 @@ def test_move_data(dataDir, monkeypatch, caplog):
                    lambda *a, **k: (False, "Fail"))
         not_updated, updated = move_data(mmd_repository_path, old_file_location_base,
                                          new_file_location_base, pattern, dry_run=False)
-        assert "Could not find data in CSW catalog" in caplog.record_tuples[0][2]
+        assert "Fail" in caplog.record_tuples[0][2]
         assert not_updated[os.path.join(dataDir, "reference_nc.xml")] == "Fail"
 
     subprocess.run(["git", "restore", "tests/data/reference_nc.xml"])
@@ -286,13 +286,14 @@ def test_check_csw_catalog(monkeypatch):
     class MockResponse:
 
         status_code = 400
+        text = "Fail"
 
     with monkeypatch.context() as mp:
         mp.setattr("py_mmd_tools.mmd_operations.requests.get",
                    lambda *a, **k: MockResponse())
         found, msg = check_csw_catalog(ds_id, nc_file, urls, env)
         assert found is False
-        assert msg == "Could not find dataset in CSW catalog: /some/file.nc (id: no.met:123)"
+        assert msg == "Could not find dataset (no.met:123) in CSW catalog: /some/file.nc, Fail"
 
     class MockResponse2:
 

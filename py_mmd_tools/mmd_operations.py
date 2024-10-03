@@ -51,7 +51,7 @@ def check_csw_catalog(ds_id, nc_file, urls, env, emsg=""):
     if res.status_code == 200 and "ExceptionText" not in res.text:
         ds_found_and_accessible = True
     else:
-        emsg += f"Could not find dataset in CSW catalog: {nc_file} (id: {ds_id})"
+        emsg += f"Could not find dataset ({ds_id}) in CSW catalog: {nc_file}, {res.text}"
 
     return ds_found_and_accessible, emsg
 
@@ -212,7 +212,7 @@ def move_data(mmd_repository_path, old_file_location_base, new_file_location_bas
             ds_found_and_accessible = True
 
         if not ds_found_and_accessible:
-            logging.warning(f"Could not find data in CSW catalog: {ds_id}")
+            logging.warning(emsg)
 
         if all([mmd_updated, dmci_updated, nc_moved, ds_found_and_accessible]):
             updated.append(mmd_orig)
