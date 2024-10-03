@@ -190,13 +190,25 @@ def move_data(mmd_repository_path, old_file_location_base, new_file_location_bas
         # Update with dmci update
         dmci_updated = False
         if res.status_code == 200 and "OK" in res.text and not dry_run:
-            # be careful with this...
-            res = requests.post(url=f"https://{urls[env]['dmci']}/v1/update", data=data)
+            ds = netCDF4.Dataset(nc_file)
+            ds_id = f"{ds.naming_authority}:{ds.id}".strip()
+            # Delete dataset
+            del_res = requests.post(url=f"https://{urls[env]['dmci']}/v1/delete/{ds_id}")
+            if del_res.status_code != 200 or "OK" not in del_res.text:
+                raise Exception(f"Not able to delete dataset ({ds_id}): {del_res.text}")
+            # Reingest dataset
+            res = requests.post(url=f"https://{urls[env]['dmci']}/v1/insert", data=data)
+            """NOTE: because of a bug in pycsw, the below updated is
+                     replaced by delete and insert above
+            """
+            # Update dataset
+            # res = requests.post(url=f"https://{urls[env]['dmci']}/v1/update", data=data)
         if res.status_code == 200 and "OK" in res.text:
             # This should be the case for a dry-run and a valid xml
             dmci_updated = True
         else:
-            raise Exception(f"Could not push updated MMD file to the DMCI API: {mmd_new}")
+            raise Exception("Could not push updated MMD file to the "
+                            f"DMCI API: {mmd_new}, {res.text}")
 
         if dmci_updated and not dry_run:
             nc_moved, emsg = move_data_file(nc_file, nfl)

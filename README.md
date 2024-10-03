@@ -25,6 +25,12 @@ stored in subfolders, and to directly updated the metadata catalog,
 respectively. If --dmci-update is not provided, local MMD files will not be
 pushed to the catalog.
 
+The results of the `move_data` script will be logged to a file, which by
+default is named `move_data.log`. You can change the filename through the
+option `--log-file`. Due to a bug in pycsw, the file may contain warnings about
+not found datasets. This can be handled by reingesting the MMD files. Keep the
+log file, and get help from a data manager to handle this.
+
 # Installation
 
 To avoid problems with conflicting versions, we recommend using the [Conda](

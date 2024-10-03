@@ -222,6 +222,8 @@ def test_move_data(dataDir, monkeypatch, caplog):
                    lambda *a, **k: True)
         mp.setattr("py_mmd_tools.mmd_operations.requests.get",
                    lambda *a, **k: MockResponse())
+
+        # Check that an exception is raised if delete fails
         mock_post = Mock()
         mock_post.side_effect = [MockResponse(), MockResponseFail()]
         mp.setattr("py_mmd_tools.mmd_operations.requests.post", mock_post)
@@ -229,9 +231,17 @@ def test_move_data(dataDir, monkeypatch, caplog):
             not_updated, updated = move_data(mmd_repository_path, old_file_location_base,
                                              new_file_location_base, pattern, dry_run=False)
 
+        # Check that an exception is raised if insert fails
+        mock_post = Mock()
+        mock_post.side_effect = [MockResponse(), MockResponse(), MockResponseFail()]
+        mp.setattr("py_mmd_tools.mmd_operations.requests.post", mock_post)
+        with pytest.raises(Exception):
+            not_updated, updated = move_data(mmd_repository_path, old_file_location_base,
+                                             new_file_location_base, pattern, dry_run=False)
+
         # Check that updated is False if check_csw_catalog fails
         mock_post = Mock()
-        mock_post.side_effect = [MockResponse(), MockResponse()]
+        mock_post.side_effect = [MockResponse(), MockResponse(), MockResponse()]
         mp.setattr("py_mmd_tools.mmd_operations.requests.post", mock_post)
         mp.setattr("py_mmd_tools.mmd_operations.check_csw_catalog",
                    lambda *a, **k: (False, "Fail"))
