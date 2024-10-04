@@ -1914,7 +1914,7 @@ class Nc_to_mmd(object):
         all_netcdf_variables = []
         for var in ncin.variables:
             if "standard_name" in ncin.variables[var].ncattrs():
-                all_netcdf_variables.append(ncin.variables[var].standard_name)
+                all_netcdf_variables.append(ncin.variables[var].name)
         data_accesses = [
             {
                 "type": "OPeNDAP",
