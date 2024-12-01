@@ -765,13 +765,14 @@ class Nc_to_mmd(object):
             roles_search_result = self.contact_roles.search_lowercase(role)
             contact_role = roles_search_result.get("Short_Name", "")
 
+            roles_url = ("https://htmlpreview.github.io/?https://github.com/"
+                         "metno/mmd/blob/master/doc/mmd-specification.html"
+                         "#contact-roles")
             if contact_role == "":
                 self.missing_attributes["errors"].append(
-                    "The ACDD attribute 'contact_roles' must "
+                    "The ACDD attribute 'contributor_role' must "
                     "follow a controlled vocabulary from MMD (see "
-                    "https://htmlpreview.github.io/?https://github."
-                    "com/metno/mmd/blob/master/doc/mmd-specification."
-                    "html##contact_roles)."
+                    f"{roles_url})."
                 )
                 return data
 
