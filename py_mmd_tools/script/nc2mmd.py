@@ -126,7 +126,11 @@ def main(args=None):
                 url = os.path.join(args.url, file)
             else:
                 url = args.url
-            outfile = (args.output_dir / pathlib.Path(file).stem).with_suffix('.xml')
+            if "." in (pathlib.Path(file).stem):
+                infile = args.output_dir / pathlib.Path(file).stem
+                outfile = infile.with_suffix(infile.suffix+'.xml')
+            else:
+                outfile = (args.output_dir / pathlib.Path(file).stem).with_suffix('.xml')
             md = nc_to_mmd.Nc_to_mmd(str(file), opendap_url=url, output_file=outfile)
         else:
             md = nc_to_mmd.Nc_to_mmd(str(file), check_only=True)
