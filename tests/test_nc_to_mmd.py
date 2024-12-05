@@ -352,8 +352,8 @@ def test_get_data_access_dict_with_custom_wms(monkeypatch):
                                        wms_link='http://test-link')
     assert data[1]['type'] == 'OGC WMS'
     assert 'http://test-link' in str(data[1]['resource'])
-    assert data[1]['wms_layers'] == ['toa_bidirectional_reflectance',
-                                     'toa_bidirectional_reflectance']
+    assert data[1]['wms_layers'] == ['M01',
+                                     'M01_copy']
 
 
 @pytest.mark.py_mmd_tools
