@@ -79,7 +79,7 @@ def test_file_location_in_overrides(dataDir):
     req, msg = md.to_mmd()
     assert md.metadata["storage_information"]["file_location"] == dataDir
     md = Nc_to_mmd(os.path.join(dataDir, "reference_nc.nc"), check_only=True)
-    req, msg = md.to_mmd(overrides={"file_location": "/some/where/else",})
+    req, msg = md.to_mmd(overrides={"file_location": "/some/where/else"})
     assert md.metadata["storage_information"]["file_location"] == "/some/where/else"
 
 
