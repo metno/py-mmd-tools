@@ -72,6 +72,18 @@ def test_parent_keyword_arg(dataDir):
 
 
 @pytest.mark.py_mmd_tools
+def test_file_location_in_overrides(dataDir):
+    """Test that over-riding the file location works as expected.
+    """
+    md = Nc_to_mmd(os.path.join(dataDir, "reference_nc.nc"), check_only=True)
+    req, msg = md.to_mmd()
+    assert md.metadata["storage_information"]["file_location"] == dataDir
+    md = Nc_to_mmd(os.path.join(dataDir, "reference_nc.nc"), check_only=True)
+    req, msg = md.to_mmd(overrides={"file_location": "/some/where/else"})
+    assert md.metadata["storage_information"]["file_location"] == "/some/where/else"
+
+
+@pytest.mark.py_mmd_tools
 def test_platform_in_overrides(dataDir):
     """Test that over-riding the platform attribute works as expected.
     """

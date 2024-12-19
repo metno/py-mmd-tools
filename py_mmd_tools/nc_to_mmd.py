@@ -1657,6 +1657,10 @@ class Nc_to_mmd(object):
             platform : dict
                 A dictionary specifying the platform according to MMD
                 guidelines.
+            file_location : str
+                An alternative to the current file location. This can
+                be used if the NetCDF file will be moved after the
+                MMD file has been created.
 
         This list can be extended but requires some new code...
         """
@@ -1671,6 +1675,7 @@ class Nc_to_mmd(object):
         geographic_extent_rectangle = overrides.pop("geographic_extent_rectangle", None)
         dataset_citation = overrides.pop("dataset_citation", None)
         platform = overrides.pop("platform", None)
+        file_location = overrides.pop("file_location", os.path.dirname(self.netcdf_file))
 
         # Get ncin object from instance
         ncin = self.ncin
@@ -1836,7 +1841,7 @@ class Nc_to_mmd(object):
         # Set storage_information
         self.metadata["storage_information"] = {
             "file_name": os.path.basename(self.netcdf_file),
-            "file_location": os.path.dirname(self.netcdf_file),
+            "file_location": file_location,
             "file_format": "NetCDF-CF",
             "file_size": "%.2f" % self.file_size,
             "file_size_unit": "MB",
