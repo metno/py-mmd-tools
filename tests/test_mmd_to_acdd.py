@@ -146,7 +146,7 @@ def test_extract_acdd_attributes_single_level_dict():
                     ),
                     'format': 'text',
                     'options': [
-                        'point', 'timeSeries', 'trajectory', 'profile', 
+                        'point', 'timeSeries', 'trajectory', 'profile',
                         'timeSeriesProfile', 'trajectoryProfile'
                     ],
                     'requirement_level': 'Recommended'
