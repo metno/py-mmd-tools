@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 """
-This script generates a yaml file contatining requiremnents specific to the Arctic Data Centre.
-This new yaml file is generated using the more general mmd_elements.yaml file.
+Tool for extracting ACDD requirements specific to the Arctic Data Centre.
+Elements are extracted from the more general mmd_elements.yaml file.
 
 License:
 
@@ -11,25 +11,8 @@ This file is part of the py-mmd-tools repository
 
 py-mmd-tools is licensed under the Apache License 2.0
 <https://github.com/metno/py-mmd-tools/blob/master/LICENSE>
-
-Each entry in adc_elements.yaml is strucutred as follows:
-
-attribute name:
-    description:
-    help:
-    format:
-    limits: # Where applicable, such as for geospatial_lat_min
-      min:
-      max:
-    options: # Where applicable
-      - option 1
-      - option 2
-      - option 3
-      - option 4
-    requirement_level:
 """
 
-import yaml
 from collections import defaultdict
 
 
@@ -75,35 +58,3 @@ def extract_acdd_attributes(data, prefix=''):
             attributes.update(nested_attributes)
 
     return attributes
-
-
-if __name__ == "__main__":
-    # Read the mmd_elements.yaml file
-    with open('mmd_elements.yaml', 'r') as f:
-        mmd_data = yaml.safe_load(f)
-
-    # Extract ACDD attributes
-    acdd_attributes = extract_acdd_attributes(mmd_data)
-
-    # Create the output dictionary
-    output = {}
-
-    for attr, data in acdd_attributes.items():
-        output[attr] = {
-            "description": data.get("description", ""),
-            "help": data.get("comment", ""),
-            "format": data.get("format", ""),
-            "requirement_level": data.get("requirement_level", "")
-        }
-
-        if "options" in data:
-            output[attr]["options"] = data["options"]
-
-        if "limits" in data:
-            output[attr]["limits"] = data["limits"]
-
-    # Write the output to acdd_elements.yaml
-    with open('acdd_elements.yaml', 'w') as f:
-        yaml.dump(output, f, sort_keys=False, default_flow_style=False)
-
-    print("acdd_elements.yaml has been created successfully.")
