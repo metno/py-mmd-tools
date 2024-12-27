@@ -223,3 +223,44 @@ def test_extract_acdd_attributes_non_dict_or_list():
     expected_output = {}
     result = extract_acdd_attributes(invalid_data)
     assert result == expected_output
+
+
+@pytest.mark.py_mmd_tools
+def test_extract_acdd_attributes_empty():
+    """Test how the function handles an empty dictionary or list."""
+    empty_data = {}
+    expected_output = {}
+    result = extract_acdd_attributes(empty_data)
+    assert result == expected_output
+
+
+@pytest.mark.py_mmd_tools
+def test_extract_acdd_attributes_missing_format():
+    """Test how the function handles missing 'format' and 'requirement_level'."""
+    data_missing_format = {
+        'metadata_identifier': {
+            'acdd': {
+                'id': {
+                    'comment': 'Required, and should be UUID. No repetition allowed.',
+                    'description': 'An identifier for the dataset.',
+                }
+            }
+        }
+    }
+    expected_output = {}
+    result = extract_acdd_attributes(data_missing_format)
+    assert result == expected_output
+
+
+@pytest.mark.py_mmd_tools
+def test_extract_acdd_attributes_missing_attribute():
+    """Test that missing attributes (e.g., 'acdd') don't cause issues."""
+    data_missing_acdd = {
+        'metadata_identifier': {
+            'maxOccurs': '1',
+            'minOccurs': '1',
+        }
+    }
+    expected_output = {}
+    result = extract_acdd_attributes(data_missing_acdd)
+    assert result == expected_output
