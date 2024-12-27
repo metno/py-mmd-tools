@@ -103,6 +103,25 @@ def test_main_localfile_specify_collection(dataDir, monkeypatch):
 
 
 @pytest.mark.script
+def test_main_localfile_more_than_1_dot_in_filename(dataDir, monkeypatch):
+    parser = create_parser()
+    test_in = os.path.join(dataDir, 'reference.withextradot_nc.nc')
+    out_dir = tempfile.mkdtemp()
+    url = 'https://thredds.met.no/thredds/dodsC/reference.withextradot_nc.nc'
+    parsed = parser.parse_args([
+        '-i', test_in,
+        '-u', url,
+        '-o', out_dir,
+    ])
+    with monkeypatch.context() as mp:
+        mp.setattr("py_mmd_tools.nc_to_mmd.Dataset",
+                   lambda *args, **kwargs: patchedDataset(url, *args, **kwargs))
+        main(parsed)
+        assert os.path.isfile(os.path.join(out_dir, 'reference.withextradot_nc.xml'))
+    shutil.rmtree(out_dir)
+
+
+@pytest.mark.script
 def test_main_thredds(dataDir, monkeypatch):
     """Test nc2mmd.py with a fake OPeNDAP file"""
     parser = create_parser()
