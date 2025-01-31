@@ -1767,11 +1767,11 @@ class Nc_to_mmd(object):
         # Add parent from function kwarg
         if parent is not None:
             if self.well_formed_parent(parent):
+                rel_dat = self.metadata["related_dataset"]
                 if (
-                    self.metadata["related_dataset"]
-                    and "parent" == self.metadata["related_dataset"][0]["relation_type"]
+                    rel_dat and "parent" == rel_dat[0]["relation_type"]
                 ):
-                    parentinplace = self.metadata["related_dataset"][0]["id"]
+                    parentinplace = rel_dat[0]["id"]
                     self.missing_attributes["warnings"].append(
                         "parent reference already in place: %s" % (parentinplace)
                     )
