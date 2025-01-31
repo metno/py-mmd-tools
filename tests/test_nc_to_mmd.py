@@ -83,12 +83,12 @@ def test_parent_keyword_arg(dataDir):
     with pytest.raises(ValueError) as ve:
         req, msg = md.to_mmd(parent="no.met:654e8acf-77b1-4f53-b6bf-0cd6cf94e646")
     assert str(ve.value) == "naming_authority ACDD attribute no.kvet is not valid"
-    assert "parent reference already in place" in md.missing_attributes["warnings"][1]
+    assert "Parent identifier already in place" in md.missing_attributes["warnings"][1]
 
     # pre-existing parent but different
     md = Nc_to_mmd(os.path.join(dataDir, "reference_nc_withparent.nc"), check_only=True)
     req, msg = md.to_mmd(parent="no.met:bce66800-1722-495e-975b-6033abb4da7d")
-    assert "not updating" in md.missing_attributes["warnings"][2]
+    assert "Using the one provided as keyword argument" in md.missing_attributes["warnings"][2]
 
 
 @pytest.mark.py_mmd_tools
