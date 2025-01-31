@@ -1779,7 +1779,7 @@ class Nc_to_mmd(object):
                         if parentinplace.split(":")[1] != parent.split(":")[1]:
                             self.missing_attributes["warnings"].append(
                                 "The passed parent UUID %s does not match  the one provided in the netcdf file "
-                                "parent reference %s, not updating"
+                                "(%s). Using the one provided as keyword argument."
                                 % (parent, parentinplace)
                             )
                         else:
