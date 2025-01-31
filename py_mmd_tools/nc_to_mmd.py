@@ -1771,16 +1771,16 @@ class Nc_to_mmd(object):
                 if (
                     rel_dat and "parent" == rel_dat[0]["relation_type"]
                 ):
-                    parentinplace = rel_dat[0]["id"]
+                    parent_from_nc_file = rel_dat[0]["id"]
                     self.missing_attributes["warnings"].append(
-                        "parent reference already in place: %s" % (parentinplace)
+                        "parent reference already in place: %s" % (parent_from_nc_file)
                     )
-                    if self.well_formed_parent(parentinplace):
-                        if parentinplace.split(":")[1] != parent.split(":")[1]:
+                    if self.well_formed_parent(parent_from_nc_file):
+                        if parent_from_nc_file.split(":")[1] != parent.split(":")[1]:
                             self.missing_attributes["warnings"].append(
                                 "The passed parent UUID %s does not match  the one provided in the netcdf file "
                                 "(%s). Using the one provided as keyword argument."
-                                % (parent, parentinplace)
+                                % (parent, parent_from_nc_file)
                             )
                         else:
                             self.missing_attributes["warnings"].append(
