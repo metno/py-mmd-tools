@@ -1773,7 +1773,7 @@ class Nc_to_mmd(object):
                 ):
                     parent_from_nc_file = rel_dat[0]["id"]
                     self.missing_attributes["warnings"].append(
-                        "Parent identifier already in place: %s" % (parent_from_nc_file)
+                        "Parent identifier already provided in the netcdf file: %s" % (parent_from_nc_file)
                     )
                     if self.well_formed_parent(parent_from_nc_file):
                         if parent_from_nc_file.split(":")[1] != parent.split(":")[1]:
