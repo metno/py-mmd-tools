@@ -16,22 +16,26 @@ py-mmd-tools is licensed under the Apache License 2.0
 """
 
 import os
-import pathlib
 import re
+import yaml
+import jinja2
+import pathlib
 import warnings
+import shapely.wkt
+
+import numpy as np
+
+from filehash import FileHash
 from itertools import zip_longest
+from pkg_resources import resource_string
+from dateutil.parser import isoparse
 from uuid import UUID
 
-import jinja2
-import numpy as np
-import shapely.wkt
-import yaml
-from dateutil.parser import isoparse
-from filehash import FileHash
-from metvocab.cfstd import CFStandard
 from metvocab.mmdgroup import MMDGroup
+from metvocab.cfstd import CFStandard
+
 from netCDF4 import Dataset
-from pkg_resources import resource_string
+
 from shapely.errors import ShapelyError
 
 
@@ -82,11 +86,7 @@ def normalize_iso8601(s):
         secs = int(utc_offset.total_seconds())
         tz_hours = secs // 3600
         tz_mins = (secs % 3600) // 60
-    tz = (
-        "Z"
-        if (tz_hours == 0 and tz_mins == 0)
-        else "+{:02d}:{:02d}".format(tz_hours, tz_mins)
-    )
+    tz = "Z" if (tz_hours == 0 and tz_mins == 0) else "+{:02d}:{:02d}".format(tz_hours, tz_mins)
 
     return dt.strftime("%Y-%m-%dT%H:%M:%S{}{}".format(sec_frac, tz)), None
 
@@ -226,6 +226,7 @@ class nc_sub:
 
 
 class Nc_to_mmd(object):
+
     # Some constants:
     # add others when needed. See #198
     ACDD_ID = "id"
@@ -234,15 +235,8 @@ class Nc_to_mmd(object):
     VALID_NAMING_AUTHORITIES = None
     LANDING_PAGE_BASE = None
 
-    def __init__(
-        self,
-        netcdf_file,
-        opendap_url=None,
-        output_file=None,
-        check_only=False,
-        json_input=False,
-        checksum_calculation=False,
-    ):
+    def __init__(self, netcdf_file, opendap_url=None, output_file=None, check_only=False,
+                 json_input=False, checksum_calculation=False):
         """Class for creating an MMD XML file based on the discovery
         metadata provided in the global attributes of NetCDF files that
         are compliant with the CF-conventions and ACDD.
@@ -270,7 +264,7 @@ class Nc_to_mmd(object):
         self.LANDING_PAGE_BASE = {
             "no.met": "https://data.met.no/dataset",
             "dummy": "https://data.fake.no",  # used if naming_authority is
-            # missing from the nc file
+                                              # missing from the nc file
         }
         self.HASH_ALGORITHM = "md5"
         self.checksum_calculation = checksum_calculation
@@ -291,9 +285,7 @@ class Nc_to_mmd(object):
                 self.HASH_ALGORITHM = netcdf_file["file_checksum_type"] + "sum"
         else:
             self.netcdf_file = os.path.abspath(netcdf_file)
-            self.file_size = np.round(
-                pathlib.Path(self.netcdf_file).stat().st_size / (1024 * 1024), 2
-            )
+            self.file_size = np.round(pathlib.Path(self.netcdf_file).stat().st_size/(1024*1024), 2)
             if self.checksum_calculation:
                 # we may have to base it on the complete file - @amundi..
                 hasher = FileHash(self.HASH_ALGORITHM, chunk_size=1048576)
@@ -310,14 +302,10 @@ class Nc_to_mmd(object):
         self.instrument_group = MMDGroup("mmd", "https://vocab.met.no/mmd/Instrument")
         self.instrument_group.init_vocab()
 
-        self.operational_status = MMDGroup(
-            "mmd", "https://vocab.met.no/mmd/Operational_Status"
-        )
+        self.operational_status = MMDGroup("mmd", "https://vocab.met.no/mmd/Operational_Status")
         self.operational_status.init_vocab()
 
-        self.iso_topic_category = MMDGroup(
-            "mmd", "https://vocab.met.no/mmd/ISO_Topic_Category"
-        )
+        self.iso_topic_category = MMDGroup("mmd", "https://vocab.met.no/mmd/ISO_Topic_Category")
         self.iso_topic_category.init_vocab()
 
         self.contact_roles = MMDGroup("mmd", "https://vocab.met.no/mmd/Contact_Roles")
@@ -331,9 +319,7 @@ class Nc_to_mmd(object):
         )
         self.dataset_production_status.init_vocab()
 
-        self.quality_control = MMDGroup(
-            "mmd", "https://vocab.met.no/mmd/Quality_Control"
-        )
+        self.quality_control = MMDGroup("mmd", "https://vocab.met.no/mmd/Quality_Control")
         self.quality_control.init_vocab()
 
         self.cfstdn_keyword = CFStandard()
@@ -341,9 +327,7 @@ class Nc_to_mmd(object):
 
         self.json_input = json_input
 
-        if not (
-            self.platform_group.is_initialised and self.instrument_group.is_initialised
-        ):
+        if not (self.platform_group.is_initialised and self.instrument_group.is_initialised):
             raise ValueError("Instrument or Platform group were not initialised")
 
         if self.json_input:
@@ -460,9 +444,7 @@ class Nc_to_mmd(object):
                 #     self.missing_attributes['warnings'].append(
                 #            'Using default value %s for %s' %(str(default), acdd))
                 # else:
-                self.missing_attributes["errors"].append(
-                    "%s is a required attribute" % acdd_key
-                )
+                self.missing_attributes["errors"].append("%s is a required attribute" % acdd_key)
 
         if mmd_element_name != "metadata_status" and required and data == default:
             self.missing_attributes["warnings"].append(
@@ -503,9 +485,7 @@ class Nc_to_mmd(object):
 
         institutions = []
         try:
-            institutions = self.separate_repeated(
-                True, getattr(ncin, acdd_institution_key)
-            )
+            institutions = self.separate_repeated(True, getattr(ncin, acdd_institution_key))
         except AttributeError:
             self.missing_attributes["errors"].append(
                 "%s is a required attribute" % acdd_institution_key
@@ -560,8 +540,7 @@ class Nc_to_mmd(object):
         # Check that DATE_CREATED attribute is present
         if DATE_CREATED not in ncin.ncattrs():
             self.missing_attributes["errors"].append(
-                "ACDD attribute %s is required" % DATE_CREATED
-            )
+                "ACDD attribute %s is required" % DATE_CREATED)
             return
 
         times = []
@@ -623,9 +602,7 @@ class Nc_to_mmd(object):
         if acdd_key in ncin.ncattrs():
             contents.append(getattr(ncin, acdd_key))
         else:
-            self.missing_attributes["errors"].append(
-                "%s is a required ACDD attribute" % acdd_key
-            )
+            self.missing_attributes["errors"].append("%s is a required ACDD attribute" % acdd_key)
             return data
         acdd_ext_lang_key = list(acdd_ext_lang.keys())[0]
         if acdd_ext_lang_key in ncin.ncattrs():
@@ -638,9 +615,7 @@ class Nc_to_mmd(object):
                 contents.append(getattr(ncin, lang_key))
                 content_lang.append(lang_key[-2:])
             else:
-                self.missing_attributes["errors"].append(
-                    "%s is a required attribute" % lang_key
-                )
+                self.missing_attributes["errors"].append("%s is a required attribute" % lang_key)
         for i in range(len(contents)):
             data.append({elem_name: contents[i], "lang": content_lang[i]})
         return data
@@ -690,8 +665,7 @@ class Nc_to_mmd(object):
                 if ndt is None:
                     ndts.append(dt)  # keep original
                     self.missing_attributes["errors"].append(
-                        "ACDD start/end datetime %s is not valid ISO8601: %s."
-                        % (dt, reason)
+                        "ACDD start/end datetime %s is not valid ISO8601: %s." % (dt, reason)
                     )
                 else:
                     ndts.append(ndt)  # replace with normalized form
@@ -746,9 +720,7 @@ class Nc_to_mmd(object):
                 roles.extend([acdd_roles[acdd_role]["default"]])
 
             # Get emails
-            acdd_email = [email for email in acdd_emails.keys() if acdd_main in email][
-                0
-            ]
+            acdd_email = [email for email in acdd_emails.keys() if acdd_main in email][0]
             if acdd_email and acdd_email in ncin.ncattrs():
                 emails.extend(self.separate_repeated(True, getattr(ncin, acdd_email)))
             else:
@@ -762,14 +734,12 @@ class Nc_to_mmd(object):
             these_orgs = []
             for org_elem in acdd_organisations_list:
                 if org_elem and org_elem in ncin.ncattrs():
-                    these_orgs.extend(
-                        self.separate_repeated(True, getattr(ncin, org_elem))
-                    )
+                    these_orgs.extend(self.separate_repeated(True, getattr(ncin, org_elem)))
             if not these_orgs:
                 for org in acdd_organisations.keys():
                     if (
-                        type(acdd_organisations[org]) is dict
-                        and "default" in acdd_organisations[org].keys()
+                        type(acdd_organisations[org]
+                             ) is dict and "default" in acdd_organisations[org].keys()
                     ):
                         these_orgs.append(acdd_organisations[org]["default"])
             if not len(these_orgs) == len(these_names):
@@ -842,19 +812,10 @@ class Nc_to_mmd(object):
         varlist = []
         for key in ncin.variables.keys():
             if "standard_name" in ncin.variables[key].ncattrs():
-                if all(
-                    [
-                        ncin.variables[key].standard_name
-                        not in [
-                            "longitude",
-                            "latitude",
-                            "time",
-                            "projection_x_coordinate",
-                            "projection_y_coordinate",
-                        ],
-                        ncin.variables[key].standard_name not in varlist,
-                    ]
-                ):
+                if all([ncin.variables[key].standard_name not in ["longitude", "latitude", "time",
+                                                                  "projection_x_coordinate",
+                                                                  "projection_y_coordinate"],
+                        ncin.variables[key].standard_name not in varlist]):
                     varlist.append(ncin.variables[key].standard_name)
 
         return varlist
@@ -869,9 +830,7 @@ class Nc_to_mmd(object):
         cfstd_names = self.get_CFSTDN_keywords(ncin)
 
         if acdd_vocabulary_key in ncin.ncattrs():
-            vocabularies = self.separate_repeated(
-                True, getattr(ncin, acdd_vocabulary_key)
-            )
+            vocabularies = self.separate_repeated(True, getattr(ncin, acdd_vocabulary_key))
         else:
             ok_formatting = False
             self.missing_attributes["errors"].append(
@@ -881,8 +840,7 @@ class Nc_to_mmd(object):
         # add vocabulary CFSTDN
         if len(cfstd_names) != 0:
             vocabularies.append(
-                "CFSTDN:CF Standard Names:https://vocab.met.no/mmd"
-                "/Keywords_Vocabulary/CFSTDN"
+                "CFSTDN:CF Standard Names:https://vocab.met.no/mmd" "/Keywords_Vocabulary/CFSTDN"
             )
 
         resources = []
@@ -893,8 +851,7 @@ class Nc_to_mmd(object):
                 # note that the url contains a ":"
                 ok_formatting = False
                 self.missing_attributes["errors"].append(
-                    "%s must be formatted as <short_name>:<long_name>:<url>"
-                    % acdd_vocabulary_key
+                    "%s must be formatted as <short_name>:<long_name>:<url>" % acdd_vocabulary_key
                 )
             else:
                 resources.append(voc_elems[0] + ":" + voc_elems[2] + ":" + voc_elems[3])
@@ -913,9 +870,7 @@ class Nc_to_mmd(object):
         if len(cfstd_names) != 0:
             for cfstd_name in cfstd_names:
                 # Verify whether the standard name is a cf-standard name from CFSTDN
-                cfstdn_search_result = self.cfstdn_keyword.check_standard_name(
-                    cfstd_name, True
-                )
+                cfstdn_search_result = self.cfstdn_keyword.check_standard_name(cfstd_name, True)
                 if cfstdn_search_result is not True:
                     self.missing_attributes["errors"].append(
                         "The standard name %s is not a CF standard name (see "
@@ -939,25 +894,15 @@ class Nc_to_mmd(object):
         if ok_formatting:
             for vocabulary in vocabularies:
                 prefix = vocabulary.split(":")[0]
-                resource = [
-                    r.replace(prefix + ":", "") for r in resources if prefix in r
-                ][0]
+                resource = [r.replace(prefix + ":", "") for r in resources if prefix in r][0]
                 if not valid_url(resource):
                     self.missing_attributes["errors"].append(
-                        "%s in %s attribute is not a valid url"
-                        % (resource, acdd_vocabulary_key)
+                        "%s in %s attribute is not a valid url" % (resource, acdd_vocabulary_key)
                     )
                     continue
-                keywords_this = [
-                    k.replace(prefix + ":", "").strip() for k in keywords if prefix in k
-                ]
-                data.append(
-                    {
-                        "resource": resource,
-                        "keyword": keywords_this,
-                        "vocabulary": prefix,
-                    }
-                )
+                keywords_this = [k.replace(prefix + ":", "").strip()
+                                 for k in keywords if prefix in k]
+                data.append({"resource": resource, "keyword": keywords_this, "vocabulary": prefix})
         return data
 
     def get_projects(self, mmd_element, ncin):
@@ -1001,9 +946,7 @@ class Nc_to_mmd(object):
         instruments = []
         acdd_instrument_key = list(acdd_instrument.keys())[0]
         if acdd_instrument_key in ncin.ncattrs():
-            instruments = self.separate_repeated(
-                True, getattr(ncin, acdd_instrument_key)
-            )
+            instruments = self.separate_repeated(True, getattr(ncin, acdd_instrument_key))
 
         resources = []
         acdd_resource = mmd_element["resource"].pop("acdd")
@@ -1015,18 +958,15 @@ class Nc_to_mmd(object):
         acdd_instrument_resource = mmd_element["instrument"]["resource"].pop("acdd")
         acdd_instrument_resource_key = list(acdd_instrument_resource.keys())[0]
         if acdd_instrument_resource_key in ncin.ncattrs():
-            iresources = self.separate_repeated(
-                True, getattr(ncin, acdd_instrument_resource_key)
-            )
+            iresources = self.separate_repeated(True, getattr(ncin, acdd_instrument_resource_key))
 
         data = []
 
         for platform, instrument, resource, iresource in zip_longest(
             platforms, instruments, resources, iresources, fillvalue=""
         ):
-            platform_dict = get_vocab_dict(
-                platform, self.platform_group, resource, False
-            )
+
+            platform_dict = get_vocab_dict(platform, self.platform_group, resource, False)
             if not bool(platform_dict):
                 self.missing_attributes["errors"].append(
                     "%s must be formed as <platform long name>(<platform short name>). "
@@ -1036,9 +976,7 @@ class Nc_to_mmd(object):
                 )
                 continue
 
-            instrument_dict = get_vocab_dict(
-                instrument, self.instrument_group, iresource, False
-            )
+            instrument_dict = get_vocab_dict(instrument, self.instrument_group, iresource, False)
             if not bool(instrument_dict):
                 self.missing_attributes["warnings"].append(
                     "%s must be formed as <instrument long name>(<instrument short name>). "
@@ -1163,21 +1101,15 @@ class Nc_to_mmd(object):
         # id and naming_authority are required, and both should be in
         # the acdd list
         acdd_key = list(acdd.keys())
-        if any(
-            [
-                len(acdd_key) != 2,
-                self.ACDD_ID not in acdd_key,
-                self.ACDD_NAMING_AUTH not in acdd_key,
-            ]
-        ):
+        if any([len(acdd_key) != 2,
+               self.ACDD_ID not in acdd_key,
+               self.ACDD_NAMING_AUTH not in acdd_key]):
             raise AttributeError(
                 "ACDD attribute inconsistency in mmd_elements.yaml. Expected %s and %s but "
                 "received %s." % (self.ACDD_ID, self.ACDD_NAMING_AUTH, str(acdd_key))
             )
         if self.ACDD_ID not in ncin.ncattrs():
-            self.missing_attributes["errors"].append(
-                "%s is a required attribute." % self.ACDD_ID
-            )
+            self.missing_attributes["errors"].append("%s is a required attribute." % self.ACDD_ID)
         if self.ACDD_NAMING_AUTH not in ncin.ncattrs():
             self.missing_attributes["errors"].append(
                 "%s is a required attribute." % self.ACDD_NAMING_AUTH
@@ -1219,9 +1151,7 @@ class Nc_to_mmd(object):
         relations = []
         acdd_ext_relation_key = list(acdd_ext_relation.keys())[0]
         if acdd_ext_relation_key in ncin.ncattrs():
-            relations = self.separate_repeated(
-                True, getattr(ncin, acdd_ext_relation_key)
-            )
+            relations = self.separate_repeated(True, getattr(ncin, acdd_ext_relation_key))
 
         # Initialise returned list
         data = []
@@ -1245,8 +1175,7 @@ class Nc_to_mmd(object):
                     'type of relationship must be either "parent" '
                     "(this dataset is a child dataset of the "
                     'referenced dataset) or "auxiliary" (this dataset'
-                    "is auxiliary data for the referenced dataset)."
-                    % acdd_ext_relation_key
+                    "is auxiliary data for the referenced dataset)." % acdd_ext_relation_key
                 )
             else:
                 # Get rid of remaining empty space(s)
@@ -1265,8 +1194,7 @@ class Nc_to_mmd(object):
                     if re.search(ns_re_pattern, identifier) is None:
                         self.missing_attributes["errors"].append(
                             "%s ACDD attribute is missing "
-                            "naming_authority in the identifier."
-                            % acdd_ext_relation_key
+                            "naming_authority in the identifier." % acdd_ext_relation_key
                         )
                     else:
                         # If everything is ok, append the relation id and type
@@ -1315,9 +1243,7 @@ class Nc_to_mmd(object):
             acdd = mmd_element[dir]["acdd"]
             acdd_key = list(acdd.keys())[0]
             if acdd_key not in ncin.ncattrs():
-                self.missing_attributes["errors"].append(
-                    "%s is a required attribute" % acdd_key
-                )
+                self.missing_attributes["errors"].append("%s is a required attribute" % acdd_key)
             else:
                 data[dir] = getattr(ncin, acdd_key)
                 try:
@@ -1374,9 +1300,7 @@ class Nc_to_mmd(object):
         data = []
         for category in categories:
             # If not given, search for Not available will return Not available
-            categories_search_result = self.iso_topic_category.search_lowercase(
-                category
-            )
+            categories_search_result = self.iso_topic_category.search_lowercase(category)
             iso_topic_category = categories_search_result.get("Short_Name", "")
 
             if iso_topic_category == "":
@@ -1493,10 +1417,7 @@ class Nc_to_mmd(object):
         data = []
         # Add dataset landing page from rule
         data.append(
-            {
-                "resource": self.get_dataset_landing_page_url(),
-                "type": "Dataset landing page",
-            }
+            {"resource": self.get_dataset_landing_page_url(), "type": "Dataset landing page"}
         )
 
         repetition_allowed = mmd_element.pop("maxOccurs", "") not in ["0", "1"]
@@ -1505,9 +1426,7 @@ class Nc_to_mmd(object):
         acdd_key = list(acdd.keys())[0]
         refs = []
         if acdd_key in ncin.ncattrs():
-            refs = self.separate_repeated(
-                repetition_allowed, getattr(ncin, acdd_key), separator
-            )
+            refs = self.separate_repeated(repetition_allowed, getattr(ncin, acdd_key), separator)
         for ref in refs:
             ri = ref.split("(")
             if len(ri) != 2:
@@ -1517,9 +1436,7 @@ class Nc_to_mmd(object):
                 continue
             uri = ri[0].strip()
             if not valid_url(uri):
-                self.missing_attributes["errors"].append(
-                    "%s must contain valid uris" % acdd_key
-                )
+                self.missing_attributes["errors"].append("%s must contain valid uris" % acdd_key)
                 continue
             ref_type = ri[1][:-1]
             valid_ref_types = [vt.lower() for vt in VALID_REF_TYPES]
@@ -1539,9 +1456,7 @@ class Nc_to_mmd(object):
             xx = [[ref_type, tt] for tt in VALID_REF_TYPES]
             x = filter(lambda a: a[0].lower() == a[1].lower(), xx)
             ri = {"resource": uri, "type": list(x)[0][1]}
-            ri["description"] = (
-                ""  # not easily available in acdd - needs to be discussed
-            )
+            ri["description"] = ""  # not easily available in acdd - needs to be discussed
             if ri["type"] == "Dataset landing page":
                 # The landing page is given by a rule in py-mmd-tools
                 # see get_dataset_landing_page_url
@@ -1554,8 +1469,7 @@ class Nc_to_mmd(object):
         for attr in ncin.ncattrs():
             if ncin.getncattr(attr) == "":
                 raise ValueError(
-                    "%s: Global attribute %s is empty - please correct."
-                    % (self.netcdf_file, attr)
+                    "%s: Global attribute %s is empty - please correct." % (self.netcdf_file, attr)
                 )
 
     def check_conventions(self, ncin):
@@ -1652,9 +1566,7 @@ class Nc_to_mmd(object):
             if "license_resource" in ncin.ncattrs():
                 license_url = ncin.license_resource
             if not valid_url(license_url):
-                self.missing_attributes["errors"].append(
-                    '"%s" is not a valid url' % license_url
-                )
+                self.missing_attributes["errors"].append('"%s" is not a valid url' % license_url)
                 return data
             else:
                 data = {"resource": license_url}
@@ -1673,9 +1585,7 @@ class Nc_to_mmd(object):
                 data["identifier"] = ncin.license
             else:
                 data["identifier"] = ncin.license.split("/")[-1]
-                if not bool(
-                    get_vocab_dict(data["identifier"], license_group, data["resource"])
-                ):
+                if not bool(get_vocab_dict(data["identifier"], license_group, data["resource"])):
                     data.pop("identifier")
                     self.missing_attributes["errors"].append(
                         "license should be provided as <url> (<Identifier>)"
@@ -1685,9 +1595,7 @@ class Nc_to_mmd(object):
         # and rewrite data dict if necessary
         if data is not None:
             if "identifier" in data.keys():
-                license_dict = get_vocab_dict(
-                    data["identifier"], license_group, data["resource"]
-                )
+                license_dict = get_vocab_dict(data["identifier"], license_group, data["resource"])
                 if not bool(license_dict):
                     data = {"license_text": ncin.license}
 
@@ -1781,9 +1689,7 @@ class Nc_to_mmd(object):
         geographic_extent_rectangle = overrides.pop("geographic_extent_rectangle", None)
         dataset_citation = overrides.pop("dataset_citation", None)
         platform = overrides.pop("platform", None)
-        file_location = overrides.pop(
-            "file_location", os.path.dirname(self.netcdf_file)
-        )
+        file_location = overrides.pop("file_location", os.path.dirname(self.netcdf_file))
 
         # Get ncin object from instance
         ncin = self.ncin
@@ -1815,9 +1721,7 @@ class Nc_to_mmd(object):
         self.metadata["metadata_identifier"] = self.get_metadata_identifier(
             mmd_yaml.pop("metadata_identifier"), ncin, **kwargs
         )
-        self.metadata["data_center"] = self.get_data_centers(
-            mmd_yaml.pop("data_center"), ncin
-        )
+        self.metadata["data_center"] = self.get_data_centers(mmd_yaml.pop("data_center"), ncin)
         self.metadata["last_metadata_update"] = self.get_metadata_updates(
             mmd_yaml.pop("last_metadata_update"), ncin
         )
@@ -1849,9 +1753,7 @@ class Nc_to_mmd(object):
         self.metadata["keywords"] = self.get_keywords(mmd_yaml.pop("keywords"), ncin)
         self.metadata["project"] = self.get_projects(mmd_yaml.pop("project"), ncin)
         if platform is None:
-            self.metadata["platform"] = self.get_platforms(
-                mmd_yaml.pop("platform"), ncin
-            )
+            self.metadata["platform"] = self.get_platforms(mmd_yaml.pop("platform"), ncin)
         else:
             mmd_yaml.pop("platform")
             self.metadata["platform"] = [platform]
@@ -1859,7 +1761,6 @@ class Nc_to_mmd(object):
         self.metadata["dataset_citation"] = self.get_dataset_citations(
             mmd_yaml.pop("dataset_citation"), ncin, dataset_citation=dataset_citation
         )
-
         self.metadata["related_dataset"] = self.get_related_dataset(
             mmd_yaml.pop("related_dataset"), ncin
         )
@@ -1877,8 +1778,9 @@ class Nc_to_mmd(object):
                     if self.well_formed_parent(parentinplace):
                         if parentinplace.split(":")[1] != parent.split(":")[1]:
                             self.missing_attributes["warnings"].append(
-                                "passed parent reference %s does not match existing parent reference %s,  "
-                                "not updating" % (parent, parentinplace)
+                                "passed parent reference %s does not match existing "
+                                "parent reference %s, not updating"
+                                % (parent, parentinplace)
                             )
                         else:
                             self.missing_attributes["warnings"].append(
@@ -1908,10 +1810,8 @@ class Nc_to_mmd(object):
             }
             mmd_yaml["geographic_extent"].pop("rectangle")
         else:
-            self.metadata["geographic_extent"]["rectangle"] = (
-                self.get_geographic_extent_rectangle(
-                    mmd_yaml["geographic_extent"].pop("rectangle"), ncin
-                )
+            self.metadata["geographic_extent"]["rectangle"] = self.get_geographic_extent_rectangle(
+                mmd_yaml["geographic_extent"].pop("rectangle"), ncin
             )
         # Check for geographic_extent/polygon
         polygon = self.get_geographic_extent_polygon(
@@ -1922,9 +1822,7 @@ class Nc_to_mmd(object):
         mmd_yaml.pop("geographic_extent")
 
         # Get use_constraint data
-        self.metadata["use_constraint"] = self.get_license(
-            mmd_yaml.pop("use_constraint"), ncin
-        )
+        self.metadata["use_constraint"] = self.get_license(mmd_yaml.pop("use_constraint"), ncin)
 
         # Data access should not be read from the netCDF-CF file
         mmd_yaml.pop("data_access")
@@ -1947,8 +1845,7 @@ class Nc_to_mmd(object):
 
         # Set Activity_Type
         self.metadata["activity_type"] = self.get_activity_type(
-            mmd_yaml.pop("activity_type"), ncin
-        )
+            mmd_yaml.pop("activity_type"), ncin)
 
         # Set dataset_production_status
         self.metadata["dataset_production_status"] = self.get_dataset_production_status(
@@ -1979,9 +1876,7 @@ class Nc_to_mmd(object):
 
         if self.checksum_calculation:
             self.metadata["storage_information"]["checksum"] = self.file_checksum
-            self.metadata["storage_information"]["checksum_type"] = (
-                self.HASH_ALGORITHM + "sum"
-            )
+            self.metadata["storage_information"]["checksum_type"] = self.HASH_ALGORITHM + "sum"
 
         self.check_conventions(ncin)
         self.check_feature_type(ncin)
@@ -1989,10 +1884,8 @@ class Nc_to_mmd(object):
         if len(self.missing_attributes["warnings"]) > 0:
             warnings.warn("\n\t" + "\n\t".join(self.missing_attributes["warnings"]))
         if len(self.missing_attributes["errors"]) > 0:
-            raise AttributeError(
-                "Errors in %s:\n\t" % self.netcdf_file
-                + "\n\t".join(self.missing_attributes["errors"])
-            )
+            raise AttributeError("Errors in %s:\n\t" % self.netcdf_file + "\n\t".join(
+                self.missing_attributes["errors"]))
 
         env = jinja2.Environment(
             loader=jinja2.PackageLoader(self.__module__.split(".")[0], "templates"),
