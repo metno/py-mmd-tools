@@ -1784,7 +1784,7 @@ class Nc_to_mmd(object):
                             )
                         else:
                             self.missing_attributes["warnings"].append(
-                                "passed parent reference %s already in place,  "
+                                "The passed parent id %s is already provided in the netcdf file,  "
                                 "no need to update it" % (parent)
                             )
                 else:
