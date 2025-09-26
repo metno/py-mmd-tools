@@ -55,6 +55,7 @@ source = "https://github.com/metno/py-mmd-tools"
 
 [tool.setuptools]
 include-package-data = true
+py-modules = ["py_mmd_tools"]
 
 [tool.pytest.ini_options]
 markers = ["script: Script tests", "py_mmd_tools: Main package tools"]

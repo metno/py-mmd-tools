@@ -1952,8 +1952,8 @@ class Nc_to_mmd(object):
                 data_access["wms_layers"] = []
                 # Don't add variables containing these names to the wms layers
                 skip_layers = [
-                    "latitude",
-                    "longitude",
+                    "latitude", "lat",
+                    "longitude", "lon",
                     "angle",
                     "time",
                     "projection_x_coordinate",
