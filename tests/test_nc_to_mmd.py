@@ -72,6 +72,18 @@ def test_parent_keyword_arg(dataDir):
 
 
 @pytest.mark.py_mmd_tools
+def test_file_location_in_overrides(dataDir):
+    """Test that over-riding the file location works as expected.
+    """
+    md = Nc_to_mmd(os.path.join(dataDir, "reference_nc.nc"), check_only=True)
+    req, msg = md.to_mmd()
+    assert md.metadata["storage_information"]["file_location"] == dataDir
+    md = Nc_to_mmd(os.path.join(dataDir, "reference_nc.nc"), check_only=True)
+    req, msg = md.to_mmd(overrides={"file_location": "/some/where/else"})
+    assert md.metadata["storage_information"]["file_location"] == "/some/where/else"
+
+
+@pytest.mark.py_mmd_tools
 def test_platform_in_overrides(dataDir):
     """Test that over-riding the platform attribute works as expected.
     """
@@ -1140,6 +1152,45 @@ class TestNC2MMD(unittest.TestCase):
         self.assertEqual(
             md.missing_attributes['errors'][4], 'institution is a required attribute'
         )
+
+    def test_geographic_extent_rectangle_crossing_the_antimeridian(self):
+        """According to the MMD definition, the longitude bounds for
+        the rectangle must be within +/-180 degrees. This means if
+        lon_max is 182 degrees, MMD should have EAST -178 degrees.
+
+        This test checks that this translates correctly.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc.nc'), check_only=True)
+        ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        ncin.geospatial_lat_max = "60.158733"
+        ncin.geospatial_lat_min = "59.78492"
+        ncin.geospatial_lon_max = "182.0"
+        ncin.geospatial_lon_min = "172.0"
+        value = md.get_geographic_extent_rectangle(
+            mmd_yaml['geographic_extent']['rectangle'], ncin)
+        self.assertEqual(float(value["east"]), -178)
+        self.assertEqual(float(value["west"]), 172)
+
+    def test_geographic_extent_is_string(self):
+        """Check that the content is actually string type."""
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc.nc'), check_only=True)
+        ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        ncin.geospatial_lat_max = "60.158733"
+        ncin.geospatial_lat_min = "59.78492"
+        ncin.geospatial_lon_max = "178.0"
+        ncin.geospatial_lon_min = "172.0"
+        value = md.get_geographic_extent_rectangle(
+            mmd_yaml['geographic_extent']['rectangle'], ncin)
+        self.assertIsInstance(value["east"], str)
+        self.assertIsInstance(value["west"], str)
+        self.assertIsInstance(value["north"], str)
+        self.assertIsInstance(value["south"], str)
 
     def test_geographic_extent_rectangle_is_floatable(self):
         """ Test that the provided geospatial coordinates can be
