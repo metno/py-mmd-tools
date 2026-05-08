@@ -13,7 +13,6 @@ py-mmd-tools is licensed under the Apache License 2.0
 
 import os
 import pytest
-import numpy as np
 
 from netCDF4 import Dataset
 
