@@ -39,10 +39,11 @@ def test_wms_layer_no_false_positives_from_lat_lon(monkeypatch):
     ) + netcdf_file
 
     # Build an in-memory NetCDF dataset that includes:
-    #  - a variable whose standard_name is "relative_humidity"
-    #    ("lat" is a substring of "relative", triggering the bug)
-    #  - coordinate variables named "lat" and "lon" (must be excluded)
-    #  - a plain variable "air_temperature" (must be included)
+    #  - a variable whose name contains "lat" as a substring — must be included
+    #  - coordinate variables named "lat" and "lon" — must be excluded by name
+    #  - a variable named "whatever" with standard_name "longitude" — must be
+    #    excluded by standard_name even though the variable name is not in skip_layers
+    #  - a plain variable "air_temperature" — must be included
     ncin = Dataset(netcdf_file, "w", diskless=True)
     ncin.createDimension("x", 4)
     lat_var = ncin.createVariable("lat", "f4", ("x",))
@@ -53,6 +54,8 @@ def test_wms_layer_no_false_positives_from_lat_lon(monkeypatch):
     rh_var.standard_name = "relative_humidity"
     t_var = ncin.createVariable("air_temperature", "f4", ("x",))
     t_var.standard_name = "air_temperature"
+    whatever_var = ncin.createVariable("whatever", "f4", ("x",))
+    whatever_var.standard_name = "longitude"
 
     with monkeypatch.context() as mp:
         mp.setattr("py_mmd_tools.nc_to_mmd.Dataset",
@@ -83,4 +86,9 @@ def test_wms_layer_no_false_positives_from_lat_lon(monkeypatch):
     )
     assert "lon" not in wms_layers, (
         "'lon' is a coordinate variable and must be excluded from WMS layers"
+    )
+    # Must be excluded: variable whose standard_name is a coordinate name,
+    # even though the variable name itself is not in the skip list
+    assert "whatever" not in wms_layers, (
+        "'whatever' has standard_name 'longitude' and must be excluded from WMS layers"
     )
