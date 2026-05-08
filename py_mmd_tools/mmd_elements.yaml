@@ -364,6 +364,7 @@ storage_information:
   file_format:
   file_size:
   checksum:
+  storage_expiry_date:
 
 related_information:
   maxOccurs: unbounded
@@ -486,6 +487,10 @@ activity_type:
       comment: Optional
       separator: ';'
       description: The method of production of the original data. This attribute is defined in the https://cfconventions.org/Data/cf-conventions/cf-conventions-1.10/cf-conventions.html#description-of-file-contents[CF Conventions]. Valid MMD values are listed in https://htmlpreview.github.io/?https://github.com/metno/mmd/blob/master/doc/mmd-specification.html#activity-type[section 4.8 of the MMD specification].
+
+metadata_source:
+  maxOccurs: '1'
+  minOccurs: '0'
 
 dataset_citation:
   maxOccurs: unbounded
