@@ -512,6 +512,7 @@ storage_information:
   file_format:
   file_size:
   checksum:
+  storage_expiry_date:
 
 related_information:
   maxOccurs: unbounded
@@ -695,6 +696,10 @@ activity_type:
         - Maps/Charts/Photographs(Maps) (Charts)(Photographs)
         - Not available
       requirement_level: "Recommended"
+
+metadata_source:
+  maxOccurs: '1'
+  minOccurs: '0'
 
 dataset_citation:
   maxOccurs: unbounded

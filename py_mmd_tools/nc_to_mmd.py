@@ -1924,9 +1924,12 @@ class Nc_to_mmd(object):
         else:
             ds.close()
         all_netcdf_variables = []
+        all_netcdf_std_names = {}
         for var in ncin.variables:
             if "standard_name" in ncin.variables[var].ncattrs():
-                all_netcdf_variables.append(ncin.variables[var].name)
+                var_name = ncin.variables[var].name
+                all_netcdf_variables.append(var_name)
+                all_netcdf_std_names[var_name] = ncin.variables[var].standard_name
         data_accesses = [
             {
                 "type": "OPeNDAP",
@@ -1972,7 +1975,7 @@ class Nc_to_mmd(object):
                     # Set custom layer names
                     _layer_names = wms_layer_names
                 for w_layer in _layer_names:
-                    if any(skip_layer in w_layer for skip_layer in skip_layers):
+                    if w_layer in skip_layers or all_netcdf_std_names.get(w_layer) in skip_layers:
                         continue
                     data_access["wms_layers"].append(w_layer)
                 # Need to add get capabilities to the wms resource
