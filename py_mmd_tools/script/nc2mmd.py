@@ -68,7 +68,10 @@ def create_parser():
     parser.add_argument(
         "-n", "--wms_layer_names", default=[], nargs="*",
         help=("Specify custom WMS layer names. Default will use the netcdf variable names as "
-              "layer names. Only applied if wms_link also is given")
+              "layer names. Only applied if wms_link also is given. If given, and if the "
+              "visualization in data.met.no is expected to work, the name must "
+              "match one of the variables names in the netcdf file in question. Else the "
+              "layer will not be detected in the visualization.")
     )
     parser.add_argument(
         "-c", "--checksum_calculation",  action="store_true",

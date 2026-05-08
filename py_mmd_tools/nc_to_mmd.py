@@ -1238,20 +1238,27 @@ class Nc_to_mmd(object):
         data = {}
         directions = ["north", "south", "east", "west"]
 
+        fail = False
         data["srsName"] = mmd_element["srsName"]["default"]
         for dir in directions:
             acdd = mmd_element[dir]["acdd"]
             acdd_key = list(acdd.keys())[0]
             if acdd_key not in ncin.ncattrs():
+                fail = True
                 self.missing_attributes["errors"].append("%s is a required attribute" % acdd_key)
             else:
                 data[dir] = getattr(ncin, acdd_key)
                 try:
                     float(data[dir])
                 except ValueError:
+                    fail = True
                     self.missing_attributes["errors"].append(
                         "%s must be convertible to float type." % acdd_key
                     )
+        # Make sure longitudes are within +/-180 degrees
+        if not fail:
+            data["east"] = str((float(data["east"]) + 180.) % 360. - 180.)
+            data["west"] = str((float(data["west"]) + 180.) % 360. - 180.)
 
         return data
 
@@ -1981,8 +1988,8 @@ class Nc_to_mmd(object):
                 data_access["wms_layers"] = []
                 # Don't add variables containing these names to the wms layers
                 skip_layers = [
-                    "latitude",
-                    "longitude",
+                    "latitude", "lat",
+                    "longitude", "lon",
                     "angle",
                     "time",
                     "projection_x_coordinate",
