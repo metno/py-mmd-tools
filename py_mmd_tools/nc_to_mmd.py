@@ -1238,20 +1238,27 @@ class Nc_to_mmd(object):
         data = {}
         directions = ["north", "south", "east", "west"]
 
+        fail = False
         data["srsName"] = mmd_element["srsName"]["default"]
         for dir in directions:
             acdd = mmd_element[dir]["acdd"]
             acdd_key = list(acdd.keys())[0]
             if acdd_key not in ncin.ncattrs():
+                fail = True
                 self.missing_attributes["errors"].append("%s is a required attribute" % acdd_key)
             else:
                 data[dir] = getattr(ncin, acdd_key)
                 try:
                     float(data[dir])
                 except ValueError:
+                    fail = True
                     self.missing_attributes["errors"].append(
                         "%s must be convertible to float type." % acdd_key
                     )
+        # Make sure longitudes are within +/-180 degrees
+        if not fail:
+            data["east"] = str((float(data["east"]) + 180.) % 360. - 180.)
+            data["west"] = str((float(data["west"]) + 180.) % 360. - 180.)
 
         return data
 
@@ -1657,6 +1664,10 @@ class Nc_to_mmd(object):
             platform : dict
                 A dictionary specifying the platform according to MMD
                 guidelines.
+            file_location : str
+                An alternative to the current file location. This can
+                be used if the NetCDF file will be moved after the
+                MMD file has been created.
 
         This list can be extended but requires some new code...
         """
@@ -1671,6 +1682,7 @@ class Nc_to_mmd(object):
         geographic_extent_rectangle = overrides.pop("geographic_extent_rectangle", None)
         dataset_citation = overrides.pop("dataset_citation", None)
         platform = overrides.pop("platform", None)
+        file_location = overrides.pop("file_location", os.path.dirname(self.netcdf_file))
 
         # Get ncin object from instance
         ncin = self.ncin
@@ -1836,7 +1848,7 @@ class Nc_to_mmd(object):
         # Set storage_information
         self.metadata["storage_information"] = {
             "file_name": os.path.basename(self.netcdf_file),
-            "file_location": os.path.dirname(self.netcdf_file),
+            "file_location": file_location,
             "file_format": "NetCDF-CF",
             "file_size": "%.2f" % self.file_size,
             "file_size_unit": "MB",
@@ -1912,9 +1924,12 @@ class Nc_to_mmd(object):
         else:
             ds.close()
         all_netcdf_variables = []
+        all_netcdf_std_names = {}
         for var in ncin.variables:
             if "standard_name" in ncin.variables[var].ncattrs():
-                all_netcdf_variables.append(ncin.variables[var].name)
+                var_name = ncin.variables[var].name
+                all_netcdf_variables.append(var_name)
+                all_netcdf_std_names[var_name] = ncin.variables[var].standard_name
         data_accesses = [
             {
                 "type": "OPeNDAP",
@@ -1947,8 +1962,8 @@ class Nc_to_mmd(object):
                 data_access["wms_layers"] = []
                 # Don't add variables containing these names to the wms layers
                 skip_layers = [
-                    "latitude",
-                    "longitude",
+                    "latitude", "lat",
+                    "longitude", "lon",
                     "angle",
                     "time",
                     "projection_x_coordinate",
@@ -1960,7 +1975,7 @@ class Nc_to_mmd(object):
                     # Set custom layer names
                     _layer_names = wms_layer_names
                 for w_layer in _layer_names:
-                    if any(skip_layer in w_layer for skip_layer in skip_layers):
+                    if w_layer in skip_layers or all_netcdf_std_names.get(w_layer) in skip_layers:
                         continue
                     data_access["wms_layers"].append(w_layer)
                 # Need to add get capabilities to the wms resource
