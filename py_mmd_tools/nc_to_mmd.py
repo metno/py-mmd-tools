@@ -1255,10 +1255,14 @@ class Nc_to_mmd(object):
                     self.missing_attributes["errors"].append(
                         "%s must be convertible to float type." % acdd_key
                     )
-        # Make sure longitudes are within +/-180 degrees
+        # Make sure longitudes are within +/-180 degrees, preserving original
+        # string precision to avoid floating-point representation artifacts.
         if not fail:
-            data["east"] = str((float(data["east"]) + 180.) % 360. - 180.)
-            data["west"] = str((float(data["west"]) + 180.) % 360. - 180.)
+            for key in ("east", "west"):
+                val_str = str(data[key])
+                decimal_places = len(val_str.split(".")[-1]) if "." in val_str else 0
+                normalized = (float(val_str) + 180.) % 360. - 180.
+                data[key] = str(round(normalized, decimal_places))
 
         return data
 
