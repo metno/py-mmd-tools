@@ -1,0 +1,719 @@
+---
+# Canonical ACDD 1.3 global attributes for dataset-level metadata.
+# requirement_level follows the ACDD 1.3 categories: Highly Recommended,
+# Recommended, and Suggested.
+
+# Highly Recommended
+title:
+  description: A short phrase or sentence describing the dataset. In many discovery systems the title is shown in search results, so it should be human readable and concise.
+  format: text
+  requirement_level: Highly Recommended
+  adc_requirement_level: Required
+  mmd_requirement_level: Required
+  help: No repetition allowed.
+summary:
+  description: A paragraph describing the dataset, analogous to an abstract for a paper.
+  format: text
+  requirement_level: Highly Recommended
+  adc_requirement_level: Required
+  mmd_requirement_level: Required
+  help: No repetition allowed.
+keywords:
+  description: A comma-separated list of keywords and/or phrases. Keywords may be common words or phrases, controlled vocabulary terms, or URIs for controlled vocabulary terms.
+  format: text
+  requirement_level: Highly Recommended
+  adc_requirement_level: Required
+  mmd_requirement_level: Required
+  help: Comma-separated list.
+  separator: ','
+Conventions:
+  description: A comma-separated list of the conventions followed by the dataset. Files following this version of ACDD should include the string ACDD-1.3.
+  format: text
+  requirement_level: Highly Recommended
+  adc_requirement_level: Required
+  mmd_requirement_level:
+  help: Comma-separated list.
+  separator: ','
+
+# Recommended
+id:
+  description: An identifier for the dataset, provided by and unique within its naming authority. The combination of naming_authority and id should be globally unique, though id may be globally unique by itself.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Conditional (Required if not hosted by MET)
+  mmd_requirement_level:
+  help: No repetition allowed.
+naming_authority:
+  description: The organisation that provides the initial id for the dataset. Reverse-DNS naming or a URI is recommended.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Conditional (Required if not hosted by MET)
+  mmd_requirement_level:
+  help: No repetition allowed.
+history:
+  description: Provides an audit trail for modifications to the original data. Well-behaved software should append a new line with date, time, user, program, and command arguments for each modification.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Required
+  mmd_requirement_level:
+  help: Free text; append new entries rather than replacing history.
+source:
+  description: The method of production of the original data. If model-generated, identify the model and version; if observational, characterise the observation source.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: No repetition allowed.
+processing_level:
+  description: A textual description of the processing or quality-control level of the data.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: No repetition allowed.
+comment:
+  description: Miscellaneous information about the data or methods used to produce it that is not captured elsewhere.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: Free text.
+acknowledgement:
+  description: A place to acknowledge support for the project that produced the data.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: Free text.
+license:
+  description: Provide the URL to a standard or specific licence, enter "Freely Distributed" or "None", or describe restrictions to data access and distribution in free text.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Required
+  mmd_requirement_level:
+  help: SPDX identifiers and URLs are recommended.
+standard_name_vocabulary:
+  description: The name and version of the controlled vocabulary from which variable standard_name values are taken.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: No repetition allowed.
+date_created:
+  description: The date on which this version of the data was created. The ISO 8601 extended date-time format is recommended.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Required
+  mmd_requirement_level:
+  help: Use ISO 8601 date or date-time.
+creator_name:
+  description: The name of the person, group, institution, or position principally responsible for creating the data.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Required
+  mmd_requirement_level: Required
+  help: Comma-separated list if multiple creators are provided.
+  separator: ','
+creator_email:
+  description: The email address of the creator principally responsible for creating the data.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Required
+  mmd_requirement_level: Required
+  help: Comma-separated list if multiple creators are provided.
+  separator: ','
+creator_url:
+  description: The URL of the creator principally responsible for creating the data.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: Comma-separated list if multiple creators are provided.
+  separator: ','
+institution:
+  description: The name of the institution principally responsible for originating the data.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: Comma-separated list if needed.
+  separator: ','
+project:
+  description: The name of the project or projects principally responsible for originating the data.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Required
+  mmd_requirement_level:
+  help: Comma-separated list.
+  separator: ','
+publisher_name:
+  description: The name of the person or organisation responsible for publishing the data file or product to users.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Required
+  mmd_requirement_level:
+  help: Comma-separated list if multiple publishers are provided.
+  separator: ','
+publisher_email:
+  description: The email address of the person or organisation responsible for publishing the data file or product to users.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Required
+  mmd_requirement_level:
+  help: Comma-separated list if multiple publishers are provided.
+  separator: ','
+publisher_url:
+  description: The URL of the person or organisation responsible for publishing the data file or product to users.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Required
+  mmd_requirement_level:
+  help: Comma-separated list if multiple publishers are provided.
+  separator: ','
+geospatial_bounds:
+  description: The dataset geospatial extent expressed as OGC Well-Known Text geometry. The default ACDD interpretation is 2D geometry in EPSG:4326.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Optional
+  mmd_requirement_level: Recommended
+  help: Use OGC WKT.
+geospatial_bounds_crs:
+  description: The coordinate reference system used for geospatial_bounds. EPSG coordinate reference systems are strongly recommended.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: Defaults to EPSG:4326 when omitted.
+  default: EPSG:4326
+geospatial_bounds_vertical_crs:
+  description: The vertical coordinate reference system used for the Z axis in geospatial_bounds when the horizontal CRS is 2-dimensional.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: Use an EPSG vertical CRS when relevant.
+geospatial_lat_min:
+  description: The southernmost latitude covered by the dataset.
+  format: float
+  requirement_level: Recommended
+  adc_requirement_level: Required
+  mmd_requirement_level: Required
+  help: Decimal degrees north.
+  limits:
+    min: -90
+    max: 90
+geospatial_lat_max:
+  description: The northernmost latitude covered by the dataset.
+  format: float
+  requirement_level: Recommended
+  adc_requirement_level: Required
+  mmd_requirement_level: Required
+  help: Decimal degrees north.
+  limits:
+    min: -90
+    max: 90
+geospatial_lon_min:
+  description: The westernmost longitude covered by the dataset.
+  format: float
+  requirement_level: Recommended
+  adc_requirement_level: Required
+  mmd_requirement_level: Required
+  help: Decimal degrees east.
+  limits:
+    min: -180
+    max: 180
+geospatial_lon_max:
+  description: The easternmost longitude covered by the dataset. If geospatial_lon_min is greater than geospatial_lon_max, the box crosses the longitude discontinuity meridian.
+  format: float
+  requirement_level: Recommended
+  adc_requirement_level: Required
+  mmd_requirement_level: Required
+  help: Decimal degrees east.
+  limits:
+    min: -180
+    max: 180
+geospatial_vertical_min:
+  description: The numerically smaller vertical limit of the dataset extent.
+  format: float
+  requirement_level: Recommended
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: Use together with geospatial_vertical_units and geospatial_vertical_positive.
+geospatial_vertical_max:
+  description: The numerically larger vertical limit of the dataset extent.
+  format: float
+  requirement_level: Recommended
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: Use together with geospatial_vertical_units and geospatial_vertical_positive.
+geospatial_vertical_positive:
+  description: The orientation of the vertical axis.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: Use one of the allowed values.
+  options:
+    - up
+    - down
+time_coverage_start:
+  description: The time of the first data point in the dataset.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Required
+  mmd_requirement_level: Required
+  help: Use ISO 8601 date or date-time.
+time_coverage_end:
+  description: The time of the last data point in the dataset.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Required
+  mmd_requirement_level:
+  help: Use ISO 8601 date or date-time.
+time_coverage_duration:
+  description: The duration of the dataset time coverage.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: Use ISO 8601 duration format.
+time_coverage_resolution:
+  description: The targeted time period between values in the dataset.
+  format: text
+  requirement_level: Recommended
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: Use ISO 8601 duration format.
+
+# Suggested
+creator_type:
+  description: Specifies the type of creator.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Required
+  mmd_requirement_level: Recommended
+  help: If omitted, the creator is assumed to be a person.
+  default: person
+  options:
+    - person
+    - group
+    - institution
+    - position
+creator_institution:
+  description: The institution of the creator. This should be supplied even if it matches the publisher institution.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Required
+  mmd_requirement_level: Recommended
+  help: Comma-separated list if multiple creators are provided.
+  separator: ','
+publisher_type:
+  description: Specifies the type of publisher.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: If omitted, the publisher is assumed to be a person.
+  default: person
+  options:
+    - person
+    - group
+    - institution
+    - position
+publisher_institution:
+  description: The institution that presented the data file or equivalent product to users.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Required
+  mmd_requirement_level:
+  help: Comma-separated list if multiple publishers are provided.
+  separator: ','
+program:
+  description: The overarching program or programs of which the dataset is a part.
+  format: text
+  requirement_level: Suggested
+  help: Comma-separated list.
+  separator: ','
+contributor_name:
+  description: The name of any individuals, projects, or institutions that contributed to creating the data.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level: Recommended
+  help: Comma-separated list.
+  separator: ','
+contributor_role:
+  description: The role of the contributors named in contributor_name. Multiple roles should be given in the same order as the contributor names.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level: Recommended
+  help: Comma-separated list aligned with contributor_name.
+  separator: ','
+geospatial_lat_units:
+  description: Units for the latitude axis described by geospatial_lat_min and geospatial_lat_max.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: degree_north is assumed if omitted.
+  default: degree_north
+geospatial_lat_resolution:
+  description: Information about the targeted spacing of points in latitude.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: Use a value with units, for example "0.1 degree".
+geospatial_lon_units:
+  description: Units for the longitude axis described by geospatial_lon_min and geospatial_lon_max.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: degree_east is assumed if omitted.
+  default: degree_east
+geospatial_lon_resolution:
+  description: Information about the targeted spacing of points in longitude.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: Use a value with units, for example "0.1 degree".
+geospatial_vertical_units:
+  description: Units for the vertical axis described by geospatial_vertical_min and geospatial_vertical_max.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: Use recognised units or an EPSG vertical CRS where appropriate.
+geospatial_vertical_resolution:
+  description: Information about the targeted vertical spacing of points.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: Use a value with units, for example "25 meters".
+date_modified:
+  description: The date on which the data was last modified.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: Use ISO 8601 date or date-time.
+date_issued:
+  description: The date on which the data, including all modifications, was formally issued.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: Use ISO 8601 date or date-time.
+date_metadata_modified:
+  description: The date on which the metadata was last modified.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: Use ISO 8601 date or date-time.
+product_version:
+  description: The version identifier of the data file or product as assigned by the data creator.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: No repetition allowed.
+keywords_vocabulary:
+  description: The unique name or identifier of the controlled vocabulary used by the keywords attribute.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Required
+  mmd_requirement_level: Required
+  help: Comma-separated list if more than one vocabulary is used.
+  separator: ','
+platform:
+  description: The platform or platforms that supported the sensor data used to create the dataset.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: Comma-separated list.
+  separator: ','
+platform_vocabulary:
+  description: The controlled vocabulary used for the platform names.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Conditional (Required if platform is provided)
+  mmd_requirement_level:
+  help: Comma-separated list if more than one vocabulary is used.
+  separator: ','
+instrument:
+  description: The contributing instrument or instruments or sensors used to create the dataset.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: Comma-separated list.
+  separator: ','
+instrument_vocabulary:
+  description: The controlled vocabulary used for the instrument names.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Conditional (Required if instrument is provided)
+  mmd_requirement_level:
+  help: Comma-separated list if more than one vocabulary is used.
+  separator: ','
+cdm_data_type:
+  description: The data type derived from Unidata's Common Data Model scientific data types as understood by THREDDS.
+  format: text
+  requirement_level: Suggested
+  help: No repetition allowed.
+metadata_link:
+  description: A URL that gives the location of more complete metadata. A persistent URL is recommended.
+  format: text
+  requirement_level: Suggested
+  help: No repetition allowed.
+references:
+  description: Published or web-based references that describe the data or the methods used to produce it.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  help: Comma-separated list of URIs such as URLs or DOIs.
+  separator: ','
+
+# MET Norway / ADC extensions (ACDD_ext)
+title_no:
+  description: A short phrase or sentence describing the dataset in Norwegian.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Conditional (Required if data is indexed in Geonorge)
+  mmd_requirement_level: Required
+  acdd_ext: true
+  help: Norwegian translation of title.
+
+summary_no:
+  description: A paragraph describing the dataset in Norwegian, analogous to an abstract.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Conditional (Required if data is indexed in Geonorge)
+  mmd_requirement_level: Required
+  acdd_ext: true
+  help: Norwegian translation of summary.
+
+collection:
+  description: A comma-separated list of tags from a controlled vocabulary identifying which collection(s) the dataset belongs to. Used to display data in appropriate portals.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level: Required
+  acdd_ext: true
+  help: Use values from https://vocab.met.no/mmd/Collection_Keywords. Discuss with ADC support before use.
+  separator: ','
+
+iso_topic_category:
+  description: ISO 19115 topic category for the dataset.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level: Required
+  acdd_ext: true
+  help: Use values from https://vocab.met.no/mmd/ISO_Topic_Category.
+  separator: ','
+  options:
+    - farming
+    - biota
+    - boundaries
+    - climatologyMeteorologyAtmosphere
+    - economy
+    - elevation
+    - environment
+    - geoscientificinformation
+    - health
+    - imageryBaseMapsEarthCover
+    - intelligenceMilitary
+    - inlandWaters
+    - location
+    - oceans
+    - planningCadastre
+    - society
+    - structure
+    - transportation
+    - utilitiesCommunications
+    - Not available
+
+activity_type:
+  description: The nature of the data generation process (e.g. simulation, in situ observation, remote sensing). Not the observation platform itself.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  acdd_ext: true
+  help: Use values from https://vocab.met.no/mmd/Activity_Type.
+  separator: ';'
+  options:
+    - Aircraft
+    - Space Borne Instrument
+    - Numerical Simulation
+    - Climate Indicator
+    - In Situ Land-based station
+    - In Situ Ship-based station
+    - In Situ Ocean fixed station
+    - In Situ Ocean moving station
+    - In Situ Ice-based station
+    - Interview/Questionnaire
+    - Maps/Charts/Photographs
+    - Not available
+
+operational_status:
+  description: The current operational status of the product.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  acdd_ext: true
+  help: Use values from https://vocab.met.no/mmd/Operational_Status.
+  options:
+    - Operational
+    - Pre-Operational
+    - Experimental
+    - Scientific
+    - Not available
+
+quality_control:
+  description: The level of quality control performed on the dataset expressed through a controlled vocabulary.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  acdd_ext: true
+  help: Use values from https://vocab.met.no/mmd/Quality_Control.
+
+spatial_representation:
+  description: The spatial representation type of the dataset.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  acdd_ext: true
+  help: Use values from the MMD controlled vocabulary.
+
+wigosId:
+  description: WMO WIGOS identifier for the platform generating data, if available.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  acdd_ext: true
+  help: Use the form "0-20000-0-01002". Station name and URL are extracted from the WMO OSCAR catalogue.
+
+dataset_doi:
+  description: The DOI for the dataset, if known at publication time.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  acdd_ext: true
+  help: Provide the full DOI URI.
+
+creator_pid:
+  description: Persistent identifier of the creator. Use ORCID for persons, ROR for organisations.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  acdd_ext: true
+  help: Comma-separated list aligned with creator_name.
+  separator: ','
+
+creator_institution_pid:
+  description: Persistent identifier of the creator institution. ROR identifiers are recommended.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  acdd_ext: true
+  help: Comma-separated list aligned with creator_name.
+  separator: ','
+
+contributor_type:
+  description: Specifies the type of contributor.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level: Recommended
+  acdd_ext: true
+  help: Comma-separated list aligned with contributor_name.
+  separator: ','
+  options:
+    - person
+    - group
+    - institution
+    - position
+
+contributor_email:
+  description: Email address of the contributor.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Conditional (Required if contributor_name is provided)
+  mmd_requirement_level: Recommended
+  acdd_ext: true
+  help: Comma-separated list aligned with contributor_name.
+  separator: ','
+
+contributor_institution:
+  description: Institution of the contributor.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Conditional (Required if contributor_name is provided)
+  mmd_requirement_level: Recommended
+  acdd_ext: true
+  help: Comma-separated list aligned with contributor_name. Use long names.
+  separator: ','
+
+contributor_url:
+  description: URL of the contributor. ORCID is recommended for persons.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  acdd_ext: true
+  help: Comma-separated list aligned with contributor_name.
+  separator: ','
+
+contributor_pid:
+  description: Persistent identifier of the contributor. Use ORCID for persons, ROR for organisations.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  acdd_ext: true
+  help: Comma-separated list aligned with contributor_name.
+  separator: ','
+
+contributor_institution_pid:
+  description: Persistent identifier of the contributor institution. ROR identifiers are recommended.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  acdd_ext: true
+  help: Comma-separated list aligned with contributor_name.
+  separator: ','
+
+publisher_pid:
+  description: Persistent identifier of the publisher. ROR identifiers are recommended.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  acdd_ext: true
+  help: No repetition allowed.
+
+publisher_institution_pid:
+  description: Persistent identifier of the publisher institution. ROR identifiers are recommended.
+  format: text
+  requirement_level: Suggested
+  adc_requirement_level: Optional
+  mmd_requirement_level:
+  acdd_ext: true
+  help: No repetition allowed.

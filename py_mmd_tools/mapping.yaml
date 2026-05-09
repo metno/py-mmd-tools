@@ -1,0 +1,106 @@
+# ACDD 1.3, MET Norway ACDD extensions, and CF attributes mapped to MMD.
+# Use slash-separated MMD element paths. A null value (~) means there is no
+# direct MMD equivalent for the attribute.
+
+# Highly Recommended
+title: title
+summary: abstract
+keywords: keywords/keyword
+Conventions: ~
+
+# Recommended
+id: metadata_identifier
+naming_authority: metadata_identifier
+history: ~
+source: activity_type
+processing_level: operational_status
+comment: ~
+acknowledgement: ~
+license: use_constraint/identifier
+standard_name_vocabulary: ~
+date_created: dataset_citation/publication_date
+creator_name: personnel/name
+creator_email: personnel/email
+creator_url: ~
+institution: data_center/data_center_name
+project: project
+publisher_name: data_center/data_center_name
+publisher_email: ~
+publisher_url: data_center/data_center_url
+geospatial_bounds: geographic_extent/polygon
+geospatial_bounds_crs: ~
+geospatial_bounds_vertical_crs: ~
+geospatial_lat_min: geographic_extent/rectangle/south
+geospatial_lat_max: geographic_extent/rectangle/north
+geospatial_lon_min: geographic_extent/rectangle/west
+geospatial_lon_max: geographic_extent/rectangle/east
+geospatial_vertical_min: ~
+geospatial_vertical_max: ~
+geospatial_vertical_positive: ~
+time_coverage_start: temporal_extent/start_date
+time_coverage_end: temporal_extent/end_date
+time_coverage_duration: ~
+time_coverage_resolution: ~
+
+# Suggested
+creator_type: personnel/type
+creator_institution: personnel/organisation
+publisher_type: ~
+publisher_institution: ~
+program: ~
+contributor_name: personnel/name
+contributor_role: personnel/role
+geospatial_lat_units: ~
+geospatial_lat_resolution: ~
+geospatial_lon_units: ~
+geospatial_lon_resolution: ~
+geospatial_vertical_units: ~
+geospatial_vertical_resolution: ~
+date_modified: last_metadata_update/update/datetime
+date_issued: ~
+date_metadata_modified: last_metadata_update/update/datetime
+product_version: ~
+keywords_vocabulary: keywords/vocabulary
+platform: platform/short_name
+platform_vocabulary: platform/resource
+instrument: platform/instrument/short_name
+instrument_vocabulary: platform/instrument/resource
+cdm_data_type: ~
+metadata_link: dataset_citation/url
+references: related_information/resource
+
+# ACDD extensions used by MET Norway
+alternate_identifier: alternate_identifier/alternate_identifier
+title_no: title/title
+title_lang: title/lang
+summary_no: abstract/abstract
+summary_lang: abstract/lang
+dataset_production_status: dataset_production_status
+operational_status: operational_status
+access_constraint: access_constraint
+creator_role: personnel/role
+contributor_email: personnel/email
+contributor_institution: personnel/organisation
+related_dataset: related_dataset
+iso_topic_category: iso_topic_category
+quality_control: quality_control
+spatial_representation: spatial_representation
+activity_type: activity_type
+doi: dataset_citation/doi
+
+# CF global attributes
+featureType: ~
+external_variables: ~
+
+# ADC_ext PID and collection attributes
+collection: collection
+wigosId: related_information/resource
+dataset_doi: dataset_citation/doi
+creator_pid: ~
+creator_institution_pid: ~
+contributor_type: personnel/type
+contributor_url: ~
+contributor_pid: ~
+contributor_institution_pid: ~
+publisher_pid: ~
+publisher_institution_pid: ~
