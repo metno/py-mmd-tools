@@ -1192,6 +1192,27 @@ class TestNC2MMD(unittest.TestCase):
         self.assertIsInstance(value["north"], str)
         self.assertIsInstance(value["south"], str)
 
+    def test_geographic_extent_no_float_precision_artifacts(self):
+        """Test that longitude normalization does not introduce floating-point
+        precision artifacts. E.g., input '41.76' should remain '41.76', not
+        become '41.75999999999999'.
+        """
+        mmd_yaml = yaml.load(
+            resource_string('py_mmd_tools', 'mmd_elements.yaml'), Loader=yaml.FullLoader
+        )
+        md = Nc_to_mmd(os.path.abspath('tests/data/reference_nc.nc'), check_only=True)
+        ncin = Dataset(md.netcdf_file, "w", diskless=True)
+        ncin.geospatial_lat_max = "60.158733"
+        ncin.geospatial_lat_min = "59.78492"
+        ncin.geospatial_lon_max = "41.76"
+        ncin.geospatial_lon_min = "10.5"
+        value = md.get_geographic_extent_rectangle(
+            mmd_yaml['geographic_extent']['rectangle'], ncin)
+        self.assertEqual(value["east"], "41.76")
+        self.assertEqual(value["west"], "10.5")
+        self.assertEqual(value["north"], "60.158733")
+        self.assertEqual(value["south"], "59.78492")
+
     def test_geographic_extent_rectangle_is_floatable(self):
         """ Test that the provided geospatial coordinates can be
         converted to float.
