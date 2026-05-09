@@ -488,6 +488,7 @@ title_no:
   requirement_level: Suggested
   adc_requirement_level: Conditional (Required if data is indexed in Geonorge)
   mmd_requirement_level: Required
+  acdd_ext: true
   help: Norwegian translation of title.
 
 summary_no:
@@ -496,6 +497,7 @@ summary_no:
   requirement_level: Suggested
   adc_requirement_level: Conditional (Required if data is indexed in Geonorge)
   mmd_requirement_level: Required
+  acdd_ext: true
   help: Norwegian translation of summary.
 
 collection:
@@ -504,6 +506,7 @@ collection:
   requirement_level: Suggested
   adc_requirement_level: Optional
   mmd_requirement_level: Required
+  acdd_ext: true
   help: Use values from https://vocab.met.no/mmd/Collection_Keywords. Discuss with ADC support before use.
   separator: ','
 
@@ -513,6 +516,7 @@ iso_topic_category:
   requirement_level: Suggested
   adc_requirement_level: Optional
   mmd_requirement_level: Required
+  acdd_ext: true
   help: Use values from https://vocab.met.no/mmd/ISO_Topic_Category.
   separator: ','
   options:
@@ -543,6 +547,7 @@ activity_type:
   requirement_level: Suggested
   adc_requirement_level: Optional
   mmd_requirement_level:
+  acdd_ext: true
   help: Use values from https://vocab.met.no/mmd/Activity_Type.
   separator: ';'
   options:
@@ -565,6 +570,7 @@ operational_status:
   requirement_level: Suggested
   adc_requirement_level: Optional
   mmd_requirement_level:
+  acdd_ext: true
   help: Use values from https://vocab.met.no/mmd/Operational_Status.
   options:
     - Operational
@@ -579,6 +585,7 @@ quality_control:
   requirement_level: Suggested
   adc_requirement_level: Optional
   mmd_requirement_level:
+  acdd_ext: true
   help: Use values from https://vocab.met.no/mmd/Quality_Control.
 
 spatial_representation:
@@ -587,6 +594,7 @@ spatial_representation:
   requirement_level: Suggested
   adc_requirement_level: Optional
   mmd_requirement_level:
+  acdd_ext: true
   help: Use values from the MMD controlled vocabulary.
 
 wigosId:
@@ -595,6 +603,7 @@ wigosId:
   requirement_level: Suggested
   adc_requirement_level: Optional
   mmd_requirement_level:
+  acdd_ext: true
   help: Use the form "0-20000-0-01002". Station name and URL are extracted from the WMO OSCAR catalogue.
 
 dataset_doi:
@@ -603,6 +612,7 @@ dataset_doi:
   requirement_level: Suggested
   adc_requirement_level: Optional
   mmd_requirement_level:
+  acdd_ext: true
   help: Provide the full DOI URI.
 
 creator_pid:
@@ -611,6 +621,7 @@ creator_pid:
   requirement_level: Suggested
   adc_requirement_level: Optional
   mmd_requirement_level:
+  acdd_ext: true
   help: Comma-separated list aligned with creator_name.
   separator: ','
 
@@ -620,6 +631,7 @@ creator_institution_pid:
   requirement_level: Suggested
   adc_requirement_level: Optional
   mmd_requirement_level:
+  acdd_ext: true
   help: Comma-separated list aligned with creator_name.
   separator: ','
 
@@ -629,6 +641,7 @@ contributor_type:
   requirement_level: Suggested
   adc_requirement_level: Optional
   mmd_requirement_level: Recommended
+  acdd_ext: true
   help: Comma-separated list aligned with contributor_name.
   separator: ','
   options:
@@ -643,6 +656,7 @@ contributor_email:
   requirement_level: Suggested
   adc_requirement_level: Conditional (Required if contributor_name is provided)
   mmd_requirement_level: Recommended
+  acdd_ext: true
   help: Comma-separated list aligned with contributor_name.
   separator: ','
 
@@ -652,6 +666,7 @@ contributor_institution:
   requirement_level: Suggested
   adc_requirement_level: Conditional (Required if contributor_name is provided)
   mmd_requirement_level: Recommended
+  acdd_ext: true
   help: Comma-separated list aligned with contributor_name. Use long names.
   separator: ','
 
@@ -661,6 +676,7 @@ contributor_url:
   requirement_level: Suggested
   adc_requirement_level: Optional
   mmd_requirement_level:
+  acdd_ext: true
   help: Comma-separated list aligned with contributor_name.
   separator: ','
 
@@ -670,6 +686,7 @@ contributor_pid:
   requirement_level: Suggested
   adc_requirement_level: Optional
   mmd_requirement_level:
+  acdd_ext: true
   help: Comma-separated list aligned with contributor_name.
   separator: ','
 
@@ -679,6 +696,7 @@ contributor_institution_pid:
   requirement_level: Suggested
   adc_requirement_level: Optional
   mmd_requirement_level:
+  acdd_ext: true
   help: Comma-separated list aligned with contributor_name.
   separator: ','
 
@@ -688,6 +706,7 @@ publisher_pid:
   requirement_level: Suggested
   adc_requirement_level: Optional
   mmd_requirement_level:
+  acdd_ext: true
   help: No repetition allowed.
 
 publisher_institution_pid:
@@ -696,4 +715,5 @@ publisher_institution_pid:
   requirement_level: Suggested
   adc_requirement_level: Optional
   mmd_requirement_level:
+  acdd_ext: true
   help: No repetition allowed.
