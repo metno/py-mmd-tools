@@ -9,18 +9,21 @@ title:
   format: text
   requirement_level: Highly Recommended
   adc_requirement_level: Required
+  mmd_requirement_level: Required
   help: No repetition allowed.
 summary:
   description: A paragraph describing the dataset, analogous to an abstract for a paper.
   format: text
   requirement_level: Highly Recommended
   adc_requirement_level: Required
+  mmd_requirement_level: Required
   help: No repetition allowed.
 keywords:
   description: A comma-separated list of keywords and/or phrases. Keywords may be common words or phrases, controlled vocabulary terms, or URIs for controlled vocabulary terms.
   format: text
   requirement_level: Highly Recommended
   adc_requirement_level: Required
+  mmd_requirement_level: Required
   help: Comma-separated list.
   separator: ','
 Conventions:
@@ -28,6 +31,7 @@ Conventions:
   format: text
   requirement_level: Highly Recommended
   adc_requirement_level: Required
+  mmd_requirement_level:
   help: Comma-separated list.
   separator: ','
 
@@ -37,66 +41,77 @@ id:
   format: text
   requirement_level: Recommended
   adc_requirement_level: Conditional (Required if not hosted by MET)
+  mmd_requirement_level:
   help: No repetition allowed.
 naming_authority:
   description: The organisation that provides the initial id for the dataset. Reverse-DNS naming or a URI is recommended.
   format: text
   requirement_level: Recommended
   adc_requirement_level: Conditional (Required if not hosted by MET)
+  mmd_requirement_level:
   help: No repetition allowed.
 history:
   description: Provides an audit trail for modifications to the original data. Well-behaved software should append a new line with date, time, user, program, and command arguments for each modification.
   format: text
   requirement_level: Recommended
   adc_requirement_level: Required
+  mmd_requirement_level:
   help: Free text; append new entries rather than replacing history.
 source:
   description: The method of production of the original data. If model-generated, identify the model and version; if observational, characterise the observation source.
   format: text
   requirement_level: Recommended
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: No repetition allowed.
 processing_level:
   description: A textual description of the processing or quality-control level of the data.
   format: text
   requirement_level: Recommended
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: No repetition allowed.
 comment:
   description: Miscellaneous information about the data or methods used to produce it that is not captured elsewhere.
   format: text
   requirement_level: Recommended
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Free text.
 acknowledgement:
   description: A place to acknowledge support for the project that produced the data.
   format: text
   requirement_level: Recommended
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Free text.
 license:
   description: Provide the URL to a standard or specific licence, enter "Freely Distributed" or "None", or describe restrictions to data access and distribution in free text.
   format: text
   requirement_level: Recommended
   adc_requirement_level: Required
+  mmd_requirement_level:
   help: SPDX identifiers and URLs are recommended.
 standard_name_vocabulary:
   description: The name and version of the controlled vocabulary from which variable standard_name values are taken.
   format: text
   requirement_level: Recommended
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: No repetition allowed.
 date_created:
   description: The date on which this version of the data was created. The ISO 8601 extended date-time format is recommended.
   format: text
   requirement_level: Recommended
   adc_requirement_level: Required
+  mmd_requirement_level:
   help: Use ISO 8601 date or date-time.
 creator_name:
   description: The name of the person, group, institution, or position principally responsible for creating the data.
   format: text
   requirement_level: Recommended
   adc_requirement_level: Required
+  mmd_requirement_level: Required
   help: Comma-separated list if multiple creators are provided.
   separator: ','
 creator_email:
@@ -104,6 +119,7 @@ creator_email:
   format: text
   requirement_level: Recommended
   adc_requirement_level: Required
+  mmd_requirement_level: Required
   help: Comma-separated list if multiple creators are provided.
   separator: ','
 creator_url:
@@ -111,6 +127,7 @@ creator_url:
   format: text
   requirement_level: Recommended
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Comma-separated list if multiple creators are provided.
   separator: ','
 institution:
@@ -118,6 +135,7 @@ institution:
   format: text
   requirement_level: Recommended
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Comma-separated list if needed.
   separator: ','
 project:
@@ -125,6 +143,7 @@ project:
   format: text
   requirement_level: Recommended
   adc_requirement_level: Required
+  mmd_requirement_level:
   help: Comma-separated list.
   separator: ','
 publisher_name:
@@ -132,6 +151,7 @@ publisher_name:
   format: text
   requirement_level: Recommended
   adc_requirement_level: Required
+  mmd_requirement_level:
   help: Comma-separated list if multiple publishers are provided.
   separator: ','
 publisher_email:
@@ -139,6 +159,7 @@ publisher_email:
   format: text
   requirement_level: Recommended
   adc_requirement_level: Required
+  mmd_requirement_level:
   help: Comma-separated list if multiple publishers are provided.
   separator: ','
 publisher_url:
@@ -146,6 +167,7 @@ publisher_url:
   format: text
   requirement_level: Recommended
   adc_requirement_level: Required
+  mmd_requirement_level:
   help: Comma-separated list if multiple publishers are provided.
   separator: ','
 geospatial_bounds:
@@ -153,12 +175,14 @@ geospatial_bounds:
   format: text
   requirement_level: Recommended
   adc_requirement_level: Optional
+  mmd_requirement_level: Recommended
   help: Use OGC WKT.
 geospatial_bounds_crs:
   description: The coordinate reference system used for geospatial_bounds. EPSG coordinate reference systems are strongly recommended.
   format: text
   requirement_level: Recommended
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Defaults to EPSG:4326 when omitted.
   default: EPSG:4326
 geospatial_bounds_vertical_crs:
@@ -166,12 +190,14 @@ geospatial_bounds_vertical_crs:
   format: text
   requirement_level: Recommended
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Use an EPSG vertical CRS when relevant.
 geospatial_lat_min:
   description: The southernmost latitude covered by the dataset.
   format: float
   requirement_level: Recommended
   adc_requirement_level: Required
+  mmd_requirement_level: Required
   help: Decimal degrees north.
   limits:
     min: -90
@@ -181,6 +207,7 @@ geospatial_lat_max:
   format: float
   requirement_level: Recommended
   adc_requirement_level: Required
+  mmd_requirement_level: Required
   help: Decimal degrees north.
   limits:
     min: -90
@@ -190,6 +217,7 @@ geospatial_lon_min:
   format: float
   requirement_level: Recommended
   adc_requirement_level: Required
+  mmd_requirement_level: Required
   help: Decimal degrees east.
   limits:
     min: -180
@@ -199,6 +227,7 @@ geospatial_lon_max:
   format: float
   requirement_level: Recommended
   adc_requirement_level: Required
+  mmd_requirement_level: Required
   help: Decimal degrees east.
   limits:
     min: -180
@@ -208,18 +237,21 @@ geospatial_vertical_min:
   format: float
   requirement_level: Recommended
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Use together with geospatial_vertical_units and geospatial_vertical_positive.
 geospatial_vertical_max:
   description: The numerically larger vertical limit of the dataset extent.
   format: float
   requirement_level: Recommended
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Use together with geospatial_vertical_units and geospatial_vertical_positive.
 geospatial_vertical_positive:
   description: The orientation of the vertical axis.
   format: text
   requirement_level: Recommended
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Use one of the allowed values.
   options:
     - up
@@ -229,24 +261,28 @@ time_coverage_start:
   format: text
   requirement_level: Recommended
   adc_requirement_level: Required
+  mmd_requirement_level: Required
   help: Use ISO 8601 date or date-time.
 time_coverage_end:
   description: The time of the last data point in the dataset.
   format: text
   requirement_level: Recommended
   adc_requirement_level: Required
+  mmd_requirement_level:
   help: Use ISO 8601 date or date-time.
 time_coverage_duration:
   description: The duration of the dataset time coverage.
   format: text
   requirement_level: Recommended
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Use ISO 8601 duration format.
 time_coverage_resolution:
   description: The targeted time period between values in the dataset.
   format: text
   requirement_level: Recommended
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Use ISO 8601 duration format.
 
 # Suggested
@@ -255,6 +291,7 @@ creator_type:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Required
+  mmd_requirement_level: Recommended
   help: If omitted, the creator is assumed to be a person.
   default: person
   options:
@@ -267,6 +304,7 @@ creator_institution:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Required
+  mmd_requirement_level: Recommended
   help: Comma-separated list if multiple creators are provided.
   separator: ','
 publisher_type:
@@ -274,6 +312,7 @@ publisher_type:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: If omitted, the publisher is assumed to be a person.
   default: person
   options:
@@ -286,6 +325,7 @@ publisher_institution:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Required
+  mmd_requirement_level:
   help: Comma-separated list if multiple publishers are provided.
   separator: ','
 program:
@@ -299,6 +339,7 @@ contributor_name:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level: Recommended
   help: Comma-separated list.
   separator: ','
 contributor_role:
@@ -306,6 +347,7 @@ contributor_role:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level: Recommended
   help: Comma-separated list aligned with contributor_name.
   separator: ','
 geospatial_lat_units:
@@ -313,6 +355,7 @@ geospatial_lat_units:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: degree_north is assumed if omitted.
   default: degree_north
 geospatial_lat_resolution:
@@ -320,12 +363,14 @@ geospatial_lat_resolution:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Use a value with units, for example "0.1 degree".
 geospatial_lon_units:
   description: Units for the longitude axis described by geospatial_lon_min and geospatial_lon_max.
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: degree_east is assumed if omitted.
   default: degree_east
 geospatial_lon_resolution:
@@ -333,48 +378,56 @@ geospatial_lon_resolution:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Use a value with units, for example "0.1 degree".
 geospatial_vertical_units:
   description: Units for the vertical axis described by geospatial_vertical_min and geospatial_vertical_max.
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Use recognised units or an EPSG vertical CRS where appropriate.
 geospatial_vertical_resolution:
   description: Information about the targeted vertical spacing of points.
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Use a value with units, for example "25 meters".
 date_modified:
   description: The date on which the data was last modified.
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Use ISO 8601 date or date-time.
 date_issued:
   description: The date on which the data, including all modifications, was formally issued.
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Use ISO 8601 date or date-time.
 date_metadata_modified:
   description: The date on which the metadata was last modified.
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Use ISO 8601 date or date-time.
 product_version:
   description: The version identifier of the data file or product as assigned by the data creator.
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: No repetition allowed.
 keywords_vocabulary:
   description: The unique name or identifier of the controlled vocabulary used by the keywords attribute.
   format: text
   requirement_level: Suggested
   adc_requirement_level: Required
+  mmd_requirement_level: Required
   help: Comma-separated list if more than one vocabulary is used.
   separator: ','
 platform:
@@ -382,6 +435,7 @@ platform:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Comma-separated list.
   separator: ','
 platform_vocabulary:
@@ -389,6 +443,7 @@ platform_vocabulary:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Conditional (Required if platform is provided)
+  mmd_requirement_level:
   help: Comma-separated list if more than one vocabulary is used.
   separator: ','
 instrument:
@@ -396,6 +451,7 @@ instrument:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Comma-separated list.
   separator: ','
 instrument_vocabulary:
@@ -403,6 +459,7 @@ instrument_vocabulary:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Conditional (Required if instrument is provided)
+  mmd_requirement_level:
   help: Comma-separated list if more than one vocabulary is used.
   separator: ','
 cdm_data_type:
@@ -420,6 +477,7 @@ references:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Comma-separated list of URIs such as URLs or DOIs.
   separator: ','
 
@@ -429,6 +487,7 @@ title_no:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Conditional (Required if data is indexed in Geonorge)
+  mmd_requirement_level: Required
   help: Norwegian translation of title.
 
 summary_no:
@@ -436,6 +495,7 @@ summary_no:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Conditional (Required if data is indexed in Geonorge)
+  mmd_requirement_level: Required
   help: Norwegian translation of summary.
 
 collection:
@@ -443,6 +503,7 @@ collection:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level: Required
   help: Use values from https://vocab.met.no/mmd/Collection_Keywords. Discuss with ADC support before use.
   separator: ','
 
@@ -451,6 +512,7 @@ iso_topic_category:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level: Required
   help: Use values from https://vocab.met.no/mmd/ISO_Topic_Category.
   separator: ','
   options:
@@ -480,6 +542,7 @@ activity_type:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Use values from https://vocab.met.no/mmd/Activity_Type.
   separator: ';'
   options:
@@ -501,6 +564,7 @@ operational_status:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Use values from https://vocab.met.no/mmd/Operational_Status.
   options:
     - Operational
@@ -514,6 +578,7 @@ quality_control:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Use values from https://vocab.met.no/mmd/Quality_Control.
 
 spatial_representation:
@@ -521,6 +586,7 @@ spatial_representation:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Use values from the MMD controlled vocabulary.
 
 wigosId:
@@ -528,6 +594,7 @@ wigosId:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Use the form "0-20000-0-01002". Station name and URL are extracted from the WMO OSCAR catalogue.
 
 dataset_doi:
@@ -535,6 +602,7 @@ dataset_doi:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Provide the full DOI URI.
 
 creator_pid:
@@ -542,6 +610,7 @@ creator_pid:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Comma-separated list aligned with creator_name.
   separator: ','
 
@@ -550,6 +619,7 @@ creator_institution_pid:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Comma-separated list aligned with creator_name.
   separator: ','
 
@@ -558,6 +628,7 @@ contributor_type:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level: Recommended
   help: Comma-separated list aligned with contributor_name.
   separator: ','
   options:
@@ -571,6 +642,7 @@ contributor_email:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Conditional (Required if contributor_name is provided)
+  mmd_requirement_level: Recommended
   help: Comma-separated list aligned with contributor_name.
   separator: ','
 
@@ -579,6 +651,7 @@ contributor_institution:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Conditional (Required if contributor_name is provided)
+  mmd_requirement_level: Recommended
   help: Comma-separated list aligned with contributor_name. Use long names.
   separator: ','
 
@@ -587,6 +660,7 @@ contributor_url:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Comma-separated list aligned with contributor_name.
   separator: ','
 
@@ -595,6 +669,7 @@ contributor_pid:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Comma-separated list aligned with contributor_name.
   separator: ','
 
@@ -603,6 +678,7 @@ contributor_institution_pid:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: Comma-separated list aligned with contributor_name.
   separator: ','
 
@@ -611,6 +687,7 @@ publisher_pid:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: No repetition allowed.
 
 publisher_institution_pid:
@@ -618,4 +695,5 @@ publisher_institution_pid:
   format: text
   requirement_level: Suggested
   adc_requirement_level: Optional
+  mmd_requirement_level:
   help: No repetition allowed.
