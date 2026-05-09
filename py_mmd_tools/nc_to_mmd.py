@@ -1612,6 +1612,20 @@ class Nc_to_mmd(object):
 
         return data
 
+    def well_formed_parent(self, parent):
+        if ":" not in parent:
+            raise ValueError(
+                "parent must be composed as <%s>:<uuid>" % self.ACDD_NAMING_AUTH
+            )
+        nauth, uuid = parent.split(":")
+        if nauth not in self.VALID_NAMING_AUTHORITIES:
+            raise ValueError(
+                "%s ACDD attribute %s is not valid" % (self.ACDD_NAMING_AUTH, nauth)
+            )
+        if not Nc_to_mmd.is_valid_uuid(uuid):
+            raise ValueError("UUID part of the parent ID is not valid")
+        return True
+
     def to_mmd(
         self,
         collection=None,
@@ -1763,21 +1777,36 @@ class Nc_to_mmd(object):
         )
         # Add parent from function kwarg
         if parent is not None:
-            if ":" not in parent:
-                raise ValueError("parent must be composed as <%s>:<uuid>" % self.ACDD_NAMING_AUTH)
-            nauth, uuid = parent.split(":")
-            if nauth not in self.VALID_NAMING_AUTHORITIES:
-                raise ValueError(
-                    "%s ACDD attribute %s is not valid" % (self.ACDD_NAMING_AUTH, nauth)
-                )
-            if not Nc_to_mmd.is_valid_uuid(uuid):
-                raise ValueError("UUID part of the parent ID is not valid")
-            self.metadata["related_dataset"].append(
-                {
-                    "id": parent,
-                    "relation_type": "parent",
-                }
-            )
+            if self.well_formed_parent(parent):
+                rel_dat = self.metadata["related_dataset"]
+                if (
+                    rel_dat and "parent" == rel_dat[0]["relation_type"]
+                ):
+                    parent_from_nc_file = rel_dat[0]["id"]
+                    self.missing_attributes["warnings"].append(
+                        "Parent identifier already provided "
+                        "in the netcdf file: %s" % (parent_from_nc_file)
+                    )
+                    if self.well_formed_parent(parent_from_nc_file):
+                        if parent_from_nc_file.split(":")[1] != parent.split(":")[1]:
+                            self.missing_attributes["warnings"].append(
+                                "The passed parent UUID %s does not match "
+                                "the one provided in the netcdf file "
+                                "(%s). Using the one provided as keyword argument."
+                                % (parent, parent_from_nc_file)
+                            )
+                        else:
+                            self.missing_attributes["warnings"].append(
+                                "The passed parent id %s is already provided in the netcdf file,  "
+                                "no need to update it" % (parent)
+                            )
+                else:
+                    self.metadata["related_dataset"].append(
+                        {
+                            "id": parent,
+                            "relation_type": "parent",
+                        }
+                    )
 
         self.metadata["related_information"] = self.get_related_information(
             mmd_yaml.pop("related_information"), ncin
