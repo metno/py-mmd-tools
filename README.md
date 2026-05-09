@@ -11,6 +11,26 @@ Python tools for MMD. The package contains tools for generating MMD files from n
 
 generates an output MMD file called `reference_nc.xml`.
 
+In addition, the `mmd_operations` module currently contains a tool to move data
+files and accordingly update MMD files registered in online catalogs. This
+module can be extended with other necessary data management tools. Moving
+can be done with the `move_data` script, e.g.:
+
+```
+move_data /path/to/files-from-git/mmd-xml-<env> /path/to/old/storage /path/to/new/storage "%Y/%m/%d/*.nc" --dmci-update
+```
+
+The two last arguments provide a search pattern in case the netCDF files are
+stored in subfolders, and to directly updated the metadata catalog,
+respectively. If --dmci-update is not provided, local MMD files will not be
+pushed to the catalog.
+
+The results of the `move_data` script will be logged to a file, which by
+default is named `move_data.log`. You can change the filename through the
+option `--log-file`. Due to a bug in pycsw, the file may contain warnings about
+not found datasets. This can be handled by reingesting the MMD files. Keep the
+log file, and get help from a data manager to handle this.
+
 # Installation
 
 To avoid problems with conflicting versions, we recommend using the [Conda](

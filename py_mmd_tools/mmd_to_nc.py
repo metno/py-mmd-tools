@@ -119,7 +119,7 @@ class Mmd_to_nc(object):
                     raise ValueError('Multiple ACDD or ACCD extension fields provided.'
                                      ' Please use another translation function.')
                 # Update the dictionary containing the ACDD elements
-                self.update_acdd({acdd_name[0]: xml_element.text}, {acdd_name[0]: sep})
+                self.update_acdd({acdd_name[0]: xml_element.text}, {acdd_name[0]: sep[0]})
 
     def update_acdd(self, new_dict, sep=None):
         """

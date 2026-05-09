@@ -417,7 +417,7 @@ class TestMMD2NC(unittest.TestCase):
         md.process_element(element_to_translate, md.mmd_yaml)
         self.assertIsNone(md.acdd_metadata)
         # MMD element listed in the translation dictionary, but with no translation information
-        element_to_translate = md.tree.find('mmd:last_metadata_update/mmd:update/mmd:note',
+        element_to_translate = md.tree.find('mmd:last_metadata_update/mmd:update/mmd:type',
                                             md.namespaces)
         md.process_element(element_to_translate, md.mmd_yaml)
         self.assertIsNone(md.acdd_metadata)

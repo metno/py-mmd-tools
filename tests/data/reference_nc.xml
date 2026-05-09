@@ -6,17 +6,26 @@
   <mmd:abstract xml:lang="no">Norsk abstrakt.</mmd:abstract>
   <mmd:metadata_status>Active</mmd:metadata_status>
   <mmd:dataset_production_status>In Work</mmd:dataset_production_status>
-  <mmd:collection>ADC</mmd:collection>
   <mmd:collection>METNCS</mmd:collection>
   <mmd:last_metadata_update>
     <mmd:update>
       <mmd:datetime>2020-11-27T14:05:56Z</mmd:datetime>
-      <mmd:note/>
       <mmd:type>Created</mmd:type>
     </mmd:update>
     <mmd:update>
-      <mmd:datetime>2020-11-27T14:05:56Z</mmd:datetime>
-      <mmd:type>Created</mmd:type>
+      <mmd:datetime>2024-07-30T12:36:53Z</mmd:datetime>
+      <mmd:type>Minor modification</mmd:type>
+      <mmd:note>New file location in storage information.</mmd:note>
+    </mmd:update>
+    <mmd:update>
+      <mmd:datetime>2024-07-30T12:39:39Z</mmd:datetime>
+      <mmd:type>Minor modification</mmd:type>
+      <mmd:note>New file location in storage information.</mmd:note>
+    </mmd:update>
+    <mmd:update>
+      <mmd:datetime>2024-07-30T12:39:57Z</mmd:datetime>
+      <mmd:type>Minor modification</mmd:type>
+      <mmd:note>New file location in storage information.</mmd:note>
     </mmd:update>
   </mmd:last_metadata_update>
   <mmd:temporal_extent>
@@ -41,6 +50,11 @@
   <mmd:keywords vocabulary="NORTHEMES">
     <mmd:keyword>Weather and climate</mmd:keyword>
     <mmd:resource>https://register.geonorge.no/metadata-kodelister/nasjonal-temainndeling</mmd:resource>
+    <mmd:separator></mmd:separator>
+  </mmd:keywords>
+  <mmd:keywords vocabulary="CFSTDN">
+    <mmd:keyword>toa_bidirectional_reflectance</mmd:keyword>
+    <mmd:resource>https://vocab.met.no/mmd/Keywords_Vocabulary/CFSTDN</mmd:resource>
     <mmd:separator></mmd:separator>
   </mmd:keywords>
   <mmd:geographic_extent>
@@ -116,7 +130,11 @@
     <mmd:email>post@met.no</mmd:email>
     <mmd:organisation>Norwegian Meteorological Institute</mmd:organisation>
     <mmd:contact_address>
-        <mmd:country>NORWAY</mmd:country>
+      <mmd:address>Meteorologisk institutt, Henrik Mohnsplass 1</mmd:address>
+      <mmd:city>Oslo</mmd:city>
+      <mmd:province_or_state>Oslo</mmd:province_or_state>
+      <mmd:postal_code>0000</mmd:postal_code>
+      <mmd:country>Norway</mmd:country>
     </mmd:contact_address>
   </mmd:personnel>
   <mmd:data_center>
@@ -126,13 +144,34 @@
     </mmd:data_center_name>
     <mmd:data_center_url>met.no</mmd:data_center_url>
   </mmd:data_center>
+  <mmd:quality_control>No quality control</mmd:quality_control>
+  <mmd:data_access>
+    <mmd:type>OPeNDAP</mmd:type>
+    <mmd:description>Open-source Project for a Network Data Access Protocol</mmd:description>
+    <mmd:resource>https://thredds.met.no/thredds/dodsC/reference_nc.nc</mmd:resource>
+  </mmd:data_access>
+  <mmd:data_access>
+    <mmd:type>HTTP</mmd:type>
+    <mmd:description>Direct download of file</mmd:description>
+    <mmd:resource>https://thredds.met.no/thredds/fileServer/reference_nc.nc</mmd:resource>
+  </mmd:data_access>
   <mmd:storage_information>
     <mmd:file_name>reference_nc.nc</mmd:file_name>
-    <mmd:file_location>tests/data/reference_nc.nc</mmd:file_location>
+    <mmd:file_location>/some/where/new</mmd:file_location>
     <mmd:file_format>NetCDF-CF</mmd:file_format>
-    <mmd:file_size unit="MB">0.02</mmd:file_size>
-    <mmd:checksum type=""></mmd:checksum>
+    <mmd:file_size unit="MB">0.03</mmd:file_size>
+    <mmd:checksum type="md5sum">aa188b45ece9bdbbc9b470106a6b13f8</mmd:checksum>
   </mmd:storage_information>
+  <mmd:related_information>
+    <mmd:type>Dataset landing page</mmd:type>
+    <mmd:description></mmd:description>
+    <mmd:resource>https://data.met.no/dataset/b7cb7934-77ca-4439-812e-f560df3fe7eb</mmd:resource>
+  </mmd:related_information>
+  <mmd:related_information>
+    <mmd:type>Scientific publication</mmd:type>
+    <mmd:description></mmd:description>
+    <mmd:resource>https://ieeexplore.ieee.org/document/7914752</mmd:resource>
+  </mmd:related_information>
   <mmd:project>
     <mmd:short_name>METNCS</mmd:short_name>
     <mmd:long_name>MET Norway core services</mmd:long_name>
@@ -148,11 +187,12 @@
     </mmd:instrument>
   </mmd:platform>
   <mmd:spatial_representation>grid</mmd:spatial_representation>
+  <mmd:activity_type>Not available</mmd:activity_type>
   <mmd:dataset_citation>
     <mmd:author>DIVISION FOR OBSERVATION QUALITY AND DATA PROCESSING</mmd:author>
     <mmd:publication_date>2020-11-27T14:05:56Z</mmd:publication_date>
     <mmd:title>Direct Broadcast data processed in satellite swath to L1C.</mmd:title>
-    <mmd:url>https://met.no/the/dataset/landing-page</mmd:url>
-    <mmd:other>https://met.no/published/or/web-based/references/that/describe/the/data/or/methods/used/to/produce/it/should/be/URI</mmd:other>
+    <mmd:publisher>Norwegian Meteorological Institute</mmd:publisher>
+    <mmd:url>https://data.met.no/dataset/b7cb7934-77ca-4439-812e-f560df3fe7eb</mmd:url>
   </mmd:dataset_citation>
 </mmd:mmd>
