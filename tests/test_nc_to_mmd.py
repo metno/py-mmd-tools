@@ -70,6 +70,27 @@ def test_parent_keyword_arg(dataDir):
         req, msg = md.to_mmd(parent="no.met:not-a-uuid")
     assert str(ve.value) == "UUID part of the parent ID is not valid"
 
+    # pre-existing parent
+    md = Nc_to_mmd(os.path.join(dataDir, "reference_nc_withparent.nc"), check_only=True)
+    req, msg = md.to_mmd(parent="no.met:654e8acf-77b1-4f53-b6bf-0cd6cf94e646")
+    # print(md.missing_attributes["warnings"])
+    assert "no need to update" in md.missing_attributes["warnings"][2]
+
+    # pre-existing parent but malformed
+    md = Nc_to_mmd(
+        os.path.join(dataDir, "reference_nc_withparentmalformed.nc"), check_only=True
+    )
+    with pytest.raises(ValueError) as ve:
+        req, msg = md.to_mmd(parent="no.met:654e8acf-77b1-4f53-b6bf-0cd6cf94e646")
+    assert str(ve.value) == "naming_authority ACDD attribute no.kvet is not valid"
+    assert ("Parent identifier already provided "
+            "in the netcdf file") in md.missing_attributes["warnings"][1]
+
+    # pre-existing parent but different
+    md = Nc_to_mmd(os.path.join(dataDir, "reference_nc_withparent.nc"), check_only=True)
+    req, msg = md.to_mmd(parent="no.met:bce66800-1722-495e-975b-6033abb4da7d")
+    assert "Using the one provided as keyword argument" in md.missing_attributes["warnings"][2]
+
 
 @pytest.mark.py_mmd_tools
 def test_file_location_in_overrides(dataDir):
@@ -1688,11 +1709,12 @@ class TestNC2MMD(unittest.TestCase):
         mmd_element = mmd_yaml["personnel"]
         test_in = os.path.abspath('tests/data/reference_nc.nc')
         md = Nc_to_mmd(test_in, check_only=True)
-        with Dataset(test_in, "w", diskless=True) as ncin:
-            # iso_topic_category is not valid
-            ncin.creator_role = "abcd"
-            md.get_personnel(mmd_element, ncin)
-        assert "The ACDD attribute 'contact_roles' must" in md.missing_attributes['errors'][0]
+        ncin = Dataset(test_in, "w", diskless=True)
+
+        # iso_topic_category is not valid
+        ncin.creator_role = "abcd"
+        md.get_personnel(mmd_element, ncin)
+        assert "The ACDD attribute 'contributor_role' must" in md.missing_attributes['errors'][0]
 
     def test_personnel(self):
         """Test reading of personnel from nc file into MMD"""
