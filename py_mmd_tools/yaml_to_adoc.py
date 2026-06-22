@@ -130,11 +130,13 @@ def nc_attrs_from_yaml():
     defined as ACDD extensions.
     """
     mmd_yaml = yaml.load(
-        files(globals()['__name__'].split('.')[0]).joinpath('mmd_elements.yaml').read_bytes(), Loader=yaml.FullLoader
+        files(globals()['__name__'].split('.')[0]).joinpath('mmd_elements.yaml').read_bytes(),
+        Loader=yaml.FullLoader
     )
 
     cf_yaml = yaml.load(
-        files(globals()['__name__'].split('.')[0]).joinpath('cf_elements.yaml').read_bytes(), Loader=yaml.FullLoader
+        files(globals()['__name__'].split('.')[0]).joinpath('cf_elements.yaml').read_bytes(),
+        Loader=yaml.FullLoader
     )
 
     attributes = {}
