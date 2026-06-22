@@ -16,7 +16,7 @@ import yaml
 import netCDF4 as nc
 import lxml.etree as ET
 import py_mmd_tools
-from pkg_resources import resource_string
+from importlib.resources import files
 
 
 class Mmd_to_nc(object):
@@ -40,7 +40,7 @@ class Mmd_to_nc(object):
         self.namespaces.update({'xml': 'http://www.w3.org/XML/1998/namespace'})
         # Translation file between MMD and ACDD
         self.mmd_yaml = yaml.load(
-            resource_string(py_mmd_tools.__name__, 'mmd_elements.yaml'), Loader=yaml.FullLoader
+            files(py_mmd_tools.__name__).joinpath('mmd_elements.yaml').read_bytes(), Loader=yaml.FullLoader
         )
         # Dictionary that will contain all ACDD attributes
         self.acdd_metadata = None

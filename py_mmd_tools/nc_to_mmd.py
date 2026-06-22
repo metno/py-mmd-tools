@@ -27,7 +27,7 @@ import numpy as np
 
 from filehash import FileHash
 from itertools import zip_longest
-from pkg_resources import resource_string
+from importlib.resources import files
 from dateutil.parser import isoparse
 from uuid import UUID
 
@@ -1709,7 +1709,7 @@ class Nc_to_mmd(object):
         # Get list of MMD elements
         if mmd_yaml is None:
             mmd_yaml = yaml.load(
-                resource_string(self.__module__.split(".")[0], "mmd_elements.yaml"),
+                files(self.__module__.split(".")[0]).joinpath("mmd_elements.yaml").read_bytes(),
                 Loader=yaml.FullLoader,
             )
 
