@@ -14,7 +14,7 @@ import xmltodict
 import unittest
 import py_mmd_tools
 
-from pkg_resources import resource_string
+from importlib.resources import files
 
 
 class TestMDDElementsInYAMLAndXSD(unittest.TestCase):
@@ -25,7 +25,8 @@ class TestMDDElementsInYAMLAndXSD(unittest.TestCase):
         with open(xml_file) as xml:
             self.mmd_xml = xmltodict.parse(xml.read())
         self.mmd_yaml = yaml.load(
-            resource_string(py_mmd_tools.__name__, 'mmd_elements.yaml'), Loader=yaml.FullLoader
+            files(py_mmd_tools.__name__).joinpath('mmd_elements.yaml').read_bytes(),
+            Loader=yaml.FullLoader
         )
 
     def check_elements(self, elements, type_defs=None):

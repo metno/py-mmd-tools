@@ -24,7 +24,7 @@ import pathlib
 import yaml
 import warnings
 
-from pkg_resources import resource_string
+from importlib.resources import files
 
 from py_mmd_tools import nc_to_mmd
 
@@ -145,7 +145,7 @@ def main(args=None):
         if args.file_location is not None:
             overrides = {"file_location": args.file_location}
         mmd_yaml = yaml.load(
-            resource_string(md.__module__.split(".")[0], "mmd_elements.yaml"),
+            files(md.__module__.split(".")[0]).joinpath("mmd_elements.yaml").read_bytes(),
             Loader=yaml.FullLoader
         )
         metadata_id = md.get_metadata_identifier(mmd_yaml["metadata_identifier"],
