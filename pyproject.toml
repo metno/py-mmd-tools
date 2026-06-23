@@ -12,11 +12,11 @@ classifiers = [
 	"License :: OSI Approved :: Apache Software License",
 	"Operating System :: OS Independent",
 	"Programming Language :: Python :: 3 :: Only",
-	"Programming Language :: Python :: 3.9",
 	"Programming Language :: Python :: 3.10",
 	"Programming Language :: Python :: 3.11",
 	"Programming Language :: Python :: 3.12",
 	"Programming Language :: Python :: 3.13",
+	"Programming Language :: Python :: 3.14",
 	"Programming Language :: Python :: Implementation :: CPython",
 	"Topic :: Scientific/Engineering",
 	"Topic :: Scientific/Engineering :: Atmospheric Science",
@@ -43,7 +43,7 @@ dependencies = [
 name = "py-mmd-tools"
 description = "This  is a tools for generating MMD files from netCDF-CF files with ACDD attributes, for documenting netCDF-CF files from MMD information."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 [project.scripts]
 nc2mmd = "py_mmd_tools.script.nc2mmd:_main"
