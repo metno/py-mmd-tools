@@ -513,6 +513,7 @@ storage_information:
   file_size:
   checksum:
   storage_expiry_date:
+  responsible_unit:
 
 related_information:
   maxOccurs: unbounded

@@ -1,7 +1,7 @@
 import yaml
 import jinja2
 
-from pkg_resources import resource_string
+from importlib.resources import files
 
 
 def repetition_allowed(field):
@@ -133,15 +133,13 @@ def nc_attrs_from_yaml():
     defined as ACDD extensions.
     """
     mmd_yaml = yaml.load(
-        resource_string(
-            globals()['__name__'].split('.')[0], 'mmd_elements.yaml'
-        ), Loader=yaml.FullLoader
+        files(globals()['__name__'].split('.')[0]).joinpath('mmd_elements.yaml').read_bytes(),
+        Loader=yaml.FullLoader
     )
 
     cf_yaml = yaml.load(
-        resource_string(
-            globals()['__name__'].split('.')[0], 'cf_elements.yaml'
-        ), Loader=yaml.FullLoader
+        files(globals()['__name__'].split('.')[0]).joinpath('cf_elements.yaml').read_bytes(),
+        Loader=yaml.FullLoader
     )
 
     attributes = {}

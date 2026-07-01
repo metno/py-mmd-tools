@@ -137,3 +137,5 @@ dmypy.json
 
 # Custom
 /*.nc
+issue358.md
+summary.md
